@@ -43,4 +43,19 @@ namespace P3D {
 
 		return tokens;
 	}
+
+	std::list<std::string> Util::SplitString(std::string str, char delim) {
+		std::list<std::string> tokens;
+
+		size_t pos = 0;
+		std::string token;
+		while ((pos = str.find(delim)) != std::string::npos) {
+			token = str.substr(0, pos);
+			tokens.push_back(token);
+			str.erase(0, pos + 1);
+		}
+		tokens.push_back(str);
+
+		return tokens;
+	}
 }

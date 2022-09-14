@@ -42,7 +42,7 @@ namespace P3D {
 
         mesh->vertices = new Vertex[mesh->vertexCount];
 
-        for(int i = 0; i < mesh->vertexCount; i++) {
+        for(uint32_t i = 0; i < mesh->vertexCount; i++) {
             Vertex v;
             file.read((char*) &v.position[0], sizeof(float));
             file.read((char*) &v.position[1], sizeof(float));
@@ -60,7 +60,7 @@ namespace P3D {
 
         mesh->indices = new unsigned int[mesh->indexCount];
 
-        for(int i = 0; i < mesh->indexCount; i++) {
+        for(uint32_t i = 0; i < mesh->indexCount; i++) {
             file.read((char*) &mesh->indices[i], sizeof(unsigned int)); 
         }
     }

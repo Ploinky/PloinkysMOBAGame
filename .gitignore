@@ -1,6 +1,9 @@
 # Project specific
 build/
 obj/
+x64
 
 # Visual Studio
 .vscode
+.vs/
+*.user

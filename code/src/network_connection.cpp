@@ -1,11 +1,13 @@
 #include "network_connection.hpp"
 #include "logger.hpp"
+#include "util.hpp"
 
 namespace P3D {
-    void NetworkConnection::Connect() {
+    void NetworkConnection::Connect(std::string ip) {
         Logger::Msg("Connecting to network server...");
         
-        std::string ipAddress = "127.0.0.1";
+        std::string ipAddress = ip;
+        printf("Network server: %s\r\n", ip.c_str());
         int port = 23119;
 
         WSADATA data;
@@ -40,8 +42,9 @@ namespace P3D {
         }
 
         unsigned long mode = 1;
-        if(ioctlsocket(sock, FIONBIO, &mode) != 0) {
-            std::cerr << "Failed to set socket non blocking" << std::endl;
+        if (ioctlsocket(sock, FIONBIO, &mode) != 0) {
+            std::cerr << "Failed to set accept socket non blocking" << std::endl;
+            return;
         }
     }
 
@@ -54,9 +57,17 @@ namespace P3D {
 
         ZeroMemory(buf, 4096);
         int bytesReceived = recv(sock, buf, 4096, 0);
+        int bytesParsed = 0;
+        int msgs = 0;
 
-        if(bytesReceived > 0) {
-            messages.push_back(std::string(buf, 0, bytesReceived));
+        while (bytesReceived > 0) {
+            // What the hack
+            std::string msg(&buf[bytesParsed], 0, bytesReceived);
+            messages.push_back(msg);
+
+            int msgLength = msg.length() + 1;
+            bytesReceived -= msgLength;
+            bytesParsed += msgLength;
         }
     }
 

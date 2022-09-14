@@ -17,8 +17,10 @@ namespace P3D {
             uint32_t indexCount;
             ID3D11Buffer* vertexBuffer;
             ID3D11Buffer* indexBuffer;
-            DirectX::XMFLOAT3 position;
+            DirectX::XMFLOAT3 position = DirectX::XMFLOAT3();
             DirectX::XMFLOAT3 rotation = DirectX::XMFLOAT3();
+            
+            unsigned long unit;
 
             ~Mesh();
             bool Initialize(Direct3D* direct3D);

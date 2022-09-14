@@ -7,10 +7,15 @@
 // Main game application
 namespace P3D {
     typedef struct {
-        unsigned long index;
-        long long received;
         float x;
         float y;
+        unsigned long unitId;
+    } unit_t;
+
+    typedef struct {
+        unsigned long index;
+        long long received;
+        std::list<unit_t> units;
     } game_tick_t;
 
     class Mesh;
@@ -23,6 +28,7 @@ namespace P3D {
     
     class Client {
         public:
+            Client(std::string ip);
             ~Client();
             void Run();
 
@@ -54,9 +60,17 @@ namespace P3D {
 
             void HandlePlayerInput(Mesh* model, float dt);
             void HandleNetworkMessage(std::string msg);
-            void HandleTicks();
+            void HandleTicks(long long frameTime);
             long long GetSystemTime();
 
+            void SpawnUnit(unsigned long id);
+            void DespawnUnit(unsigned long id);
+
+            Mesh* GetModelForUnit(unsigned long untiId);
+
             std::list<game_tick_t> ticks;
+            std::list<unit_t> units;
+
+            std::string ip;
     };
 }

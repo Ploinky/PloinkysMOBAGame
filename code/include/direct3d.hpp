@@ -1,7 +1,9 @@
 #pragma once
 
 #include <d3d11.h>
-
+#include <d2d1.h>
+#include <string>
+#include <dwrite.h>
 // Provides access to Direct3D API
 namespace P3D {
     // Forward declarations
@@ -38,13 +40,16 @@ namespace P3D {
             
             // Renders the specified model to the screen
             void Render(Mesh* model);
+            void RenderText(int x, int y, std::wstring text);
             
             ID3D11Device* device;
             ID3D11DeviceContext* context;
 
         private:
             ID3D11RenderTargetView* renderTargetView;
+            ID2D1RenderTarget* renderTarget2D;
             ID3D11DepthStencilView* depthView;
+            IDWriteTextFormat* format;
             IDXGISwapChain* swapChain;
             HWND windowHandle;
 
@@ -56,6 +61,9 @@ namespace P3D {
             bool CreateBackBuffer();
             // Creates depth and stencil buffers
             bool CreateDepthBuffer();
+            // Creates 2D rendering surface
+            bool Create2DSurface();
+            bool InitializeDirectWrite();
             // Bind render target and depth buffer view to output merger stage
             void BindViews();
             // Sets the viewport to take up the entirety of the window

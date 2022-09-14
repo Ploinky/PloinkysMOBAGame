@@ -20,7 +20,7 @@ $(FOLDERS):
 	if not exist .build\data xcopy data .\build\data /I /S /Y
 
 $(EXE_FILE): $(OBJ_FILES)
-	g++ -Wall -std=c++17 $^ -I code/include -o $@ -ld3d11 -lws2_32 -municode
+	g++ -Wall -std=c++17 $^ -I code/include -o $@ -ld3d11 -lws2_32 -mwindows -municode
 
 obj/%.o: code/src/%.cpp code/include/%.hpp
 	g++ -Wall -std=c++17 $< -c -I code/include -o $@

@@ -2,10 +2,10 @@
 
 namespace P3D {
     void KeyboardInput::SetKeyDown(char key, bool down) {
-        keys[key] = down;
+        keys[(int)key] = down;
     }
 
     bool KeyboardInput::IsKeyDown(char key) {
-        return keys[key];
+        return keys[(int)key];
     }
 }

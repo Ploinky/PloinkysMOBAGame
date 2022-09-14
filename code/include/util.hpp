@@ -15,5 +15,6 @@ namespace P3D {
         public:
             static file_t ReadBytesFromFile(std::string file);
 	        static std::list<std::string> SplitString(std::string str, std::string delim);
+            static std::list<std::string> Util::SplitString(std::string str, char delim);
     };
 }

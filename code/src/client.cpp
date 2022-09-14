@@ -1,5 +1,6 @@
 #include "client.hpp"
 #include <iostream>
+#include "network_connection.hpp"
 #include "window.hpp"
 #include "mesh.hpp"
 #include "vertex.hpp"
@@ -12,11 +13,19 @@
 #include "mouse_input.hpp"
 #include <chrono>
 #include "map.hpp"
-#include "network_connection.hpp"
 #include <sstream>
 #include "util.hpp"
 
 namespace P3D {
+    Client::Client(std::string ip) {
+        if (ip.empty()) {
+            this->ip = "127.0.0.1";
+        }
+        else {
+            this->ip = ip;
+        }
+    }
+
     Client::~Client() {
         for(Mesh* m : models) {
             delete m;
@@ -41,25 +50,10 @@ namespace P3D {
         Logger::Msg("Starting Ploinky's MOBA Game client...");
 
         network = new NetworkConnection();
-        network->Connect();
+        network->Connect(ip);
 
         Map* map = new Map();
         map->Load("./data/maps/map1/map1.omp");
-
-
-        Mesh* model = new Mesh();
-        Vertex vert[] = {
-            Vertex{{-0.5f, 1, -0.5f}, {1.0f, 0, 0, 1}},
-            Vertex{{0.5f, 1, 0.5f}, {0, 0, 1.0f, 1}},
-            Vertex{{0.5f, 1, -0.5f}, {0, 1.0f, 0, 1}},
-            Vertex{{-0.5f, 1, 0.5f}, {0, 0, 1.0f, 1}},
-        };
-        unsigned int indices[] = {0, 1, 2, 1, 0, 3};
-        model->vertices = vert;
-        model->vertexCount = 4;
-        model->indices = indices;
-        model->indexCount = 6;
-        models.push_back(model);
 
         // Create and show window
         window = new Window();
@@ -114,13 +108,13 @@ namespace P3D {
                 HandleNetworkMessage(msg);
             }
 
-            HandleTicks();
+            HandleTicks(thisFrame);
 
             // Event handling
             window->HandleEvents();
 
             // Game logic
-            HandlePlayerInput(model, dt);
+            HandlePlayerInput(nullptr, dt);
 
             // Render scene
             BeginRender();
@@ -131,6 +125,11 @@ namespace P3D {
                 Render(m);
             }
 
+            std::wstring fpsText(L"FPS: ");
+            fpsText.append(std::to_wstring((int) (1000.0f / (dt * 1000.0f))));
+
+            direct3D->RenderText(0, 0, fpsText);
+
             FinishRender();
         }
 
@@ -138,7 +137,6 @@ namespace P3D {
     }
 
     void Client::HandlePlayerInput(Mesh* model, float dt) {
-        
         int keysX = keyboardInput->IsKeyDown('D') - keyboardInput->IsKeyDown('A');
         int mouseX = (m_mouseInput->GetMouseX() == (short) window->width - 1) - (m_mouseInput->GetMouseX() == 0);
         int keysZ = keyboardInput->IsKeyDown('W') - keyboardInput->IsKeyDown('S');
@@ -158,9 +156,16 @@ namespace P3D {
         }
 
         if(keyboardInput->IsKeyDown(VK_SPACE)) {
-            // Snap to player
-            renderer->camera->position.x = model->position.x;
-            renderer->camera->position.z = model->position.z - 5;
+            if (!models.empty()) {
+                // Snap to player
+                renderer->camera->position.x = models.front()->position.x;
+                renderer->camera->position.z = models.front()->position.z - 5;
+            }
+            else {
+                renderer->camera->position.x = 0;
+                renderer->camera->position.z = -5;
+            }
+
         }
 
         if(keyboardInput->IsKeyDown('H')) {
@@ -193,48 +198,200 @@ namespace P3D {
     void Client::HandleNetworkMessage(std::string msg) {
         std::list<std::string> tokens = Util::SplitString(msg, std::string("|"));
 
+        OutputDebugString(msg.c_str());
+        OutputDebugString("\r\n");
+
         if(tokens.front() == "Tick") {
             tokens.pop_front();
+
+            std::string tickIndex = tokens.front();
+            tokens.pop_front();
+
+            game_tick_t newTick = { 0 };
+            newTick.index = stoi(tickIndex);
+
             while(!tokens.empty()) {
-                std::string tickIndex = tokens.front();
+                std::string tokenData = tokens.front();
                 tokens.pop_front();
 
-                game_tick_t newTick = { 0 };
-                newTick.index = stoi(tickIndex);
+                std::list<std::string> subTokens = Util::SplitString(tokenData, std::string(";"));
+                if(subTokens.front() == "UnitSpawn") {
+                    subTokens.pop_front();
+                    
+                    unit_t unit = { 0 };
 
+                    unsigned long id = std::stoi(subTokens.front());
+                    subTokens.pop_front();
 
-                std::string playerData = tokens.front();
-                tokens.pop_front();
+                    float x = std::stof(subTokens.front());
+                    subTokens.pop_front();
 
-                std::list<std::string> pdTokens = Util::SplitString(playerData, std::string(";"));
-                if(pdTokens.front() == "Player1") {
-                    pdTokens.pop_front();
+                    float y = std::stof(subTokens.front());
+                    subTokens.pop_front();
 
-                    float x = std::stof(pdTokens.front());
-                    pdTokens.pop_front();
+                    SpawnUnit(id);
 
-                    float y = std::stof(pdTokens.front());
-                    pdTokens.pop_front();
+                    unit.unitId = id;
+                    unit.x = x;
+                    unit.y = y;
 
-                    newTick.x = x;
-                    newTick.y = y;
+                    newTick.units.push_back(unit);
+                } else if (subTokens.front() == "UnitMove" || subTokens.front() == "UnitIdle") {
+                    subTokens.pop_front();
+                    
+                    unit_t unit = { 0 };
+
+                    unsigned long id = std::stoi(subTokens.front());
+                    subTokens.pop_front();
+
+                    float x = std::stof(subTokens.front());
+                    subTokens.pop_front();
+
+                    float y = std::stof(subTokens.front());
+                    subTokens.pop_front();
+
+                    unit.unitId = id;
+                    unit.x = x;
+                    unit.y = y;
+
+                    newTick.units.push_back(unit);
+                } else if (subTokens.front() == "UnitDespawn") {
+                    subTokens.pop_front();
+
+                    unsigned long id = std::stoi(subTokens.front());
+                    subTokens.pop_front();
+
+                    DespawnUnit(id);
                 }
+            }
+            newTick.received = GetSystemTime();
+            ticks.push_back(newTick);
+        } else if (tokens.front() == "SpawnUnits") {
+            tokens.pop_front();
 
-                newTick.received = GetSystemTime();
-                ticks.push_back(newTick);
+            while (!tokens.empty()) {
+                std::string tokenData = tokens.front();
+                tokens.pop_front();
+
+                std::list<std::string> subTokens = Util::SplitString(tokenData, std::string(";"));
+
+                unit_t unit = { 0 };
+
+                unsigned long id = std::stoi(subTokens.front());
+                subTokens.pop_front();
+
+                float x = std::stof(subTokens.front());
+                subTokens.pop_front();
+
+                float y = std::stof(subTokens.front());
+                subTokens.pop_front();
+
+                SpawnUnit(id);
+
+                unit.unitId = id;
+                unit.x = x;
+                unit.y = y;
             }
         }
     }
 
-    void Client::HandleTicks() {
-        game_tick_t lastTick = ticks.back();
-        game_tick_t nextLastTick = *std::prev(ticks.end());
+    void Client::HandleTicks(long long frameTime) {
+        if(ticks.size() <= 3) {
+            // We need at least 2 frames for interpolation
+            return;
+        }
 
-        // See how much time passed since last tick
-        float diff = (GetSystemTime() - lastTick.received) / 1000000.0f / 1000.0f;
+        game_tick_t lastTick = *std::prev(std::prev(ticks.end()));
+        game_tick_t nextLastTick = *std::prev(std::prev(std::prev(ticks.end())));
 
-        // Interpolate from second to last to last tick
-        models.front()->position.x = nextLastTick.x + (lastTick.x - nextLastTick.x) / diff;
-        models.front()->position.z = nextLastTick.y + (lastTick.y - nextLastTick.y) / diff;
+        float time = (frameTime - lastTick.received) / 1000000.0f / 1000.0f;
+        float diff = time / (16.66f / 1000.0f);
+
+        for(auto unit = units.begin(); unit != units.end(); unit++) {
+            float lastX = unit->x;
+            float lastY = unit->y;
+            float nextLastX = unit->x;
+            float nextLastY = unit->y;
+
+            for(auto lastUnit = lastTick.units.begin(); lastUnit != lastTick.units.end(); ++lastUnit) {
+                if(lastUnit->unitId == unit->unitId) {
+                    lastX = lastUnit->x;
+                    lastY = lastUnit->y;
+                }
+            }
+
+            for(auto nextLastUnit = nextLastTick.units.begin(); nextLastUnit != nextLastTick.units.end(); ++nextLastUnit) {
+                if(nextLastUnit->unitId == unit->unitId) {
+                    nextLastX = nextLastUnit->x;
+                    nextLastY = nextLastUnit->y;
+                }
+            }
+
+            Mesh* model = GetModelForUnit(unit->unitId);
+
+            if(model == nullptr) {
+                printf("No model for unit %ld\r\n", unit->unitId);
+                continue;
+            }
+
+            // Interpolate from second to last to last tick
+            model->position.x = nextLastX + (lastX - nextLastX) * diff;
+            model->position.z = nextLastY + (lastY - nextLastY) * diff;
+        }
+
+    }
+
+    void Client::SpawnUnit(unsigned long unitId) {
+        unit_t unit = { 0 };
+        unit.unitId = unitId;
+        units.push_back(unit);
+
+        Mesh* model = new Mesh();
+        Vertex* vert = new Vertex[4]{
+            Vertex{{-0.5f, 1, -0.5f}, {1.0f, 0, 0, 1}},
+            Vertex{{0.5f, 1, 0.5f}, {0, 0, 1.0f, 1}},
+            Vertex{{0.5f, 1, -0.5f}, {0, 1.0f, 0, 1}},
+            Vertex{{-0.5f, 1, 0.5f}, {0, 0, 1.0f, 1}},
+        };
+        unsigned int* indices = new unsigned int[6]{0, 1, 2, 1, 0, 3};
+        model->vertices = vert;
+        model->vertexCount = 4;
+        model->indices = indices;
+        model->indexCount = 6;
+        model->unit = unitId;
+        models.push_back(model);
+        printf("Spawned model for unit %ld\r\n", unitId);
+    }
+
+    Mesh* Client::GetModelForUnit(unsigned long unitId) {
+        for(auto model = models.begin(); model != models.end(); ++model) {
+            if((*model)->unit == unitId) {
+                return *model;
+            }
+        }
+
+        return nullptr;
+    }
+
+    void Client::DespawnUnit(unsigned long unitId) {
+        for(auto unit = units.begin(); unit != units.end(); ++unit) {
+            if(unit->unitId == unitId) {
+                unit = units.erase(unit);
+
+                if (unit == units.end()) {
+                    break;
+                }
+            }
+        }
+
+        for(auto model = models.begin(); model != models.end(); ++model) {
+            Mesh* mdl = *model;
+            if(mdl->unit == unitId) {
+                models.erase(model);
+                break;
+            }
+        }
+
+        printf("Despawned model for unit %ld\r\n", unitId);
     }
 }

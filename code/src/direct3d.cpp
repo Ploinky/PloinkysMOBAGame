@@ -57,6 +57,15 @@ namespace P3D {
         if(!CreateDepthBuffer()) {
             return false;
         }
+
+        // Create Direct2D surface for 2D rendering
+        if (!Create2DSurface()) {
+            return false;
+        }
+
+        if (!InitializeDirectWrite()) {
+            return false;
+        }
         
         // Further setup of rendering resources
 
@@ -284,6 +293,71 @@ namespace P3D {
         return true;
     }
 
+    bool Direct3D::Create2DSurface() {
+        D2D1_RENDER_TARGET_PROPERTIES props = {
+                D2D1_RENDER_TARGET_TYPE_DEFAULT,
+                D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+                0,
+                0
+        };
+        IDXGISurface* surf;
+
+        HRESULT hr = swapChain->GetBuffer(
+            0,
+            IID_PPV_ARGS(&surf)
+        );
+
+        if (FAILED(hr) || surf == 0) {
+            return false;
+        }
+
+        // Create a Direct2D render target that can draw into the surface in the swap chain
+        ID2D1Factory* d2dFactory;
+        hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2dFactory);
+
+        if (FAILED(hr) || d2dFactory == 0) {
+            surf->Release();
+            return false;
+        }
+
+        hr = d2dFactory->CreateDxgiSurfaceRenderTarget(
+            surf,
+            &props,
+            &renderTarget2D);
+
+        surf->Release();
+        d2dFactory->Release();
+
+        if (FAILED(hr)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool Direct3D::InitializeDirectWrite() {
+        IDWriteFactory* dWriteFactory;
+
+        HRESULT hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+            reinterpret_cast<IUnknown**>(&dWriteFactory));
+
+        hr = dWriteFactory->CreateTextFormat(
+            L"Consolas",
+            NULL,
+            DWRITE_FONT_WEIGHT_REGULAR,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            16.0f,
+            L"en-us",
+            &format
+        );
+
+        hr = format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+        hr = format->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+        return true;
+    }
+
     void Direct3D::BindViews() {
         context->OMSetRenderTargets(1, &renderTargetView, depthView);
     }
@@ -314,6 +388,41 @@ namespace P3D {
         context->ClearRenderTargetView(renderTargetView, color);
         context->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f ,0);
         context->OMSetRenderTargets(1, &renderTargetView, depthView);
+    }
+
+    void Direct3D::RenderText(int x, int y, std::wstring text) {
+        //Draw D2D content        
+        renderTarget2D->BeginDraw();
+
+        //Set the Font Color
+        D2D1_COLOR_F FontColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
+        
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+            &brush
+        );
+
+        if (FAILED(hr) || brush == nullptr) {
+            return;
+        }
+
+        //Set the brush color D2D will use to draw with
+        brush->SetColor(FontColor);
+
+        //Create the D2D Render Area
+        D2D1_RECT_F layoutRect = D2D1::RectF(0, 0, 1000, 1000);
+
+        //Draw the Text
+        renderTarget2D->DrawText(
+            text.c_str(),
+            wcslen(text.c_str()),
+            format,
+            layoutRect,
+            brush
+        );
+
+        renderTarget2D->EndDraw();
     }
 
     bool Direct3D::Present() {
@@ -389,6 +498,7 @@ namespace P3D {
     void Direct3D::SetWindowDimensions(int width, int height) {
         context->OMSetRenderTargets(0, 0, 0);
         renderTargetView->Release();
+        renderTarget2D->Release();
         depthView->Release();
         context->ClearState();
         context->Flush();
@@ -401,6 +511,10 @@ namespace P3D {
 
         if(!CreateDepthBuffer()) {
             Logger::Err("Failed to create depth buffer");
+        }
+
+        if (!Create2DSurface()) {
+            Logger::Err("Failed to create D2D surface");
         }
 
         BindViews();

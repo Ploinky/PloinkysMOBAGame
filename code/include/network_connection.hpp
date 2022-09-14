@@ -6,7 +6,7 @@
 namespace P3D {
     class NetworkConnection {
     public:
-        void Connect();
+        void Connect(std::string ip);
         void Close();
 
         void ReceiveMessages();
