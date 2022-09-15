@@ -144,4 +144,37 @@ namespace P3D {
 
         direct3D->context->Unmap(constantBuffer, 0);
     }
+
+    void Renderer::TestIntersect(int mx, int my, float* outX, float* outZ) {
+        DirectX::XMMATRIX projMat = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&frameConstBuffer.projMatrix));
+        DirectX::XMMATRIX camMat = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&frameConstBuffer.cameraMatrix));
+        DirectX::XMMATRIX worldMat = DirectX::XMMatrixTranspose(DirectX::XMMatrixTranslation(0, 0, 0));
+
+        DirectX::XMMATRIX mat = projMat * camMat;
+        DirectX::XMMATRIX invMat = DirectX::XMMatrixInverse(nullptr, mat);
+        DirectX::XMVECTOR screenCoords = DirectX::XMLoadFloat3(&DirectX::XMFLOAT3(mx, my, 0));
+        DirectX::XMVECTOR endCoords = DirectX::XMLoadFloat3(&DirectX::XMFLOAT3(mx, my, 1.0f));
+        DirectX::XMVECTOR rayOriginV = DirectX::XMVector3Unproject(screenCoords, 0, 0, 1024, 768, 0.0f, 1.0f, projMat, camMat, worldMat);
+        DirectX::XMVECTOR rayEndV = DirectX::XMVector3Unproject(endCoords, 0, 0, 1024, 768, 0.0f, 1.0f, projMat, camMat, worldMat);
+        DirectX::XMFLOAT3 rayOrigin;
+        DirectX::XMStoreFloat3(&rayOrigin, DirectX::XMVectorScale(rayOriginV, DirectX::XMVectorGetW(rayOriginV)));
+        DirectX::XMFLOAT3 rayEnd;
+        DirectX::XMStoreFloat3(&rayEnd, DirectX::XMVectorScale(rayEndV, DirectX::XMVectorGetW(rayEndV)));
+        DirectX::XMFLOAT3 normal(0.0f, 1.0f, 0.0f);
+        DirectX::XMFLOAT3 origin(0.0f, 0.0f, 0.0f);
+        DirectX::XMVECTOR normalV = DirectX::XMLoadFloat3(&normal);
+        DirectX::XMVECTOR originV = DirectX::XMLoadFloat3(&origin);
+        DirectX::XMVECTOR rayV = DirectX::XMVectorSubtract(rayEndV, rayOriginV);
+        DirectX::XMFLOAT3 ray;
+        DirectX::XMStoreFloat3(&ray, rayV);
+
+
+        float denom = DirectX::XMVectorGetX(DirectX::XMVector3Dot(normalV, rayV));
+
+        if (abs(denom) > 0.0001f) {
+            float t = DirectX::XMVectorGetX(DirectX::XMVector3Dot(DirectX::XMVectorSubtract(originV, rayOriginV), normalV)) / denom;
+            *outX = rayOrigin.x + ray.x * t;
+            *outZ = rayOrigin.z + ray.z * t;
+        }
+    }
 }

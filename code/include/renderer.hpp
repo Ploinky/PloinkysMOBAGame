@@ -25,6 +25,8 @@ namespace P3D {
             void SetAspectRatio(float aspect);
             void UpdateCameraMatrix();
 
+            void TestIntersect(int mx, int my, float* outX, float* outY);
+
             Camera* camera;
             Direct3D* direct3D;
             ID3D11InputLayout* inputLayout;

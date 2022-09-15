@@ -85,6 +85,14 @@ namespace P3D {
             m_mouseInput->SetMousePosition(x, y);
         };
 
+        window->mouseButtonHandler = [this](int btn, bool down) {
+            if (down) {
+                m_mouseInput->SetButtonDown(btn);
+            } else {
+                m_mouseInput->SetButtonUp(btn);
+            }
+        };
+
         renderer = new Renderer();
         renderer->Initialize(direct3D, window->width, window->height);
         
@@ -168,12 +176,15 @@ namespace P3D {
 
         }
 
-        if(keyboardInput->IsKeyDown('H')) {
+        if (m_mouseInput->IsButtonDown(2)) {
+            float x, y;
+            renderer->TestIntersect(m_mouseInput->GetMouseX(), m_mouseInput->GetMouseY(), &x, &y);
+            std::cout << "PRESSED! " << x << "-" << y << std::endl;
             std::string msg = std::string()
                 .append("MoveCommand|")
-                .append(std::to_string(-3))
+                .append(std::to_string(x))
                 .append(";")
-                .append(std::to_string(-3));
+                .append(std::to_string(y));
             network->WriteMessage(msg);
         }
     }

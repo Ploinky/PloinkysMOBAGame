@@ -41,7 +41,7 @@ namespace P3D {
             // Renders the specified model to the screen
             void Render(Mesh* model);
             void RenderText(int x, int y, std::wstring text);
-            
+
             ID3D11Device* device;
             ID3D11DeviceContext* context;
 

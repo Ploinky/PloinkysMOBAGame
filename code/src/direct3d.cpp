@@ -7,6 +7,7 @@
 #include <vector>
 #include <type_traits>
 #include "util.hpp"
+#include <DirectXMath.h>
 
 // #define DEBUG
 
@@ -504,12 +505,12 @@ namespace P3D {
         context->Flush();
 
         swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-        
-        if(!CreateBackBuffer()) {
+
+        if (!CreateBackBuffer()) {
             Logger::Err("Failed to create back buffer");
         }
 
-        if(!CreateDepthBuffer()) {
+        if (!CreateDepthBuffer()) {
             Logger::Err("Failed to create depth buffer");
         }
 

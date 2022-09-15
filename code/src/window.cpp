@@ -7,44 +7,54 @@
 #include "logger.hpp"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    P3D::Window* window = (P3D::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    if (window == nullptr) {
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+
     switch (msg) {
         case WM_QUIT:
-        case WM_DESTROY: {
-            P3D::Logger::Msg("Windows window has been destroyed.");
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            window->SetShouldClose();
+        case WM_DESTROY: {window->SetShouldClose();
             break;
         }
         case WM_SIZE: {
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-
-            if(window == nullptr) {
-                break;
-            }
-            
             window->Resized(LOWORD(lParam), HIWORD(lParam));
             break;
         }
         case WM_KEYDOWN: {
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if(window != nullptr) {
-                window->KeyPressed(wParam);
-            }
+            window->KeyPressed(wParam);
             break;
         }
         case WM_KEYUP: {
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if(window != nullptr) {
-                window->KeyReleased(wParam);
-            }
+            window->KeyReleased(wParam);
             break;
         }
         case WM_MOUSEMOVE: {
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if(window != nullptr) {
-                window->MouseMoved(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            }
-
+            window->MouseMoved(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            break;
+        }
+        case WM_LBUTTONDOWN: {
+            window->MouseButtonPressed(0);
+            break;
+        }
+        case WM_MBUTTONDOWN: {
+            window->MouseButtonPressed(1);
+            break;
+        }
+        case WM_RBUTTONDOWN: {
+            window->MouseButtonPressed(2);
+            break;
+        }
+        case WM_LBUTTONUP: {
+            window->MouseButtonReleased(0);
+            break;
+        }
+        case WM_MBUTTONUP: {
+            window->MouseButtonReleased(1);
+            break;
+        }
+        case WM_RBUTTONUP: {
+            window->MouseButtonReleased(2);
             break;
         }
         case WM_ACTIVATE: {
@@ -199,6 +209,17 @@ namespace P3D {
     void Window::KeyReleased(long key) {
         if(keyHandler != nullptr) {
             keyHandler(key, false);
+        }
+    }
+
+    void Window::MouseButtonPressed(int key) {
+        if (mouseButtonHandler != nullptr) {
+            mouseButtonHandler(key, true);
+        }
+    }
+    void Window::MouseButtonReleased(int key) {
+        if (mouseButtonHandler != nullptr) {
+            mouseButtonHandler(key, false);
         }
     }
 

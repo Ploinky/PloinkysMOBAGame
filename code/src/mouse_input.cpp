@@ -18,4 +18,16 @@ namespace P3D {
     short MouseInput::GetMouseY() {
         return y;
     }
+
+    bool MouseInput::IsButtonDown(int btn) {
+        return btnDown[btn];
+    }
+    
+    void MouseInput::SetButtonDown(int btn) {
+        btnDown[btn] = true;
+    }
+
+    void MouseInput::SetButtonUp(int btn) {
+        btnDown[btn] = false;
+    }
 }

@@ -13,6 +13,7 @@ namespace P3D {
             std::function<void()> windowResizedHandler;
             std::function<void(long, bool)> keyHandler;
             std::function<void(unsigned short, unsigned short)> mouseHandler;
+            std::function<void(int, bool)> mouseButtonHandler;
 
             int width;
             int height;
@@ -42,6 +43,8 @@ namespace P3D {
             void KeyPressed(long key);
             void KeyReleased(long key);
             void MouseMoved(unsigned short x, unsigned short y);
+            void MouseButtonPressed(int key);
+            void MouseButtonReleased(int key);
             
         private:
             HWND windowHandle;
