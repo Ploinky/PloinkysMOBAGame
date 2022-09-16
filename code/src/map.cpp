@@ -5,6 +5,7 @@
 #include <fstream>
 #include "vertex.hpp"
 #include <map>
+
 namespace P3D {
     Map::~Map() {
     }
@@ -17,7 +18,7 @@ namespace P3D {
             return;
         }
 
-        TexturedStaticMesh* mesh;
+        Mesh* mesh;
         int currIndex = 0;
         int currVertex = 0;
         std::map<std::string, std::string> textureFileNames;
@@ -39,7 +40,7 @@ namespace P3D {
             else if (!std::strcmp(lineType.c_str(), "obj")) {
                 currIndex = 0;
                 currVertex = 0;
-                mesh = new TexturedStaticMesh();
+                mesh = new Mesh();
                 m_meshes.push_back(mesh);
                 mesh->indexCount = std::stoi(tokens.front()) * 3;
                 mesh->indices = (unsigned int*)malloc(sizeof(unsigned int) * mesh->indexCount);
@@ -58,7 +59,6 @@ namespace P3D {
                 std::string textureName = tokens.front();
                 tokens.pop_front();
                 std::string textureFileName = textureFileNames.at(textureName);
-                mesh->textureFileName = textureFileName;
             } else if (!std::strcmp(lineType.c_str(), "f")) {
                 mesh->indices[currIndex++] = std::stoi(tokens.front());
                 tokens.pop_front();

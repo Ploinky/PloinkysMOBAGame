@@ -13,7 +13,6 @@
 #include "map.hpp"
 #include <sstream>
 #include "util.hpp"
-#include "shader.hpp"
 
 namespace P3D {
     Client::Client(std::string ip) {
@@ -103,7 +102,9 @@ namespace P3D {
             // Render scene
             BeginRender();
 
-            Render(map->GetMesh());
+            for (Mesh* m : map->GetMeshes()) {
+                Render(m);
+            }
 
             for(Mesh* m : models) {
                 Render(m);

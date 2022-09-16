@@ -1,4 +1,7 @@
 #include <string>
+#include <list>
+
+#define MAP_VERSION 1
 
 namespace P3D {
     class Mesh;
@@ -8,9 +11,9 @@ namespace P3D {
         ~Map();
 
         void Load(std::string fileName);
-        Mesh* GetMesh();
+        std::list<Mesh*> GetMeshes();
     private:
-        Mesh* mesh;
+        std::list<Mesh*> m_meshes;
         std::string mapName;
     };
 }
