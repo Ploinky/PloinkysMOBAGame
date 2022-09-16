@@ -6,93 +6,14 @@
 #include "mesh.hpp"
 #include "logger.hpp"
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     P3D::Window* window = (P3D::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    
     if (window == nullptr) {
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
 
-    switch (msg) {
-        case WM_QUIT:
-        case WM_DESTROY: {window->SetShouldClose();
-            break;
-        }
-        case WM_SIZE: {
-            window->Resized(LOWORD(lParam), HIWORD(lParam));
-            break;
-        }
-        case WM_KEYDOWN: {
-            window->KeyPressed(wParam);
-            break;
-        }
-        case WM_KEYUP: {
-            window->KeyReleased(wParam);
-            break;
-        }
-        case WM_MOUSEMOVE: {
-            window->MouseMoved(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            break;
-        }
-        case WM_LBUTTONDOWN: {
-            window->MouseButtonPressed(0);
-            break;
-        }
-        case WM_MBUTTONDOWN: {
-            window->MouseButtonPressed(1);
-            break;
-        }
-        case WM_RBUTTONDOWN: {
-            window->MouseButtonPressed(2);
-            break;
-        }
-        case WM_LBUTTONUP: {
-            window->MouseButtonReleased(0);
-            break;
-        }
-        case WM_MBUTTONUP: {
-            window->MouseButtonReleased(1);
-            break;
-        }
-        case WM_RBUTTONUP: {
-            window->MouseButtonReleased(2);
-            break;
-        }
-        case WM_ACTIVATE: {
-            /*
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if(window == nullptr) {
-                break;
-            }
-
-            if(LOWORD(wParam) == WA_INACTIVE) {
-                window->FocusLost();
-            } else if(LOWORD(wParam) == WA_ACTIVE) {
-                window->FocusGained();
-            }
-            break;
-            */
-        }
-        case WM_SETFOCUS: {
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if(window == nullptr) {
-                break;
-            }
-
-            window->FocusGained();
-            break;
-        }
-        case WM_KILLFOCUS: {
-            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if(window == nullptr) {
-                break;
-            }
-
-            window->FocusLost();
-            break; 
-        }
-    }
-
-    return DefWindowProcW(hwnd, msg, wParam, lParam);
+    return window->WndProc(hwnd, msg, wParam, lParam);
 }
 
 namespace P3D {
@@ -107,7 +28,7 @@ namespace P3D {
         WNDCLASSEXW wc;
         wc.cbSize = sizeof(WNDCLASSEXW);
         wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-        wc.lpfnWndProc = WndProc;
+        wc.lpfnWndProc = StaticWndProc;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = 0;
         wc.hInstance = GetModuleHandle(NULL);
@@ -163,6 +84,93 @@ namespace P3D {
     Window::~Window() {
     }
 
+    LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+        switch (msg) {
+        case WM_QUIT:
+        case WM_DESTROY: {
+            SetShouldClose();
+            break;
+        }
+        case WM_SIZE: {
+            Resized(LOWORD(lParam), HIWORD(lParam));
+            break;
+        }
+        case WM_KEYDOWN: {
+            m_keys[wParam] = true;
+            break;
+        }
+        case WM_KEYUP: {
+            m_keys[wParam] = false;
+            break;
+        }
+        case WM_MOUSEMOVE: {
+            m_mouseX = GET_X_LPARAM(lParam);
+            m_mouseY = GET_Y_LPARAM(lParam);
+            break;
+        }
+        case WM_LBUTTONDOWN: {
+            m_mouseBtnDown[0] = true;
+            break;
+        }
+        case WM_MBUTTONDOWN: {
+            m_mouseBtnDown[1] = true;
+            break;
+        }
+        case WM_RBUTTONDOWN: {
+            m_mouseBtnDown[2] = true;
+            break;
+        }
+        case WM_LBUTTONUP: {
+            m_mouseBtnDown[0] = false;
+            break;
+        }
+        case WM_MBUTTONUP: {
+            m_mouseBtnDown[1] = false;
+            break;
+        }
+        case WM_RBUTTONUP: {
+            m_mouseBtnDown[2] = false;
+            break;
+        }
+        case WM_ACTIVATE: {
+            /*
+            P3D::Window *window = (P3D::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if(window == nullptr) {
+                break;
+            }
+
+            if(LOWORD(wParam) == WA_INACTIVE) {
+                window->FocusLost();
+            } else if(LOWORD(wParam) == WA_ACTIVE) {
+                window->FocusGained();
+            }
+            break;
+            */
+        }
+        case WM_SETFOCUS: {
+            P3D::Window* window = (P3D::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (window == nullptr) {
+                break;
+            }
+
+            window->FocusGained();
+            break;
+        }
+        case WM_KILLFOCUS: {
+            P3D::Window* window = (P3D::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (window == nullptr) {
+                break;
+            }
+
+            window->FocusLost();
+            break;
+        }
+        }
+
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+
+
     void Window::Show() {
         Logger::Msg("Showing window....");
         ShowWindow(windowHandle, SW_SHOW);
@@ -200,33 +208,21 @@ namespace P3D {
         }
     }
 
-    void Window::KeyPressed(long key) {
-        if(keyHandler != nullptr) {
-            keyHandler(key, true);
-        }
+
+    short Window::GetMouseX() {
+        return m_mouseX;
+    }
+    
+    short Window::GetMouseY() {
+        return m_mouseY;
     }
 
-    void Window::KeyReleased(long key) {
-        if(keyHandler != nullptr) {
-            keyHandler(key, false);
-        }
+    bool Window::IsButtonDown(int button) {
+        return m_mouseBtnDown[button];
     }
 
-    void Window::MouseButtonPressed(int key) {
-        if (mouseButtonHandler != nullptr) {
-            mouseButtonHandler(key, true);
-        }
-    }
-    void Window::MouseButtonReleased(int key) {
-        if (mouseButtonHandler != nullptr) {
-            mouseButtonHandler(key, false);
-        }
-    }
-
-    void Window::MouseMoved(unsigned short x, unsigned short y) {
-        if(mouseHandler != nullptr) {
-            mouseHandler(x, y);
-        }
+    bool Window::IsKeyDown(char key) {
+        return m_keys[key];
     }
 
     void Window::FocusGained() {

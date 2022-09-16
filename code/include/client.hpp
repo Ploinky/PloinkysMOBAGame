@@ -46,9 +46,6 @@ namespace P3D {
 
             long long lastFrame;
 
-            KeyboardInput* keyboardInput;
-            MouseInput* m_mouseInput;
-
             std::vector<Mesh*> models;
 
             // Clears the screen and prepares rendering

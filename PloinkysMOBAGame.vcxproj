@@ -120,15 +120,15 @@
   <ItemGroup>
     <ClCompile Include="code\src\camera.cpp" />
     <ClCompile Include="code\src\client.cpp" />
+    <ClCompile Include="code\src\DDSTextureLoader.cpp" />
     <ClCompile Include="code\src\direct3d.cpp" />
-    <ClCompile Include="code\src\keyboard_input.cpp" />
     <ClCompile Include="code\src\logger.cpp" />
     <ClCompile Include="code\src\main.cpp" />
     <ClCompile Include="code\src\map.cpp" />
     <ClCompile Include="code\src\mesh.cpp" />
-    <ClCompile Include="code\src\mouse_input.cpp" />
     <ClCompile Include="code\src\network_connection.cpp" />
     <ClCompile Include="code\src\renderer.cpp" />
+    <ClCompile Include="code\src\shader.cpp" />
     <ClCompile Include="code\src\util.cpp" />
     <ClCompile Include="code\src\vertex.cpp" />
     <ClCompile Include="code\src\window.cpp" />
@@ -136,15 +136,15 @@
   <ItemGroup>
     <ClInclude Include="code\include\camera.hpp" />
     <ClInclude Include="code\include\client.hpp" />
+    <ClInclude Include="code\include\DDSTextureLoader.hpp" />
     <ClInclude Include="code\include\direct3d.hpp" />
-    <ClInclude Include="code\include\keyboard_input.hpp" />
     <ClInclude Include="code\include\logger.hpp" />
     <ClInclude Include="code\include\main.hpp" />
     <ClInclude Include="code\include\map.hpp" />
     <ClInclude Include="code\include\mesh.hpp" />
-    <ClInclude Include="code\include\mouse_input.hpp" />
     <ClInclude Include="code\include\network_connection.hpp" />
     <ClInclude Include="code\include\renderer.hpp" />
+    <ClInclude Include="code\include\shader.hpp" />
     <ClInclude Include="code\include\util.hpp" />
     <ClInclude Include="code\include\vertex.hpp" />
     <ClInclude Include="code\include\window.hpp" />

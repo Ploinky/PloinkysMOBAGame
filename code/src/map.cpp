@@ -4,68 +4,85 @@
 #include "logger.hpp"
 #include <fstream>
 #include "vertex.hpp"
-
+#include <map>
 namespace P3D {
     Map::~Map() {
-        delete mesh;
     }
 
     void Map::Load(std::string fileName) {
-		std::ifstream file(fileName, std::ios::in | std::ios::binary);
+		std::ifstream file(fileName, std::ios::in);
 
 		if (!file.is_open()) {
             Logger::Err("Could not open map file.");
             return;
         }
 
-        char magic[3];
+        TexturedStaticMesh* mesh;
+        int currIndex = 0;
+        int currVertex = 0;
+        std::map<std::string, std::string> textureFileNames;
 
-        file.read(magic, sizeof(char) * 3);
-
-        if(magic[0] != 'o' || magic[1] != 'm' || magic[2] != 'p') {
-            Logger::Err("Magic string at beginning of map file not found.");
-            return;
-        }
-
-        int version;
-
-        file.read((char*) &version, sizeof(int));
-
-        if(version != 1) {
-            Logger::Err("Map file has wrong version.");
-            return;
-        }
-
-        mesh = new Mesh();
-
-        file.read((char*) &mesh->vertexCount, sizeof(int));
-
-        mesh->vertices = new Vertex[mesh->vertexCount];
-
-        for(uint32_t i = 0; i < mesh->vertexCount; i++) {
-            Vertex v;
-            file.read((char*) &v.position[0], sizeof(float));
-            file.read((char*) &v.position[1], sizeof(float));
-            file.read((char*) &v.position[2], sizeof(float));
-
-            v.color[0] = 0.5f;
-            v.color[1] = 0.5f;
-            v.color[2] = 0.5f;
-            v.color[3] = 1.0f;
+        for (std::string line; std::getline(file, line); ) {
+            std::list<std::string> tokens = Util::SplitString(line, ' ');
+            printf("%s\n", line.c_str());
             
-            mesh->vertices[i] = v;
-        }
+            std::string lineType = tokens.front();
+            tokens.pop_front();
 
-        file.read((char*) &mesh->indexCount, sizeof(int));
+            if(!std::strcmp(lineType.c_str(), "omp")) {
+                int ver = std::stoi(tokens.front());
+                if (ver != MAP_VERSION) {
+                    printf("Wrong version: %d\n", ver);
+                    return;
+                }
+            }
+            else if (!std::strcmp(lineType.c_str(), "obj")) {
+                currIndex = 0;
+                currVertex = 0;
+                mesh = new TexturedStaticMesh();
+                m_meshes.push_back(mesh);
+                mesh->indexCount = std::stoi(tokens.front()) * 3;
+                mesh->indices = (unsigned int*)malloc(sizeof(unsigned int) * mesh->indexCount);
+                tokens.pop_front();
+                mesh->vertexCount = std::stoi(tokens.front());
+                mesh->vertices = (Vertex*)malloc(sizeof(Vertex) * mesh->vertexCount);
+                tokens.pop_front();
+            } else if (!std::strcmp(lineType.c_str(), "m")) {
+                std::string textureName = tokens.front();
+                tokens.pop_front();
+                std::string textureFileName = tokens.front();
+                textureFileName = std::string(".").append(textureFileName);
+                tokens.pop_front();
+                textureFileNames.insert({ textureName, textureFileName });
+            } else if (!std::strcmp(lineType.c_str(), "t")) {
+                std::string textureName = tokens.front();
+                tokens.pop_front();
+                std::string textureFileName = textureFileNames.at(textureName);
+                mesh->textureFileName = textureFileName;
+            } else if (!std::strcmp(lineType.c_str(), "f")) {
+                mesh->indices[currIndex++] = std::stoi(tokens.front());
+                tokens.pop_front();
+                mesh->indices[currIndex++] = std::stoi(tokens.front());
+                tokens.pop_front();
+                mesh->indices[currIndex++] = std::stoi(tokens.front());
+                tokens.pop_front();
+            } else if (!std::strcmp(lineType.c_str(), "v")) {
+                mesh->vertices[currVertex].color[0] = 0;
+                mesh->vertices[currVertex].color[1] = 255;
+                mesh->vertices[currVertex].color[2] = 0;
+                mesh->vertices[currVertex].color[3] = 255;
 
-        mesh->indices = new unsigned int[mesh->indexCount];
-
-        for(uint32_t i = 0; i < mesh->indexCount; i++) {
-            file.read((char*) &mesh->indices[i], sizeof(unsigned int)); 
+                mesh->vertices[currVertex].position[0] = std::stof(tokens.front());
+                tokens.pop_front();
+                mesh->vertices[currVertex].position[1] = std::stof(tokens.front());
+                tokens.pop_front();
+                mesh->vertices[currVertex++].position[2] = std::stof(tokens.front());
+                tokens.pop_front();
+            }
         }
     }
 
-    Mesh* Map::GetMesh() {
-        return mesh;
+    std::list<Mesh*> Map::GetMeshes() {
+        return m_meshes;
     }
 }

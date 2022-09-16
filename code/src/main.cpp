@@ -17,23 +17,26 @@ std::string GetDir() {
 }
 
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
-    AllocConsole();
-    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
-    freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
-
     // Attempt to read command line arguments
     int argc;
     wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
     std::wstring ipw = L"";
+    bool showConsole = false;
 
-    printf("--- ARGS:\r\n");
-    for(int i = 0; i < argc; i++) {
-        printf("%d: %ls\r\n", i, argv[i]);
-        if (lstrcmpW(argv[i], L"-connect") == 0) {
+    for (int i = 0; i < argc; i++) {
+        if (lstrcmpW(argv[i], L"-connect") == 0 && argc > i) {
             i++;
-            printf("\t%ls\r\n", argv[i]);
             ipw = std::wstring(argv[i]);
         }
+        else if (lstrcmpW(argv[i], L"-console") == 0) {
+            showConsole = true;
+        }
+    }
+
+    if(showConsole) {
+        AllocConsole();
+        freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+        freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
     }
 
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;

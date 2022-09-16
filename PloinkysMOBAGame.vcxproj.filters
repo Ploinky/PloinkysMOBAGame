@@ -24,9 +24,6 @@
     <ClCompile Include="code\src\direct3d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="code\src\keyboard_input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="code\src\logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,9 +34,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="code\src\mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="code\src\mouse_input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="code\src\network_connection.cpp">
@@ -57,6 +51,12 @@
     <ClCompile Include="code\src\window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\src\DDSTextureLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\src\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\include\camera.hpp">
@@ -66,9 +66,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="code\include\direct3d.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="code\include\keyboard_input.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="code\include\logger.hpp">
@@ -81,9 +78,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="code\include\mesh.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="code\include\mouse_input.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="code\include\network_connection.hpp">
@@ -99,6 +93,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="code\include\window.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\include\DDSTextureLoader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\include\shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

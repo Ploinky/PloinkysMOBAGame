@@ -9,19 +9,17 @@
 #include "renderer.hpp"
 #include <directxmath.h>
 #include "camera.hpp"
-#include "keyboard_input.hpp"
-#include "mouse_input.hpp"
 #include <chrono>
 #include "map.hpp"
 #include <sstream>
 #include "util.hpp"
+#include "shader.hpp"
 
 namespace P3D {
     Client::Client(std::string ip) {
         if (ip.empty()) {
             this->ip = "127.0.0.1";
-        }
-        else {
+        } else {
             this->ip = ip;
         }
     }
@@ -41,9 +39,6 @@ namespace P3D {
 
         delete window;
         window = 0;
-
-        delete keyboardInput;
-        keyboardInput = 0;
     }
 
     void Client::Run() {
@@ -69,33 +64,14 @@ namespace P3D {
             window->SetShouldClose();
         }
 
-        keyboardInput = new KeyboardInput();
-        m_mouseInput = new MouseInput();
-
         window->windowResizedHandler = [this]() {
             direct3D->SetWindowDimensions(window->width, window->height);
             renderer->SetAspectRatio((float) window->width / (float) window->height);
         };
 
-        window->keyHandler = [this](long key, bool down) {
-            keyboardInput->SetKeyDown((char) key, down);
-        };
-
-        window->mouseHandler = [this](short x, short y) {
-            m_mouseInput->SetMousePosition(x, y);
-        };
-
-        window->mouseButtonHandler = [this](int btn, bool down) {
-            if (down) {
-                m_mouseInput->SetButtonDown(btn);
-            } else {
-                m_mouseInput->SetButtonUp(btn);
-            }
-        };
-
         renderer = new Renderer();
         renderer->Initialize(direct3D, window->width, window->height);
-        
+
         Logger::Msg("Starting main game loop");
 
         // Main game loop
@@ -145,10 +121,10 @@ namespace P3D {
     }
 
     void Client::HandlePlayerInput(Mesh* model, float dt) {
-        int keysX = keyboardInput->IsKeyDown('D') - keyboardInput->IsKeyDown('A');
-        int mouseX = (m_mouseInput->GetMouseX() == (short) window->width - 1) - (m_mouseInput->GetMouseX() == 0);
-        int keysZ = keyboardInput->IsKeyDown('W') - keyboardInput->IsKeyDown('S');
-        int mouseZ = (m_mouseInput->GetMouseY() == 0) - (m_mouseInput->GetMouseY() == (short) window->height - 1);
+        int keysX = window->IsKeyDown('D') - window->IsKeyDown('A');
+        int mouseX = (window->GetMouseX() == (short) window->width - 1) - (window->GetMouseX() == 0);
+        int keysZ = window->IsKeyDown('W') - window->IsKeyDown('S');
+        int mouseZ = (window->GetMouseY() == 0) - (window->GetMouseY() == (short) window->height - 1);
         
         DirectX::XMFLOAT3 move = DirectX::XMFLOAT3(
             keysX + mouseX,
@@ -159,11 +135,11 @@ namespace P3D {
         renderer->camera->position.y += move.y * 10 * dt;
         renderer->camera->position.z += move.z * 10 * dt;
 
-        if(keyboardInput->IsKeyDown(VK_ESCAPE)) {
+        if(window->IsKeyDown(VK_ESCAPE)) {
             isRunning = false;
         }
 
-        if(keyboardInput->IsKeyDown(VK_SPACE)) {
+        if(window->IsKeyDown(VK_SPACE)) {
             if (!models.empty()) {
                 // Snap to player
                 renderer->camera->position.x = models.front()->position.x;
@@ -176,9 +152,9 @@ namespace P3D {
 
         }
 
-        if (m_mouseInput->IsButtonDown(2)) {
+        if (window->IsButtonDown(2)) {
             float x, y;
-            renderer->TestIntersect(m_mouseInput->GetMouseX(), m_mouseInput->GetMouseY(), &x, &y);
+            renderer->TestIntersect(window->GetMouseX(), window->GetMouseY(), &x, &y);
             std::cout << "PRESSED! " << x << "-" << y << std::endl;
             std::string msg = std::string()
                 .append("MoveCommand|")

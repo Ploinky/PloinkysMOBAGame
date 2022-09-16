@@ -11,9 +11,6 @@ namespace P3D {
     class Window {
         public:
             std::function<void()> windowResizedHandler;
-            std::function<void(long, bool)> keyHandler;
-            std::function<void(unsigned short, unsigned short)> mouseHandler;
-            std::function<void(int, bool)> mouseButtonHandler;
 
             int width;
             int height;
@@ -40,16 +37,22 @@ namespace P3D {
 
             void Resized(int width, int height);
 
-            void KeyPressed(long key);
-            void KeyReleased(long key);
-            void MouseMoved(unsigned short x, unsigned short y);
-            void MouseButtonPressed(int key);
-            void MouseButtonReleased(int key);
+            short GetMouseX();
+            short GetMouseY();
+            bool IsButtonDown(int button);
+            bool IsKeyDown(char key);
+            LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
             
         private:
             HWND windowHandle;
             bool shouldClose;
 
-            void Notify();
+            // Keyboard input
+            bool m_keys[0xFF]{ 0 };
+
+            // Mouse input
+            short m_mouseX;
+            short m_mouseY;
+            bool m_mouseBtnDown[3]{ false, false, false };
     };
 }
