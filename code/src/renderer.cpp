@@ -5,16 +5,12 @@
 #include "direct3d.hpp"
 #include "util.hpp"
 #include "camera.hpp"
+#include "shader.hpp"
 
 namespace P3D {
     static DirectX::XMMATRIX perspMatrix;
 
     Renderer::~Renderer() {
-        inputLayout->Release();
-        vertexShader->Release();
-        pixelShader->Release();
-        constantBuffer->Release();
-        frameConstantBuffer->Release();
     }
 
     void Renderer::Initialize(Direct3D* direct3D, int width, int height) {
@@ -27,90 +23,27 @@ namespace P3D {
         // Where to set this?
         direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // Describes the input layout
-        D3D11_INPUT_ELEMENT_DESC inputLayoutDesc[] = {
-            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-            {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-        };
-
-        file_t shaderByteCode = Util::ReadBytesFromFile("./shaders/vertex.cso");
-        file_t psByteCode = Util::ReadBytesFromFile("./shaders/pixel.cso");
-
-        direct3D->device->CreateVertexShader(shaderByteCode.data, shaderByteCode.size, nullptr, &vertexShader);
-        direct3D->device->CreatePixelShader(psByteCode.data, psByteCode.size, nullptr, &pixelShader);
-
-        direct3D->device->CreateInputLayout(inputLayoutDesc, 2, shaderByteCode.data, shaderByteCode.size, &inputLayout);
-
-        DirectX::XMStoreFloat4x4(&frameConstBuffer.projMatrix, perspMatrix);
-        DirectX::XMStoreFloat4x4(&frameConstBuffer.cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
+        // Set initial constant matrix values
+        DirectX::XMStoreFloat4x4(&projMatrix, perspMatrix);
+        DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
             camera->position.x, camera->position.y, camera->position.z))));
-        DirectX::XMStoreFloat4x4(&vsConstData.modelMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixTranslation(0, 0, 10)));
-        
-        D3D11_BUFFER_DESC desc;
-        desc.ByteWidth = sizeof(object_constant_buffer);
-        desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        desc.MiscFlags = 0;
-        desc.StructureByteStride = 0;
 
-        D3D11_SUBRESOURCE_DATA data;
-        data.pSysMem = &vsConstData;
+        // ------------ NEW ------------
+        ColorShader* colorShader = new ColorShader();
+        colorShader->Initialize(direct3D);
 
-        direct3D->device->CreateBuffer(&desc, &data, &constantBuffer);
-        
-        desc.ByteWidth = sizeof(frame_constant_buffer);
-        desc.Usage = D3D11_USAGE_DYNAMIC;
+        m_shaders.push_back(colorShader);
 
-        data.pSysMem = &frameConstBuffer;
+        TextureShader* textureShader = new TextureShader();
+        textureShader->Initialize(direct3D);
 
-        direct3D->device->CreateBuffer(&desc, &data, &frameConstantBuffer);
-    }
-
-    void Renderer::Render(Mesh* model) {
-        // Lazy initialize the model's Direct3D resources
-        if(!model->IsInitialized()) {
-            if(!model->Initialize(direct3D)) {
-                Logger::Err("Failed to initialize 3D model!");
-                // Maybe quit here?
-                return;
-            }
-        }
-
-        // Model is definitely initialized, feel free to render!
-
-        UINT stride = sizeof(Vertex);
-        UINT offset = 0;
-
-        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(model->rotation.x),
-                        DirectX::XMConvertToRadians(model->rotation.y),
-                        DirectX::XMConvertToRadians(model->rotation.z));
-        
-        DirectX::XMMATRIX transMat =  DirectX::XMMatrixTranslation(model->position.x, model->position.y, model->position.z);
-
-        DirectX::XMStoreFloat4x4(&vsConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
-
-        UpdateModelConstantBuffer();
-
-        direct3D->context->VSSetShader(vertexShader, 0, 0);
-        direct3D->context->VSSetConstantBuffers(0, 1, &frameConstantBuffer);
-        direct3D->context->VSSetConstantBuffers(1, 1, &constantBuffer);
-        direct3D->context->PSSetShader(pixelShader, 0, 0);
-        direct3D->context->IASetInputLayout(inputLayout);
-      
-        direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        direct3D->context->IASetVertexBuffers(0, 1, &model->vertexBuffer, &stride, &offset);
-        direct3D->context->IASetIndexBuffer(model->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-        direct3D->context->DrawIndexed(model->indexCount, 0, 0);
+        m_shaders.push_back(textureShader);
     }
 
     void Renderer::SetAspectRatio(float aspect) {
         printf("aspect: %f\r\n", aspect);
         perspMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(camera->fov), aspect, camera->nearClip, camera->farClip));
-        DirectX::XMStoreFloat4x4(&frameConstBuffer.projMatrix, perspMatrix);
-
-        UpdateFrameConstantBuffer();
+        DirectX::XMStoreFloat4x4(&projMatrix, perspMatrix);
     }
 
     void Renderer::UpdateCameraMatrix() {
@@ -120,34 +53,12 @@ namespace P3D {
         
         DirectX::XMMATRIX transMat =  DirectX::XMMatrixTranslation(camera->position.x, camera->position.y, camera->position.z);
 
-        DirectX::XMStoreFloat4x4(&frameConstBuffer.cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, rotMat * transMat)));
-
-        UpdateFrameConstantBuffer();
-    }
-
-    void Renderer::UpdateFrameConstantBuffer() {
-        D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
-
-        direct3D->context->Map(frameConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-        memcpy(mappedResource.pData, &frameConstBuffer, sizeof(frameConstBuffer));
-
-        direct3D->context->Unmap(frameConstantBuffer, 0);
-    }
-
-    void Renderer::UpdateModelConstantBuffer() {        
-        D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
-
-        direct3D->context->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-        memcpy(mappedResource.pData, &vsConstData, sizeof(vsConstData));
-
-        direct3D->context->Unmap(constantBuffer, 0);
+        DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, rotMat * transMat)));
     }
 
     void Renderer::TestIntersect(int mx, int my, float* outX, float* outZ) {
-        DirectX::XMMATRIX projMat = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&frameConstBuffer.projMatrix));
-        DirectX::XMMATRIX camMat = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&frameConstBuffer.cameraMatrix));
+        DirectX::XMMATRIX projMat = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&projMatrix));
+        DirectX::XMMATRIX camMat = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&cameraMatrix));
         DirectX::XMMATRIX worldMat = DirectX::XMMatrixTranspose(DirectX::XMMatrixTranslation(0, 0, 0));
 
         DirectX::XMMATRIX mat = projMat * camMat;
@@ -175,6 +86,134 @@ namespace P3D {
             float t = DirectX::XMVectorGetX(DirectX::XMVector3Dot(DirectX::XMVectorSubtract(originV, rayOriginV), normalV)) / denom;
             *outX = rayOrigin.x + ray.x * t;
             *outZ = rayOrigin.z + ray.z * t;
+        }
+    }
+
+    void Renderer::UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size) {
+        D3D11_MAPPED_SUBRESOURCE mappedResource = { 0 };
+        direct3D->context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        memcpy(mappedResource.pData, src, size);
+        direct3D->context->Unmap(buffer, 0);
+    }
+
+    void Renderer::RenderMeshes(std::vector<Mesh*> meshes) {
+        // Maybe update some frame-wide constant values?
+        // For example camera and projection matrix?
+        
+        // Iterate over the shaders (optimally only those we need)
+        // For each shader
+        for (Shader* shader : m_shaders) {
+            // Bind the shader
+            direct3D->context->VSSetShader(shader->m_vertexShader, 0, 0);
+            direct3D->context->PSSetShader(shader->m_pixelShader, 0, 0);
+            direct3D->context->IASetInputLayout(shader->m_inputLayout);
+
+            switch (shader->m_type) {
+                case ShaderType::COLOR: {
+                    ColorShader* colorShader = (ColorShader*)shader;
+                    // Do some stuff to update the frame constants for this shader
+
+                    // Update and set frame constant buffer
+                    colorShader->m_frameConstData.cameraMatrix = cameraMatrix;
+                    colorShader->m_frameConstData.projMatrix = projMatrix;
+                    UpdateBuffer(colorShader->m_frameConstBuffer, &colorShader->m_frameConstData, sizeof(colorShader->m_frameConstData));
+                    direct3D->context->VSSetConstantBuffers(0, 1, &colorShader->m_frameConstBuffer);
+
+                    // For each model in the scene
+                    for (Mesh* mesh : meshes) {
+                        // That uses this shader!
+                        if (mesh->m_shaderType != shader->m_type) {
+                            continue;
+                        }
+
+                        // Lazy initialize the model's Direct3D resources
+                        if (!mesh->IsInitialized()) {
+                            if (!mesh->Initialize(direct3D)) {
+                                Logger::Err("Failed to initialize 3D model!");
+                                // Maybe quit here?
+                                return;
+                            }
+                        }
+
+                        // Do some stuff to update the model specific constants that this specific shader uses
+                        // Update model constant buffer
+                        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(mesh->rotation.x),
+                            DirectX::XMConvertToRadians(mesh->rotation.y),
+                            DirectX::XMConvertToRadians(mesh->rotation.z));
+                        DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(mesh->position.x, mesh->position.y, mesh->position.z);
+                        DirectX::XMStoreFloat4x4(&colorShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+
+                        transMat = DirectX::XMMatrixAffineTransformation(DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f), DirectX::XMVectorSet(0, 0, 0, 1.0f),
+                            DirectX::XMQuaternionRotationMatrix(DirectX::XMMatrixRotationRollPitchYaw(mesh->rotation.x * 0.0174532925f, mesh->rotation.y * 0.0174532925f, mesh->rotation.z * 0.0174532925f)),
+                            DirectX::XMVectorSet(mesh->position.x, mesh->position.y, mesh->position.z, 1.0f));
+
+                        UpdateBuffer(colorShader->m_modelConstBuffer, &colorShader->m_modelConstData, sizeof(colorShader->m_modelConstData));
+                        direct3D->context->VSSetConstantBuffers(1, 1, &colorShader->m_modelConstBuffer);
+
+                        // Render this specific model
+                        UINT stride = sizeof(Vertex);
+                        UINT offset = 0;
+                        direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                        direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
+                        direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+                        direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                    }
+                    break;
+                }
+                case ShaderType::TEXTURE: {
+                    TextureShader* textureShader = (TextureShader*)shader;
+                    // Do some stuff to update the frame constants for this shader
+
+                    // Update and set frame constant buffer
+                    textureShader->m_frameConstData.cameraMatrix = cameraMatrix;
+                    textureShader->m_frameConstData.projMatrix = projMatrix;
+                    UpdateBuffer(textureShader->m_frameConstBuffer, &textureShader->m_frameConstData, sizeof(textureShader->m_frameConstData));
+                    direct3D->context->VSSetConstantBuffers(0, 1, &textureShader->m_frameConstBuffer);
+
+                    // For each model in the scene
+                    for (Mesh* mesh : meshes) {
+                        // That uses this shader!
+                        if (mesh->m_shaderType != shader->m_type) {
+                            continue;
+                        }
+
+                        // Lazy initialize the model's Direct3D resources
+                        if (!mesh->IsInitialized()) {
+                            if (!mesh->Initialize(direct3D)) {
+                                Logger::Err("Failed to initialize 3D model!");
+                                // Maybe quit here?
+                                return;
+                            }
+                        }
+
+                        TextureMesh* textureMesh = (TextureMesh*)mesh;
+
+                        // Do some stuff to update the model specific constants that this specific shader uses
+                        // Update model constant buffer
+                        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(mesh->rotation.x),
+                            DirectX::XMConvertToRadians(mesh->rotation.y),
+                            DirectX::XMConvertToRadians(mesh->rotation.z));
+                        DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(mesh->position.x, mesh->position.y, mesh->position.z);
+                        DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+
+                        UpdateBuffer(textureShader->m_modelConstBuffer, &textureShader->m_modelConstData, sizeof(textureShader->m_modelConstData));
+                        direct3D->context->VSSetConstantBuffers(1, 1, &textureShader->m_modelConstBuffer);
+
+                        // Render this specific model
+                        UINT stride = sizeof(texture_shader_vertex_t);
+                        UINT offset = 0;
+                        direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
+                        direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+                        direct3D->context->PSSetShaderResources(0, 1, &textureMesh->m_texture); 
+                        direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                    }
+                    break;
+                }
+                default: {
+                    printf("Unknown shader type!");
+                    break;
+                }
+            }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace P3D {
     public:
         ~Map();
 
-        void Load(std::string fileName);
+        void Load(std::string mapName);
         std::list<Mesh*> GetMeshes();
     private:
         std::list<Mesh*> m_meshes;

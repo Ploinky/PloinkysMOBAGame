@@ -25,6 +25,7 @@ namespace P3D {
     class KeyboardInput;
     class MouseInput;
     class NetworkConnection;
+    class NavMesh;
     
     class Client {
         public:
@@ -47,6 +48,7 @@ namespace P3D {
             long long lastFrame;
 
             std::vector<Mesh*> models;
+            NavMesh* m_navMesh;
 
             // Clears the screen and prepares rendering
             void BeginRender();

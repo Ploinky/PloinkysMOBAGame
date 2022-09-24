@@ -10,7 +10,7 @@ LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     P3D::Window* window = (P3D::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     
     if (window == nullptr) {
-        return DefWindowProc(hwnd, msg, wParam, lParam);
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
 
     return window->WndProc(hwnd, msg, wParam, lParam);
@@ -58,9 +58,11 @@ namespace P3D {
         width = wr.right - wr.left;
         height = wr.bottom - wr.top;
 
+        LPCWSTR winTitle = L"Ploinky's MOBA Game";
+
         windowHandle = CreateWindowExW(WS_EX_APPWINDOW,
                                        wc.lpszClassName,
-                                       L"Ploinky's MOBA Game",
+                                       winTitle,
                                        dwStyle,
                                        posX,
                                        posY,
@@ -167,7 +169,7 @@ namespace P3D {
         }
         }
 
-        return DefWindowProc(hwnd, msg, wParam, lParam);
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
 
 

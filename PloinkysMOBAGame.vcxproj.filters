@@ -51,6 +51,15 @@
     <ClCompile Include="code\src\window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="code\src\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\src\DDSTextureLoader11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\src\navigation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\include\camera.hpp">
@@ -89,5 +98,20 @@
     <ClInclude Include="code\include\window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="code\include\shader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\include\DDSTextureLoader11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\include\navigation.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="code\shaders\vertex\texture_vs.hlsl" />
+    <FxCompile Include="code\shaders\pixel\texture_ps.hlsl" />
+    <FxCompile Include="code\shaders\pixel\pixel_ps.hlsl" />
+    <FxCompile Include="code\shaders\vertex\vertex_vs.hlsl" />
   </ItemGroup>
 </Project>

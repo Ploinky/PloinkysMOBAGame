@@ -33,7 +33,7 @@ namespace P3D {
             bool Present();
 
             // Creates a vertex buffer
-            ID3D11Buffer* CreateVertexBuffer(Vertex* vertices, int vertexCount);
+            ID3D11Buffer* CreateVertexBuffer(void* vertices, int vertexCount, size_t size);
 
             //Creates an index buffer
             ID3D11Buffer* CreateIndexBuffer(unsigned int* indices, int indexCount);

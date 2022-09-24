@@ -13,6 +13,7 @@
 #include "map.hpp"
 #include <sstream>
 #include "util.hpp"
+#include "navigation.hpp"
 
 namespace P3D {
     Client::Client(std::string ip) {
@@ -21,6 +22,9 @@ namespace P3D {
         } else {
             this->ip = ip;
         }
+
+        m_navMesh = new NavMesh();
+        m_navMesh->LoadFromFile("map1");
     }
 
     Client::~Client() {
@@ -47,7 +51,7 @@ namespace P3D {
         network->Connect(ip);
 
         Map* map = new Map();
-        map->Load("./data/maps/map1/map1.omp");
+        map->Load("map1");
 
         // Create and show window
         window = new Window();
@@ -102,13 +106,10 @@ namespace P3D {
             // Render scene
             BeginRender();
 
-            for (Mesh* m : map->GetMeshes()) {
-                Render(m);
-            }
-
-            for(Mesh* m : models) {
-                Render(m);
-            }
+            std::list<Mesh*> mapMeshes = map->GetMeshes();
+            std::vector<Mesh*> mapMeshVector(mapMeshes.begin(), mapMeshes.end());
+            renderer->RenderMeshes(mapMeshVector);
+            renderer->RenderMeshes(models);
 
             std::wstring fpsText(L"FPS: ");
             fpsText.append(std::to_wstring((int) (1000.0f / (dt * 1000.0f))));
@@ -144,11 +145,11 @@ namespace P3D {
             if (!models.empty()) {
                 // Snap to player
                 renderer->camera->position.x = models.front()->position.x;
-                renderer->camera->position.z = models.front()->position.z - 5;
+                renderer->camera->position.z = models.front()->position.z - 10;
             }
             else {
                 renderer->camera->position.x = 0;
-                renderer->camera->position.z = -5;
+                renderer->camera->position.z = -10;
             }
 
         }
@@ -169,10 +170,6 @@ namespace P3D {
     void Client::BeginRender() {
         direct3D->ClearScreen();
         renderer->UpdateCameraMatrix();
-    }
-
-    void Client::Render(Mesh* model) {
-        renderer->Render(model);
     }
 
     void Client::FinishRender() {

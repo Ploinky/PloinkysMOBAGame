@@ -440,13 +440,13 @@ namespace P3D {
         return true;
     }
 
-    ID3D11Buffer* Direct3D::CreateVertexBuffer(Vertex* vertices, int vertexCount) {
+    ID3D11Buffer* Direct3D::CreateVertexBuffer(void* vertices, int vertexCount, size_t size) {
         ID3D11Buffer* buffer;
 
         // Description used to create vertex buffer
         D3D11_BUFFER_DESC bd;
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(Vertex) * vertexCount;
+        bd.ByteWidth = size;
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = 0;
         bd.MiscFlags = 0;
