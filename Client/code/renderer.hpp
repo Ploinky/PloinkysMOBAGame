@@ -15,7 +15,7 @@ namespace PMG {
         public:
             ~Renderer();
             void Initialize(Direct3D* direct3D, int width, int height);
-            void SetAspectRatio(float aspect);
+            void SetDimensions(int width, int height);
             void UpdateCameraMatrix();
 
             void TestIntersect(int mx, int my, float* outX, float* outY);
@@ -28,8 +28,13 @@ namespace PMG {
 
             // ------------ NEW ------------
             std::vector<Shader*> m_shaders;
+
             
             void RenderMeshes(std::vector<Mesh*> meshes);
             void UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size);
+            
+        private:
+            int m_width;
+            int m_height;
     };
 }

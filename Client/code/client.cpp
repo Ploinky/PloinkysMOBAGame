@@ -69,7 +69,7 @@ namespace PMG {
 
         window->windowResizedHandler = [this]() {
             direct3D->SetWindowDimensions(window->width, window->height);
-            renderer->SetAspectRatio((float) window->width / (float) window->height);
+            renderer->SetDimensions((float) window->width, (float) window->height);
         };
 
         renderer = new Renderer();

@@ -18,6 +18,9 @@ namespace PMG {
         this->direct3D = direct3D;
         camera = new Camera();
 
+        m_width = width;
+        m_height = height;
+
         perspMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(
             DirectX::XMConvertToRadians(camera->fov), (float) width / (float) height, camera->nearClip, camera->farClip));
 
@@ -41,9 +44,11 @@ namespace PMG {
         m_shaders.push_back(textureShader);
     }
 
-    void Renderer::SetAspectRatio(float aspect) {
-        printf("aspect: %f\r\n", aspect);
-        perspMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(camera->fov), aspect, camera->nearClip, camera->farClip));
+    void Renderer::SetDimensions(int width, int height) {
+        m_width = width;
+        m_height = height;
+
+        perspMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(camera->fov), (float) width / height, camera->nearClip, camera->farClip));
         DirectX::XMStoreFloat4x4(&projMatrix, perspMatrix);
     }
 
@@ -68,8 +73,8 @@ namespace PMG {
         DirectX::XMFLOAT3 sc1 = DirectX::XMFLOAT3(mx, my, 1);
         DirectX::XMVECTOR screenCoords = DirectX::XMLoadFloat3(&sc);
         DirectX::XMVECTOR endCoords = DirectX::XMLoadFloat3(&sc1);
-        DirectX::XMVECTOR rayOriginV = DirectX::XMVector3Unproject(screenCoords, 0, 0, 1024, 768, 0.0f, 1.0f, projMat, camMat, worldMat);
-        DirectX::XMVECTOR rayEndV = DirectX::XMVector3Unproject(endCoords, 0, 0, 1024, 768, 0.0f, 1.0f, projMat, camMat, worldMat);
+        DirectX::XMVECTOR rayOriginV = DirectX::XMVector3Unproject(screenCoords, 0, 0, m_width, m_height, 0.0f, 1.0f, projMat, camMat, worldMat);
+        DirectX::XMVECTOR rayEndV = DirectX::XMVector3Unproject(endCoords, 0, 0, m_width, m_height, 0.0f, 1.0f, projMat, camMat, worldMat);
         DirectX::XMFLOAT3 rayOrigin;
         DirectX::XMStoreFloat3(&rayOrigin, DirectX::XMVectorScale(rayOriginV, DirectX::XMVectorGetW(rayOriginV)));
         DirectX::XMFLOAT3 rayEnd;
