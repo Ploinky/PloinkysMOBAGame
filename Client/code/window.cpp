@@ -223,6 +223,12 @@ namespace PMG {
         return m_mouseBtnDown[button];
     }
 
+    bool Window::WasMouseButtonPressed(int button) {
+        bool wasDown = m_mouseBtnDown[button];
+        m_mouseBtnDown[button] = false;
+        return wasDown;
+    }
+
     bool Window::IsKeyDown(char key) {
         return m_keys[key];
     }

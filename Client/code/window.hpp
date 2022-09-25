@@ -40,6 +40,7 @@ namespace PMG {
             short GetMouseX();
             short GetMouseY();
             bool IsButtonDown(int button);
+            bool WasMouseButtonPressed(int button);
             bool IsKeyDown(char key);
             LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
             

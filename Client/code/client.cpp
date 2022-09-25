@@ -154,7 +154,7 @@ namespace PMG {
 
         }
 
-        if (window->IsButtonDown(2)) {
+        if (window->WasMouseButtonPressed(2)) {
             float x, y;
             renderer->TestIntersect(window->GetMouseX(), window->GetMouseY(), &x, &y);
             std::cout << "PRESSED! " << x << "-" << y << std::endl;
