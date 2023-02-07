@@ -1,0 +1,276 @@
+#include "window.h"
+#include <windowsx.h>
+#include <iostream>
+#include <string>
+#include "direct3d.h"
+#include "mesh.h"
+#include "logger.h"
+#include "resource.h"
+#include "settings.h"
+
+LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    PMG::Window* window = (PMG::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    
+    if (window == nullptr) {
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
+    }
+
+    return window->WndProc(hwnd, msg, wParam, lParam);
+}
+
+namespace PMG {
+    Window::Window() {
+        Logger::Msg("Creating window...");
+
+        this->width = Settings::GetInt(PMGSettings::RESOLUTION_X);
+        this->height = Settings::GetInt(PMGSettings::RESOLUTION_Y);
+
+        LPCWSTR className = L"PloinkysMOBAGameWindow";
+
+        shouldClose = false;
+
+        HINSTANCE hInstance = GetModuleHandle(NULL);
+
+        // ------ Create window -----
+        WNDCLASSEXW wc;
+        wc.cbSize = sizeof(WNDCLASSEXW);
+        wc.style = 0;
+        wc.lpfnWndProc = StaticWndProc;
+        wc.cbClsExtra = 0;
+        wc.cbWndExtra = 0;
+        wc.hInstance = hInstance;
+        wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+        wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
+        wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+        wc.lpszMenuName = NULL;
+        wc.lpszClassName = className;
+        wc.hIconSm = wc.hIcon;
+
+        int posX, posY;
+
+        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+        posX = (screenWidth - width) / 2;
+        posY = (screenHeight - height) / 2;
+
+        RegisterClassExW(&wc);
+
+        DWORD dwStyle = WS_SYSMENU | WS_CAPTION;
+
+        switch ((WindowMode) Settings::GetInt(PMGSettings::WINDOW_MODE)) {
+        case WindowMode::WINDOWED: {
+            break;
+        }
+        case WindowMode::BORDERLESS:{
+            dwStyle |= WS_POPUP;
+            width = screenWidth;
+            height = screenHeight;
+            posX = 0;
+            posY = 0;
+            break;
+        }
+        case WindowMode::FULLSCREEN:
+        default: {
+            break;
+        }
+        }
+
+        RECT wr = {0, 0, width, height};       // set the size, but not the position
+        AdjustWindowRectEx(&wr, dwStyle, false, WS_EX_APPWINDOW); // adjust the window's size
+
+        LPCWSTR winTitle = L"Ploinky's MOBA Game";
+
+        windowHandle = CreateWindowExW(WS_EX_APPWINDOW,
+                                       wc.lpszClassName,
+                                       winTitle,
+                                       dwStyle,
+                                       posX,
+                                       posY,
+                                       wr.right - wr.left,
+                                       wr.bottom - wr.top,
+                                       NULL,
+                                       NULL,
+                                       GetModuleHandle(NULL),
+                                       NULL);
+        
+        // Save pointer to PMG::Window for WndProc to access
+        SetWindowLongPtr(windowHandle, GWLP_USERDATA, LONG_PTR(this));
+
+        if (windowHandle == 0) {
+            Logger::Err("WindowHandle is NULL.");
+            Logger::Err(std::to_string(GetLastError()));
+            return;
+        }
+    }
+
+    Window::~Window() {
+    }
+
+    LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+        switch (msg) {
+        case WM_QUIT:
+        case WM_DESTROY: {
+            SetShouldClose();
+            break;
+        }
+        case WM_SIZE: {
+            RECT r;
+            GetWindowRect(hwnd, &r);
+            int width = r.right - r.left;
+            int height = r.bottom - r.top;
+            Resized(width, height);
+            break;
+        }
+        case WM_CHAR: {
+            e_charTyped(wParam);
+            break;
+        }
+        case WM_KEYDOWN: {
+            e_keyPressed(wParam);
+            break;
+        }
+        case WM_KEYUP: {
+            e_keyReleased(wParam);
+            break;
+        }
+        case WM_MOUSEMOVE: {
+            e_mouseMoved(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            break;
+        }
+        case WM_LBUTTONDOWN: {
+            e_mouseButtonPressed(0);
+            break;
+        }
+        case WM_MBUTTONDOWN: {
+            e_mouseButtonPressed(1);
+            break;
+        }
+        case WM_RBUTTONDOWN: {
+            e_mouseButtonPressed(2);
+            break;
+        }
+        case WM_LBUTTONUP: {
+            e_mouseButtonReleased(0);
+            break;
+        }
+        case WM_MBUTTONUP: {
+            e_mouseButtonReleased(1);
+            break;
+        }
+        case WM_RBUTTONUP: {
+            e_mouseButtonReleased(2);
+            break;
+        }
+        case WM_ACTIVATE: {
+            /*
+            PMG::Window *window = (PMG::Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if(window == nullptr) {
+                break;
+            }
+
+            if(LOWORD(wParam) == WA_INACTIVE) {
+                window->FocusLost();
+            } else if(LOWORD(wParam) == WA_ACTIVE) {
+                window->FocusGained();
+            }
+            break;
+            */
+        }
+        case WM_SETFOCUS: {
+            PMG::Window* window = (PMG::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (window == nullptr) {
+                break;
+            }
+
+            window->FocusGained();
+            break;
+        }
+        case WM_KILLFOCUS: {
+            PMG::Window* window = (PMG::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (window == nullptr) {
+                break;
+            }
+
+            window->FocusLost();
+            break;
+        }
+        default: {
+            return DefWindowProcW(hwnd, msg, wParam, lParam);        
+        }
+        }
+
+        return 0;
+    }
+
+
+    void Window::Show() {
+        Logger::Msg("Showing window....");
+        ShowWindow(windowHandle, SW_SHOW);
+    }
+
+    MSG msg = {};
+    
+    // Handle win32 window events
+    void Window::HandleEvents() {
+        // Use PeekMessage, GetMessage blocks!
+        while (PeekMessage(&msg, windowHandle, 0, 0, PM_REMOVE) > 0) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+
+    bool Window::ShouldClose() {
+        return shouldClose;
+    }
+
+    void Window::SetShouldClose() {
+        shouldClose = true;
+    }
+    
+    HWND Window::GetWindowHandle() {
+        return windowHandle;
+    }
+
+    void Window::Resized(int width, int height) {
+        this->width = width;
+        this->height = height;
+
+        if(windowResizedHandler != nullptr) {
+            windowResizedHandler();
+        }
+    }
+
+    void Window::FocusGained() {
+        ClipCursorToWindow();
+    }
+
+    void Window::FocusLost() {
+        // Do not forget to unclip cursor!
+        ClipCursor(NULL);
+    }
+
+    void Window::ClipCursorToWindow() {
+        RECT rect;
+        GetClientRect(windowHandle, &rect);
+        
+        POINT ul;
+        ul.x = rect.left;
+        ul.y = rect.top;
+
+        POINT lr;
+        lr.x = rect.right;
+        lr.y = rect.bottom;
+
+        MapWindowPoints(windowHandle, nullptr, &ul, 1);
+        MapWindowPoints(windowHandle, nullptr, &lr, 1);
+
+        rect.left = ul.x;
+        rect.top = ul.y;
+
+        rect.right = lr.x;
+        rect.bottom = lr.y;
+
+        ClipCursor(&rect);
+    }
+}
