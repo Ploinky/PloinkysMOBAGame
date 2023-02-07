@@ -161,7 +161,7 @@ namespace PMG {
         }
     }
 
-    printf("received packet id <%d> with <%d> bytes from <%d>\r\n",
+    printf("received packet id <%d> with <%I64u> bytes from <%I64u>\r\n",
         packet->header.type,
         packet->size(),
         connection->socket
@@ -171,8 +171,8 @@ namespace PMG {
   }
 
   bool Net_SendPacket(packet_t* packet, net_client_t* connection) {
-    int sendBufLen = packet->size();
-    char* sendBuf = (char*)std::malloc(sendBufLen);
+    size_t sendBufLen = packet->size();
+    char* sendBuf = (char*) std::malloc(sendBufLen);
 
     if (sendBuf == 0) {
         return false;

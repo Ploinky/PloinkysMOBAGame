@@ -15,9 +15,9 @@ namespace PMG {
         m_textfield->m_prefSize = { 400, 100 };
 
         GuiButton* btnConnect = new GuiButton();
-        btnConnect->m_color[0] = 0.2;
-        btnConnect->m_color[1] = 0.2;
-        btnConnect->m_color[2] = 0.2;
+        btnConnect->m_color[0] = 0.2f;
+        btnConnect->m_color[1] = 0.2f;
+        btnConnect->m_color[2] = 0.2f;
         btnConnect->m_pos = { 0, 0 };
         btnConnect->m_prefSize = { 400, 100 };
         btnConnect->m_text = L"Connect";
@@ -26,17 +26,17 @@ namespace PMG {
         };
 
         GuiButton* btnSettings = new GuiButton();
-        btnSettings->m_color[0] = 0.2;
-        btnSettings->m_color[1] = 0.2;
-        btnSettings->m_color[2] = 0.2;
+        btnSettings->m_color[0] = 0.2f;
+        btnSettings->m_color[1] = 0.2f;
+        btnSettings->m_color[2] = 0.2f;
         btnSettings->m_pos = { 0, 0 };
         btnSettings->m_prefSize = { 400, 100 };
         btnSettings->m_text = L"Settings";
 
         GuiButton* btnQuit = new GuiButton();
-        btnQuit->m_color[0] = 0.2;
-        btnQuit->m_color[1] = 0.2;
-        btnQuit->m_color[2] = 0.2;
+        btnQuit->m_color[0] = 0.2f;
+        btnQuit->m_color[1] = 0.2f;
+        btnQuit->m_color[2] = 0.2f;
         btnQuit->m_pos = { 0, 0 };
         btnQuit->m_prefSize = { 400, 100 };
         btnQuit->m_text = L"Quit";

@@ -231,7 +231,7 @@ namespace PMG {
     }
 
     static mat_t Rotation(float yaw, float pitch, float roll) {
-        const double halfC = M_PI / 180;
+        const float halfC = (float) (M_PI / 180.0f);
         
         yaw *= halfC;
         pitch *= halfC;
