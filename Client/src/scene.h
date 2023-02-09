@@ -117,7 +117,7 @@ namespace PMG {
 
 		Map* m_map;
 
-		std::list<game_tick_t> ticks;
+		std::vector<game_tick_t> ticks;
 		std::list<unit_t> units;
 
 		std::string ip;

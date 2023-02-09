@@ -123,7 +123,7 @@ namespace PMG {
         lastFrame = Util::GetSystemTime();
         while(isRunning && !window->ShouldClose()) {
             auto thisFrame = Util::GetSystemTime();
-            float dt = (thisFrame - lastFrame) / 1000000.0f / 1000.0f;
+            float dt = (thisFrame - lastFrame);
             lastFrame = thisFrame;
 
             ClientState currentState = m_stateStack.back();

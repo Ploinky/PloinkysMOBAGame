@@ -153,7 +153,7 @@ namespace PMG {
 
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsc = { 0 };
         fsc.Windowed = !isFullscreenExclusive;
-        fsc.RefreshRate.Numerator = 14;
+        fsc.RefreshRate.Numerator = 144;
         fsc.RefreshRate.Denominator = 1;
         fsc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
         fsc.Scaling = DXGI_MODE_SCALING_CENTERED;
@@ -430,7 +430,7 @@ namespace PMG {
             return false;
         }
 
-        hr = swapChain->Present(0, 0);
+        hr = swapChain->Present(1, 0);
 
         if(FAILED(hr)) {
             std::wostringstream os;

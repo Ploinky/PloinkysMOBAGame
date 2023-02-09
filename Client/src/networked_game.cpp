@@ -92,7 +92,7 @@ namespace PMG {
         m_camPos[1] = 20;
         m_camPos[2] += m_camDir[1] * 20 * dt;
 
-        fps = (int)(1000.0f / (dt * 1000.0f));
+        fps = (int)(1000.0f / dt);
     }
 
     void NetworkedGame::TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y) {
@@ -258,17 +258,27 @@ namespace PMG {
             return;
         }
 
-        game_tick_t lastTick = *std::prev(std::prev(ticks.end()));
-        game_tick_t nextLastTick = *std::prev(std::prev(std::prev(ticks.end())));
+        // local client time of first received packet
+        float startTime = ticks.front().received;
 
-        // theoretical time we are rendering
+        // total time elapsed since first packet
         float totalTime = frameTime - ticks.front().received;
-        // actual time when last tick was true
-        float lastTickActualTime = lastTick.index * 33.3333f;
 
-        // total time elapsed since last tick was meant to be true
-        float time = (totalTime - lastTickActualTime);
-        float diff = time / 33.333f;
+        // current frame that we are rendering, including fraction
+        float currentFrame = totalTime / (1000.0f / 30.0f);
+
+        // little hacky, this integer cutoff?
+        int startFrame = currentFrame - 2; 
+        int endFrame = startFrame + 1;
+
+        if (endFrame >= ticks.size()) {
+            return;
+        }
+
+        game_tick_t lastTick = ticks[endFrame];
+        game_tick_t nextLastTick = ticks[startFrame];
+
+        float diff = currentFrame - startFrame;
 
         for (auto unit = units.begin(); unit != units.end(); unit++) {
             float lastX = unit->pos.x;
