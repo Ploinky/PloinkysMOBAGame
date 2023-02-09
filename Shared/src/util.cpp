@@ -95,6 +95,6 @@ namespace PMG {
 	}
 
 	long long Util::GetSystemTime() {
-		return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}
 }

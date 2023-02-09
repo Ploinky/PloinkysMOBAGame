@@ -12,7 +12,7 @@ namespace PMG {
     // Tickrate of the server in ms per tick
     // Lower values require a faster server and connection
     // Higher values lead to lag...
-#define TICKRATE 1000/60
+#define TICKRATE 1000/30
 
     enum UnitActionType {
         SPAWN,

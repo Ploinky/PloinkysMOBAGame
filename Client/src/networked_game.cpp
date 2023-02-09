@@ -261,8 +261,14 @@ namespace PMG {
         game_tick_t lastTick = *std::prev(std::prev(ticks.end()));
         game_tick_t nextLastTick = *std::prev(std::prev(std::prev(ticks.end())));
 
-        float time = (frameTime - lastTick.received) / 1000000.0f / 1000.0f;
-        float diff = time / (16.66 / 1000.0f);
+        // theoretical time we are rendering
+        float totalTime = frameTime - ticks.front().received;
+        // actual time when last tick was true
+        float lastTickActualTime = lastTick.index * 33.3333f;
+
+        // total time elapsed since last tick was meant to be true
+        float time = (totalTime - lastTickActualTime);
+        float diff = time / 33.333f;
 
         for (auto unit = units.begin(); unit != units.end(); unit++) {
             float lastX = unit->pos.x;
@@ -307,6 +313,7 @@ namespace PMG {
             game_tick_t newTick{};
 
             *packet >> newTick.index;
+            newTick.index = ticks.size();
 
             while(packet->data.size() > 0) {
                 packet_t tickData{};
