@@ -190,6 +190,7 @@ namespace PMG {
             WSAGetLastError()
         );
         free(sendBuf);
+        Net_CloseConnection(connection);
         return false;
     }
 
@@ -206,6 +207,7 @@ namespace PMG {
 
   bool Net_CloseConnection(net_client_t* connection) {
     int result = shutdown(connection->socket, SD_BOTH);
+    connection->isConnected = false;
 
     if(result == SOCKET_ERROR) {
       return false;

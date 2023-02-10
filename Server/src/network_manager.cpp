@@ -38,11 +38,9 @@ namespace PMG {
       }
 
       for (auto it = clients.begin(); it != clients.end(); ++it) {
-        net_client_t client = *it;
-
-        if(!Net_IsConnected(&client)) {
+        if(!Net_IsConnected(&*it)) {
+          on_clientDisconnected(it->socket);
           it = clients.erase(it);
-          on_clientDisconnected(client.socket);
           if (it == clients.end()) {
               break;
           }
@@ -53,10 +51,8 @@ namespace PMG {
 
   void NetworkManager::SendToAllClients(packet_t* packet) {
     for (auto it = clients.begin(); it != clients.end(); ++it) {
-      net_client_t client = *it;
-
-      if(client.isConnected) {
-        Net_SendPacket(packet, &client);
+      if(it != clients.end() && it->isConnected) {
+        Net_SendPacket(packet, &*it);
       }
     }
   }
