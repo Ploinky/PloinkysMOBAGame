@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{4aef7692-aa18-4bc1-9770-4633b9b7641c}</ProjectGuid>
+    <ProjectGuid>{7ace48e0-c601-4094-bfe2-6932f0f5210a}</ProjectGuid>
     <RootNamespace>Shared</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -127,14 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="code\logger.cpp" />
-    <ClCompile Include="code\navigation.cpp" />
-    <ClCompile Include="code\util.cpp" />
+    <ClCompile Include="src\logger.cpp" />
+    <ClCompile Include="src\navigation.cpp" />
+    <ClCompile Include="src\networking.cpp" />
+    <ClCompile Include="src\physics.cpp" />
+    <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="code\logger.hpp" />
-    <ClInclude Include="code\navigation.hpp" />
-    <ClInclude Include="code\util.hpp" />
+    <ClInclude Include="src\logger.h" />
+    <ClInclude Include="src\navigation.h" />
+    <ClInclude Include="src\networking.h" />
+    <ClInclude Include="src\physics.h" />
+    <ClInclude Include="src\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

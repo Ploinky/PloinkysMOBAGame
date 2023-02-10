@@ -1,0 +1,79 @@
+#include <chrono>
+#include "server.h"
+#include "network_manager.h"
+#include "main.h"
+#include "game.h"
+#include "util.h"
+#include "logger.h"
+
+namespace PMG {
+    void Server::Start() {
+        m_networkManager = new NetworkManager();
+        m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
+        m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
+        m_networkManager->on_clientMessageReceived = std::bind(&Server::OnMessageReceived, this, std::placeholders::_1, std::placeholders::_2);
+        m_networkManager->Host();
+
+        m_game = new Game();
+        m_game->on_batchSendToAllClients = std::bind(&Server::BroadcastMessage, this, std::placeholders::_1);
+        m_game->on_sendToClient = std::bind(&Server::SendMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
+        m_game->on_sendToAllClients = std::bind(&Server::SendMessageToAllClients, this, std::placeholders::_1);
+
+        long long lastFrame = GetSystemTime();
+
+        bool isRunning = true;
+        while(isRunning) {
+            auto thisFrame = GetSystemTime();
+            float dt = (thisFrame - lastFrame) / 1000000.0f / 1000.0f;
+            lastFrame = thisFrame;
+
+            m_networkManager->Update();
+
+            m_game->Update(dt);
+        }
+
+        m_networkManager->Close();
+        delete m_networkManager;
+        m_networkManager = NULL;
+    }
+
+    long long Server::GetSystemTime() {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+
+    void Server::OnClientConnected(unsigned long id) {
+        printf("New client connected, id: %ld\r\n", id);
+        m_game->AddPlayerForNetworkId(id);
+    }
+
+    void Server::OnClientDisconnected(unsigned long id) {
+        printf("Client %ld disconnected\r\n", id);
+        m_game->RemovePlayerForNetworkId(id);
+    }
+
+    void Server::OnMessageReceived(unsigned long clientId, packet_t* packet) {
+        if(packet->header.type == PacketType::UNITMOVE) {
+            float nx = 0;
+            float ny = 0;
+
+            std::memcpy(&nx, &packet->data[0], sizeof(nx));
+            std::memcpy(&ny, &packet->data[4], sizeof(ny));
+            
+            m_game->PlayerMoveCommand(clientId, nx, ny);
+        }
+    }
+
+    void Server::BroadcastMessage(std::vector<packet_t> packet) {
+        for(auto p : packet) {
+            m_networkManager->SendToAllClients(&p);
+        }
+    }
+
+    void Server::SendMessageToClient(unsigned long clientId, packet_t* packet) {
+        m_networkManager->SendToClient(clientId, packet);
+    }
+
+    void Server::SendMessageToAllClients(packet_t* packet) {
+        m_networkManager->SendToAllClients(packet);
+    }
+}
