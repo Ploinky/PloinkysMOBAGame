@@ -161,12 +161,6 @@ namespace PMG {
         }
     }
 
-    printf("received packet id <%d> with <%I64u> bytes from <%I64u>\r\n",
-        packet->header.type,
-        packet->size(),
-        connection->socket
-    );
-
     return true;
   }
 
@@ -193,12 +187,6 @@ namespace PMG {
         Net_CloseConnection(connection);
         return false;
     }
-
-    printf("finished sending <%d> with <%I64u> bytes to <%I64u>\r\n",
-        packet->header.type,
-        packet->size(),
-        connection->socket
-    );
 
     free(sendBuf);
 

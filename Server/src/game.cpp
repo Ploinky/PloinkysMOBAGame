@@ -118,20 +118,26 @@ namespace PMG {
         // ======== Movement system ========
         for (auto ent : m_componentRegistry->GetEntities<transform_t>()) {
             transform_t* transform = m_componentRegistry->GetComponent<transform_t>(ent);
+            if (comp(transform->x, transform->tx) && comp(transform->y, transform->ty)) {
+                continue;
+            }
+
+            float dx = transform->tx - transform->x;
+            float dy = transform->ty - transform->y;
+            float length = sqrt(dx * dx + dy * dy);
+
+
+            dx /= length;
+            dy /= length;
+
+            float newX = transform->x + 6.0f * dx * TICKRATE / 1000.0f;
+            float newY = transform->y + 6.0f * dy * TICKRATE / 1000.0f;
+
+            transform->x = (transform->x < transform->tx && newX >= transform->tx) || (transform->x > transform->tx && newX <= transform->tx) ? transform->tx : newX;
+            transform->y = (transform->y < transform->ty && newY >= transform->ty) || (transform->y > transform->ty && newY <= transform->ty) ? transform->ty : newY;
+
             if (transform->x != transform->tx || transform->y != transform->ty) {
-                float dx = transform->tx - transform->x;
-                float dy = transform->ty - transform->y;
-                float length = sqrt(dx * dx + dy * dy);
-
-                dx /= length;
-                dy /= length;
-
-                float newX = transform->x + 6.0f * dx * TICKRATE / 1000.0f;
-                float newY = transform->y + 6.0f * dy * TICKRATE / 1000.0f;
-
-                transform->x = (transform->x < transform->tx&& newX >= transform->tx) || (transform->x > transform->tx && newX <= transform->tx) ? transform->tx : newX;
-                transform->y = (transform->y < transform->ty&& newY >= transform->ty) || (transform->y > transform->ty && newY <= transform->ty) ? transform->ty : newY;
-              transform->r = -atan2(transform->ty - transform->y, transform->tx - transform->x) * 180 / M_PI;
+                transform->r = -atan2(transform->ty - transform->y, transform->tx - transform->x) * 180 / M_PI;
             }
         }
 
@@ -161,7 +167,7 @@ namespace PMG {
             despawn_t* despawn = m_componentRegistry->GetComponent<despawn_t>(ent);
             if (despawn) {
                 packet_t packet{};
-                packet.header.type = PacketType::UNITMOVE;
+                packet.header.type = PacketType::UNITDESPAWN;
                 packet << ent;
                 tickPacket << packet;
 

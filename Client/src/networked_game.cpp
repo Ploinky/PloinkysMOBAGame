@@ -278,7 +278,7 @@ namespace PMG {
         game_tick_t lastTick = ticks[endFrame];
         game_tick_t nextLastTick = ticks[startFrame];
 
-        float diff = currentFrame - startFrame;
+        float diff = currentFrame - ((int) currentFrame);
 
         for (auto unit = units.begin(); unit != units.end(); unit++) {
             float lastX = unit->pos.x;
