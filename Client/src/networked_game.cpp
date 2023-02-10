@@ -88,9 +88,9 @@ namespace PMG {
 
         HandleTicks(dt);
 
-        m_camPos[0] += m_camDir[0] * 20 * dt;
+        m_camPos[0] += m_camDir[0] * dt / 20;
         m_camPos[1] = 20;
-        m_camPos[2] += m_camDir[1] * 20 * dt;
+        m_camPos[2] += m_camDir[1] * dt / 20;
 
         fps = (int)(1000.0f / dt);
     }
