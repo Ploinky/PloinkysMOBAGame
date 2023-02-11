@@ -1,0 +1,22 @@
+import "oaidl.idl";
+import "ocidl.idl";
+
+[uuid(0a7a4655-5660-47d0-8a37-98ae21399e57), version(0.1)]
+library LauncherLibrary
+{
+    [uuid(3a14c9c0-bc3e-453f-a314-4ce4a0ec81d8), object, local]
+    interface ILauncher : IUnknown
+    {
+        HRESULT Connect([in] BSTR stringParameter);
+        HRESULT Quit(void);
+        HRESULT Minimize(void);
+        HRESULT MouseDownDrag(void);
+    };
+
+    [uuid(637abc45-11f7-4dde-84b4-317d62a638d3)]
+    coclass LauncherImpl
+    {
+        [default] interface ILauncher;
+        interface IDispatch;
+    };
+}

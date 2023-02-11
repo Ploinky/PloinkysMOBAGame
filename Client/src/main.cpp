@@ -21,14 +21,18 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     int argc;
     wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
     bool showConsole = false;
+    std::wstring ip;
 
     for (int i = 0; i < argc; i++) {
         if (lstrcmpW(argv[i], L"-console") == 0) {
             showConsole = true;
         }
+        if (lstrcmpW(argv[i], L"-connect") == 0) {
+            ip = std::wstring(argv[++i]);
+        }
     }
 
-    if(!showConsole) {
+    if(showConsole) {
         AllocConsole();
         freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
         freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
@@ -38,7 +42,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     
     PMG::Logger::Msg("Starting Ploinky's MOBA Game...");
 
-    PMG::Client* client = new PMG::Client();
+    PMG::Client* client = new PMG::Client(ip);
     client->Run();
 
     PMG::Logger::Msg("Stopping Ploinky's MOBA Game.");

@@ -32,7 +32,7 @@ namespace PMG {
     
     class Client : public ClientStateHandler{
         public:
-            Client();
+            Client(std::wstring ip);
             ~Client();
             void Run();
 
@@ -70,5 +70,6 @@ namespace PMG {
             std::vector<ClientState> m_stateStack;
             ClientState m_oldState;
             std::map<ClientState, Scene*> m_scenes;
+            std::wstring m_ip;
     };
 }

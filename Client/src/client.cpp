@@ -18,7 +18,8 @@
 #include "settings.h"
 
 namespace PMG {
-    Client::Client() {
+    Client::Client(std::wstring ip) {
+        m_ip = ip;
     }
 
     Client::~Client() {
@@ -117,6 +118,7 @@ namespace PMG {
 
         m_oldState = ClientState::STARTUP;
         m_stateStack.push_back(ClientState::MAIN_MENU);
+        m_stateStack.push_back(ClientState::CONNECT);
         // Main game loop
         // Keep running while both the client wants to keep runnning and the window has not been closed
         isRunning = true;
@@ -142,14 +144,13 @@ namespace PMG {
                     break;
                 }
                 case ClientState::CONNECT: {
-                    if (m_oldState != ClientState::MAIN_MENU) {
+                    if (m_oldState != ClientState::STARTUP) {
                         DeleteScene<ConnectScene>(ClientState::CONNECT);
                         m_stateStack.pop_back();
                         break;
                     }
-                    MainMenuScene* mainMenuScene = (MainMenuScene*)m_scenes.at(ClientState::MAIN_MENU);
                     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-                    std::string narrowIp = converter.to_bytes(mainMenuScene->GetIp());
+                    std::string narrowIp = converter.to_bytes(m_ip);
                     ConnectScene* connectScene = new ConnectScene(this, narrowIp);
                     m_scenes[ClientState::CONNECT] = connectScene;
                     break;
