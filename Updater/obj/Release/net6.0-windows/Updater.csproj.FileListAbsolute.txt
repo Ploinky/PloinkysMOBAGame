@@ -1,0 +1,17 @@
+P:\Updater\bin\Release\net6.0-windows\Updater.exe
+P:\Updater\bin\Release\net6.0-windows\Updater.deps.json
+P:\Updater\bin\Release\net6.0-windows\Updater.runtimeconfig.json
+P:\Updater\bin\Release\net6.0-windows\Updater.dll
+P:\Updater\obj\Release\net6.0-windows\Updater.csproj.AssemblyReference.cache
+P:\Updater\obj\Release\net6.0-windows\MainWindow.g.cs
+P:\Updater\obj\Release\net6.0-windows\App.g.cs
+P:\Updater\obj\Release\net6.0-windows\Updater_MarkupCompile.cache
+P:\Updater\obj\Release\net6.0-windows\Updater_MarkupCompile.lref
+P:\Updater\obj\Release\net6.0-windows\MainWindow.baml
+P:\Updater\obj\Release\net6.0-windows\Updater.g.resources
+P:\Updater\obj\Release\net6.0-windows\Updater.GeneratedMSBuildEditorConfig.editorconfig
+P:\Updater\obj\Release\net6.0-windows\Updater.AssemblyInfoInputs.cache
+P:\Updater\obj\Release\net6.0-windows\Updater.AssemblyInfo.cs
+P:\Updater\obj\Release\net6.0-windows\Updater.csproj.CoreCompileInputs.cache
+P:\Updater\obj\Release\net6.0-windows\Updater.dll
+P:\Updater\obj\Release\net6.0-windows\Updater.genruntimeconfig.cache

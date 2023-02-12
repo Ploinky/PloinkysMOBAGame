@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "1ygjP3G5F+FsqdjAt/bkU5z9LX2T2EQmGAU4XZp+6fygGHIebe7uBG+k8KqHG/suMb/A5Lu9CnbsuSR+2bqxow==",
+  "success": true,
+  "projectFilePath": "P:\\Updater\\Updater.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.13\\microsoft.netcore.app.ref.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\6.0.13\\microsoft.netcore.app.runtime.win-x64.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.13\\microsoft.windowsdesktop.app.ref.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\6.0.13\\microsoft.windowsdesktop.app.runtime.win-x64.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.13\\microsoft.aspnetcore.app.ref.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\6.0.13\\microsoft.aspnetcore.app.runtime.win-x64.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.netcore.app.crossgen2.win-x64\\6.0.13\\microsoft.netcore.app.crossgen2.win-x64.6.0.13.nupkg.sha512",
+    "C:\\Users\\mail\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.13\\microsoft.netcore.app.host.win-x64.6.0.13.nupkg.sha512"
+  ],
+  "logs": []
+}
