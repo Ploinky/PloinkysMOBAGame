@@ -1,0 +1,5 @@
+﻿  pch.cpp
+  PhysicsTest.cpp
+P:\Shared\src\physics.h(344,4): warning C4091: 'typedef ': ignored on left of 'PMG::mat_t' when no variable is declared
+     Creating library P:\Test\Build\Debug\x64\Test.lib and object P:\Test\Build\Debug\x64\Test.exp
+  Test.vcxproj -> P:\Test\Build\Debug\x64\Test.dll

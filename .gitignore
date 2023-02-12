@@ -1,3 +1,6 @@
-x64
+**/Build
+**/Release
+Launcher/obj
+Launcher/bin
 **/.vs
 log
