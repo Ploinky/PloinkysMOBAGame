@@ -10,5 +10,5 @@
         ResizeMode="NoResize"
         Width="1024"
         Height="680">
-    <Frame Source="views/Login.xaml" />
+    <Frame Source="views/Login.xaml" NavigationUIVisibility="Hidden" />
 </Window>

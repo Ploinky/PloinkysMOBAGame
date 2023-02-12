@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Launcher", "Launcher\Launcher.csproj", "{817260C8-91A2-47DB-B7E5-C91E34E5FC79}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameService", "GameService\GameService.csproj", "{0BEB4860-D8CE-4668-9029-83EEC420CBDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{817260C8-91A2-47DB-B7E5-C91E34E5FC79}.Release|x64.Build.0 = Release|Any CPU
 		{817260C8-91A2-47DB-B7E5-C91E34E5FC79}.Release|x86.ActiveCfg = Release|Any CPU
 		{817260C8-91A2-47DB-B7E5-C91E34E5FC79}.Release|x86.Build.0 = Release|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Debug|x64.Build.0 = Debug|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Debug|x86.Build.0 = Debug|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Release|x64.ActiveCfg = Release|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Release|x64.Build.0 = Release|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Release|x86.ActiveCfg = Release|Any CPU
+		{0BEB4860-D8CE-4668-9029-83EEC420CBDD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,6 +9,7 @@
 	<PublishSingleFile>true</PublishSingleFile>
 	 <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
 	 <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	 <StartupObject>Updater.App</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

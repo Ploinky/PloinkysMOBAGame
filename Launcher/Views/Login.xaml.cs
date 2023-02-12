@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using Updater.Data;
 using Launcher.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Updater.Views
 {
@@ -32,56 +33,57 @@ namespace Updater.Views
             set
             {
                 _status = value;
-                switch (_status)
+
+                Dispatcher.Invoke(new Action(() =>
                 {
-                    case UpdaterState.READY:
-                        PlayButton.Content = "Play";
-                        PlayButton.IsEnabled = true;
-                        break;
-                    case UpdaterState.FAILED:
-                        PlayButton.Content = "Update Failed, Retry";
-                        PlayButton.IsEnabled = true;
-                        break;
-                    case UpdaterState.DOWNLOADING_GAME:
-                        PlayButton.Content = "Downloading Game";
-                        PlayButton.IsEnabled = false;
-                        break;
-                    case UpdaterState.DOWNLOADING_UPDATE:
-                        PlayButton.Content = "Downloading Update";
-                        PlayButton.IsEnabled = false;
-                        break;
-                    default:
-                        break;
-                }
+                    switch (_status)
+                    {
+                        case UpdaterState.READY:
+                            LoginButton.Content = "Play";
+                            LoginButton.IsEnabled = true;
+                            RegisterButton.IsEnabled = true;
+                            break;
+                        case UpdaterState.FAILED:
+                            LoginButton.Content = "Update Failed, Retry";
+                            LoginButton.IsEnabled = true;
+                            RegisterButton.IsEnabled = false;
+                            break;
+                        case UpdaterState.DOWNLOADING_GAME:
+                            LoginButton.Content = "Downloading Game";
+                            LoginButton.IsEnabled = false;
+                            RegisterButton.IsEnabled = false;
+                            break;
+                        case UpdaterState.DOWNLOADING_UPDATE:
+                            LoginButton.Content = "Downloading Update";
+                            LoginButton.IsEnabled = false;
+                            RegisterButton.IsEnabled = false;
+                            break;
+                        default:
+                            break;
+                    }
+                }));
             }
         }
 
         public Login()
         {
             InitializeComponent();
-            CheckForLauncherUpdates();
+            Task.Run(() => CheckForLauncherUpdates());
         }
 
         private void CheckForLauncherUpdates()
         {
-            var fi = new System.IO.FileInfo(FilesystemConstants.TEMP_LAUNCHER_EXE);
-            if (fi.Exists)
+            if (File.Exists(FilesystemConstants.TEMP_LAUNCHER_EXE))
             {
-                fi.Delete();
-                fi.Refresh();
-                while (fi.Exists)
-                {
-                    System.Threading.Thread.Sleep(100);
-                    fi.Refresh();
-                }
+                File.Delete(FilesystemConstants.TEMP_LAUNCHER_EXE);
             }
 
-            WebClient webClient = new WebClient();
-            Version onlineLauncherVersion = new Version(webClient.DownloadString(WebResourceConstants.LAUNCHER_VERSION_FILE));
+            WebClient webClient = new();
+            Version onlineLauncherVersion = new(webClient.DownloadString(WebResourceConstants.LAUNCHER_VERSION_FILE));
 
             if (File.Exists(FilesystemConstants.LAUNCHER_VERSION_FILE))
             {
-                Version localVersion = new Version(File.ReadAllText(FilesystemConstants.LAUNCHER_VERSION_FILE));
+                Version localVersion = new(File.ReadAllText(FilesystemConstants.LAUNCHER_VERSION_FILE));
 
                 if (onlineLauncherVersion.IsDifferentThan(localVersion))
                 {
@@ -97,8 +99,9 @@ namespace Updater.Views
                 UpdateLauncher(onlineLauncherVersion);
             }
 
-
-            VersionText.Text = new Version(File.ReadAllText(FilesystemConstants.LAUNCHER_VERSION_FILE)).ToString();
+            Dispatcher.Invoke(new Action(() => {
+                VersionText.Text = new Version(File.ReadAllText(FilesystemConstants.LAUNCHER_VERSION_FILE)).ToString();
+            }));
         }
 
         private void UpdateLauncher(Version _onlineLauncherVersion)
@@ -110,12 +113,24 @@ namespace Updater.Views
 
                 File.Move(FilesystemConstants.LAUNCHER_EXE, FilesystemConstants.TEMP_LAUNCHER_EXE);
 
-                webClient.DownloadFile(new Uri(WebResourceConstants.LAUNCHER_DATA), FilesystemConstants.LAUNCHER_ZIP);
-
+                webClient.DownloadFileCompleted += new System.ComponentModel.AsyncCompletedEventHandler(LauncherDownloadCompletedCallback);
+                webClient.DownloadFileAsync(new Uri(WebResourceConstants.LAUNCHER_DATA), FilesystemConstants.LAUNCHER_ZIP);
+            }
+            catch (Exception ex)
+            {
+                status = UpdaterState.FAILED;
+                MessageBox.Show($"Error downloading game data: {ex}");
+            }
+        }
+        private void LauncherDownloadCompletedCallback(object sender, AsyncCompletedEventArgs e)
+        {
+            try
+            {
+                string onlineVersion = ((Version)e.UserState).ToString();
                 ZipFile.ExtractToDirectory(FilesystemConstants.LAUNCHER_ZIP, FilesystemConstants.ROOTPATH, overwriteFiles: true);
                 File.Delete(FilesystemConstants.LAUNCHER_ZIP);
 
-                File.WriteAllText(FilesystemConstants.LAUNCHER_VERSION_FILE, _onlineLauncherVersion.ToString());
+                File.WriteAllText(FilesystemConstants.LAUNCHER_VERSION_FILE, onlineVersion.ToString());
 
                 status = UpdaterState.READY;
 
@@ -131,7 +146,7 @@ namespace Updater.Views
             catch (Exception ex)
             {
                 status = UpdaterState.FAILED;
-                MessageBox.Show($"Error downloading game data: {ex}");
+                MessageBox.Show($"Error installing game data: {ex}");
             }
         }
 
@@ -140,12 +155,16 @@ namespace Updater.Views
             if (File.Exists(FilesystemConstants.VERSION_FILE))
             {
                 Version localVersion = new Version(File.ReadAllText(FilesystemConstants.VERSION_FILE));
-                VersionText.Text = localVersion.ToString();
+
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    VersionText.Text = localVersion.ToString();
+                }));
 
                 try
                 {
-                    WebClient webClient = new WebClient();
-                    Version onlineVersion = new Version(webClient.DownloadString(WebResourceConstants.GAME_VERSION_FILE));
+                    WebClient webClient = new();
+                    Version onlineVersion = new(webClient.DownloadString(WebResourceConstants.GAME_VERSION_FILE));
 
                     if (onlineVersion.IsDifferentThan(localVersion))
                     {
@@ -218,9 +237,9 @@ namespace Updater.Views
             CheckForUpdates();
         }
 
-        private void PlayButton_Click(object sender, RoutedEventArgs e)
+        private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            if (File.Exists(FilesystemConstants.GAME_EXE) && status == UpdaterState.READY)
+            if (status == UpdaterState.READY)
             {
                 this.NavigationService.Navigate(new Uri("./Views/Dashboard.xaml", UriKind.Relative));
             }
@@ -229,15 +248,22 @@ namespace Updater.Views
                 CheckForUpdates();
             }
         }
+        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (status == UpdaterState.READY)
+            {
+                this.NavigationService.Navigate(new Uri("./Views/Register.xaml", UriKind.Relative));
+            }
+        }
     }
 
     struct Version
     {
-        internal static Version zero = new Version(0, 0, 0);
+        internal static Version zero = new(0, 0, 0);
 
-        private short major;
-        private short minor;
-        private short patch;
+        private readonly short major;
+        private readonly short minor;
+        private readonly short patch;
 
         internal Version(short _major, short _minor, short _patch)
         {

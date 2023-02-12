@@ -12,7 +12,7 @@
     <DockPanel>
         <TextBlock FontSize="15" DockPanel.Dock="Bottom" Name="VersionText" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="Black" Margin="0,0,20,20"/>
         <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,100,0">
-            <Grid>
+            <Grid Margin="0, 0, 0, 20">
                 <Grid.Resources>
                     <Style TargetType="{x:Type TextBox}">
                         <Setter Property="Margin" Value="4,4,4,4" />
@@ -31,7 +31,10 @@
                 <Label FontSize="20" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Content="Password:"/>
                 <TextBox FontSize="20" Grid.Row="1" Grid.Column="1" />
             </Grid>
-            <Button Name="PlayButton" Content="Checking For Updates" Width="350" VerticalAlignment="Bottom" HorizontalAlignment="Center" Click="PlayButton_Click" FontWeight="Bold" FontSize="28" IsEnabled="False"/>
+            <StackPanel Orientation="Vertical">
+                <Button x:Name="LoginButton" Content="Checking For Updates" Width="350" Click="LoginButton_Click" FontWeight="Bold" FontSize="28" IsEnabled="False" Margin="0, 0, 0, 20" />
+                <Button x:Name="RegisterButton" Content="Register" Width="350" Click="RegisterButton_Click" FontWeight="Bold" FontSize="28" IsEnabled="False"/>
+            </StackPanel>
         </StackPanel>
     </DockPanel>
 </Page>

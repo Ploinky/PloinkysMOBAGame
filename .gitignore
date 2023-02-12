@@ -1,5 +1,7 @@
 **/Build
 **/Release
+GameService/obj
+GameService/bin
 Launcher/obj
 Launcher/bin
 **/.vs
