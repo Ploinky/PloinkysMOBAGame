@@ -156,9 +156,10 @@ namespace PMG {
           float x, y;
           TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
 
-          packet_t packet = {};
-          packet.header.type = PacketType::UNITMOVE;
-            packet << x << y;
+            
+            packet_t packet = {};
+            packet.header.type = PacketType::UNITMOVE;
+            packet << move_command_t{ x, 10 };
 
           Net_SendPacket(&packet, &m_netConnection);
         }

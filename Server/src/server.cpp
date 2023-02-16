@@ -53,13 +53,10 @@ namespace PMG {
 
     void Server::OnMessageReceived(unsigned long clientId, packet_t* packet) {
         if(packet->header.type == PacketType::UNITMOVE) {
-            float nx = 0;
-            float ny = 0;
-
-            std::memcpy(&nx, &packet->data[0], sizeof(nx));
-            std::memcpy(&ny, &packet->data[4], sizeof(ny));
+            move_command_t move{};
+            *packet >> move;
             
-            m_game->PlayerMoveCommand(clientId, nx, ny);
+            m_game->PlayerMoveCommand(clientId, move.nx, move.ny);
         }
     }
 

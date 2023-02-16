@@ -17,6 +17,12 @@ namespace PMG {
         GAME_TICK,
     };
 
+
+    typedef struct move_command_t {
+        float nx;
+        float ny;
+    } move_command_t;
+
     typedef struct packet_header {
         PacketType type{};
         size_t size = 0;
