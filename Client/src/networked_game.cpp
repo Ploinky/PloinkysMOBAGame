@@ -159,7 +159,7 @@ namespace PMG {
             
             packet_t packet = {};
             packet.header.type = PacketType::UNITMOVE;
-            packet << move_command_t{ x, 10 };
+            packet << move_command_t{ x, y };
 
           Net_SendPacket(&packet, &m_netConnection);
         }
