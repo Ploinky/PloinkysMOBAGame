@@ -73,15 +73,15 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources;$(ProjectDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;$(ProjectDir)\lib\steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -89,31 +89,31 @@
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources;$(ProjectDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;$(ProjectDir)\lib\steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources;$(ProjectDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;$(ProjectDir)\lib\steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -121,17 +121,17 @@
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Shared/src;$(ProjectDir)/resources;$(ProjectDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;$(ProjectDir)\lib\steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -151,6 +151,7 @@
     <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\settings.cpp" />
     <ClCompile Include="src\shader.cpp" />
+    <ClCompile Include="src\steam_manager.cc" />
     <ClCompile Include="src\vertex.cpp" />
     <ClCompile Include="src\v_box.cpp" />
     <ClCompile Include="src\window.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\settings.h" />
     <ClInclude Include="src\shader.h" />
+    <ClInclude Include="src\steam_manager.h" />
     <ClInclude Include="src\vertex.h" />
     <ClInclude Include="src\window.h" />
   </ItemGroup>

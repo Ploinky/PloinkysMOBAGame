@@ -5,9 +5,16 @@
 #include "game.h"
 #include "util.h"
 #include "logger.h"
-
+#include "steam_manager.h"
 namespace PMG {
     void Server::Start() {
+        // Steam goes first
+        SteamManager steam_manager;
+        if (!steam_manager.Initialize()) {
+            Logger::Msg("Failed to initialize steam gameserver api");
+            return;
+        }
+
         m_networkManager = new NetworkManager();
         m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
@@ -22,7 +29,11 @@ namespace PMG {
         long long lastFrame = GetSystemTime();
 
         bool isRunning = true;
+
+        Logger::Msg("Server started");
+
         while(isRunning) {
+            steam_manager.RunCallbacks();
             auto thisFrame = GetSystemTime();
             float dt = (thisFrame - lastFrame) / 1000000.0f / 1000.0f;
             lastFrame = thisFrame;
@@ -31,6 +42,8 @@ namespace PMG {
 
             m_game->Update(dt);
         }
+
+        steam_manager.Shutdown();
 
         m_networkManager->Close();
         delete m_networkManager;

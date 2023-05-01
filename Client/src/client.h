@@ -40,11 +40,11 @@ namespace PMG {
             // Indicates whether the Client is running and should continue running
             bool isRunning;
             // Access to DirectX 11 resources
-            Direct3D* direct3D;
+            Direct3D* direct3D = 0;
             // Access to native window 
-            Window* window;
+            Window* window = 0;
             // Access to DirectX 11 rendering pipeline
-            Renderer* renderer;
+            Renderer* renderer = 0;
 
             long long lastFrame;
 

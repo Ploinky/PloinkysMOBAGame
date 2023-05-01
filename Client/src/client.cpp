@@ -16,24 +16,39 @@
 #include <locale>
 #include <codecvt>
 #include "settings.h"
+#include "steam_manager.h"
 
 namespace PMG {
     Client::Client() {
     }
 
     Client::~Client() {
-        delete renderer;
-        renderer = 0;
+        if (renderer != nullptr) {
+            delete renderer;
+            renderer = 0;
+        }
 
-        delete direct3D;
-        direct3D = 0;
+        if (direct3D != nullptr) {
+            delete direct3D;
+            direct3D = 0;
+        }
 
-        delete window;
-        window = 0;
+        if (window != nullptr) {
+            delete window;
+            window = 0;
+        }
     }
 
     void Client::Run() {
         Logger::Msg("Starting Ploinky's MOBA Game client...");
+
+        // Steam goes first
+        SteamManager steam_manager;
+        
+        if (!steam_manager.Initialize()) {
+            Logger::Msg("Failed to initialize steam api");
+            return;
+        }
 
         Logger::Msg("Loading settings...");
         Settings::LoadDefaults();
