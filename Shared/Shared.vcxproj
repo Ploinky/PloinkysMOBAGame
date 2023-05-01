@@ -137,6 +137,7 @@
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\navigation.h" />
     <ClInclude Include="src\networking.h" />
+    <ClInclude Include="src\packets.h" />
     <ClInclude Include="src\physics.h" />
     <ClInclude Include="src\util.h" />
   </ItemGroup>

@@ -21,7 +21,7 @@ namespace PMG {
             if (t) {
                 packet_t packet{};
                 packet.header.type = PacketType::UNITSPAWN;
-                packet << ent << t->x << &t->y;
+                packet << pck_unit_spawn_t{ ent, t->x, t->y };
                 on_sendToClient(netId, &packet);
             }
         }
@@ -137,7 +137,7 @@ namespace PMG {
             transform->y = (transform->y < transform->ty && newY >= transform->ty) || (transform->y > transform->ty && newY <= transform->ty) ? transform->ty : newY;
 
             if (transform->x != transform->tx || transform->y != transform->ty) {
-                transform->r = -atan2(transform->ty - transform->y, transform->tx - transform->x) * 180 / M_PI;
+                transform->r = -atan2(transform->ty - transform->y, transform->tx - transform->x) * 180.0f / M_PI;
             }
         }
 
@@ -150,7 +150,7 @@ namespace PMG {
             if (spawnT) {
                 packet_t packet{};
                 packet.header.type = PacketType::UNITSPAWN;
-                packet << ent << spawnT->x << spawnT->y;
+                packet << pck_unit_spawn_t{ ent, spawnT->x, spawnT->y };
                 tickPacket << packet;
 
                 m_componentRegistry->RemoveComponent<spawn_t>(ent);
@@ -160,7 +160,7 @@ namespace PMG {
             if (t) {
                 packet_t packet{};
                 packet.header.type = PacketType::UNITMOVE;
-                packet << ent << t->x << t->y << t->r;
+                packet << pck_unit_move_t{ ent, t->x, t->y, t->r };
                 tickPacket << packet;
             }
 
@@ -168,7 +168,7 @@ namespace PMG {
             if (despawn) {
                 packet_t packet{};
                 packet.header.type = PacketType::UNITDESPAWN;
-                packet << ent;
+                packet << pck_unit_despawn_t{ ent };;
                 tickPacket << packet;
 
                 m_componentRegistry->Destroy(ent);

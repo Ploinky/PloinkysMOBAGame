@@ -159,7 +159,7 @@ namespace PMG {
             
             packet_t packet = {};
             packet.header.type = PacketType::UNITMOVE;
-            packet << move_command_t{ x, y };
+            packet << cmd_move_t{ x, y };
 
           Net_SendPacket(&packet, &m_netConnection);
         }
@@ -332,11 +332,10 @@ namespace PMG {
 
                 switch(tickData.header.type) {
                     case PacketType::UNITSPAWN: {
-                        unit_t unit = { 0 };
+                        pck_unit_spawn_t pck{};
+                        tickData >> pck;
 
-                        tickData >> unit.pos >> unit.unitId;
-                        unit.rot = 0;
-
+                        unit_t unit = { vec2_t{ pck.x, pck.y }, 0, pck.unit };
                         SpawnUnit(unit.unitId);
 
                         newTick.units.push_back(unit);
@@ -344,8 +343,9 @@ namespace PMG {
                     }
                     case PacketType::UNITMOVE:
                     case PacketType::UNITIDLE: {
-                        unit_t unit = { 0 };
-                        tickData >> unit.rot >> unit.pos >> unit.unitId;
+                        pck_unit_move_t move{};
+                        tickData >> move;
+                        unit_t unit = { {move.x, move.y}, move.r, move.unit };
                         newTick.units.push_back(unit);
 
                         break;

@@ -4,25 +4,12 @@
 #include <WS2tcpip.h>
 #include <WinSock2.h>
 #include <vector>
+#include "packets.h"
 
 #define DEFAULT_PORT 23119
 
 
 namespace PMG {
-    enum class PacketType {
-        UNITSPAWN,
-        UNITMOVE,
-        UNITIDLE,
-        UNITDESPAWN,
-        GAME_TICK,
-    };
-
-
-    typedef struct move_command_t {
-        float nx;
-        float ny;
-    } move_command_t;
-
     typedef struct packet_header {
         PacketType type{};
         size_t size = 0;
