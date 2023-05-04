@@ -4,6 +4,7 @@
 #include <list>
 #include <string>
 #include <map>
+#include "steam/steam_api.h"
 
 // Main game application
 namespace PMG {
@@ -70,5 +71,8 @@ namespace PMG {
             std::vector<ClientState> m_stateStack;
             ClientState m_oldState;
             std::map<ClientState, Scene*> m_scenes;
+
+            STEAM_CALLBACK(Client, OnGameServerChangeRequested, GameServerChangeRequested_t);
+            STEAM_CALLBACK(Client, OnSteamConnected, SteamServersConnected_t);
     };
 }

@@ -86,4 +86,12 @@ namespace PMG {
     void Server::SendMessageToAllClients(packet_t* packet) {
         m_networkManager->SendToAllClients(packet);
     }
+
+    void Server::OnConnectedToSteam(SteamServersConnected_t* connected_to_steam) {
+        Logger::Msg("Connected to steam backend");
+    }
+
+    void Server::OnClientApproved(GSClientApprove_t* client_approved) {
+        Logger::Msg("Client approved");
+    }
 }

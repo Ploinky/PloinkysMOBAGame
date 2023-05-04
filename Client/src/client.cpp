@@ -132,6 +132,19 @@ namespace PMG {
 
         m_oldState = ClientState::STARTUP;
         m_stateStack.push_back(ClientState::MAIN_MENU);
+
+        std::string ip = steam_manager.GetLaunchParameter("connect");
+        Logger::Msg("IP:");
+        Logger::Msg(ip);
+        Logger::Msg("-----");
+
+        if (ip.length() > 0) {
+            m_oldState = ClientState::CONNECT;
+            m_stateStack.push_back(ClientState::CONNECT);
+            ConnectScene* connectScene = new ConnectScene(this, ip.substr(0, ip.find(':')));
+            m_scenes[ClientState::CONNECT] = connectScene;
+        }
+
         // Main game loop
         // Keep running while both the client wants to keep runnning and the window has not been closed
         isRunning = true;
@@ -217,6 +230,8 @@ namespace PMG {
             // Event handling
             window->HandleEvents();
 
+            steam_manager.RunCallbacks();
+
             currentScene->Update(dt);
 
             // Render scene
@@ -270,5 +285,27 @@ namespace PMG {
         T* scene = GetScene<T>(state);
         delete scene;
         m_scenes[state] = nullptr;
+    }
+
+    void Client::OnGameServerChangeRequested(GameServerChangeRequested_t* server_change_requested) {
+        Logger::Msg("Server change requested");
+
+        if (m_stateStack.back() >= ClientState::NETWORKED_GAME) {
+            Logger::Err("Unable to connect to server: wrong client state");
+            return;
+        }
+
+        std::string ip = std::string(server_change_requested->m_rgchServer);
+
+        Logger::Msg(std::string("Connecting to server at ").append(ip));
+        // we have always been connecting to eurasia
+        m_oldState = ClientState::CONNECT;
+        m_stateStack.push_back(ClientState::CONNECT);
+        ConnectScene* connectScene = new ConnectScene(this, ip.substr(0, ip.find(':')));
+        m_scenes[ClientState::CONNECT] = connectScene;
+    }
+
+    void Client::OnSteamConnected(SteamServersConnected_t* steam_servers_connected) {
+        Logger::Msg("Connected to steam servers");
     }
 }

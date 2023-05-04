@@ -3,6 +3,7 @@
 #include <string>
 #include <list>
 #include "networking.h"
+#include "steam/steam_gameserver.h"
 
 namespace PMG {
     class NetworkManager;
@@ -23,5 +24,9 @@ namespace PMG {
         void BroadcastMessage(std::vector<packet_t> packet);
         void SendMessageToClient(unsigned long clientId, packet_t* packet);
         void SendMessageToAllClients(packet_t* packet);
+
+
+        STEAM_GAMESERVER_CALLBACK(Server, OnConnectedToSteam, SteamServersConnected_t);
+        STEAM_GAMESERVER_CALLBACK(Server, OnClientApproved, GSClientApprove_t);
     };
 }
