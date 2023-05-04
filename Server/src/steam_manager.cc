@@ -6,7 +6,7 @@
 
 namespace PMG {
 	bool SteamManager::Initialize() {
-		if (!SteamGameServer_Init(0x7f000001, 23119, 27016, EServerMode::eServerModeAuthentication, "1.0.0.0")) {
+		if (!SteamGameServer_Init(0, 23119, 27016, EServerMode::eServerModeAuthentication, "1.0.0.0")) {
 			return false;
 		}
 

@@ -10,11 +10,11 @@
 #include "logger.h"
 
 namespace PMG {
-    NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, net_client_t connection) : Scene(stateHandler) {
+    NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, NetworkManager connection) : Scene(stateHandler) {
         m_navMesh = new NavMesh();
         m_navMesh->LoadFromFile("map1");
 
-        this->m_netConnection = connection;
+        this->network_manager_ = connection;
 
         m_map = new Map();
         m_map->Load("map1");
@@ -27,8 +27,8 @@ namespace PMG {
             delete m;
         }
 
-        if (m_netConnection.isConnected) {
-          Net_CloseConnection(&m_netConnection);
+        if (!network_manager_.IsConnected()) {
+            network_manager_.Close();
         }
 
         if (m_map) {
@@ -80,7 +80,7 @@ namespace PMG {
         // Network handling
         
         packet_t packet{};
-        while(Net_ReceivePacket(&m_netConnection, &packet)) {
+        while(network_manager_.ReceivePacket(&packet)) {
           HandleNetworkMessage(&packet);
 
           packet = {};
@@ -161,7 +161,7 @@ namespace PMG {
             packet.header.type = PacketType::UNITMOVE;
             packet << cmd_move_t{ x, y };
 
-          Net_SendPacket(&packet, &m_netConnection);
+            network_manager_.SendPacket(&packet);
         }
 
 

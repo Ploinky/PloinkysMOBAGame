@@ -102,6 +102,9 @@
     <ClCompile Include="src\steam_manager.cc">
       <Filter>Source Files\net</Filter>
     </ClCompile>
+    <ClCompile Include="src\network_manager.cpp">
+      <Filter>Source Files\net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -151,6 +154,9 @@
     </ClInclude>
     <ClInclude Include="src\client.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\network_manager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -16,10 +16,13 @@ namespace PMG {
         }
 
         m_networkManager = new NetworkManager();
+        m_networkManager->Initialize();
         m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
         m_networkManager->on_clientMessageReceived = std::bind(&Server::OnMessageReceived, this, std::placeholders::_1, std::placeholders::_2);
-        m_networkManager->Host();
+        if (!m_networkManager->CreateListenSocket()) {
+            Logger::Msg("Failed to create listen socket");
+        }
 
         m_game = new Game();
         m_game->on_batchSendToAllClients = std::bind(&Server::BroadcastMessage, this, std::placeholders::_1);

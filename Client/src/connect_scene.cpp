@@ -5,21 +5,19 @@
 namespace PMG {
     ConnectScene::ConnectScene(ClientStateHandler* stateHandler, std::string ip) : Scene(stateHandler) {
         m_text = L"Connecting...";
-        m_netConnection = {};
-        if(Net_Init()) {
-            Net_ConnectToServer(ip, std::to_string(DEFAULT_PORT), &m_netConnection);
+        network_manager_ = NetworkManager();
+        if(network_manager_.Initialize()) {
+            network_manager_.ConnectToServer(ip);
         }
     }
 
-    net_client_t ConnectScene::GetConnection() {
-      return m_netConnection;
+    NetworkManager ConnectScene::GetConnection() {
+      return network_manager_;
     }
 
     void ConnectScene::Update(float dt) {
-        if(!m_netConnection.isConnected) {
-            if(!Net_IsConnected(&m_netConnection)) {
-                m_text = L"Connection failed!";
-            }
+        if(!network_manager_.IsConnected()) {
+            // TODO: Check if connection has failed?
         }
         else {
             m_stateHandler->PushState(ClientState::NETWORKED_GAME);
