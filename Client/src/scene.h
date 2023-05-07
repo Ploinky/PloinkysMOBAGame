@@ -101,7 +101,7 @@ namespace PMG {
 		void Render(Renderer* renderer);
 
 		void HandleNetworkMessage(packet_t* packet);
-		void HandleTicks(long long frameTime);
+		void HandleTicks();
 
 		void SpawnUnit(unsigned long id);
 		void DespawnUnit(unsigned long id);

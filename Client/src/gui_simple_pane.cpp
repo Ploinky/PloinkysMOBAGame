@@ -7,6 +7,6 @@ namespace PMG {
 	}
 
 	void GuiSimplePane::Render(Renderer* renderer) {
-		renderer->FillRect(m_pos.x, m_pos.y, m_size.x, m_size.y, m_color);
+		renderer->FillRect(static_cast<int>(m_pos.x), static_cast<int>(m_pos.y), static_cast<int>(m_size.x), static_cast<int>(m_size.y), m_color);
 	}
 }

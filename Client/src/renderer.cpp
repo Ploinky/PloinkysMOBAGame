@@ -23,7 +23,7 @@ namespace PMG {
         m_width = width;
         m_height = height;
 
-        float hp = M_PI / 180.0f;
+        float hp = static_cast<float>(M_PI / 180.0);
 
         m_projMatrix = mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
 
@@ -50,7 +50,7 @@ namespace PMG {
         m_width = width;
         m_height = height;
 
-        float hp = M_PI / 180.0f;
+        float hp = static_cast<float>(M_PI / 180.0);
         m_projMatrix = mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
     }
 
@@ -96,10 +96,10 @@ namespace PMG {
 
         hr = direct3D->dWriteFactory->CreateTextLayout(
             text.c_str(),
-            wcslen(text.c_str()),
+            static_cast<UINT32>(wcslen(text.c_str())),
             direct3D->format,
-            w,
-            h,
+            static_cast<float>(w),
+            static_cast<float>(h),
             &textLayout
         );
 
@@ -111,7 +111,7 @@ namespace PMG {
         brush->SetColor(FontColor);
 
         //Create the D2D Render Area
-        D2D1_POINT_2F point = D2D1::Point2F(x, y);
+        D2D1_POINT_2F point = D2D1::Point2F(static_cast<float>(x), static_cast<float>(y));
 
         //Draw the Text
         direct3D->renderTarget2D->DrawTextLayout(
@@ -124,11 +124,11 @@ namespace PMG {
     }
 
     void Renderer::DrawRect(int x, int y, int w, int h, float color[3]) {
-        D2D1_RECT_F rect;
-        rect.left = x;
-        rect.top = y;
-        rect.right = x + w;
-        rect.bottom = y + h;
+        D2D1_RECT_F rect{};
+        rect.left = static_cast<float>(x);
+        rect.top = static_cast<float>(y);
+        rect.right = static_cast<float>(x + w);
+        rect.bottom = static_cast<float>(y + h);
 
         //Set the Font Color
         D2D1_COLOR_F c = D2D1::ColorF(1, 0, 0, 1.0f);
@@ -154,11 +154,11 @@ namespace PMG {
     }
 
     void Renderer::FillRect(int x, int y, int w, int h, float color[3]) {
-        D2D1_RECT_F rect;
-        rect.left = x;
-        rect.top = y;
-        rect.right = x + w;
-        rect.bottom = y + h;
+        D2D1_RECT_F rect{};
+        rect.left = static_cast<float>(x);
+        rect.top = static_cast<float>(y);
+        rect.right = static_cast<float>(x + w);
+        rect.bottom = static_cast<float>(y + h);
 
         //Set the Font Color
         D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2], 1.0f);

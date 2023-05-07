@@ -3,6 +3,8 @@
 
 namespace PMG {
 	bool NetworkManager::Initialize() {
+		connection_ = false;
+		is_connected_ = false;
 		return true;
 	}
 
@@ -55,13 +57,13 @@ namespace PMG {
 	}
 
 	bool NetworkManager::SendPacket(packet_t* packet) {
-		EResult result = SteamNetworkingSockets()->SendMessageToConnection(connection_, packet, packet->size(), 0, 0);
+		EResult result = SteamNetworkingSockets()->SendMessageToConnection(connection_, packet, static_cast<uint32>(packet->size()), 0, 0);
 		return result == 0;
 	}
 
 	bool NetworkManager::ReceivePacket(packet_t* packet) {
 		SteamNetworkingMessage_t* messages[1] = { 0 };
-		if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(connection_, messages, 1) == 1) {
+		if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(connection_, messages, 1) == 1 && messages[0] != 0) {
 			size_t size = messages[0]->GetSize();
 			memcpy(&packet->header, messages[0]->GetData(), sizeof(packet_header_t));
 			Logger::Msg(std::to_string((uint32) packet->header.type));
