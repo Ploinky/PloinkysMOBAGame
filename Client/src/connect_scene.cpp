@@ -29,17 +29,17 @@ namespace PMG {
         renderer->RenderText(0, 0, 1000, 1000, m_text);
     };
 
-    void ConnectScene::CharTyped(uint16_t ch) {
+    void ConnectScene::CharTyped(uint32_t ch) {
 
     }
 
-    void ConnectScene::KeyPressed(uint16_t key) {
+    void ConnectScene::KeyPressed(uint32_t key) {
         if (key == VK_ESCAPE) {
             m_stateHandler->PushState(ClientState::MAIN_MENU);
         }
     }
 
-    void ConnectScene::KeyReleased(uint16_t key) {
+    void ConnectScene::KeyReleased(uint32_t key) {
 
     }
 

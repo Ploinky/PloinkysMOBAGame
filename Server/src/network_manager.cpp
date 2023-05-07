@@ -8,6 +8,7 @@ namespace PMG {
     bool NetworkManager::Initialize() {
         SteamAPI_Init();
         SteamNetworkingUtils()->InitRelayNetworkAccess();
+        SteamNetworkingSockets()->InitAuthentication();
 
         return true;
     }
@@ -15,7 +16,7 @@ namespace PMG {
     bool NetworkManager::CreateListenSocket() {
         SteamNetworkingIPAddr ipAddr{};
         ipAddr.Clear();
-        ipAddr.m_port = 23119;
+        ipAddr.m_port = DEFAULT_PORT;
         listen_socket_ = SteamNetworkingSockets()->CreateListenSocketIP(ipAddr, 0, 0);
         Logger::Msg("Listen socket created");
         return listen_socket_ != 0;
@@ -29,13 +30,36 @@ namespace PMG {
             // New client is trying to connect, we have to accept fast
             AcceptConnection(payload->m_hConn);
         }
+        else {
+            Logger::Msg("Connection status has changed");
+        }
+    }
+
+    void NetworkManager::OnSteamNetAuthenticationStatus(SteamNetAuthenticationStatus_t* payload) {
+        if (payload->m_eAvail) {
+            Logger::Msg("Authentication available");
+        }
+        else {
+            Logger::Msg("Authentication not available");
+            Logger::Msg(payload->m_debugMsg);
+        }
     }
 
     bool NetworkManager::AcceptConnection(HSteamNetConnection connection) {
         EResult result = SteamNetworkingSockets()->AcceptConnection(connection);
 
-        if (result != 0) {
+        if (result != k_EResultOK) {
             Logger::Err("Failed to accept connection");
+
+            if (result == k_EResultInvalidParam) {
+                Logger::Err("invalid param");
+            }
+            else if (result == k_EResultInvalidState) {
+                Logger::Err("invalid state");
+            }
+            else {
+                Logger::Err(std::to_string(result));
+            }
             return false;
         }
 
@@ -75,8 +99,10 @@ namespace PMG {
     void NetworkManager::SendToAllClients(packet_t* packet) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             if(it != clients_.end() && it->isConnected) {
-                if (!SteamNetworkingSockets()->SendMessageToConnection(it->socket, &packet, sizeof(packet), 0, 0)) {
+                EResult res = SteamNetworkingSockets()->SendMessageToConnection(it->socket, packet, packet->size(), 0, 0);
+                if (res != k_EResultOK) {
                     Logger::Err("Failed to send message");
+                    Logger::Err(std::to_string(res));
                 }
             }
         }

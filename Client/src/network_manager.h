@@ -15,6 +15,7 @@ namespace PMG {
 		bool SendPacket(packet_t* packet);
 
 		STEAM_CALLBACK(NetworkManager, OnConnectionStatusChangedCallback, SteamNetConnectionStatusChangedCallback_t);
+		STEAM_CALLBACK(NetworkManager, OnSteamNetAuthenticationStatus, SteamNetAuthenticationStatus_t);
 
 	private:
 		HSteamNetConnection connection_;

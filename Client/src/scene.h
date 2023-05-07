@@ -21,7 +21,7 @@ namespace PMG {
 
 	typedef struct {
 		vec2_t pos;
-    float rot;
+		float rot;
 		unsigned long unitId;
 	} unit_t;
 
@@ -36,9 +36,9 @@ namespace PMG {
 		Scene(ClientStateHandler* stateHandler) : m_stateHandler(stateHandler) {};
 		virtual void Update(float dt) {};
 		virtual void Render(Renderer* renderer) {};
-		virtual void CharTyped(uint16_t ch) {};
-		virtual void KeyPressed(uint16_t key) {};
-		virtual void KeyReleased(uint16_t key) {};
+		virtual void CharTyped(uint32_t ch) {};
+		virtual void KeyPressed(uint32_t key) {};
+		virtual void KeyReleased(uint32_t key) {};
 		virtual void MouseMoved(int screenX, int screenY) {};
 		virtual void MouseButtonPressed(int button) {};
 		virtual void MouseButtonReleased(int button) {};
@@ -55,9 +55,9 @@ namespace PMG {
 
 		void Update(float dt);
 		void Render(Renderer* renderer);
-		void CharTyped(uint16_t ch);
-		void KeyPressed(uint16_t key);
-		void KeyReleased(uint16_t key);
+		void CharTyped(uint32_t ch);
+		void KeyPressed(uint32_t key);
+		void KeyReleased(uint32_t key);
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);
@@ -74,9 +74,9 @@ namespace PMG {
 
 		void Update(float dt);
 		void Render(Renderer* renderer);
-		void CharTyped(uint16_t ch);
-		void KeyPressed(uint16_t key);
-		void KeyReleased(uint16_t key);
+		void CharTyped(uint32_t ch);
+		void KeyPressed(uint32_t key);
+		void KeyReleased(uint32_t key);
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);
@@ -105,9 +105,9 @@ namespace PMG {
 
 		void SpawnUnit(unsigned long id);
 		void DespawnUnit(unsigned long id);
-		void CharTyped(uint16_t ch);
-		void KeyPressed(uint16_t key);
-		void KeyReleased(uint16_t key);
+		void CharTyped(uint32_t ch);
+		void KeyPressed(uint32_t key);
+		void KeyReleased(uint32_t key);
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);

@@ -21,6 +21,7 @@ namespace PMG {
 
         bool AcceptConnection(HSteamNetConnection connection);
         STEAM_CALLBACK(NetworkManager, OnConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
+        STEAM_CALLBACK(NetworkManager, OnSteamNetAuthenticationStatus, SteamNetAuthenticationStatus_t);
 
         void SendToClient(unsigned long clientId, packet_t* packet);
         void SendToAllClients(packet_t* packet);

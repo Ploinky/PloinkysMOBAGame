@@ -60,7 +60,7 @@ namespace PMG {
         rootGuiElement->Render(renderer);
     };
 
-    void MainMenuScene::KeyReleased(uint16_t key) {
+    void MainMenuScene::KeyReleased(uint32_t key) {
 
     }
 
@@ -79,11 +79,11 @@ namespace PMG {
 
     }
 
-    void MainMenuScene::CharTyped(uint16_t ch) {
+    void MainMenuScene::CharTyped(uint32_t ch) {
         rootGuiElement->CharTyped(ch);
     }
 
-    void MainMenuScene::KeyPressed(uint16_t key) {
+    void MainMenuScene::KeyPressed(uint32_t key) {
     };
 
     std::wstring MainMenuScene::GetIp() {

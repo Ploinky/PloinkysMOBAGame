@@ -82,11 +82,11 @@ namespace PMG {
     }
 	} vec4_t;
 
-	typedef struct mat_t {
+	typedef struct mat {
 		// m[row][column]
 		float m[4][4] = { 0 };
 
-    bool operator==(const mat_t& other) const {
+    bool operator==(const mat& other) const {
       for(int x = 0; x < 4; x++) {
         for(int y = 0; y < 4; y++) {
           if(!comp(m[x][y], other.m[x][y])) {
@@ -107,7 +107,7 @@ namespace PMG {
       };
     }
 
-    mat_t operator*(const mat_t& other) const {
+    mat operator*(const mat& other) const {
       return {
         {
           {
@@ -186,7 +186,7 @@ namespace PMG {
       };
     }
 
-		static mat_t Identity() {
+		static mat Identity() {
 			return {
 				{
 					{1, 0, 0, 0},
@@ -197,7 +197,7 @@ namespace PMG {
 			};
 		}
 
-    mat_t Transpose() {
+        mat Transpose() {
       return {
         {
           { m[0][0], m[1][0], m[2][0], m[3][0] },
@@ -208,7 +208,7 @@ namespace PMG {
       };
     }
 
-		static mat_t Perspective(float aspect, float fov, float nearZ, float farZ) {
+		static mat Perspective(float aspect, float fov, float nearZ, float farZ) {
 			return {
 				{
 					{1 / (aspect * std::tanf(fov / 2)), 0, 0, 0},
@@ -219,7 +219,7 @@ namespace PMG {
 			};
 		}
 
-    static mat_t Translation(float x, float y, float z) {
+    static mat Translation(float x, float y, float z) {
       return {
         {
           {1, 0, 0, x},
@@ -230,7 +230,7 @@ namespace PMG {
       };
     }
 
-    static mat_t Rotation(float yaw, float pitch, float roll) {
+    static mat Rotation(float yaw, float pitch, float roll) {
         const float halfC = (float) (M_PI / 180.0f);
         
         yaw *= halfC;
@@ -289,7 +289,7 @@ namespace PMG {
                         -m[0][1]*m[1][3]*m[2][2]);
 		}
 
-		mat_t inverse() {
+        mat inverse() {
       float a2323 = m[2][2]*m[3][3]-m[2][3]*m[3][2];
       float a1323 = m[2][1]*m[3][3]-m[2][3]*m[3][1];
       float a1223 = m[2][1]*m[3][2]-m[2][2]*m[3][1];
@@ -341,5 +341,5 @@ namespace PMG {
         }
       };
     }
-  };
+  } mat_t;
 }

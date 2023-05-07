@@ -3,7 +3,14 @@
 
 namespace PMG {
 	bool SteamManager::Initialize() {
-		return SteamAPI_Init();
+		if (!SteamAPI_Init()) {
+			return false;
+		}
+
+		SteamNetworkingUtils()->InitRelayNetworkAccess();
+		SteamNetworkingSockets()->InitAuthentication();
+
+		return true;
 	};
 
 	void SteamManager::RunCallbacks() {

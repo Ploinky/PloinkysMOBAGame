@@ -27,5 +27,6 @@ namespace PMG {
 
 	void SteamManager::RunCallbacks() {
 		SteamGameServer_RunCallbacks();
+		SteamAPI_RunCallbacks();
 	}
 }

@@ -71,14 +71,19 @@ namespace PMG {
     }
 
     inline packet_t& operator >> (packet_t& packet, packet_t& data) {
+        // copy header from src packet data to dest packet header
         std::memcpy(&data.header, packet.data.data(), sizeof(packet_header_t));
 
+        // resize dest packet to new size according to header
         data.data.resize(data.header.size - sizeof(packet_header_t));
 
+        // copy data from src packet data to dest packet data, excluding the header that's already been copied
         std::memcpy(data.data.data(), packet.data.data() + sizeof(packet_header_t), data.header.size - sizeof(packet_header_t));
 
+        // erase dest packet data from src packet
         packet.data.erase(packet.data.begin(), packet.data.begin() + data.header.size);
 
+        // set new size in src packet header
         packet.header.size = packet.size();
 
         return packet;

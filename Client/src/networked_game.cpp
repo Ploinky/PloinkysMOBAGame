@@ -79,9 +79,10 @@ namespace PMG {
 
         // Network handling
         
-        packet_t packet{};
+        packet_t packet = {};
         while(network_manager_.ReceivePacket(&packet)) {
-          HandleNetworkMessage(&packet);
+            Logger::Msg("Handling packet");
+            HandleNetworkMessage(&packet);
 
           packet = {};
         }
@@ -175,15 +176,15 @@ namespace PMG {
         renderer->RenderText(0, 0, 100, 50, fpsText);
     }
 
-    void NetworkedGame::CharTyped(uint16_t ch) {
+    void NetworkedGame::CharTyped(uint32_t ch) {
 
     }
 
-    void NetworkedGame::KeyReleased(uint16_t key) {
+    void NetworkedGame::KeyReleased(uint32_t key) {
         m_keys[key] = false;
     }
 
-    void NetworkedGame::KeyPressed(uint16_t key) {
+    void NetworkedGame::KeyPressed(uint32_t key) {
         m_keys[key] = true;
     }
 
@@ -320,6 +321,7 @@ namespace PMG {
     }
 
     void NetworkedGame::HandleNetworkMessage(packet_t* packet) {
+        Logger::Msg("WTF");
         if (packet->header.type == PacketType::GAME_TICK) {
             game_tick_t newTick{};
 
@@ -362,8 +364,9 @@ namespace PMG {
                 ticks.push_back(newTick);
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
+            Logger::Msg("UINTSPAWN");
             unit_t unit{};
-            *packet >> unit.pos >> unit.unitId;
+            *packet >> unit.pos; // >> unit.unitId;
             SpawnUnit(unit.unitId);
         }
     }

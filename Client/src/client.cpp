@@ -74,10 +74,10 @@ namespace PMG {
             }
 
             direct3D->SetWindowDimensions(window->width, window->height);
-            renderer->SetDimensions((float)window->width, (float)window->height);
+            renderer->SetDimensions(window->width, window->height);
         };
 
-        window->e_charTyped = [this](WPARAM ch) {
+        window->e_charTyped = [this](WORD ch) {
             Scene* currentScene = GetScene<Scene>(m_oldState);
 
             if (currentScene) {
@@ -85,7 +85,7 @@ namespace PMG {
             }
         };
 
-        window->e_keyPressed = [this](WPARAM key) {
+        window->e_keyPressed = [this](WORD key) {
             Scene* currentScene = GetScene<Scene>(m_oldState);
 
             if (currentScene) {
@@ -93,7 +93,7 @@ namespace PMG {
             }
         };
 
-        window->e_keyReleased= [this](WPARAM key) {
+        window->e_keyReleased= [this](WORD key) {
             Scene* currentScene = GetScene<Scene>(m_oldState);
 
             if (currentScene) {
@@ -151,7 +151,7 @@ namespace PMG {
         lastFrame = Util::GetSystemTime();
         while(isRunning && !window->ShouldClose()) {
             auto thisFrame = Util::GetSystemTime();
-            float dt = (thisFrame - lastFrame);
+            float dt = static_cast<float>(thisFrame - lastFrame);
             lastFrame = thisFrame;
 
             ClientState currentState = m_stateStack.back();
@@ -301,7 +301,7 @@ namespace PMG {
         // we have always been connecting to eurasia
         m_oldState = ClientState::CONNECT;
         m_stateStack.push_back(ClientState::CONNECT);
-        ConnectScene* connectScene = new ConnectScene(this, ip.substr(0, ip.find(':')));
+        ConnectScene* connectScene = new ConnectScene(this, ip);
         m_scenes[ClientState::CONNECT] = connectScene;
     }
 

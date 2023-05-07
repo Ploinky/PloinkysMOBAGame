@@ -123,15 +123,33 @@ namespace PMG {
             break;
         }
         case WM_CHAR: {
-            e_charTyped(wParam);
+            WORD ascii = 0;
+            BYTE keyboardState[256];
+            if (GetKeyboardState(keyboardState)) {
+                const int keyboardScanCode = (lParam >> 16) & 0x00ff;
+                ToAscii(wParam, keyboardScanCode, keyboardState, &ascii, 0);
+                e_charTyped(ascii);
+            }
             break;
         }
         case WM_KEYDOWN: {
-            e_keyPressed(wParam);
+            WORD ascii = 0;
+            BYTE keyboardState[256];
+            if (GetKeyboardState(keyboardState)) {
+                const int keyboardScanCode = (lParam >> 16) & 0x00ff;
+                ToAscii(wParam, keyboardScanCode, keyboardState, &ascii, 0);
+                e_keyPressed(ascii);
+            }
             break;
         }
         case WM_KEYUP: {
-            e_keyReleased(wParam);
+            WORD ascii = 0;
+            BYTE keyboardState[256];
+            if (GetKeyboardState(keyboardState)) {
+                const int keyboardScanCode = (lParam >> 16) & 0x00ff;
+                ToAscii(wParam, keyboardScanCode, keyboardState, &ascii, 0);
+                e_keyReleased(ascii);
+            }
             break;
         }
         case WM_MOUSEMOVE: {
