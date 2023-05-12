@@ -123,13 +123,7 @@ namespace PMG {
             break;
         }
         case WM_CHAR: {
-            WORD ascii = 0;
-            BYTE keyboardState[256];
-            if (GetKeyboardState(keyboardState)) {
-                const int keyboardScanCode = (lParam >> 16) & 0x00ff;
-                ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
-                e_charTyped(static_cast<char>(ascii));
-            }
+            e_charTyped(static_cast<UINT>(wParam));
             break;
         }
         case WM_KEYDOWN: {
