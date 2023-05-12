@@ -84,7 +84,7 @@ namespace PMG {
             net_client_t client = *it;
             packet_t packet = {};
 
-            SteamNetworkingMessage_t** msgs;
+            SteamNetworkingMessage_t* msgs[10] = { 0 };
             int msgsReceived = SteamNetworkingSockets()->ReceiveMessagesOnConnection(client.socket, msgs, 10);
 
             for (int msgIndex = 0; msgIndex < msgsReceived; msgIndex++) {
