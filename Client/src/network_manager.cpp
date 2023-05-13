@@ -68,8 +68,8 @@ namespace PMG {
 			memcpy(&packet->header, messages[0]->GetData(), sizeof(packet_header_t));
 			Logger::Msg(std::to_string((uint32) packet->header.type));
 			Logger::Msg(std::to_string(packet->header.size));
-			packet->data.resize(packet->header.size);
-			memcpy(packet->data.data(), messages[0]->GetData(), size - sizeof(packet_header_t));
+			packet->data.resize(packet->header.size - sizeof(packet_header_t));
+			memcpy(packet->data.data(), ((char*)messages[0]->GetData()) + sizeof(packet_header_t), size - sizeof(packet_header_t));
 			messages[0]->Release();
 			return true;
 		}
