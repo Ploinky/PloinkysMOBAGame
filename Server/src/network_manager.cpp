@@ -89,7 +89,10 @@ namespace PMG {
 
             for (int msgIndex = 0; msgIndex < msgsReceived; msgIndex++) {
                 SteamNetworkingMessage_t* msg = msgs[msgIndex];
-                packet << msg->GetData();
+                size_t size = msg->GetSize();
+                memcpy(&packet.header, msg->GetData(), sizeof(packet_header_t));
+                packet.data.resize(packet.header.size - sizeof(packet_header_t));
+                memcpy(packet.data.data(), ((char*)msg->GetData()) + sizeof(packet_header_t), packet.header.size - sizeof(packet_header_t));
                 on_clientMessageReceived(client.socket, &packet);
                 msg->Release();
             }
@@ -99,11 +102,7 @@ namespace PMG {
     void NetworkManager::SendToAllClients(packet_t* packet) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             if(it != clients_.end() && it->isConnected) {
-                EResult res = SteamNetworkingSockets()->SendMessageToConnection(it->socket, packet, packet->size(), 0, 0);
-                if (res != k_EResultOK) {
-                    Logger::Err("Failed to send message");
-                    Logger::Err(std::to_string(res));
-                }
+                SendToClient(it->socket, packet);
             }
         }
     }
@@ -114,9 +113,13 @@ namespace PMG {
 
             if (client.socket == id) {
                 if(client.isConnected) {
-                    if (!SteamNetworkingSockets()->SendMessageToConnection(it->socket, &packet, sizeof(packet), 0, 0)) {
+                    char* data = (char*)malloc(packet->header.size);
+                    memcpy(data, &packet->header, sizeof(packet_header_t));
+                    memcpy(data + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+                    if (!SteamNetworkingSockets()->SendMessageToConnection(it->socket, data, packet->header.size, 0, 0)) {
                         Logger::Err("Failed to send message");
                     }
+                    free(data);
                 }
             }
         }

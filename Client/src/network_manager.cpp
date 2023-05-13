@@ -57,8 +57,14 @@ namespace PMG {
 	}
 
 	bool NetworkManager::SendPacket(packet_t* packet) {
-		EResult result = SteamNetworkingSockets()->SendMessageToConnection(connection_, packet, static_cast<uint32>(packet->size()), 0, 0);
-		return result == 0;
+		char* data = (char*)malloc(packet->header.size);
+		memcpy(data, &packet->header, sizeof(packet_header_t));
+		memcpy(data + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+		if (!SteamNetworkingSockets()->SendMessageToConnection(connection_, data, packet->header.size, 0, 0)) {
+			Logger::Err("Failed to send message");
+		}
+		free(data);
+		return true;
 	}
 
 	bool NetworkManager::ReceivePacket(packet_t* packet) {
@@ -66,10 +72,8 @@ namespace PMG {
 		if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(connection_, messages, 1) == 1 && messages[0] != 0) {
 			size_t size = messages[0]->GetSize();
 			memcpy(&packet->header, messages[0]->GetData(), sizeof(packet_header_t));
-			Logger::Msg(std::to_string((uint32) packet->header.type));
-			Logger::Msg(std::to_string(packet->header.size));
 			packet->data.resize(packet->header.size - sizeof(packet_header_t));
-			memcpy(packet->data.data(), ((char*)messages[0]->GetData()) + sizeof(packet_header_t), size - sizeof(packet_header_t));
+			memcpy(packet->data.data(), ((char*)messages[0]->GetData()) + sizeof(packet_header_t), packet->header.size - sizeof(packet_header_t));
 			messages[0]->Release();
 			return true;
 		}

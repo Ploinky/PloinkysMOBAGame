@@ -78,13 +78,10 @@ namespace PMG {
         }
 
         // Network handling
-        
         packet_t packet = {};
-        while(network_manager_.ReceivePacket(&packet)) {
+        while (network_manager_.ReceivePacket(&packet)) {
             Logger::Msg("Handling packet");
             HandleNetworkMessage(&packet);
-
-          packet = {};
         }
 
         HandleTicks();
@@ -364,9 +361,10 @@ namespace PMG {
                 ticks.push_back(newTick);
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
-            Logger::Msg("UINTSPAWN");
+            Logger::Msg("UNITSPAWN");
             unit_t unit{};
-            *packet >> unit.pos; // >> unit.unitId;
+            unit.unitId = 0;
+            // *packet >> unit.pos >> unit.rot >> unit.unitId;
             SpawnUnit(unit.unitId);
         }
     }

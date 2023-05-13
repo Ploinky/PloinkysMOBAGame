@@ -80,6 +80,11 @@ namespace PMG {
     }
 
     void MainMenuScene::CharTyped(uint32_t ch) {
+        if (ch == '\r' || ch == '\n') {
+            m_stateHandler->PushState(ClientState::CONNECT);
+            return;
+        }
+
         rootGuiElement->CharTyped(ch);
     }
 
