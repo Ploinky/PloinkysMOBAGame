@@ -40,6 +40,12 @@
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{41059e50-f516-4e68-9f76-738f8f0fb719}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\audio">
+      <UniqueIdentifier>{06a1c026-052b-4acc-b640-a331c3b23741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\audio">
+      <UniqueIdentifier>{47de7759-74d1-4a0a-8513-34c6fe037598}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -105,6 +111,9 @@
     <ClCompile Include="src\network_manager.cpp">
       <Filter>Source Files\net</Filter>
     </ClCompile>
+    <ClCompile Include="src\audio_system.cc">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -154,6 +163,9 @@
     </ClInclude>
     <ClInclude Include="src\network_manager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio_system.h">
+      <Filter>Header Files\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

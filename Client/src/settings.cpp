@@ -11,6 +11,10 @@ namespace PMG {
 		return std::stoi(GetInstance().m_settings[setting]);
 	}
 
+	double Settings::GetDouble(const char* setting) {
+		return std::stod(GetInstance().m_settings[setting]);
+	}
+
 	void Settings::SetInt(const char* setting, int value) {
 		GetInstance().m_settings[setting] = std::to_string(value);
 	}
@@ -19,10 +23,15 @@ namespace PMG {
 		GetInstance().m_settings[setting] = std::to_string(value);
 	}
 
+	void Settings::SetDouble(const char* setting, double value) {
+		GetInstance().m_settings[setting] = std::to_string(value);
+	}
+
 	void Settings::LoadDefaults() {
 		SetInt(PMGSettings::RESOLUTION_X, 1024);
 		SetInt(PMGSettings::RESOLUTION_Y, 768);
 		SetInt(PMGSettings::WINDOW_MODE, (int) WindowMode::BORDERLESS);
+		SetInt(PMGSettings::MASTER_VOLUME, 1.0);
 	}
 
 	void Settings::LoadFromFile(std::string fileName) {
@@ -42,6 +51,8 @@ namespace PMG {
 				SetInt(PMGSettings::RESOLUTION_X, std::stoi(tokens.back()));
 			} else if (!std::strcmp(tokens.front().c_str(), PMGSettings::RESOLUTION_Y)) {
 				SetInt(PMGSettings::RESOLUTION_Y, std::stoi(tokens.back()));
+			} else if (!std::strcmp(tokens.front().c_str(), PMGSettings::MASTER_VOLUME)) {
+				SetInt(PMGSettings::MASTER_VOLUME, std::stod(tokens.back()));
 			}
 		}
 	}
@@ -52,6 +63,7 @@ namespace PMG {
 		content.push_back(std::string(PMGSettings::WINDOW_MODE).append("=").append(std::to_string(GetInt(PMGSettings::WINDOW_MODE))));
 		content.push_back(std::string(PMGSettings::RESOLUTION_X).append("=").append(std::to_string(GetInt(PMGSettings::RESOLUTION_X))));
 		content.push_back(std::string(PMGSettings::RESOLUTION_Y).append("=").append(std::to_string(GetInt(PMGSettings::RESOLUTION_Y))));
+		content.push_back(std::string(PMGSettings::MASTER_VOLUME).append("=").append(std::to_string(GetDouble(PMGSettings::MASTER_VOLUME))));
 	
 		Util::WriteLinesToFile(fileName, content);
 	}

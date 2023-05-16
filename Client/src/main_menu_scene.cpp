@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include "client.h"
 #include "gui.h"
+#include "settings.h"
 
 namespace PMG {
     MainMenuScene::MainMenuScene(ClientStateHandler* stateHandler) : Scene(stateHandler) {
@@ -82,6 +83,16 @@ namespace PMG {
     void MainMenuScene::CharTyped(uint32_t ch) {
         if (ch == '\r' || ch == '\n') {
             m_stateHandler->PushState(ClientState::CONNECT);
+            return;
+        }
+
+        if (ch == '-') {
+            Settings::SetDouble(PMGSettings::MASTER_VOLUME, Settings::GetDouble(PMGSettings::MASTER_VOLUME) - 0.1);
+            return;
+        }
+
+        if (ch == '+') {
+            Settings::SetDouble(PMGSettings::MASTER_VOLUME, Settings::GetDouble(PMGSettings::MASTER_VOLUME) + 0.1);
             return;
         }
 

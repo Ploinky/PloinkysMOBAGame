@@ -9,6 +9,7 @@ namespace PMG {
 		static constexpr const char* RESOLUTION_X = "resolution_x";
 		static constexpr const char* RESOLUTION_Y = "resolution_y";
 		static constexpr const char* WINDOW_MODE = "window_mode";
+		static constexpr const char* MASTER_VOLUME = "master_volume";
 	};
 
 	enum class WindowMode {
@@ -21,9 +22,11 @@ namespace PMG {
 	public:
 		static int GetInt(const char* setting);
 		static bool GetBool(const char* setting);
+		static double GetDouble(const char* setting);
 
 		static void SetInt(const char* setting, int value);
 		static void SetBool(const char* setting, bool value);
+		static void SetDouble(const char* setting, double value);
 
 		static void LoadDefaults();
 		static void LoadFromFile(std::string fileName);

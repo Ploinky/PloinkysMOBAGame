@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\audio_system.cc" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\client.cpp" />
     <ClCompile Include="src\connect_scene.cpp" />
@@ -159,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resources\resource.h" />
+    <ClInclude Include="src\audio_system.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\client.h" />
     <ClInclude Include="src\DDSTextureLoader11.h" />
