@@ -1,3 +1,7 @@
 x64
 **/.vs
 log
+Client/include
+Client/lib
+Server/include
+Server/lib
