@@ -18,6 +18,7 @@
 #include "settings.h"
 #include "steam_manager.h"
 #include "audio_system.h"
+#include "settings_scene.h"
 
 namespace PMG {
     Client::Client() {
@@ -181,6 +182,13 @@ namespace PMG {
                     m_scenes[ClientState::NETWORKED_GAME] = gameScene;
                     break;
                 }
+                case ClientState::SETTINGS: {
+                    SettingsScene* settingsScene = new SettingsScene(this);
+                    settingsScene->m_sceneWidth = window->width;
+                    settingsScene->m_sceneHeight = window->height;
+                    m_scenes[ClientState::SETTINGS] = settingsScene;
+                    break;
+                }
                 case ClientState::CONNECT: {
                     if (m_oldState != ClientState::MAIN_MENU) {
                         DeleteScene<ConnectScene>(ClientState::CONNECT);
@@ -212,6 +220,10 @@ namespace PMG {
                 }
                 case ClientState::NETWORKED_GAME: {
                     DeleteScene<NetworkedGame>(ClientState::NETWORKED_GAME);
+                    break;
+                }
+                case ClientState::SETTINGS: {
+                    DeleteScene<SettingsScene>(ClientState::SETTINGS);
                     break;
                 }
                 case ClientState::CONNECT: {

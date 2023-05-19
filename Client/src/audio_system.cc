@@ -22,17 +22,26 @@ namespace PMG {
 			return false;
 		}
 
+        pMasterVoice->SetVolume(1);
+
+        music_submix_voice_ = nullptr;
+        if (FAILED(hr = pXAudio2->CreateSubmixVoice(&music_submix_voice_, 1, 44100, 0, 0, 0, 0))) {
+            return false;
+        }
+
+        music_submix_voice_->SetVolume(1);
+        SFXSend = { 0, music_submix_voice_ };
+        SFXSendList = { 1, &SFXSend };
         return true;
 	}
 
     void AudioSystem::Update() {
         float val = 0;
-        pMasterVoice->GetVolume(&val);
+        music_submix_voice_->GetVolume(&val);
         if (fabs(Settings::GetDouble(PMGSettings::MASTER_VOLUME) - val) >= 0.001f) {
-            HRESULT hr = pSourceVoice->SetVolume(Settings::GetDouble(PMGSettings::MASTER_VOLUME));
-            pXAudio2->CommitChanges(XAUDIO2_COMMIT_ALL);
+            HRESULT hr = music_submix_voice_->SetVolume(Settings::GetDouble(PMGSettings::MASTER_VOLUME));
             if (FAILED(hr)) {
-
+                MessageBox(nullptr, L"YIKES", L"AWFUL", MB_ICONERROR);
             }
 
         }
@@ -153,10 +162,14 @@ namespace PMG {
         buffer.pAudioData = pDataBuffer;  //buffer containing audio data
         buffer.Flags = XAUDIO2_END_OF_STREAM; // tell the source voice not to expect any data after this buffer
 
-        if (FAILED(pXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)&wfx))) {
+
+        XAUDIO2_SEND_DESCRIPTOR send {0, music_submix_voice_ };
+        XAUDIO2_VOICE_SENDS sendList { 1, &send };
+        const XAUDIO2_VOICE_SENDS* sl = &sendList;
+        if (FAILED(pXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)&wfx), 0, XAUDIO2_DEFAULT_FREQ_RATIO, 0, sl, NULL)) {
             return false;
         }
-
+        pSourceVoice->SetOutputVoices(sl);
         if (FAILED(pSourceVoice->SubmitSourceBuffer(&buffer))) {
             return false;
         }

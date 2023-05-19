@@ -33,6 +33,9 @@ namespace PMG {
         btnSettings->m_pos = { 0, 0 };
         btnSettings->m_prefSize = { 400, 100 };
         btnSettings->m_text = L"Settings";
+        btnSettings->e_onButtonPressed = [this]() {
+            m_stateHandler->PushState(ClientState::SETTINGS);
+        };
 
         GuiButton* btnQuit = new GuiButton();
         btnQuit->m_color[0] = 0.2f;
@@ -52,6 +55,7 @@ namespace PMG {
 
         rootGuiElement = root;
     }
+
     void MainMenuScene::Update(float dt) {
         // Update ui? This seems like a bad idea...
         rootGuiElement->LayoutChildren();
