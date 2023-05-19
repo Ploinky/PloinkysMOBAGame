@@ -3,3 +3,5 @@ x64
 log
 Client/include
 Client/lib
+Server/include
+Server/lib
