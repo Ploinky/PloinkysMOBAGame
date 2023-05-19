@@ -12,6 +12,83 @@ namespace PMG {
         CMD_NOT_READY,
     };
 
+    typedef struct packet_header {
+        PacketType type{};
+        size_t size = 0;
+    } packet_header_t;
+
+    typedef struct packet {
+        packet_header_t header;
+        std::vector<uint8_t> data;
+
+        size_t size() const {
+            return sizeof(packet_header_t) + data.size();
+        }
+
+    } packet_t;
+
+    template<typename DataType>
+    packet_t& operator << (packet_t& packet, const DataType& data) {
+        static_assert(std::is_standard_layout<DataType>::value, "Data too complex for packet");
+
+        size_t i = packet.data.size();
+
+        packet.data.resize(packet.data.size() + sizeof(DataType));
+
+        std::memcpy(packet.data.data() + i, &data, sizeof(DataType));
+
+        packet.header.size = packet.size();
+
+        return packet;
+    }
+
+    template<typename DataType>
+    packet_t& operator >> (packet_t& packet, DataType& data) {
+        static_assert(std::is_standard_layout<DataType>::value, "Data too complex for packet");
+
+        size_t i = packet.data.size() - sizeof(DataType);
+
+        std::memcpy(&data, packet.data.data() + i, sizeof(DataType));
+
+        packet.data.resize(i);
+
+        packet.header.size = packet.size();
+
+        return packet;
+    }
+
+    inline packet_t& operator << (packet_t& packet, packet_t& data) {
+        size_t i = packet.data.size();
+
+        packet.data.resize(packet.data.size() + data.size());
+
+        std::memcpy(packet.data.data() + i, &data.header, sizeof(packet_header_t));
+        std::memcpy(packet.data.data() + i + sizeof(packet_header_t), data.data.data(), data.header.size - sizeof(packet_header_t));
+
+        packet.header.size = packet.size();
+
+        return packet;
+    }
+
+    inline packet_t& operator >> (packet_t& packet, packet_t& data) {
+        // copy header from src packet data to dest packet header
+        std::memcpy(&data.header, packet.data.data(), sizeof(packet_header_t));
+
+        // resize dest packet to new size according to header
+        data.data.resize(data.header.size - sizeof(packet_header_t));
+
+        // copy data from src packet data to dest packet data, excluding the header that's already been copied
+        std::memcpy(data.data.data(), packet.data.data() + sizeof(packet_header_t), data.header.size - sizeof(packet_header_t));
+
+        // erase dest packet data from src packet
+        packet.data.erase(packet.data.begin(), packet.data.begin() + data.header.size);
+
+        // set new size in src packet header
+        packet.header.size = packet.size();
+
+        return packet;
+    }
+
     // ====== Server -> Client packets ======
     typedef struct pck_unit_move {
         unsigned int unit;

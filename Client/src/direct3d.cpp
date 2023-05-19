@@ -406,8 +406,8 @@ namespace PMG {
         D3D11_VIEWPORT vp;
         vp.TopLeftX = 0.0f;
         vp.TopLeftY = 0.0f;
-        vp.Width = winRect.right - winRect.left;
-        vp.Height = winRect.bottom - winRect.top;
+        vp.Width = static_cast<float>(winRect.right - winRect.left);
+        vp.Height = static_cast<float>(winRect.bottom - winRect.top);
         vp.MinDepth = 0.0f;
         vp.MaxDepth = 1.0f;
 
@@ -449,7 +449,7 @@ namespace PMG {
         // Description used to create vertex buffer
         D3D11_BUFFER_DESC bd;
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = size;
+        bd.ByteWidth = static_cast<UINT>(size);
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = 0;
         bd.MiscFlags = 0;

@@ -32,7 +32,7 @@ namespace PMG {
         HINSTANCE hInstance = GetModuleHandle(NULL);
 
         // ------ Create window -----
-        WNDCLASSEXW wc;
+        WNDCLASSEXW wc{};
         wc.cbSize = sizeof(WNDCLASSEXW);
         wc.style = 0;
         wc.lpfnWndProc = StaticWndProc;
@@ -123,15 +123,27 @@ namespace PMG {
             break;
         }
         case WM_CHAR: {
-            e_charTyped(wParam);
+            e_charTyped(static_cast<UINT>(wParam));
             break;
         }
         case WM_KEYDOWN: {
-            e_keyPressed(wParam);
+            WORD ascii = 0;
+            BYTE keyboardState[256];
+            if (GetKeyboardState(keyboardState)) {
+                const int keyboardScanCode = (lParam >> 16) & 0x00ff;
+                ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
+                e_keyPressed(static_cast<char>(ascii));
+            }
             break;
         }
         case WM_KEYUP: {
-            e_keyReleased(wParam);
+            WORD ascii = 0;
+            BYTE keyboardState[256];
+            if (GetKeyboardState(keyboardState)) {
+                const int keyboardScanCode = (lParam >> 16) & 0x00ff;
+                ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
+                e_keyReleased(static_cast<char>(ascii));
+            }
             break;
         }
         case WM_MOUSEMOVE: {
@@ -254,11 +266,11 @@ namespace PMG {
         RECT rect;
         GetClientRect(windowHandle, &rect);
         
-        POINT ul;
+        POINT ul{};
         ul.x = rect.left;
         ul.y = rect.top;
 
-        POINT lr;
+        POINT lr{};
         lr.x = rect.right;
         lr.y = rect.bottom;
 

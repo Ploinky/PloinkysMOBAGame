@@ -3,8 +3,8 @@
 
 namespace PMG {
 	void GuiTextfield::Render(Renderer* renderer) {
-		renderer->FillRect(m_pos.x, m_pos.y, m_size.x, m_size.y, m_bgColor);
-		renderer->RenderText(m_pos.x, m_pos.y, m_size.x, m_size.y, m_color, m_text);
+		renderer->FillRect(static_cast<int>(m_pos.x), static_cast<int>(m_pos.y), static_cast<int>(m_size.x), static_cast<int>(m_size.y), m_bgColor);
+		renderer->RenderText(static_cast<int>(m_pos.x), static_cast<int>(m_pos.y), static_cast<int>(m_size.x), static_cast<int>(m_size.y), m_color, m_text);
 	}
 
 	void GuiTextfield::CharTyped(char c) {

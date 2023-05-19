@@ -10,11 +10,11 @@
 #include "logger.h"
 
 namespace PMG {
-    NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, net_client_t connection) : Scene(stateHandler) {
+    NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, NetworkManager connection) : Scene(stateHandler) {
         m_navMesh = new NavMesh();
         m_navMesh->LoadFromFile("map1");
 
-        this->m_netConnection = connection;
+        this->network_manager_ = connection;
 
         m_map = new Map();
         m_map->Load("map1");
@@ -27,8 +27,8 @@ namespace PMG {
             delete m;
         }
 
-        if (m_netConnection.isConnected) {
-          Net_CloseConnection(&m_netConnection);
+        if (!network_manager_.IsConnected()) {
+            network_manager_.Close();
         }
 
         if (m_map) {
@@ -78,15 +78,13 @@ namespace PMG {
         }
 
         // Network handling
-        
-        packet_t packet{};
-        while(Net_ReceivePacket(&m_netConnection, &packet)) {
-          HandleNetworkMessage(&packet);
-
-          packet = {};
+        packet_t packet = {};
+        while (network_manager_.ReceivePacket(&packet)) {
+            Logger::Msg("Handling packet");
+            HandleNetworkMessage(&packet);
         }
 
-        HandleTicks(dt);
+        HandleTicks();
 
         m_camPos[0] += m_camDir[0] * dt / 20;
         m_camPos[1] = 20;
@@ -96,9 +94,9 @@ namespace PMG {
     }
 
     void NetworkedGame::TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y) {
-        float hp = M_PI / 180.0f;
+        float hp = static_cast<float>(M_PI / 180.0);
         
-        vec2_t screenCoord = { mx, my };
+        vec2_t screenCoord = { static_cast<float>(mx), static_cast<float>(my) };
         vec3_t rayOrigin = renderer->camera->position;
         mat_t persp = mat_t::Perspective((float) m_sceneWidth / (float) m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
         mat_t view = mat_t::Rotation(renderer->camera->rotation.z, renderer->camera->rotation.y, renderer->camera->rotation.x) *
@@ -161,7 +159,7 @@ namespace PMG {
             packet.header.type = PacketType::UNITMOVE;
             packet << cmd_move_t{ x, y };
 
-          Net_SendPacket(&packet, &m_netConnection);
+            network_manager_.SendPacket(&packet);
         }
 
 
@@ -175,15 +173,15 @@ namespace PMG {
         renderer->RenderText(0, 0, 100, 50, fpsText);
     }
 
-    void NetworkedGame::CharTyped(uint16_t ch) {
+    void NetworkedGame::CharTyped(uint32_t ch) {
 
     }
 
-    void NetworkedGame::KeyReleased(uint16_t key) {
+    void NetworkedGame::KeyReleased(uint32_t key) {
         m_keys[key] = false;
     }
 
-    void NetworkedGame::KeyPressed(uint16_t key) {
+    void NetworkedGame::KeyPressed(uint32_t key) {
         m_keys[key] = true;
     }
 
@@ -251,8 +249,8 @@ namespace PMG {
         }
     }
 
-    void NetworkedGame::HandleTicks(long long frameTime) {
-        frameTime = Util::GetSystemTime();
+    void NetworkedGame::HandleTicks() {
+        long long frameTime = Util::GetSystemTime();
 
         if (ticks.size() <= 3) {
             // We need at least 2 frames for interpolation
@@ -260,17 +258,17 @@ namespace PMG {
         }
 
         // local client time of first received packet
-        float startTime = ticks.front().received;
+        long long startTime = ticks.front().received;
 
         // total time elapsed since first packet
-        float totalTime = frameTime - ticks.front().received;
+        long long totalTime = frameTime - ticks.front().received;
 
         // current frame that we are rendering, including fraction
-        float currentFrame = totalTime / (1000.0f / 30.0f);
+        double currentFrame = totalTime / (1000.0 / 30.0);
 
         // little hacky, this integer cutoff?
-        int startFrame = currentFrame - 2; 
-        int endFrame = startFrame + 1;
+        int startFrame = static_cast<int>(currentFrame) - 2; 
+        int endFrame = static_cast<int>(startFrame) + 1;
 
         if (endFrame >= ticks.size()) {
             return;
@@ -279,7 +277,7 @@ namespace PMG {
         game_tick_t lastTick = ticks[endFrame];
         game_tick_t nextLastTick = ticks[startFrame];
 
-        float diff = currentFrame - ((int) currentFrame);
+        float diff = static_cast<float>(currentFrame) - ((int) currentFrame);
 
         for (auto unit = units.begin(); unit != units.end(); unit++) {
             float lastX = unit->pos.x;
@@ -320,11 +318,12 @@ namespace PMG {
     }
 
     void NetworkedGame::HandleNetworkMessage(packet_t* packet) {
+        Logger::Msg("WTF");
         if (packet->header.type == PacketType::GAME_TICK) {
             game_tick_t newTick{};
 
             *packet >> newTick.index;
-            newTick.index = ticks.size();
+            newTick.index = static_cast<unsigned long>(ticks.size());
 
             while(packet->data.size() > 0) {
                 packet_t tickData{};
@@ -362,8 +361,10 @@ namespace PMG {
                 ticks.push_back(newTick);
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
+            Logger::Msg("UNITSPAWN");
             unit_t unit{};
-            *packet >> unit.pos >> unit.unitId;
+            unit.unitId = 0;
+            // *packet >> unit.pos >> unit.rot >> unit.unitId;
             SpawnUnit(unit.unitId);
         }
     }

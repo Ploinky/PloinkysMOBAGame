@@ -3,7 +3,14 @@
 
 namespace PMG {
 	bool SteamManager::Initialize() {
-		return SteamAPI_Init();
+		if (!SteamAPI_Init()) {
+			return false;
+		}
+
+		SteamNetworkingUtils()->InitRelayNetworkAccess();
+		SteamNetworkingSockets()->InitAuthentication();
+
+		return true;
 	};
 
 	void SteamManager::RunCallbacks() {
@@ -11,9 +18,6 @@ namespace PMG {
 	}
 
 	std::string SteamManager::GetLaunchParameter(std::string param) {
-		char* str = new char[4096];
-		// return std::string(SteamApps()->GetLaunchQueryParam(param.c_str()));
-		SteamApps()->GetLaunchCommandLine(str, 4096);
-		return std::string(str);
+		return std::string(SteamApps()->GetLaunchQueryParam(param.c_str()));
 	}
 }

@@ -17,6 +17,8 @@
 #include <codecvt>
 #include "settings.h"
 #include "steam_manager.h"
+#include "audio_system.h"
+#include "settings_scene.h"
 
 namespace PMG {
     Client::Client() {
@@ -44,8 +46,8 @@ namespace PMG {
 
         // Steam goes first
         SteamManager steam_manager;
-        
         if (!steam_manager.Initialize()) {
+            MessageBox(NULL, L"Failed to lauch Ploinky's MOBA Game: could not initialize connection to Steam, is the Steam client running?", L"FATAL ERROR", MB_ICONERROR);
             Logger::Msg("Failed to initialize steam api");
             return;
         }
@@ -74,10 +76,10 @@ namespace PMG {
             }
 
             direct3D->SetWindowDimensions(window->width, window->height);
-            renderer->SetDimensions((float)window->width, (float)window->height);
+            renderer->SetDimensions(window->width, window->height);
         };
 
-        window->e_charTyped = [this](WPARAM ch) {
+        window->e_charTyped = [this](WORD ch) {
             Scene* currentScene = GetScene<Scene>(m_oldState);
 
             if (currentScene) {
@@ -85,7 +87,7 @@ namespace PMG {
             }
         };
 
-        window->e_keyPressed = [this](WPARAM key) {
+        window->e_keyPressed = [this](WORD key) {
             Scene* currentScene = GetScene<Scene>(m_oldState);
 
             if (currentScene) {
@@ -93,7 +95,7 @@ namespace PMG {
             }
         };
 
-        window->e_keyReleased= [this](WPARAM key) {
+        window->e_keyReleased= [this](WORD key) {
             Scene* currentScene = GetScene<Scene>(m_oldState);
 
             if (currentScene) {
@@ -128,6 +130,17 @@ namespace PMG {
         renderer = new Renderer();
         renderer->Initialize(direct3D, window->width, window->height);
 
+        AudioSystem audio_system{};
+        if (!audio_system.Initialize()) {
+            Logger::Msg("Failed to initialize audio system");
+            return;
+        }
+
+        if (!audio_system.StartPlayingSound()) {
+            Logger::Err("Failed to play sound");
+            return;
+        }
+
         Logger::Msg("Starting main game loop");
 
         m_oldState = ClientState::STARTUP;
@@ -151,7 +164,7 @@ namespace PMG {
         lastFrame = Util::GetSystemTime();
         while(isRunning && !window->ShouldClose()) {
             auto thisFrame = Util::GetSystemTime();
-            float dt = (thisFrame - lastFrame);
+            float dt = static_cast<float>(thisFrame - lastFrame);
             lastFrame = thisFrame;
 
             ClientState currentState = m_stateStack.back();
@@ -167,6 +180,13 @@ namespace PMG {
                     gameScene->m_sceneWidth = window->width;
                     gameScene->m_sceneHeight = window->height;
                     m_scenes[ClientState::NETWORKED_GAME] = gameScene;
+                    break;
+                }
+                case ClientState::SETTINGS: {
+                    SettingsScene* settingsScene = new SettingsScene(this);
+                    settingsScene->m_sceneWidth = window->width;
+                    settingsScene->m_sceneHeight = window->height;
+                    m_scenes[ClientState::SETTINGS] = settingsScene;
                     break;
                 }
                 case ClientState::CONNECT: {
@@ -200,6 +220,10 @@ namespace PMG {
                 }
                 case ClientState::NETWORKED_GAME: {
                     DeleteScene<NetworkedGame>(ClientState::NETWORKED_GAME);
+                    break;
+                }
+                case ClientState::SETTINGS: {
+                    DeleteScene<SettingsScene>(ClientState::SETTINGS);
                     break;
                 }
                 case ClientState::CONNECT: {
@@ -238,6 +262,8 @@ namespace PMG {
             BeginRender();
             currentScene->Render(renderer);
             FinishRender();
+
+            audio_system.Update();
         }
 
         // Game has endeded, close window if it isn't already closing
@@ -301,7 +327,7 @@ namespace PMG {
         // we have always been connecting to eurasia
         m_oldState = ClientState::CONNECT;
         m_stateStack.push_back(ClientState::CONNECT);
-        ConnectScene* connectScene = new ConnectScene(this, ip.substr(0, ip.find(':')));
+        ConnectScene* connectScene = new ConnectScene(this, ip);
         m_scenes[ClientState::CONNECT] = connectScene;
     }
 

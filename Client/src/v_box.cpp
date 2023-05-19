@@ -15,7 +15,7 @@ namespace PMG {
 		// -> if no gaps -> space evenly
 		// -> keep relative prefsizes?!
 
-		int totalPrefHeight = 0;
+		float totalPrefHeight = 0;
 		int noPrefHeightCount = 0;
 
 		for (auto el : m_children) {
@@ -33,7 +33,7 @@ namespace PMG {
 		}
 
 		if (m_gap != 0) {
-			totalPrefHeight += m_gap * m_children.size() + 1;
+			totalPrefHeight += m_gap * static_cast<int>(m_children.size()) + 1;
 		}
 
 		if (totalPrefHeight > m_size.y) {
@@ -48,7 +48,7 @@ namespace PMG {
 			}
 		}
 
-		int othersHeight = noPrefHeightCount > 0 ? (m_size.y - totalPrefHeight) / noPrefHeightCount : 0;
+		float othersHeight = noPrefHeightCount > 0 ? (m_size.y - totalPrefHeight) / noPrefHeightCount : 0;
 
 		for (auto el : m_children) {
 			if (el->m_prefSize.y == 0) {
@@ -56,9 +56,9 @@ namespace PMG {
 			}
 		}
 
-		int totalHeight = totalPrefHeight + othersHeight * noPrefHeightCount + m_gap * noPrefHeightCount;
+		float totalHeight = totalPrefHeight + othersHeight * noPrefHeightCount + m_gap * noPrefHeightCount;
 
-		float gap = m_gap;
+		float gap = static_cast<float>(m_gap);
 
 		// Is this how we should be autogapping???
 		if (gap == 0) {
@@ -66,16 +66,16 @@ namespace PMG {
 		}
 
 		// Now set positions... jesus h roosevelt christ
-		int currPos = gap;
+		float currPos = gap;
 
 		// Start first item at offset depending on how much space the other elements use
 		// -> what a horrible attempt at centering elements, hey?
 		if (totalHeight > 0 && m_gap != 0) {
-			currPos += (m_size.y - totalHeight) / 2;
+			currPos += (m_size.y - totalHeight) / 2.0f;
 		}
 
 		for (auto el : m_children) {
-			el->m_pos.x = (m_size.x - el->m_size.x) / 2 + m_pos.x;
+			el->m_pos.x = (m_size.x - el->m_size.x) / 2.0f + m_pos.x;
 			el->m_pos.y = currPos;
 			currPos += gap + el->m_size.y;
 		}

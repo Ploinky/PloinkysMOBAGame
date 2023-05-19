@@ -20,6 +20,7 @@ namespace PMG {
     enum class ClientState {
         STARTUP,
         MAIN_MENU,
+        SETTINGS,
         CONNECT,
         NETWORKED_GAME,
         SHUTDOWN,

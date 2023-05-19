@@ -6,6 +6,7 @@
 #include "navigation.h"
 #include "physics.h"
 #include "networking.h"
+#include "network_manager.h"
 
 namespace PMG {
 	class Mesh;
@@ -20,7 +21,7 @@ namespace PMG {
 
 	typedef struct {
 		vec2_t pos;
-    float rot;
+		float rot;
 		unsigned long unitId;
 	} unit_t;
 
@@ -35,9 +36,9 @@ namespace PMG {
 		Scene(ClientStateHandler* stateHandler) : m_stateHandler(stateHandler) {};
 		virtual void Update(float dt) {};
 		virtual void Render(Renderer* renderer) {};
-		virtual void CharTyped(uint16_t ch) {};
-		virtual void KeyPressed(uint16_t key) {};
-		virtual void KeyReleased(uint16_t key) {};
+		virtual void CharTyped(uint32_t ch) {};
+		virtual void KeyPressed(uint32_t key) {};
+		virtual void KeyReleased(uint32_t key) {};
 		virtual void MouseMoved(int screenX, int screenY) {};
 		virtual void MouseButtonPressed(int button) {};
 		virtual void MouseButtonReleased(int button) {};
@@ -54,9 +55,9 @@ namespace PMG {
 
 		void Update(float dt);
 		void Render(Renderer* renderer);
-		void CharTyped(uint16_t ch);
-		void KeyPressed(uint16_t key);
-		void KeyReleased(uint16_t key);
+		void CharTyped(uint32_t ch);
+		void KeyPressed(uint32_t key);
+		void KeyReleased(uint32_t key);
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);
@@ -73,40 +74,40 @@ namespace PMG {
 
 		void Update(float dt);
 		void Render(Renderer* renderer);
-		void CharTyped(uint16_t ch);
-		void KeyPressed(uint16_t key);
-		void KeyReleased(uint16_t key);
+		void CharTyped(uint32_t ch);
+		void KeyPressed(uint32_t key);
+		void KeyReleased(uint32_t key);
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);
-    net_client_t GetConnection();
+		NetworkManager GetConnection();
 		std::wstring m_text;
 
     private:
-		  net_client_t m_netConnection;
+		  NetworkManager network_manager_;
 	};
 
 	class NetworkedGame : public Scene {
 	public:
-		NetworkedGame(ClientStateHandler* stateHandler, net_client_t connection);
+		NetworkedGame(ClientStateHandler* stateHandler, NetworkManager connection);
 		~NetworkedGame();
 
 		std::vector<Mesh*> models;
 		NavMesh* m_navMesh;
 
-		net_client_t m_netConnection;
+		NetworkManager network_manager_;
 
 		void Update(float dt);
 		void Render(Renderer* renderer);
 
 		void HandleNetworkMessage(packet_t* packet);
-		void HandleTicks(long long frameTime);
+		void HandleTicks();
 
 		void SpawnUnit(unsigned long id);
 		void DespawnUnit(unsigned long id);
-		void CharTyped(uint16_t ch);
-		void KeyPressed(uint16_t key);
-		void KeyReleased(uint16_t key);
+		void CharTyped(uint32_t ch);
+		void KeyPressed(uint32_t key);
+		void KeyReleased(uint32_t key);
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);
