@@ -3,6 +3,15 @@
 #include <combaseapi.h>
 #include <string>
 #include "settings.h"
+#include "logger.h"
+
+
+#define fourccRIFF 'FFIR'
+#define fourccDATA 'atad'
+#define fourccFMT ' tmf'
+#define fourccWAVE 'EVAW'
+#define fourccXWMA 'AMWX'
+#define fourccDPDS 'sdpd'
 
 namespace PMG {
 	bool AudioSystem::Initialize() {
@@ -34,25 +43,6 @@ namespace PMG {
         SFXSendList = { 1, &SFXSend };
         return true;
 	}
-
-    void AudioSystem::Update() {
-        float val = 0;
-        music_submix_voice_->GetVolume(&val);
-        if (fabs(Settings::GetDouble(PMGSettings::MASTER_VOLUME) - val) >= 0.001f) {
-            HRESULT hr = music_submix_voice_->SetVolume(Settings::GetDouble(PMGSettings::MASTER_VOLUME));
-            if (FAILED(hr)) {
-                MessageBox(nullptr, L"YIKES", L"AWFUL", MB_ICONERROR);
-            }
-
-        }
-    }
-
-    #define fourccRIFF 'FFIR'
-    #define fourccDATA 'atad'
-    #define fourccFMT ' tmf'
-    #define fourccWAVE 'EVAW'
-    #define fourccXWMA 'AMWX'
-    #define fourccDPDS 'sdpd'
 
     HRESULT FindChunk(HANDLE hFile, DWORD fourcc, DWORD& dwChunkSize, DWORD& dwChunkDataPosition)
     {
@@ -121,62 +111,97 @@ namespace PMG {
 
     bool AudioSystem::StartPlayingSound() {
         std::wstring strFileName = TEXT("audio.wav");
+        AudioComponent comp;
+        comp.fileName = strFileName;
+        comp.isPlaying = false;
 
-        // Open the file
-        HANDLE hFile = CreateFile(
-            strFileName.c_str(),
-            GENERIC_READ,
-            FILE_SHARE_READ,
-            NULL,
-            OPEN_EXISTING,
-            0,
-            NULL);
-
-        if (INVALID_HANDLE_VALUE == hFile)
-            return false;
-
-        if (INVALID_SET_FILE_POINTER == SetFilePointer(hFile, 0, NULL, FILE_BEGIN))
-            return HRESULT_FROM_WIN32(GetLastError());
-
-        DWORD dwChunkSize;
-        DWORD dwChunkPosition;
-        //check the file type, should be fourccWAVE or 'XWMA'
-        FindChunk(hFile, fourccRIFF, dwChunkSize, dwChunkPosition);
-        DWORD filetype;
-        ReadChunkData(hFile, &filetype, sizeof(DWORD), dwChunkPosition);
-        if (filetype != fourccWAVE)
-            return S_FALSE;
-
-        WAVEFORMATEX wfx{};
-
-        FindChunk(hFile, fourccFMT, dwChunkSize, dwChunkPosition);
-        ReadChunkData(hFile, &wfx, dwChunkSize, dwChunkPosition);
-
-        //fill out the audio data buffer with the contents of the fourccDATA chunk
-        FindChunk(hFile, fourccDATA, dwChunkSize, dwChunkPosition);
-        BYTE* pDataBuffer = new BYTE[dwChunkSize];
-        ReadChunkData(hFile, pDataBuffer, dwChunkSize, dwChunkPosition);
-
-        XAUDIO2_BUFFER buffer{};
-        buffer.AudioBytes = dwChunkSize;  //size of the audio buffer in bytes
-        buffer.pAudioData = pDataBuffer;  //buffer containing audio data
-        buffer.Flags = XAUDIO2_END_OF_STREAM; // tell the source voice not to expect any data after this buffer
-
-
-        XAUDIO2_SEND_DESCRIPTOR send {0, music_submix_voice_ };
-        XAUDIO2_VOICE_SENDS sendList { 1, &send };
-        const XAUDIO2_VOICE_SENDS* sl = &sendList;
-        if (FAILED(pXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)&wfx), 0, XAUDIO2_DEFAULT_FREQ_RATIO, 0, sl, NULL)) {
-            return false;
-        }
-        pSourceVoice->SetOutputVoices(sl);
-        if (FAILED(pSourceVoice->SubmitSourceBuffer(&buffer))) {
-            return false;
-        }
-        if (FAILED(pSourceVoice->Start(0))) {
-            return false;
-        }
+        entity_id id = registry.Create();
+        registry.AddComponent<AudioComponent>(id, comp);
 
         return true;
+    }
+
+    void AudioSystem::Update() {
+        float val = 0;
+        music_submix_voice_->GetVolume(&val);
+        if (fabs(Settings::GetDouble(PMGSettings::MASTER_VOLUME) - val) >= 0.001f) {
+            HRESULT hr = music_submix_voice_->SetVolume(Settings::GetDouble(PMGSettings::MASTER_VOLUME));
+            if (FAILED(hr)) {
+                MessageBox(nullptr, L"YIKES", L"AWFUL", MB_ICONERROR);
+            }
+        }
+
+        for (entity_id id : registry.GetEntities<AudioComponent>()) {
+            AudioComponent* comp = registry.GetComponent<AudioComponent>(id);
+
+            if (!comp->isPlaying) {
+                // Open the file
+                HANDLE hFile = CreateFile(
+                    comp->fileName.c_str(),
+                    GENERIC_READ,
+                    FILE_SHARE_READ,
+                    NULL,
+                    OPEN_EXISTING,
+                    0,
+                    NULL);
+
+                if (INVALID_HANDLE_VALUE == hFile) {
+                    Logger::Err("Failed to play sound");
+                    continue;
+                }
+
+                if (INVALID_SET_FILE_POINTER == SetFilePointer(hFile, 0, NULL, FILE_BEGIN)) {
+                    Logger::Err("Failed to play sound");
+                    continue;
+                }
+
+                DWORD dwChunkSize;
+                DWORD dwChunkPosition;
+                //check the file type, should be fourccWAVE or 'XWMA'
+                FindChunk(hFile, fourccRIFF, dwChunkSize, dwChunkPosition);
+                DWORD filetype;
+                ReadChunkData(hFile, &filetype, sizeof(DWORD), dwChunkPosition);
+                if (filetype != fourccWAVE) {
+                    Logger::Err("Failed to play sound");
+                    continue;
+                }
+
+                WAVEFORMATEX wfx{};
+
+                FindChunk(hFile, fourccFMT, dwChunkSize, dwChunkPosition);
+                ReadChunkData(hFile, &wfx, dwChunkSize, dwChunkPosition);
+
+                //fill out the audio data buffer with the contents of the fourccDATA chunk
+                FindChunk(hFile, fourccDATA, dwChunkSize, dwChunkPosition);
+                BYTE* pDataBuffer = new BYTE[dwChunkSize];
+                ReadChunkData(hFile, pDataBuffer, dwChunkSize, dwChunkPosition);
+
+                XAUDIO2_BUFFER buffer{};
+                buffer.AudioBytes = dwChunkSize;  //size of the audio buffer in bytes
+                buffer.pAudioData = pDataBuffer;  //buffer containing audio data
+                buffer.Flags = XAUDIO2_END_OF_STREAM; // tell the source voice not to expect any data after this buffer
+
+
+                XAUDIO2_SEND_DESCRIPTOR send{ 0, music_submix_voice_ };
+                XAUDIO2_VOICE_SENDS sendList{ 1, &send };
+                const XAUDIO2_VOICE_SENDS* sl = &sendList;
+                if (FAILED(pXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)&wfx), 0, XAUDIO2_DEFAULT_FREQ_RATIO, 0, sl, NULL)) {
+                    Logger::Err("Failed to play sound");
+                    continue;
+                }
+                pSourceVoice->SetOutputVoices(sl);
+                if (FAILED(pSourceVoice->SubmitSourceBuffer(&buffer))) {
+                    Logger::Err("Failed to play sound");
+                    continue;
+                }
+                if (FAILED(pSourceVoice->Start(0))) {
+                    Logger::Err("Failed to play sound");
+                    continue;
+                }
+
+                comp->pSourceVoice = pSourceVoice;
+                comp->isPlaying = true;
+            }
+        }
     }
 }

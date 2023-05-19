@@ -143,7 +143,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\component_registry.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
@@ -153,7 +152,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\components.h" />
-    <ClInclude Include="src\component_registry.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\network_manager.h" />

@@ -22,6 +22,9 @@
 
 namespace PMG {
     Client::Client() {
+        isRunning = false;
+        lastFrame = 0;
+        m_oldState = ClientState::SHUTDOWN;
     }
 
     Client::~Client() {
@@ -51,6 +54,8 @@ namespace PMG {
             Logger::Msg("Failed to initialize steam api");
             return;
         }
+
+        std::vector<PMGSystem*> systems;
 
         Logger::Msg("Loading settings...");
         Settings::LoadDefaults();
@@ -140,6 +145,8 @@ namespace PMG {
             Logger::Err("Failed to play sound");
             return;
         }
+
+        systems.push_back(&audio_system);
 
         Logger::Msg("Starting main game loop");
 
@@ -263,7 +270,9 @@ namespace PMG {
             currentScene->Render(renderer);
             FinishRender();
 
-            audio_system.Update();
+            for (PMGSystem* system : systems) {
+                system->Update();
+            }
         }
 
         // Game has endeded, close window if it isn't already closing

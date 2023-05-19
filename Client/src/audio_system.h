@@ -1,13 +1,22 @@
 #pragma once
 
 #include <xaudio2.h>
+#include "systems.h"
+#include <string>
 
 namespace PMG {
-	class AudioSystem {
+	class AudioComponent {
 	public:
+		std::wstring fileName;
+		bool isPlaying;
+		IXAudio2SourceVoice* pSourceVoice;
+	};
+
+	class AudioSystem : public PMGSystem {
+	public:
+		void Update();
 		bool Initialize();
 		bool StartPlayingSound();
-		void Update();
 
 	private:
 		IXAudio2* pXAudio2;

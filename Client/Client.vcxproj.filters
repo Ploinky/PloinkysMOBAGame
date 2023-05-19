@@ -173,6 +173,9 @@
     <ClInclude Include="src\settings_scene.h">
       <Filter>Header Files\scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\systems.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\pixel_ps.hlsl" />
