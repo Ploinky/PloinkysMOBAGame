@@ -1,9 +1,12 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+#endif
 #include <functional>
 #include <vector>
+#include "settings.h"
 
 namespace PMG {
     // Forward declarations to avoid too many headers
@@ -22,7 +25,7 @@ namespace PMG {
             int width;
             int height;
 
-            Window();
+            Window(int res_x, int res_y, WindowMode mode);
             ~Window();
 
             HWND GetWindowHandle();

@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include "client.h"
 #include "logger.h"
-#include <Windows.h>
+#ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+#endif
 #include <string>
 #include <dxgidebug.h>
 #include <locale>

@@ -18,7 +18,7 @@ namespace PMG {
             // After this is done, Direct3D will be ready to use
             // Returns false (and logs the error) if initialization fails
             // Engine should immediately in this case
-            bool Initialize(HWND windowHandle);
+            bool Initialize(HWND windowHandle, bool full_screen);
         
             // Sets the native window's dimensions
             // This will resize swap chain buffers and recreate render target and depth view
@@ -53,7 +53,7 @@ namespace PMG {
             // Creates the Direct3D device and context
             bool CreateDevice();
             // Creates the DXGI swap chain and back buffer
-            bool CreateSwapChain();
+            bool CreateSwapChain(bool full_screen);
             // Creates back buffer for rendering and ID3D11RenderTargetView
             bool CreateBackBuffer();
             // Creates depth and stencil buffers

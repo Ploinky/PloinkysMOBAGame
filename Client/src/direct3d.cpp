@@ -40,7 +40,7 @@ namespace PMG {
 #endif
     }
 
-    bool Direct3D::Initialize(HWND windowHandle) {
+    bool Direct3D::Initialize(HWND windowHandle, bool full_screen) {
         // Save the window handle
         this->windowHandle = windowHandle;
 
@@ -53,7 +53,7 @@ namespace PMG {
         }
 
         // Create swap chain
-        if (!CreateSwapChain()) {
+        if (!CreateSwapChain(full_screen)) {
             return false;
         }
 
@@ -134,8 +134,8 @@ namespace PMG {
         return true;
     }
 
-    bool Direct3D::CreateSwapChain() {
-        bool isFullscreenExclusive = Settings::GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN;
+    bool Direct3D::CreateSwapChain(bool full_screen) {
+        bool isFullscreenExclusive = full_screen;
         // Swap chain description
         DXGI_SWAP_CHAIN_DESC1 sc = { 0 };
         sc.Width = 0; // Width from HWND

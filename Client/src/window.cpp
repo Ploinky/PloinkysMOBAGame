@@ -19,11 +19,11 @@ LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 }
 
 namespace PMG {
-    Window::Window() {
+    Window::Window(int res_x, int res_y, WindowMode mode) {
         Logger::Msg("Creating window...");
 
-        this->width = Settings::GetInt(PMGSettings::RESOLUTION_X);
-        this->height = Settings::GetInt(PMGSettings::RESOLUTION_Y);
+        this->width = res_x;
+        this->height = res_y;
 
         LPCWSTR className = L"PloinkysMOBAGameWindow";
 
@@ -58,7 +58,7 @@ namespace PMG {
 
         DWORD dwStyle = WS_SYSMENU | WS_CAPTION;
 
-        switch ((WindowMode) Settings::GetInt(PMGSettings::WINDOW_MODE)) {
+        switch (mode) {
         case WindowMode::WINDOWED: {
             break;
         }

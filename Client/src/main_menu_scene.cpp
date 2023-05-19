@@ -90,16 +90,6 @@ namespace PMG {
             return;
         }
 
-        if (ch == '-') {
-            Settings::SetDouble(PMGSettings::MASTER_VOLUME, Settings::GetDouble(PMGSettings::MASTER_VOLUME) - 0.1);
-            return;
-        }
-
-        if (ch == '+') {
-            Settings::SetDouble(PMGSettings::MASTER_VOLUME, Settings::GetDouble(PMGSettings::MASTER_VOLUME) + 0.1);
-            return;
-        }
-
         rootGuiElement->CharTyped(ch);
     }
 

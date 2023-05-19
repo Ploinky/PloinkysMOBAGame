@@ -4,27 +4,27 @@
 
 namespace PMG {
 	int Settings::GetInt(const char* setting) {
-		return std::stoi(GetInstance().m_settings[setting]);
+		return std::stoi(settings_[setting]);
 	}
 
 	bool Settings::GetBool(const char* setting) {
-		return std::stoi(GetInstance().m_settings[setting]);
+		return std::stoi(settings_[setting]);
 	}
 
 	double Settings::GetDouble(const char* setting) {
-		return std::stod(GetInstance().m_settings[setting]);
+		return std::stod(settings_[setting]);
 	}
 
 	void Settings::SetInt(const char* setting, int value) {
-		GetInstance().m_settings[setting] = std::to_string(value);
+		settings_[setting] = std::to_string(value);
 	}
 
 	void Settings::SetBool(const char* setting, bool value) {
-		GetInstance().m_settings[setting] = std::to_string(value);
+		settings_[setting] = std::to_string(value);
 	}
 
 	void Settings::SetDouble(const char* setting, double value) {
-		GetInstance().m_settings[setting] = std::to_string(value);
+		settings_[setting] = std::to_string(value);
 	}
 
 	void Settings::LoadDefaults() {

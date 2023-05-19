@@ -1,3 +1,4 @@
+#pragma once
 
 namespace PMG {
 	typedef struct {

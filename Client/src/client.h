@@ -5,6 +5,9 @@
 #include <string>
 #include <map>
 #include "steam/steam_api.h"
+#include "network_manager.h"
+#include "audio_system.h"
+#include "settings.h"
 
 // Main game application
 namespace PMG {
@@ -59,6 +62,8 @@ namespace PMG {
 
             void PushState(ClientState state);
             void PopState();
+
+            void HandleSettingChanged(std::string setting);
             
             template <typename T>
             T* GetScene(ClientState state);
@@ -72,6 +77,9 @@ namespace PMG {
             std::vector<ClientState> m_stateStack;
             ClientState m_oldState;
             std::map<ClientState, Scene*> m_scenes;
+
+            Settings settings_;
+            AudioSystem audio_system_;
 
             STEAM_CALLBACK(Client, OnGameServerChangeRequested, GameServerChangeRequested_t);
             STEAM_CALLBACK(Client, OnSteamConnected, SteamServersConnected_t);

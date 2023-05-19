@@ -58,11 +58,19 @@ namespace PMG {
         std::vector<PMGSystem*> systems;
 
         Logger::Msg("Loading settings...");
-        Settings::LoadDefaults();
-        Settings::LoadFromFile("./settings.cfg");
+
+        settings_.LoadDefaults();
+        settings_.LoadFromFile("./settings.cfg");
+        settings_.OnSettingChanged = [this](std::string setting) {
+            HandleSettingChanged(setting);
+        };
 
         // Create and show window
-        window = new Window();
+        window = new Window(
+            settings_.GetInt(PMGSettings::RESOLUTION_X),
+            settings_.GetInt(PMGSettings::RESOLUTION_Y),
+            (WindowMode) settings_.GetInt(PMGSettings::WINDOW_MODE)
+        );
         window->Show();
 
         // ----- Initialize Direct3D -----
@@ -70,7 +78,7 @@ namespace PMG {
         direct3D = new Direct3D();
 
         // Immediately close window if initialization of Direct3D fails
-        if (!direct3D->Initialize(window->GetWindowHandle())) {
+        if (!direct3D->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN)) {
             Logger::Err("Direct3D initialization failed, PMG will quit.");
             window->SetShouldClose();
         }
@@ -135,18 +143,18 @@ namespace PMG {
         renderer = new Renderer();
         renderer->Initialize(direct3D, window->width, window->height);
 
-        AudioSystem audio_system{};
-        if (!audio_system.Initialize()) {
+        if (!audio_system_.Initialize()) {
             Logger::Msg("Failed to initialize audio system");
             return;
         }
-        systems.push_back(&audio_system);
+        systems.push_back(&audio_system_);
 
         Logger::Msg("Starting main game loop");
 
         m_oldState = ClientState::STARTUP;
         m_stateStack.push_back(ClientState::MAIN_MENU);
-
+        
+        // TODO: this does not actually work, you know?
         std::string ip = steam_manager.GetLaunchParameter("connect");
         Logger::Msg("IP:");
         Logger::Msg(ip);
@@ -184,7 +192,7 @@ namespace PMG {
                     break;
                 }
                 case ClientState::SETTINGS: {
-                    SettingsScene* settingsScene = new SettingsScene(this);
+                    SettingsScene* settingsScene = new SettingsScene(this, &settings_);
                     settingsScene->m_sceneWidth = window->width;
                     settingsScene->m_sceneHeight = window->height;
                     m_scenes[ClientState::SETTINGS] = settingsScene;
@@ -205,7 +213,7 @@ namespace PMG {
                 }
                 case ClientState::MAIN_MENU: {
                     AddScene<MainMenuScene>(ClientState::MAIN_MENU);
-                    audio_system.StartPlayingSound();
+                    audio_system_.StartPlayingSound();
                     break;
                 }
                 case ClientState::SHUTDOWN:
@@ -276,7 +284,7 @@ namespace PMG {
         }
 
         // Save settings to settings file
-        Settings::SaveToFile("./settings.cfg");
+        settings_.SaveToFile("./settings.cfg");
 
         Logger::Msg("Game loop has been stopped.");
     }
@@ -337,5 +345,11 @@ namespace PMG {
 
     void Client::OnSteamConnected(SteamServersConnected_t* steam_servers_connected) {
         Logger::Msg("Connected to steam servers");
+    }
+
+    void Client::HandleSettingChanged(std::string setting) {
+        if (setting == PMGSettings::MASTER_VOLUME) {
+            audio_system_.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
+        }
     }
 }

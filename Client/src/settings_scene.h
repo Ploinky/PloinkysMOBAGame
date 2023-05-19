@@ -1,11 +1,12 @@
 #pragma once
 
 #include "scene.h"
+#include "settings.h"
 
 namespace PMG {
 	class SettingsScene : public Scene {
 	public:
-		SettingsScene(ClientStateHandler* stateHandler);
+		SettingsScene(ClientStateHandler* stateHandler, Settings* settings);
 
 		void Update(float dt);
 		void Render(Renderer* renderer);
@@ -18,5 +19,8 @@ namespace PMG {
 
 		GuiElement* rootGuiElement;
 		int m_mousePos[2]{ 0 };
+
+	private:
+		Settings* settings_;
 	};
 }

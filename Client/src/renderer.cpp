@@ -131,7 +131,7 @@ namespace PMG {
         rect.bottom = static_cast<float>(y + h);
 
         //Set the Font Color
-        D2D1_COLOR_F c = D2D1::ColorF(1, 0, 0, 1.0f);
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
 
 
         ID2D1SolidColorBrush* brush;
@@ -177,6 +177,7 @@ namespace PMG {
 
         brush->Release();
     }
+
 
     void Renderer::RenderMeshes(std::vector<Mesh*> meshes) {
         // Maybe update some frame-wide constant values?

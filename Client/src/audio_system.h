@@ -18,6 +18,8 @@ namespace PMG {
 		bool Initialize();
 		bool StartPlayingSound();
 
+		void SetMasterVolume(double value);
+
 	private:
 		IXAudio2* pXAudio2;
 		IXAudio2MasteringVoice* pMasterVoice;

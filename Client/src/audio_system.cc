@@ -121,16 +121,13 @@ namespace PMG {
         return true;
     }
 
-    void AudioSystem::Update() {
-        float val = 0;
-        music_submix_voice_->GetVolume(&val);
-        if (fabs(Settings::GetDouble(PMGSettings::MASTER_VOLUME) - val) >= 0.001f) {
-            HRESULT hr = music_submix_voice_->SetVolume(Settings::GetDouble(PMGSettings::MASTER_VOLUME));
-            if (FAILED(hr)) {
-                MessageBox(nullptr, L"YIKES", L"AWFUL", MB_ICONERROR);
-            }
-        }
+    void AudioSystem::SetMasterVolume(double value) {
+        value = min(1, max(value, 0));
 
+        pMasterVoice->SetVolume(value);
+    }
+
+    void AudioSystem::Update() {
         for (entity_id id : registry.GetEntities<AudioComponent>()) {
             AudioComponent* comp = registry.GetComponent<AudioComponent>(id);
 

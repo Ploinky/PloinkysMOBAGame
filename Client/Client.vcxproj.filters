@@ -84,7 +84,7 @@
     <ClCompile Include="src\window.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="src\settings.cpp">
+    <ClCompile Include="src\settings.cc">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="src\shader.cpp">
@@ -116,6 +116,9 @@
     </ClCompile>
     <ClCompile Include="src\settings_scene.cc">
       <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui_selector.cc">
+      <Filter>Source Files\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +178,9 @@
     </ClInclude>
     <ClInclude Include="src\systems.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui_selector.h">
+      <Filter>Header Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

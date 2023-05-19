@@ -2,12 +2,15 @@
 #include "gui.h"
 #include "client.h"
 #include "settings.h"
+#include "gui_selector.h"
 
 namespace PMG {
-	SettingsScene::SettingsScene(ClientStateHandler* stateHandler) : Scene(stateHandler) {
+	SettingsScene::SettingsScene(ClientStateHandler* stateHandler, Settings* settings) : Scene(stateHandler) {
         VBox* root = new VBox();
         root->m_size = { 1024, 768 };
         root->m_pos = { 0, 0 };
+
+        this->settings_ = settings;
 
         GuiButton* btnFullscreen = new GuiButton();
         btnFullscreen->m_color[0] = 0.2f;
@@ -17,8 +20,29 @@ namespace PMG {
         btnFullscreen->m_prefSize = { 400, 100 };
         btnFullscreen->m_text = L"FullScreen";
         btnFullscreen->e_onButtonPressed = [this]() {
-            Settings::SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::FULLSCREEN);
+            settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::FULLSCREEN);
         };
+
+        std::vector<WindowMode> vec = { WindowMode::FULLSCREEN };
+        GuiSelector<WindowMode>* selRes = new GuiSelector<WindowMode>(vec);
+        selRes->m_color[0] = 0.2f;
+        selRes->m_color[1] = 0.2f;
+        selRes->m_color[2] = 0.2f;
+        selRes->m_pos = { 0, 0 };
+        selRes->OptionToString = [](WindowMode val) {
+            switch (val) {
+            case WindowMode::WINDOWED: {
+                return L"Windowed";
+            }
+            case WindowMode::FULLSCREEN: {
+                return L"FullScreen";
+            }
+            default: {
+                return L"ERROR";
+            }
+            }
+        };
+        selRes->m_prefSize = { 400, 100 };
 
         GuiButton* btnBack = new GuiButton();
         btnBack->m_color[0] = 0.2f;
@@ -32,6 +56,7 @@ namespace PMG {
         };
 
         root->m_children.push_back(btnFullscreen);
+        root->m_children.push_back(selRes);
         root->m_children.push_back(btnBack);
 
         rootGuiElement = root;
@@ -65,6 +90,16 @@ namespace PMG {
     }
 
     void SettingsScene::CharTyped(uint32_t ch) {
+        if (ch == '-') {
+            settings_->SetDouble(PMGSettings::MASTER_VOLUME, settings_->GetDouble(PMGSettings::MASTER_VOLUME) - 0.1);
+            return;
+        }
+
+        if (ch == '+') {
+            settings_->SetDouble(PMGSettings::MASTER_VOLUME, settings_->GetDouble(PMGSettings::MASTER_VOLUME) + 0.1);
+            return;
+        }
+
         rootGuiElement->CharTyped(ch);
     }
 

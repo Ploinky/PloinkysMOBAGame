@@ -1,7 +1,10 @@
 #include "logger.h"
 
 #ifdef _DEBUG
-#include <windows.h> 
+#ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+#endif
 #endif
 
 namespace PMG {

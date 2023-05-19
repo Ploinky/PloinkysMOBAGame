@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <functional>
 
 namespace PMG {
 	class PMGSettings {
@@ -20,31 +21,24 @@ namespace PMG {
 
 	class Settings {
 	public:
-		static int GetInt(const char* setting);
-		static bool GetBool(const char* setting);
-		static double GetDouble(const char* setting);
+		int GetInt(const char* setting);
+		bool GetBool(const char* setting);
+		double GetDouble(const char* setting);
 
-		static void SetInt(const char* setting, int value);
-		static void SetBool(const char* setting, bool value);
-		static void SetDouble(const char* setting, double value);
+		void SetInt(const char* setting, int value);
+		void SetBool(const char* setting, bool value);
+		void SetDouble(const char* setting, double value);
 
-		static void LoadDefaults();
-		static void LoadFromFile(std::string fileName);
-		static void SaveToFile(std::string fileName);
-
-	private:
+		void LoadDefaults();
+		void LoadFromFile(std::string fileName);
+		void SaveToFile(std::string fileName);
 		Settings() {};
 
-		static Settings& GetInstance() {
-			static Settings instance;
+		std::function<void(std::string)> OnSettingChanged;
 
-			return instance;
-		}
+	private:
 
-		Settings(Settings const&);
-		void operator=(Settings const&);
-
-		std::map<const char*, std::string> m_settings;
+		std::map<const char*, std::string> settings_;
 	};
 }
 
