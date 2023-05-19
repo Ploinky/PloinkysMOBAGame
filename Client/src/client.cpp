@@ -140,12 +140,6 @@ namespace PMG {
             Logger::Msg("Failed to initialize audio system");
             return;
         }
-
-        if (!audio_system.StartPlayingSound()) {
-            Logger::Err("Failed to play sound");
-            return;
-        }
-
         systems.push_back(&audio_system);
 
         Logger::Msg("Starting main game loop");
@@ -211,6 +205,7 @@ namespace PMG {
                 }
                 case ClientState::MAIN_MENU: {
                     AddScene<MainMenuScene>(ClientState::MAIN_MENU);
+                    audio_system.StartPlayingSound();
                     break;
                 }
                 case ClientState::SHUTDOWN:

@@ -5,3 +5,4 @@ Client/include
 Client/lib
 Server/include
 Server/lib
+**\*.user
