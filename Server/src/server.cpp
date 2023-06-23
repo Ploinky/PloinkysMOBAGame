@@ -57,11 +57,13 @@ namespace PMG {
     }
 
     void Server::OnMessageReceived(unsigned long clientId, packet_t* packet) {
-        if(packet->header.type == PacketType::UNITMOVE) {
-            cmd_move_t move{};
-            *packet >> move;
-            
-            m_game->PlayerMoveCommand(clientId, move.nx, move.ny);
+        switch (packet->header.type) {
+            case PacketType::UNITMOVE: {
+                cmd_move_t move{};
+                *packet >> move;
+
+                m_game->PlayerMoveCommand(clientId, move.nx, move.ny);
+            }
         }
     }
 

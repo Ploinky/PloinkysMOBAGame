@@ -499,6 +499,12 @@ namespace PMG {
         }
     }
     
+    void Direct3D::SetFullScreen(bool full_screen) {
+        // TODO error handling?
+        swapChain->SetFullscreenState(full_screen, NULL);
+
+    }
+
     void Direct3D::SetWindowDimensions(int width, int height) {
         context->OMSetRenderTargets(0, 0, 0);
         renderTargetView->Release();

@@ -72,6 +72,10 @@ namespace PMG {
         }
         case WindowMode::FULLSCREEN:
         default: {
+            width = screenWidth;
+            height = screenHeight;
+            posX = 0;
+            posY = 0;
             break;
         }
         }
@@ -284,5 +288,45 @@ namespace PMG {
         rect.bottom = lr.y;
 
         ClipCursor(&rect);
+    }
+
+    void Window::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y) {
+        int posX, posY;
+
+        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+        DWORD dwStyle = WS_SYSMENU | WS_CAPTION;
+        posX = 0;
+        posY = 0;
+
+        switch (new_mode) {
+            case WindowMode::WINDOWED: {
+                width = resolution_x;
+                height = resolution_y;
+                break;
+            }
+            case WindowMode::BORDERLESS: {
+                dwStyle = WS_POPUP;
+                width = screenWidth;
+                height = screenHeight;
+                posX = 0;
+                posY = 0;
+                break;
+            }
+            case WindowMode::FULLSCREEN:
+            default: {
+                width = screenWidth;
+                height = screenHeight;
+                posX = 0;
+                posY = 0;
+                break;
+            }
+        }
+
+        SetWindowLongPtr(windowHandle, GWL_STYLE, dwStyle);
+        SetWindowPos(windowHandle, NULL, posX, posY, width, height, SWP_SHOWWINDOW);
+
+        ClipCursorToWindow();
     }
 }

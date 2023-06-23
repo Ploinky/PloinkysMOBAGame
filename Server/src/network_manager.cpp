@@ -111,7 +111,11 @@ namespace PMG {
     bool NetworkManager::ReceivePacket(net_client_t* connection, packet_t* packet) {
         int error = recv(connection->socket, (char*)&packet->header, sizeof(packet_header_t), 0);
 
-        if (error < 1) {
+        if (error == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK) {
+            connection->isConnected = false;
+            Logger::Msg(std::string("Failed to receive message  from <").append(std::to_string(connection->socket)).append(">, error <").append(std::to_string(WSAGetLastError())).append(">"));
+            return false;
+        } else if (error < 1) {
             return false;
         }
 
@@ -146,21 +150,20 @@ namespace PMG {
         }
 
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
-            net_client_t client = *it;
-            packet_t packet = {};
-
-            while (ReceivePacket(&client, &packet)) {
-                on_clientMessageReceived(client.socket, &packet);
-            }
-        }
-
-        for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             if (!it->isConnected) {
                 on_clientDisconnected(it->socket);
                 it = clients_.erase(it);
                 if (it == clients_.end()) {
                     break;
                 }
+            }
+        }
+
+        for (auto it = clients_.begin(); it != clients_.end(); ++it) {
+            packet_t packet = {};
+
+            while (ReceivePacket(&(*it), &packet)) {
+                on_clientMessageReceived(it->socket, &packet);
             }
         }
     }

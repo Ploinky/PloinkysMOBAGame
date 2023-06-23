@@ -27,7 +27,7 @@ namespace PMG {
             delete m;
         }
 
-        if (!network_manager_.IsConnected()) {
+        if (network_manager_.IsConnected()) {
             network_manager_.Close();
         }
 
@@ -318,7 +318,6 @@ namespace PMG {
     }
 
     void NetworkedGame::HandleNetworkMessage(packet_t* packet) {
-        Logger::Msg("WTF");
         if (packet->header.type == PacketType::GAME_TICK) {
             game_tick_t newTick{};
 

@@ -8,9 +8,9 @@ namespace PMG {
 	template<typename T>
 	class GuiSelector : public GuiElement {
 	public:
-		GuiSelector(std::vector<T> values) {
+		GuiSelector(std::vector<T> values, T default_value) {
 			this->values_ = values;
-			current_value_ = values.at(0);
+			current_value_ = default_value;
 		}
 		std::function<void(T oldValue, T newValue)> OnChange = {};
 
@@ -24,7 +24,20 @@ namespace PMG {
 				m_color,
 				OptionToString(current_value_));
 		}
-		void MousePressed(int x, int y) {};
+		void MousePressed(int x, int y) {
+			for (auto it = values_.begin(); it != values_.end(); ++it) {
+				if (*it == current_value_) {
+					auto next = it + 1;
+					if (next == values_.end()) {
+						next = values_.begin();
+					}
+
+					current_value_ = *next;
+					OnChange(*it, current_value_);
+					break;
+				}
+			}
+		};
 		float m_color[3] = { 0.0, 0.0, 0.0 };
 
 		std::function<std::wstring(T val)> OptionToString;

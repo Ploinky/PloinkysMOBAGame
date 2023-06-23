@@ -20,29 +20,46 @@ namespace PMG {
         btnFullscreen->m_prefSize = { 400, 100 };
         btnFullscreen->m_text = L"FullScreen";
         btnFullscreen->e_onButtonPressed = [this]() {
-            settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::FULLSCREEN);
+            switch (static_cast<WindowMode>(settings_->GetInt(PMGSettings::WINDOW_MODE))) {
+                case WindowMode::WINDOWED: {
+                    settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::BORDERLESS);
+                    break;
+                }
+                case WindowMode::BORDERLESS: {
+                    settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::FULLSCREEN);
+                    break;
+                }
+                case WindowMode::FULLSCREEN: {
+                    settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::WINDOWED);
+                    break;
+                }
+            }
         };
 
-        std::vector<WindowMode> vec = { WindowMode::FULLSCREEN };
-        GuiSelector<WindowMode>* selRes = new GuiSelector<WindowMode>(vec);
+        std::vector<WindowMode> vec = { WindowMode::FULLSCREEN, WindowMode::BORDERLESS, WindowMode::WINDOWED };
+        GuiSelector<WindowMode>* selRes = new GuiSelector<WindowMode>(vec, static_cast<WindowMode>(settings_->GetInt(PMGSettings::WINDOW_MODE)));
         selRes->m_color[0] = 0.2f;
         selRes->m_color[1] = 0.2f;
         selRes->m_color[2] = 0.2f;
         selRes->m_pos = { 0, 0 };
         selRes->OptionToString = [](WindowMode val) {
             switch (val) {
-            case WindowMode::WINDOWED: {
-                return L"Windowed";
-            }
-            case WindowMode::FULLSCREEN: {
-                return L"FullScreen";
-            }
-            default: {
-                return L"ERROR";
-            }
+                case WindowMode::WINDOWED: {
+                    return L"Windowed";
+                }
+                case WindowMode::BORDERLESS: {
+                    return L"Borderless Window";
+                }
+                case WindowMode::FULLSCREEN: {
+                    return L"FullScreen";
+                }
+                default: {
+                    return L"ERROR";
+                }
             }
         };
         selRes->m_prefSize = { 400, 100 };
+        selRes->OnChange = [this](WindowMode old_mode, WindowMode new_mode) {  settings_->SetInt(PMGSettings::WINDOW_MODE, static_cast<int>(new_mode)); };
 
         GuiButton* btnBack = new GuiButton();
         btnBack->m_color[0] = 0.2f;

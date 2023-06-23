@@ -204,7 +204,6 @@ namespace PMG {
                 }
                 case ClientState::MAIN_MENU: {
                     AddScene<MainMenuScene>(ClientState::MAIN_MENU);
-                    audio_system_.StartPlayingSound();
                     break;
                 }
                 case ClientState::SHUTDOWN:
@@ -317,6 +316,10 @@ namespace PMG {
     void Client::HandleSettingChanged(std::string setting) {
         if (setting == PMGSettings::MASTER_VOLUME) {
             audio_system_.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
+        }
+        else if (setting == PMGSettings::WINDOW_MODE) {
+            window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), settings_.GetInt(PMGSettings::RESOLUTION_X),  settings_.GetInt(PMGSettings::RESOLUTION_Y));
+            direct3D->SetFullScreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
         }
     }
 }

@@ -47,6 +47,8 @@ namespace PMG {
 
             void Resized(int width, int height);
 
+            void SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y);
+
             LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
             
         private:

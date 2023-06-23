@@ -32,6 +32,8 @@ namespace PMG {
             // Presents the rendered image on the swap chain
             bool Present();
 
+            void SetFullScreen(bool full_screen);
+
             // Creates a vertex buffer
             ID3D11Buffer* CreateVertexBuffer(void* vertices, int vertexCount, size_t size);
 

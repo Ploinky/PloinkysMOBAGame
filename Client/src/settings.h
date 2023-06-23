@@ -34,7 +34,7 @@ namespace PMG {
 		void SaveToFile(std::string fileName);
 		Settings() {};
 
-		std::function<void(std::string)> OnSettingChanged;
+		std::function<void(std::string)> OnSettingChanged = std::bind([] {});
 
 	private:
 

@@ -17,14 +17,17 @@ namespace PMG {
 
 	void Settings::SetInt(const char* setting, int value) {
 		settings_[setting] = std::to_string(value);
+		OnSettingChanged(setting);
 	}
 
 	void Settings::SetBool(const char* setting, bool value) {
 		settings_[setting] = std::to_string(value);
+		OnSettingChanged(setting);
 	}
 
 	void Settings::SetDouble(const char* setting, double value) {
 		settings_[setting] = std::to_string(value);
+		OnSettingChanged(setting);
 	}
 
 	void Settings::LoadDefaults() {
