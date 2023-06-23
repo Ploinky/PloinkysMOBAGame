@@ -16,7 +16,6 @@
 #include <locale>
 #include <codecvt>
 #include "settings.h"
-#include "steam_manager.h"
 #include "audio_system.h"
 #include "settings_scene.h"
 
@@ -46,14 +45,6 @@ namespace PMG {
 
     void Client::Run() {
         Logger::Msg("Starting Ploinky's MOBA Game client...");
-
-        // Steam goes first
-        SteamManager steam_manager;
-        if (!steam_manager.Initialize()) {
-            MessageBox(NULL, L"Failed to lauch Ploinky's MOBA Game: could not initialize connection to Steam, is the Steam client running?", L"FATAL ERROR", MB_ICONERROR);
-            Logger::Msg("Failed to initialize steam api");
-            return;
-        }
 
         std::vector<PMGSystem*> systems;
 
@@ -155,7 +146,7 @@ namespace PMG {
         m_stateStack.push_back(ClientState::MAIN_MENU);
         
         // TODO: this does not actually work, you know?
-        std::string ip = steam_manager.GetLaunchParameter("connect");
+        std::string ip = "";
         Logger::Msg("IP:");
         Logger::Msg(ip);
         Logger::Msg("-----");
@@ -264,8 +255,6 @@ namespace PMG {
             // Event handling
             window->HandleEvents();
 
-            steam_manager.RunCallbacks();
-
             currentScene->Update(dt);
 
             // Render scene
@@ -323,28 +312,6 @@ namespace PMG {
         T* scene = GetScene<T>(state);
         delete scene;
         m_scenes[state] = nullptr;
-    }
-
-    void Client::OnGameServerChangeRequested(GameServerChangeRequested_t* server_change_requested) {
-        Logger::Msg("Server change requested");
-
-        if (m_stateStack.back() >= ClientState::NETWORKED_GAME) {
-            Logger::Err("Unable to connect to server: wrong client state");
-            return;
-        }
-
-        std::string ip = std::string(server_change_requested->m_rgchServer);
-
-        Logger::Msg(std::string("Connecting to server at ").append(ip));
-        // we have always been connecting to eurasia
-        m_oldState = ClientState::CONNECT;
-        m_stateStack.push_back(ClientState::CONNECT);
-        ConnectScene* connectScene = new ConnectScene(this, ip);
-        m_scenes[ClientState::CONNECT] = connectScene;
-    }
-
-    void Client::OnSteamConnected(SteamServersConnected_t* steam_servers_connected) {
-        Logger::Msg("Connected to steam servers");
     }
 
     void Client::HandleSettingChanged(std::string setting) {

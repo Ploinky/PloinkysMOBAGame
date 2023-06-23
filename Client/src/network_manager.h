@@ -1,5 +1,4 @@
 #pragma once
-#include "steam/steam_api.h"
 #include <string>
 #include "networking.h"
 
@@ -7,18 +6,14 @@ namespace PMG {
 	class NetworkManager {
 	public:
 		bool Initialize();
-		void ConnectToServer(std::string ip);
+		void ConnectToServer(std::string serverAddress, std::string port);
 		bool IsConnected();
-		void Close();
+		bool Close();
 		bool ReceivePacket(packet_t* packet);
 
 		bool SendPacket(packet_t* packet);
 
-		STEAM_CALLBACK(NetworkManager, OnConnectionStatusChangedCallback, SteamNetConnectionStatusChangedCallback_t);
-		STEAM_CALLBACK(NetworkManager, OnSteamNetAuthenticationStatus, SteamNetAuthenticationStatus_t);
-
 	private:
-		HSteamNetConnection connection_;
-		bool is_connected_;
+		net_client_t connection_;
 	};
 }

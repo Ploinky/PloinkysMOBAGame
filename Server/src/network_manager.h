@@ -4,24 +4,19 @@
 #include <list>
 #include <functional>
 #include "networking.h"
-#include "steam/steam_api.h"
 
 namespace PMG {
-    typedef struct {
-        HSteamNetConnection socket;
-        bool isConnected;
-    } net_client_t;
 
     class NetworkManager {
     public:
         NetworkManager();
 
         bool Initialize();
-        bool CreateListenSocket();
+        bool CreateListenSocket(std::string port);
 
-        bool AcceptConnection(HSteamNetConnection connection);
-        STEAM_CALLBACK(NetworkManager, OnConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
-        STEAM_CALLBACK(NetworkManager, OnSteamNetAuthenticationStatus, SteamNetAuthenticationStatus_t);
+        bool AcceptConnection(net_client_t* listenServer, net_client_t* client);
+
+        bool ReceivePacket(net_client_t* connection, packet_t* packet);
 
         void SendToClient(unsigned long clientId, packet_t* packet);
         void SendToAllClients(packet_t* packet);
@@ -35,7 +30,7 @@ namespace PMG {
         std::function<void(unsigned long, packet_t*)> on_clientMessageReceived;
 
     private:
-        HSteamListenSocket listen_socket_;
         std::list<net_client_t> clients_;
+        net_client_t listen_server_{};
     };
 }

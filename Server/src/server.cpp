@@ -5,22 +5,14 @@
 #include "game.h"
 #include "util.h"
 #include "logger.h"
-#include "steam_manager.h"
 namespace PMG {
     void Server::Start() {
-        // Steam goes first
-        SteamManager steam_manager;
-        if (!steam_manager.Initialize()) {
-            Logger::Msg("Failed to initialize steam gameserver api");
-            return;
-        }
-
         m_networkManager = new NetworkManager();
         m_networkManager->Initialize();
         m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
         m_networkManager->on_clientMessageReceived = std::bind(&Server::OnMessageReceived, this, std::placeholders::_1, std::placeholders::_2);
-        if (!m_networkManager->CreateListenSocket()) {
+        if (!m_networkManager->CreateListenSocket("23119")) {
             Logger::Msg("Failed to create listen socket");
         }
 
@@ -36,7 +28,6 @@ namespace PMG {
         Logger::Msg("Server started");
 
         while(isRunning) {
-            steam_manager.RunCallbacks();
             auto thisFrame = GetSystemTime();
             float dt = (thisFrame - lastFrame) / 1000000.0f / 1000.0f;
             lastFrame = thisFrame;
@@ -45,8 +36,6 @@ namespace PMG {
 
             m_game->Update(dt);
         }
-
-        steam_manager.Shutdown();
 
         m_networkManager->Close();
         delete m_networkManager;
@@ -88,13 +77,5 @@ namespace PMG {
 
     void Server::SendMessageToAllClients(packet_t* packet) {
         m_networkManager->SendToAllClients(packet);
-    }
-
-    void Server::OnConnectedToSteam(SteamServersConnected_t* connected_to_steam) {
-        Logger::Msg("Connected to steam backend");
-    }
-
-    void Server::OnClientApproved(GSClientApprove_t* client_approved) {
-        Logger::Msg("Client approved");
     }
 }

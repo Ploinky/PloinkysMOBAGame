@@ -2,81 +2,129 @@
 #include "logger.h"
 
 namespace PMG {
+	bool NetworkManager::IsConnected() {
+		return connection_.isConnected;
+	}
+
 	bool NetworkManager::Initialize() {
-		connection_ = false;
-		is_connected_ = false;
+		WSADATA wsaData = {};
+
+		int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+		if (wsaStartupResult != 0) {
+			return false;
+		}
+
 		return true;
 	}
 
-	bool NetworkManager::IsConnected() {
-		return is_connected_;
+	void NetworkManager::ConnectToServer(std::string serverAddress, std::string port) {
+		ADDRINFOA addrinfo = {};
+		addrinfo.ai_family = AF_INET;
+		addrinfo.ai_socktype = SOCK_STREAM;
+		addrinfo.ai_protocol = IPPROTO_TCP;
+
+		ADDRINFOA* addrResult = 0;
+
+		int result = getaddrinfo(serverAddress.c_str(), port.c_str(), &addrinfo, &addrResult);
+
+		if (result != 0) {
+			return; // false;
+		}
+
+		SOCKET clientSocket = INVALID_SOCKET;
+
+		clientSocket = socket(addrResult->ai_family, addrResult->ai_socktype, addrResult->ai_protocol);
+
+		if (clientSocket == INVALID_SOCKET) {
+			return; // false;
+		}
+
+		result = connect(clientSocket, addrResult->ai_addr, addrResult->ai_addrlen);
+
+		if (result == SOCKET_ERROR) {
+			return; // false;
+		}
+
+		freeaddrinfo(addrResult);
+
+		unsigned long mode = 1;
+
+		result = ioctlsocket(clientSocket, FIONBIO, &mode);
+
+		if (result == SOCKET_ERROR) {
+			return;  // false;
+		}
+
+		connection_.socket = clientSocket;
+		connection_.isConnected = true;
+
+		return; // true;
 	}
 
-	void NetworkManager::ConnectToServer(std::string ip) {
-		SteamNetworkingIdentity host{};
-		SteamNetworkingIPAddr ipAddr{};
-		ipAddr.ParseString(ip.c_str());
-		host.SetIPAddr(ipAddr);
+	bool NetworkManager::Close() {
+		int result = shutdown(connection_.socket, SD_BOTH);
+		connection_.isConnected = false;
 
-		SteamNetworkingConfigValue_t config{};
-		config.SetInt32(k_ESteamNetworkingConfig_IP_AllowWithoutAuth, 1);
-		connection_ = SteamNetworkingSockets()->ConnectByIPAddress(ipAddr, 1, &config);
-	}
+		if (result == SOCKET_ERROR) {
+			return false;
+		}
 
-	void NetworkManager::OnConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* payload) {
-		if (payload->m_eOldState == k_ESteamNetworkingConnectionState_Connecting
-			&& payload->m_info.m_eState == k_ESteamNetworkingConnectionState_Connected) {
-			Logger::Msg("Connection status changed, server accepted connection...");
-			is_connected_ = true;
-		}
-		else if(payload->m_info.m_eState == k_ESteamNetworkingConnectionState_Connecting) {
-			Logger::Msg("Connecting to server...");
-		}
-		else if (payload->m_info.m_eState == k_ESteamNetworkingConnectionState_Dead) {
-			Logger::Msg("Connection to server failed...");
-		}
-		else if (payload->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
-			Logger::Msg("Could not connect to server.");
-			Logger::Msg(std::to_string(payload->m_info.m_eEndReason));
-			Logger::Msg(payload->m_info.m_szEndDebug);
-		}
-	}
-
-	void NetworkManager::OnSteamNetAuthenticationStatus(SteamNetAuthenticationStatus_t* payload) {
-		if (payload->m_eAvail) {
-			Logger::Msg("Authentication available");
-		}
-		else {
-			Logger::Msg("Authentication not available");
-			Logger::Msg(payload->m_debugMsg);
-		}
-	}
-
-	void NetworkManager::Close() {
-		SteamNetworkingSockets()->CloseConnection(connection_, 0, 0, false);
+		return true;
 	}
 
 	bool NetworkManager::SendPacket(packet_t* packet) {
-		char* data = (char*)malloc(packet->header.size);
-		memcpy(data, &packet->header, sizeof(packet_header_t));
-		memcpy(data + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-		if (!SteamNetworkingSockets()->SendMessageToConnection(connection_, data, packet->header.size, 0, 0)) {
-			Logger::Err("Failed to send message");
+		size_t sendBufLen = packet->size();
+		char* sendBuf = (char*)std::malloc(sendBufLen);
+
+		if (sendBuf == 0) {
+			return false;
 		}
-		free(data);
+
+		std::memcpy(sendBuf, &packet->header, sizeof(packet_header_t));
+		std::memcpy(&sendBuf[sizeof(packet_header_t)], packet->data.data(), packet->size() - sizeof(packet_header_t));
+		int error = send(connection_.socket, sendBuf, sendBufLen, 0);
+
+		if (error < 1) {
+			printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
+				packet->header.type,
+				packet->size(),
+				connection_.socket,
+				WSAGetLastError()
+			);
+			free(sendBuf);
+			Close();
+			return false;
+		}
+
+		free(sendBuf);
+
 		return true;
 	}
 
 	bool NetworkManager::ReceivePacket(packet_t* packet) {
-		SteamNetworkingMessage_t* messages[1] = { 0 };
-		if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(connection_, messages, 1) == 1 && messages[0] != 0) {
-			size_t size = messages[0]->GetSize();
-			memcpy(&packet->header, messages[0]->GetData(), sizeof(packet_header_t));
-			packet->data.resize(packet->header.size - sizeof(packet_header_t));
-			memcpy(packet->data.data(), ((char*)messages[0]->GetData()) + sizeof(packet_header_t), packet->header.size - sizeof(packet_header_t));
-			messages[0]->Release();
-			return true;
+		int error = recv(connection_.socket, (char*)&packet->header, sizeof(packet_header_t), 0);
+
+		if (error < 1) {
+			return false;
 		}
-		return false;
+
+		packet->data.resize(packet->header.size - sizeof(packet_header_t));
+
+		if (packet->header.size > 8) {
+			error = recv(connection_.socket, (char*)packet->data.data(), packet->header.size - sizeof(packet_header_t), 0);
+
+			if (error < 1) {
+				printf("failed receiving <%d> with <%I64u> bytes from <%I64u>: %d\r\n",
+					packet->header.type,
+					packet->size(),
+					connection_.socket,
+					WSAGetLastError()
+				);
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

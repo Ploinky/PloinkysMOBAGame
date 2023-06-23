@@ -7,7 +7,7 @@ namespace PMG {
         m_text = L"Connecting...";
         network_manager_ = NetworkManager();
         if(network_manager_.Initialize()) {
-            network_manager_.ConnectToServer(ip);
+            network_manager_.ConnectToServer(ip, "23119");
         }
     }
 

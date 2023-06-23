@@ -10,4 +10,8 @@
 
 
 namespace PMG {
+    typedef struct {
+        unsigned int socket;
+        bool isConnected;
+    } net_client_t;
 }
