@@ -57,6 +57,7 @@ namespace PMG {
     }
 
     void MainMenuScene::Update(float dt) {
+        rootGuiElement->m_size = { static_cast<float>(m_sceneWidth), static_cast<float>(m_sceneHeight) };
         // Update ui? This seems like a bad idea...
         rootGuiElement->LayoutChildren();
     };

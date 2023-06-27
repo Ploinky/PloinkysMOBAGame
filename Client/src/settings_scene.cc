@@ -12,30 +12,6 @@ namespace PMG {
 
         this->settings_ = settings;
 
-        GuiButton* btnFullscreen = new GuiButton();
-        btnFullscreen->m_color[0] = 0.2f;
-        btnFullscreen->m_color[1] = 0.2f;
-        btnFullscreen->m_color[2] = 0.2f;
-        btnFullscreen->m_pos = { 0, 0 };
-        btnFullscreen->m_prefSize = { 400, 100 };
-        btnFullscreen->m_text = L"FullScreen";
-        btnFullscreen->e_onButtonPressed = [this]() {
-            switch (static_cast<WindowMode>(settings_->GetInt(PMGSettings::WINDOW_MODE))) {
-                case WindowMode::WINDOWED: {
-                    settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::BORDERLESS);
-                    break;
-                }
-                case WindowMode::BORDERLESS: {
-                    settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::FULLSCREEN);
-                    break;
-                }
-                case WindowMode::FULLSCREEN: {
-                    settings_->SetInt(PMGSettings::WINDOW_MODE, (int)WindowMode::WINDOWED);
-                    break;
-                }
-            }
-        };
-
         std::vector<WindowMode> vec = { WindowMode::FULLSCREEN, WindowMode::BORDERLESS, WindowMode::WINDOWED };
         GuiSelector<WindowMode>* selRes = new GuiSelector<WindowMode>(vec, static_cast<WindowMode>(settings_->GetInt(PMGSettings::WINDOW_MODE)));
         selRes->m_color[0] = 0.2f;
@@ -72,13 +48,13 @@ namespace PMG {
             m_stateHandler->PopState();
         };
 
-        root->m_children.push_back(btnFullscreen);
         root->m_children.push_back(selRes);
         root->m_children.push_back(btnBack);
 
         rootGuiElement = root;
 	}
     void SettingsScene::Update(float dt) {
+        rootGuiElement->m_size = { static_cast<float>(m_sceneWidth), static_cast<float>(m_sceneHeight) };
         // Update ui? This seems like a bad idea...
         rootGuiElement->LayoutChildren();
     };

@@ -10,6 +10,7 @@ namespace PMG {
 		std::wstring fileName;
 		bool isPlaying;
 		IXAudio2SourceVoice* pSourceVoice;
+		bool shouldStopPlaying;
 	};
 
 	class AudioSystem : public PMGSystem {

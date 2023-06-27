@@ -118,12 +118,11 @@ namespace PMG {
             SetShouldClose();
             break;
         }
-        case WM_SIZE: {
+        case WM_SIZE: {            
             RECT r;
-            GetWindowRect(hwnd, &r);
-            int width = r.right - r.left;
-            int height = r.bottom - r.top;
-            Resized(width, height);
+            GetClientRect(hwnd, &r);
+            Logger::Msg(std::string("window: ").append(std::to_string(r.right).append("-").append(std::to_string(r.bottom))));
+            Resized(r.right, r.bottom);
             break;
         }
         case WM_CHAR: {
@@ -291,33 +290,31 @@ namespace PMG {
     }
 
     void Window::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y) {
-        int posX, posY;
-
-        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+        int posX, posY = 0;
+        int new_width, new_height = 0;
 
         DWORD dwStyle = WS_SYSMENU | WS_CAPTION;
-        posX = 0;
-        posY = 0;
 
         switch (new_mode) {
             case WindowMode::WINDOWED: {
-                width = resolution_x;
-                height = resolution_y;
+                new_width = resolution_x;
+                new_height = resolution_y;
+                posX = GetSystemMetrics(SM_CXSCREEN) / 2 - resolution_x / 2;
+                posY = GetSystemMetrics(SM_CYSCREEN) / 2 - resolution_y / 2;
                 break;
             }
             case WindowMode::BORDERLESS: {
                 dwStyle = WS_POPUP;
-                width = screenWidth;
-                height = screenHeight;
+                new_width = GetSystemMetrics(SM_CXFULLSCREEN);
+                new_height = GetSystemMetrics(SM_CYFULLSCREEN);
                 posX = 0;
                 posY = 0;
                 break;
             }
             case WindowMode::FULLSCREEN:
             default: {
-                width = screenWidth;
-                height = screenHeight;
+                new_width = GetSystemMetrics(SM_CXFULLSCREEN);
+                new_height = GetSystemMetrics(SM_CYFULLSCREEN);
                 posX = 0;
                 posY = 0;
                 break;
@@ -325,7 +322,7 @@ namespace PMG {
         }
 
         SetWindowLongPtr(windowHandle, GWL_STYLE, dwStyle);
-        SetWindowPos(windowHandle, NULL, posX, posY, width, height, SWP_SHOWWINDOW);
+        SetWindowPos(windowHandle, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW);
 
         ClipCursorToWindow();
     }

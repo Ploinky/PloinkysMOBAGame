@@ -500,9 +500,17 @@ namespace PMG {
     }
     
     void Direct3D::SetFullScreen(bool full_screen) {
-        // TODO error handling?
-        swapChain->SetFullscreenState(full_screen, NULL);
+        if (full_screen) {
+            Logger::Msg("[DIRECT3D]: Going fullscreen!");
+        }
+        else {
+            Logger::Msg("[DIRECT3D]: Going Windowed!");
+        }
 
+        // TODO error handling?
+        if (FAILED(swapChain->SetFullscreenState(full_screen, NULL))) {
+            MessageBox(NULL, L"Failed to go full screen", L"Error", MB_ICONERROR);
+        }
     }
 
     void Direct3D::SetWindowDimensions(int width, int height) {
@@ -515,11 +523,10 @@ namespace PMG {
 
         HRESULT hr = swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 
-        Logger::Msg(std::string("new dimension ")
+        Logger::Msg(std::string("[DIRECT3D]: new dimension ")
             .append(std::to_string(width))
             .append("-")
-            .append(std::to_string(height))
-            .append("\r\n"));
+            .append(std::to_string(height)));
          if (FAILED(hr)) {
             Logger::Err("Failed to resize swapchain buffers");
         }

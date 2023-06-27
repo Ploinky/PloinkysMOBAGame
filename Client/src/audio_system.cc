@@ -109,18 +109,6 @@ namespace PMG {
         return hr;
     }
 
-    bool AudioSystem::StartPlayingSound() {
-        std::wstring strFileName = TEXT("audio.wav");
-        AudioComponent comp;
-        comp.fileName = strFileName;
-        comp.isPlaying = false;
-
-        entity_id id = registry.Create();
-        registry.AddComponent<AudioComponent>(id, comp);
-
-        return true;
-    }
-
     void AudioSystem::SetMasterVolume(double value) {
         value = min(1, max(value, 0));
 
@@ -128,6 +116,8 @@ namespace PMG {
     }
 
     void AudioSystem::Update() {
+        std::vector<entity_id> ids_to_remove;
+
         for (entity_id id : registry.GetEntities<AudioComponent>()) {
             AudioComponent* comp = registry.GetComponent<AudioComponent>(id);
 
@@ -198,7 +188,20 @@ namespace PMG {
 
                 comp->pSourceVoice = pSourceVoice;
                 comp->isPlaying = true;
+                comp->shouldStopPlaying = false;
+
+                return;
             }
+
+            if (comp->shouldStopPlaying) {
+                comp->pSourceVoice->Stop();
+                comp->pSourceVoice->DestroyVoice();
+                ids_to_remove.push_back(id);
+            }
+        }
+
+        for (entity_id id_to_remove : ids_to_remove) {
+            registry.RemoveComponent<AudioComponent>(id_to_remove);
         }
     }
 }
