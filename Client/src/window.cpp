@@ -121,7 +121,7 @@ namespace PMG {
         case WM_SIZE: {            
             RECT r;
             GetClientRect(hwnd, &r);
-            Logger::Msg(std::string("window: ").append(std::to_string(r.right).append("-").append(std::to_string(r.bottom))));
+            Logger::Msg(std::string("WM_SIZE: ").append(std::to_string(r.right).append("-").append(std::to_string(r.bottom))));
             Resized(r.right, r.bottom);
             break;
         }
@@ -305,24 +305,28 @@ namespace PMG {
             }
             case WindowMode::BORDERLESS: {
                 dwStyle = WS_POPUP;
-                new_width = GetSystemMetrics(SM_CXFULLSCREEN);
-                new_height = GetSystemMetrics(SM_CYFULLSCREEN);
+                new_width = GetSystemMetrics(SM_CXSCREEN);
+                new_height = GetSystemMetrics(SM_CYSCREEN);
                 posX = 0;
                 posY = 0;
                 break;
             }
             case WindowMode::FULLSCREEN:
             default: {
-                new_width = GetSystemMetrics(SM_CXFULLSCREEN);
-                new_height = GetSystemMetrics(SM_CYFULLSCREEN);
+                dwStyle = WS_POPUP;
+                new_width = GetSystemMetrics(SM_CXSCREEN);
+                new_height = GetSystemMetrics(SM_CYSCREEN);
                 posX = 0;
                 posY = 0;
                 break;
             }
         }
 
+        this->width = new_width;
+        this->height = new_height;
         SetWindowLongPtr(windowHandle, GWL_STYLE, dwStyle);
-        SetWindowPos(windowHandle, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW);
+        Logger::Msg(std::string("setting new mode: ").append(std::to_string(static_cast<int>(new_mode))).append(";").append(std::to_string(new_width).append("-").append(std::to_string(new_height))));
+        SetWindowPos(windowHandle, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
 
         ClipCursorToWindow();
     }

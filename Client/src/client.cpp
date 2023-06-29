@@ -144,9 +144,6 @@ namespace PMG {
         comp.fileName = strFileName;
         comp.isPlaying = false;
 
-        entity_id music_id = PMGSystem::registry.Create();
-        PMGSystem::registry.AddComponent<AudioComponent>(music_id, comp);
-
         systems.push_back(&audio_system_);
 
         Logger::Msg("Starting main game loop");
@@ -199,7 +196,6 @@ namespace PMG {
                     break;
                 }
                 case ClientState::CONNECT: {
-                    PMGSystem::registry.GetComponent<AudioComponent>(music_id)->shouldStopPlaying = true;
                     if (m_oldState != ClientState::MAIN_MENU) {
                         DeleteScene<ConnectScene>(ClientState::CONNECT);
                         m_stateStack.pop_back();
@@ -331,7 +327,7 @@ namespace PMG {
             audio_system_.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
         }
         else if (setting == PMGSettings::WINDOW_MODE) {
-            window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), settings_.GetInt(PMGSettings::RESOLUTION_X),  settings_.GetInt(PMGSettings::RESOLUTION_Y));
+            window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), settings_.GetInt(PMGSettings::RESOLUTION_X), settings_.GetInt(PMGSettings::RESOLUTION_Y));
             direct3D->SetFullScreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
             direct3D->SetWindowDimensions(window->width, window->height);
         }
