@@ -63,7 +63,7 @@ namespace PMG {
             break;
         }
         case WindowMode::BORDERLESS:{
-            dwStyle |= WS_POPUP;
+            dwStyle = WS_POPUP;
             width = screenWidth;
             height = screenHeight;
             posX = 0;
@@ -72,6 +72,7 @@ namespace PMG {
         }
         case WindowMode::FULLSCREEN:
         default: {
+            dwStyle = WS_POPUP;
             width = screenWidth;
             height = screenHeight;
             posX = 0;
