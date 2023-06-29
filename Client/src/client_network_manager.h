@@ -3,10 +3,11 @@
 #include "networking.h"
 
 namespace PMG {
-	class NetworkManager {
+	class ClientNetworkManager {
 	public:
 		bool Initialize();
 		void ConnectToServer(std::string serverAddress, std::string port);
+		bool CheckConnected();
 		bool IsConnected();
 		bool Close();
 		bool ReceivePacket(packet_t* packet);

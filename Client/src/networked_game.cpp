@@ -10,7 +10,7 @@
 #include "logger.h"
 
 namespace PMG {
-    NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, NetworkManager connection) : Scene(stateHandler) {
+    NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, ClientNetworkManager connection) : Scene(stateHandler) {
         m_navMesh = new NavMesh();
         m_navMesh->LoadFromFile("map1");
 

@@ -5,14 +5,14 @@
 #include "networking.h"
 
 namespace PMG {
-    class NetworkManager;
+    class ClientNetworkManager;
     class Game;
 
     class Server {
     public:
         void Start();
     private:
-        NetworkManager* m_networkManager;
+        ClientNetworkManager* m_networkManager;
         Game* m_game;
 
         long long GetSystemTime();

@@ -2,10 +2,10 @@
 #include "logger.h"
 
 namespace PMG {
-    NetworkManager::NetworkManager() {
+    ClientNetworkManager::ClientNetworkManager() {
     }
 
-    bool NetworkManager::Initialize() {
+    bool ClientNetworkManager::Initialize() {
         WSADATA wsaData = {};
 
         int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -17,7 +17,7 @@ namespace PMG {
         return true;
     }
 
-    bool NetworkManager::CreateListenSocket(std::string port) {
+    bool ClientNetworkManager::CreateListenSocket(std::string port) {
         ADDRINFOA hints = {};
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
@@ -61,7 +61,7 @@ namespace PMG {
         return true;
     }
 
-    bool NetworkManager::AcceptConnection(net_client_t* listenServer, net_client_t* client) {
+    bool ClientNetworkManager::AcceptConnection(net_client_t* listenServer, net_client_t* client) {
         TIMEVAL tv = {};
         tv.tv_usec = 1;
 
@@ -97,7 +97,7 @@ namespace PMG {
         return true;
     }
 
-    bool NetworkManager::Close() {
+    bool ClientNetworkManager::Close() {
         int result = shutdown(listen_server_.socket, SD_BOTH);
         listen_server_.isConnected = false;
 
@@ -108,7 +108,7 @@ namespace PMG {
         return true;
     }
 
-    bool NetworkManager::ReceivePacket(net_client_t* connection, packet_t* packet) {
+    bool ClientNetworkManager::ReceivePacket(net_client_t* connection, packet_t* packet) {
         int error = recv(connection->socket, (char*)&packet->header, sizeof(packet_header_t), 0);
 
         if (error == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK) {
@@ -138,7 +138,7 @@ namespace PMG {
         return true;
     }
 
-    void NetworkManager::Update() {
+    void ClientNetworkManager::Update() {
         // Currently allowing new connections at any time
         if (listen_server_.isConnected) {
             net_client_t newClient = {};
@@ -168,7 +168,7 @@ namespace PMG {
         }
     }
 
-    void NetworkManager::SendToAllClients(packet_t* packet) {
+    void ClientNetworkManager::SendToAllClients(packet_t* packet) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             if(it != clients_.end() && it->isConnected) {
                 SendToClient(it->socket, packet);
@@ -176,7 +176,7 @@ namespace PMG {
         }
     }
 
-    void NetworkManager::SendToClient(unsigned long id, packet_t* packet) {
+    void ClientNetworkManager::SendToClient(unsigned long id, packet_t* packet) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             net_client_t client = *it;
 

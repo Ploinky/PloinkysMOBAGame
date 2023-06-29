@@ -4,7 +4,7 @@
 #include <list>
 #include <string>
 #include <map>
-#include "network_manager.h"
+#include "client_network_manager.h"
 #include "audio_system.h"
 #include "settings.h"
 

@@ -6,7 +6,7 @@
 #include "navigation.h"
 #include "physics.h"
 #include "networking.h"
-#include "network_manager.h"
+#include "client_network_manager.h"
 
 namespace PMG {
 	class Mesh;
@@ -80,22 +80,22 @@ namespace PMG {
 		void MouseMoved(int screenX, int screenY);
 		void MouseButtonPressed(int button);
 		void MouseButtonReleased(int button);
-		NetworkManager GetConnection();
+		ClientNetworkManager GetConnection();
 		std::wstring m_text;
 
     private:
-		  NetworkManager network_manager_;
+		ClientNetworkManager network_manager_;
 	};
 
 	class NetworkedGame : public Scene {
 	public:
-		NetworkedGame(ClientStateHandler* stateHandler, NetworkManager connection);
+		NetworkedGame(ClientStateHandler* stateHandler, ClientNetworkManager connection);
 		~NetworkedGame();
 
 		std::vector<Mesh*> models;
 		NavMesh* m_navMesh;
 
-		NetworkManager network_manager_;
+		ClientNetworkManager network_manager_;
 
 		void Update(float dt);
 		void Render(Renderer* renderer);

@@ -7,9 +7,9 @@
 
 namespace PMG {
 
-    class NetworkManager {
+    class ClientNetworkManager {
     public:
-        NetworkManager();
+        ClientNetworkManager();
 
         bool Initialize();
         bool CreateListenSocket(std::string port);

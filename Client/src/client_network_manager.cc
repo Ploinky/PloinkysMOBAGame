@@ -1,12 +1,12 @@
-#include "network_manager.h"
+#include "client_network_manager.h"
 #include "logger.h"
 
 namespace PMG {
-	bool NetworkManager::IsConnected() {
+	bool ClientNetworkManager::IsConnected() {
 		return connection_.isConnected;
 	}
 
-	bool NetworkManager::Initialize() {
+	bool ClientNetworkManager::Initialize() {
 		WSADATA wsaData = {};
 
 		int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -18,7 +18,7 @@ namespace PMG {
 		return true;
 	}
 
-	void NetworkManager::ConnectToServer(std::string serverAddress, std::string port) {
+	void ClientNetworkManager::ConnectToServer(std::string serverAddress, std::string port) {
 		ADDRINFOA addrinfo = {};
 		addrinfo.ai_family = AF_INET;
 		addrinfo.ai_socktype = SOCK_STREAM;
@@ -40,6 +40,12 @@ namespace PMG {
 			return; // false;
 		}
 
+		unsigned long nonblocking = 1;
+		ioctlsocket(clientSocket, FIONBIO, &nonblocking);
+
+		connection_.socket = clientSocket;
+		connection_.isConnected = false;
+
 		result = connect(clientSocket, addrResult->ai_addr, addrResult->ai_addrlen);
 
 		if (result == SOCKET_ERROR) {
@@ -47,22 +53,37 @@ namespace PMG {
 		}
 
 		freeaddrinfo(addrResult);
-
-		unsigned long mode = 1;
-
-		result = ioctlsocket(clientSocket, FIONBIO, &mode);
-
-		if (result == SOCKET_ERROR) {
-			return;  // false;
-		}
-
-		connection_.socket = clientSocket;
-		connection_.isConnected = true;
-
-		return; // true;
 	}
 
-	bool NetworkManager::Close() {
+	bool ClientNetworkManager::CheckConnected() {
+		unsigned long mode = 1;
+
+		union CSADDR_INFO_PADDED {
+			CSADDR_INFO addr;
+			char padding[128];
+		} val {};
+
+		int len = sizeof(val);
+
+		int result = getsockopt(connection_.socket, SOL_SOCKET, SO_BSP_STATE, (char*) & val, &len);
+
+		if (result == SOCKET_ERROR) {
+			// failed to fetch connection status
+			int err = WSAGetLastError();
+			return false;
+		}
+
+		if (val.addr.RemoteAddr.iSockaddrLength == 0) {
+			// not connected
+			return false;
+		}
+
+		connection_.isConnected = true;
+
+		return true;
+	}
+
+	bool ClientNetworkManager::Close() {
 		int result = shutdown(connection_.socket, SD_BOTH);
 		connection_.isConnected = false;
 
@@ -73,7 +94,7 @@ namespace PMG {
 		return true;
 	}
 
-	bool NetworkManager::SendPacket(packet_t* packet) {
+	bool ClientNetworkManager::SendPacket(packet_t* packet) {
 		size_t sendBufLen = packet->size();
 		char* sendBuf = (char*)std::malloc(sendBufLen);
 
@@ -102,7 +123,7 @@ namespace PMG {
 		return true;
 	}
 
-	bool NetworkManager::ReceivePacket(packet_t* packet) {
+	bool ClientNetworkManager::ReceivePacket(packet_t* packet) {
 		int error = recv(connection_.socket, (char*)&packet->header, sizeof(packet_header_t), 0);
 
 		if (error < 1) {

@@ -7,7 +7,7 @@
 #include "logger.h"
 namespace PMG {
     void Server::Start() {
-        m_networkManager = new NetworkManager();
+        m_networkManager = new ClientNetworkManager();
         m_networkManager->Initialize();
         m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);

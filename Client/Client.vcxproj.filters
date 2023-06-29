@@ -46,6 +46,9 @@
     <Filter Include="Header Files\audio">
       <UniqueIdentifier>{47de7759-74d1-4a0a-8513-34c6fe037598}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\net">
+      <UniqueIdentifier>{35fca8e9-338a-436c-a795-4ec1e624bffb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -105,7 +108,7 @@
     <ClCompile Include="src\networked_game.cpp">
       <Filter>Source Files\scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\network_manager.cpp">
+    <ClCompile Include="src\client_network_manager.cc">
       <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\audio_system.cc">
@@ -161,9 +164,6 @@
     <ClInclude Include="src\client.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="src\network_manager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\audio_system.h">
       <Filter>Header Files\audio</Filter>
     </ClInclude>
@@ -175,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="src\gui_selector.h">
       <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\client_network_manager.h">
+      <Filter>Header Files\net</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
