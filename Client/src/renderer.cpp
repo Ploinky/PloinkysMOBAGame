@@ -153,6 +153,99 @@ namespace PMG {
         brush->Release();
     }
 
+    void Renderer::DrawShape(vec2_t* points, int pointCount, float color[3]) {
+        //Set the Font Color
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = direct3D->renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+            &brush
+        );
+
+
+        if (FAILED(hr) || brush == 0) {
+            Logger::Err("Failed to create brush for rect");
+            return;
+        }
+
+        brush->SetColor(c);
+
+        ID2D1PathGeometry* geometry;
+        ID2D1GeometrySink* geometrySink = NULL;
+
+        direct3D->d2d_factory_->CreatePathGeometry(&geometry);
+        // Write to the path geometry using the geometry sink.
+        geometry->Open(&geometrySink);
+        geometrySink->BeginFigure({ points[0].x, points[0].y }, D2D1_FIGURE_BEGIN_HOLLOW);
+
+        for (int i = 1; i < pointCount; i++) {
+            geometrySink->AddLine({ points[i].x, points[i].y });
+        }
+
+        geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        hr = geometrySink->Close();
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to render shape");
+        }
+
+        direct3D->renderTarget2D->DrawGeometry(geometry, brush);
+
+        geometrySink->Release();
+        geometry->Release();
+        brush->Release();
+    };
+
+    void Renderer::FillShape(vec2_t* points, int pointCount, float color[3]) {
+        if (pointCount < 2) {
+            Logger::Err("Failed to draw shape: cannot draw shape from 1 point only");
+            return;
+        }
+
+        //Set the Font Color
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = direct3D->renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+            &brush
+        );
+
+
+        if (FAILED(hr) || brush == 0) {
+            Logger::Err("Failed to create brush for rect");
+            return;
+        }
+
+        brush->SetColor(c);
+
+        ID2D1PathGeometry* geometry;
+        ID2D1GeometrySink* geometrySink = NULL;
+
+        direct3D->d2d_factory_->CreatePathGeometry(&geometry);
+        // Write to the path geometry using the geometry sink.
+        geometry->Open(&geometrySink);
+        geometrySink->BeginFigure({ points[0].x, points[0].y }, D2D1_FIGURE_BEGIN_FILLED);
+
+        for (int i = 1; i < pointCount; i++) {
+            geometrySink->AddLine({ points[i].x, points[i].y });
+        }
+
+        geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        hr = geometrySink->Close();
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to render shape");
+        }
+
+        direct3D->renderTarget2D->FillGeometry(geometry, brush);
+
+        geometrySink->Release();
+        geometry->Release();
+        brush->Release();
+    };
+
     void Renderer::FillRect(int x, int y, int w, int h, float color[3]) {
         D2D1_RECT_F rect{};
         rect.left = static_cast<float>(x);

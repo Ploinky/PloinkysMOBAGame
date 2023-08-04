@@ -49,6 +49,7 @@ namespace PMG {
             IDWriteTextFormat* format;
             IDWriteFactory* dWriteFactory;
             IDXGISwapChain1* swapChain;
+            ID2D1Factory* d2d_factory_;
             HWND windowHandle;
 
         private:

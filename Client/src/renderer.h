@@ -34,6 +34,8 @@ namespace PMG {
             void RenderText(int x, int y, int w, int h, float color[3], std::wstring text);
             void RenderText(int x, int y, int w, int h, std::wstring text);
             void DrawRect(int x, int y, int w, int h, float color[3]);
+            void DrawShape(vec2_t* points, int pointCount, float color[3]);
+            void FillShape(vec2_t* points, int pointCount, float color[3]);
             void FillRect(int x, int y, int w, int h, float color[3]);
             void UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size);
             

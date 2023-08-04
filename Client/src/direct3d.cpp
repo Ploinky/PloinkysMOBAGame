@@ -25,6 +25,7 @@ namespace PMG {
         dWriteFactory->Release();
         renderTargetView->Release();
         renderTarget2D->Release();
+        d2d_factory_->Release();
         format->Release();
         depthView->Release();
         swapChain->SetFullscreenState(false, nullptr);
@@ -33,6 +34,8 @@ namespace PMG {
         context->Flush();
         context->Release();
         device->Release();
+
+
 
 #ifdef _DEBUG
         debug->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
@@ -332,21 +335,19 @@ namespace PMG {
         }
 
         // Create a Direct2D render target that can draw into the surface in the swap chain
-        ID2D1Factory* d2dFactory;
-        hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2dFactory);
+        hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory_);
 
-        if (FAILED(hr) || d2dFactory == 0) {
+        if (FAILED(hr) || d2d_factory_ == 0) {
             surf->Release();
             return false;
         }
 
-        hr = d2dFactory->CreateDxgiSurfaceRenderTarget(
+        hr = d2d_factory_->CreateDxgiSurfaceRenderTarget(
             surf,
             &props,
             &renderTarget2D);
 
         surf->Release();
-        d2dFactory->Release();
 
         if (FAILED(hr)) {
             return false;

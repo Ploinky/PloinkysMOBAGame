@@ -23,20 +23,55 @@ namespace PMG {
 				static_cast<int>(m_size.y),
 				m_color,
 				OptionToString(current_value_));
+			vec2_t points[3] = {
+				{ m_pos.x, m_pos.y + m_size.y / 2 },
+				{ m_pos.x + m_size.y, m_pos.y },
+				{ m_pos.x + m_size.y, m_pos.y + m_size.y },
+			};
+			renderer->FillShape(points, 3, m_color);
+			vec2_t rightPoints[3] = {
+				{ m_pos.x + m_size.x, m_pos.y + m_size.y / 2 },
+				{ m_pos.x + m_size.x - m_size.y, m_pos.y },
+				{ m_pos.x + m_size.x - m_size.y, m_pos.y + m_size.y },
+			};
+			renderer->FillShape(rightPoints, 3, m_color);
 		}
 		void MousePressed(int x, int y) {
-			for (auto it = values_.begin(); it != values_.end(); ++it) {
-				if (*it == current_value_) {
-					auto next = it + 1;
-					if (next == values_.end()) {
-						next = values_.begin();
-					}
+			bool back = false;
 
-					current_value_ = *next;
-					OnChange(*it, current_value_);
-					break;
+			if (x < (m_pos.x + (m_size.x / 2))) {
+				back = true;
+			}
+
+			if (back) {
+				for (auto it = values_.rbegin(); it != values_.rend(); ++it) {
+					if (*it == current_value_) {
+						auto last = it + 1;
+						if (last == values_.rend()) {
+							last = values_.rbegin();
+						}
+
+						current_value_ = *last;
+						OnChange(*it, current_value_);
+						break;
+					}
 				}
 			}
+			else {
+				for (auto it = values_.begin(); it != values_.end(); ++it) {
+					if (*it == current_value_) {
+						auto next = it + 1;
+						if (next == values_.end()) {
+							next = values_.begin();
+						}
+
+						current_value_ = *next;
+						OnChange(*it, current_value_);
+						break;
+					}
+				}
+			}
+
 		};
 		float m_color[3] = { 0.0, 0.0, 0.0 };
 
