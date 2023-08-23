@@ -22,9 +22,6 @@
     <Filter Include="Source Files\graphics">
       <UniqueIdentifier>{161d9cfc-63bf-4d70-a037-5af1cded795e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\scene">
-      <UniqueIdentifier>{f9d7d99d-22e0-4be8-9926-d0ae218490e5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\net">
       <UniqueIdentifier>{46652982-d7f8-4fd3-a669-7394540337f4}</UniqueIdentifier>
     </Filter>
@@ -33,9 +30,6 @@
     </Filter>
     <Filter Include="Header Files\graphics">
       <UniqueIdentifier>{4151104f-1b32-4815-a383-c26eac0b1adb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\scene">
-      <UniqueIdentifier>{3c9fcada-f693-4d8c-b883-ff60a818f7bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{41059e50-f516-4e68-9f76-738f8f0fb719}</UniqueIdentifier>
@@ -99,23 +93,11 @@
     <ClCompile Include="src\client.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="src\main_menu_scene.cpp">
-      <Filter>Source Files\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\connect_scene.cpp">
-      <Filter>Source Files\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\networked_game.cpp">
-      <Filter>Source Files\scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\client_network_manager.cc">
       <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\audio_system.cc">
       <Filter>Source Files\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\settings_scene.cc">
-      <Filter>Source Files\scene</Filter>
     </ClCompile>
     <ClCompile Include="src\gui_selector.cc">
       <Filter>Source Files\gui</Filter>
@@ -152,9 +134,6 @@
     <ClInclude Include="src\vertex.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene.h">
-      <Filter>Header Files\scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\settings.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
@@ -166,9 +145,6 @@
     </ClInclude>
     <ClInclude Include="src\audio_system.h">
       <Filter>Header Files\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="src\settings_scene.h">
-      <Filter>Header Files\scene</Filter>
     </ClInclude>
     <ClInclude Include="src\systems.h">
       <Filter>Header Files\game</Filter>

@@ -11,6 +11,7 @@
 #include <dxgidebug.h>
 #include <locale>
 #include <codecvt>
+#include "util.h"
 
 std::string GetDir() {
 	char buffer[MAX_PATH];
@@ -25,9 +26,28 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
     bool showConsole = false;
 
+    std::string ip_address = "127.0.0.1";
+    std::string port = std::to_string(DEFAULT_PORT);
+
     for (int i = 0; i < argc; i++) {
         if (lstrcmpW(argv[i], L"-console") == 0) {
             showConsole = true;
+        }
+        
+        if (lstrcmpW(argv[i], L"-host") == 0) {
+            if (i + 1 < argc) {
+                i += 1;
+                ip_address = PMG::Util::wstring_to_string(std::wstring(argv[i]));
+            }
+            continue;
+        }
+
+        if (lstrcmpW(argv[i], L"-port") == 0) {
+            if (i + 1 < argc) {
+                i += 1;
+                port = PMG::Util::wstring_to_string(std::wstring(argv[i]));
+            }
+            continue;
         }
     }
 
@@ -41,7 +61,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     
     PMG::Logger::Msg("Starting Ploinky's MOBA Game...");
 
-    PMG::Client* client = new PMG::Client();
+    PMG::Client* client = new PMG::Client(ip_address, port);
     client->Run();
 
     PMG::Logger::Msg("Stopping Ploinky's MOBA Game.");

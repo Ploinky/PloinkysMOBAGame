@@ -142,7 +142,6 @@
     <ClCompile Include="src\audio_system.cc" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\client.cpp" />
-    <ClCompile Include="src\connect_scene.cpp" />
     <ClCompile Include="src\DDSTextureLoader11.cpp" />
     <ClCompile Include="src\direct3d.cpp" />
     <ClCompile Include="src\gui_button.cpp" />
@@ -150,14 +149,11 @@
     <ClCompile Include="src\gui_simple_pane.cpp" />
     <ClCompile Include="src\gui_textfield.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\main_menu_scene.cpp" />
     <ClCompile Include="src\map.cpp" />
     <ClCompile Include="src\mesh.cpp" />
-    <ClCompile Include="src\networked_game.cpp" />
     <ClCompile Include="src\client_network_manager.cc" />
     <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\settings.cc" />
-    <ClCompile Include="src\settings_scene.cc" />
     <ClCompile Include="src\shader.cpp" />
     <ClCompile Include="src\vertex.cpp" />
     <ClCompile Include="src\v_box.cpp" />
@@ -176,9 +172,7 @@
     <ClInclude Include="src\mesh.h" />
     <ClInclude Include="src\client_network_manager.h" />
     <ClInclude Include="src\renderer.h" />
-    <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\settings.h" />
-    <ClInclude Include="src\settings_scene.h" />
     <ClInclude Include="src\shader.h" />
     <ClInclude Include="src\systems.h" />
     <ClInclude Include="src\vertex.h" />
