@@ -119,7 +119,7 @@ namespace PMG {
             SetShouldClose();
             break;
         }
-        case WM_SIZE: {            
+        case WM_SIZE: {
             RECT r;
             GetClientRect(hwnd, &r);
             Logger::Msg(std::string("WM_SIZE: ").append(std::to_string(r.right).append("-").append(std::to_string(r.bottom))));
@@ -323,8 +323,6 @@ namespace PMG {
             }
         }
 
-        this->width = new_width;
-        this->height = new_height;
         SetWindowLongPtr(windowHandle, GWL_STYLE, dwStyle);
         Logger::Msg(std::string("setting new mode: ").append(std::to_string(static_cast<int>(new_mode))).append(";").append(std::to_string(new_width).append("-").append(std::to_string(new_height))));
         SetWindowPos(windowHandle, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW | SWP_FRAMECHANGED);

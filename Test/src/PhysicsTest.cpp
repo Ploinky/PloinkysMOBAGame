@@ -1,6 +1,6 @@
-#include "pch.h"
 #include "CppUnitTest.h"
 #include "physics.h"
+#include "pmg_physics.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -17,6 +17,86 @@ namespace PMG
 				Assert::IsTrue(comp(a, b), L"Equal floats not equal");
 				Assert::IsTrue(comp(a, c), L"Floats with <= epsilon difference not equal");
 				Assert::IsFalse(comp(a, d), L"Different floats not unequal");
+			}
+
+			TEST_METHOD(TestSphereCollision) {
+				// Ray to the right, pointing left
+				Physics::Sphere sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				Physics::Ray ray = Physics::Ray(Physics::Vector3(3, 0, 0), Physics::Vector3(-1, 0, 0));
+
+				Assert::IsTrue(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray to the right, pointing right
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(3, 0, 0), Physics::Vector3(1, 0, 0));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray above, pointing down
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 3, 0), Physics::Vector3(0, -1, 0));
+
+				Assert::IsTrue(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray above, pointing up
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 3, 0), Physics::Vector3(0, 1, 0));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray left, pointing right
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(-3, 0, 0), Physics::Vector3(1, 0, 0));
+
+				Assert::IsTrue(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray left, pointing left
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(-3, 0, 0), Physics::Vector3(-1, 0, 0));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray below, pointing up
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, -3, 0), Physics::Vector3(0, 1, 0));
+
+				Assert::IsTrue(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray below, pointing down
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, -3, 0), Physics::Vector3(0, -1, 0));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray in front, pointing backward
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 0, -3), Physics::Vector3(0, 0, 1));
+
+				Assert::IsTrue(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray in front, pointing forward
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 0, -3), Physics::Vector3(0, 0, -1));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray behind, pointing forward
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 0, 3), Physics::Vector3(0, 0, -1));
+
+				Assert::IsTrue(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Ray behind, pointing backward
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 0, 3), Physics::Vector3(0, 0, 1));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
+
+				// Miss
+				sphere = Physics::Sphere(Physics::Vector3(0, 0, 0), 1);
+				ray = Physics::Ray(Physics::Vector3(0, 0, -3), Physics::Vector3(1, 0, 1));
+
+				Assert::IsFalse(Physics::TestCollision(ray, sphere), L"Sphere-Ray collision test failed");
 			}
 	};
 }

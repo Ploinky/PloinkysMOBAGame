@@ -8,6 +8,7 @@
 #include "vertex.h"
 #include "util.h"
 #include "logger.h"
+#include "pmg_physics.h"
 
 namespace PMG {
     NetworkedGame::NetworkedGame(ClientStateHandler* stateHandler, ClientNetworkManager connection) : Scene(stateHandler) {
@@ -45,9 +46,9 @@ namespace PMG {
         // }
 
         int keysX = m_keys['D'] - m_keys['A'];
-        int mouseX = (m_mousePos[0] >= (short)m_sceneWidth - 17) - (m_mousePos[0] == 0);
+        int mouseX = (m_mousePos[0] >= (short)m_sceneWidth - 1) - (m_mousePos[0] == 0);
         int keysZ = m_keys['W'] - m_keys['S'];
-        int mouseZ = (m_mousePos[1] == 0) - (m_mousePos[1] >= (short)m_sceneHeight - 40);
+        int mouseZ = (m_mousePos[1] == 0) - (m_mousePos[1] >= (short)m_sceneHeight - 1);
 
         m_camDir[0] = keysX + mouseX;
         m_camDir[1] = keysZ + mouseZ;
@@ -80,7 +81,6 @@ namespace PMG {
         // Network handling
         packet_t packet = {};
         while (network_manager_.ReceivePacket(&packet)) {
-            Logger::Msg("Handling packet");
             HandleNetworkMessage(&packet);
         }
 
@@ -128,9 +128,34 @@ namespace PMG {
 
         rayWorld = rayWorld.normalize();
 
+        for (unit_t unit : units) {
+
+            float xd = rayWorld.x;
+            float yd = rayWorld.y;
+            float zd = rayWorld.z;
+            float xo = rayOrigin.x;
+            float yo = rayOrigin.y;
+            float zo = rayOrigin.z;
+            float a = unit.pos.x;
+            float b = unit.pos.y;
+            float c = 0;
+            float r = 1;
+            float A = (pow(xd, 2) + pow(yd, 2) + pow(zd, 2));
+            float B = (2 * (xd * (xo - a) + yd * (yo - b) + zd * (zo - c)));
+            float C = (pow((xo - a), 2) + pow((yo - b), 2) + pow((zo - c), 2) - pow(r, 2));
+
+            float t = ( - B -sqrt(pow(B, 2) - 4.0f * A * C)) / 2.0f * A;
+
+            Physics::Sphere sphere(Physics::Vector3(unit.pos.x, 0, unit.pos.y), 0.5);
+            Physics::Ray ray(Physics::Vector3(rayOrigin.x, rayOrigin.y, rayOrigin.z), Physics::Vector3(rayWorld.x, rayWorld.y, rayWorld.z));
+            if (Physics::TestCollision(ray, sphere)) {
+                MessageBox(NULL, L"YO", L"HIT", MB_ICONINFORMATION);
+                return;
+            }
+        }
+
         vec3_t planeNormal = {0.0, 1.0, 0.0};
         vec3_t planeOrigin = {0.0, 0.0, 0.0};
-
 
         float denom = planeNormal * rayWorld;
 
@@ -147,12 +172,12 @@ namespace PMG {
         renderer->camera->position.z = m_camPos[2];
 
         if (m_mouseClicked[2] == 1) {
-          renderer->FillRect(m_mouseClicked[0] - 1, m_mouseClicked[1] - 1, 3, 3, new float[3]{1.0f, 1.0f, 0.0f});
+            renderer->FillRect(m_mouseClicked[0] - 1, m_mouseClicked[1] - 1, 3, 3, new float[3]{1.0f, 1.0f, 0.0f});
 
-          m_mouseClicked[2] = 0;
+            m_mouseClicked[2] = 0;
 
-          float x, y;
-          TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
+            float x, y;
+            TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
 
             
             packet_t packet = {};
@@ -314,6 +339,10 @@ namespace PMG {
             model->position.x = nextLastX + (lastX - nextLastX) * diff;
             model->position.z = nextLastY + (lastY - nextLastY) * diff;
             model->rotation.y = nextLastR + (lastR - nextLastR) * diff;
+
+            unit->pos.x = lastX;
+            unit->pos.y = lastY;
+            unit->rot = lastR;
         }
     }
 

@@ -399,7 +399,7 @@ namespace PMG {
         // Get window dimensions from win32 API to correctly set swap chain size
         RECT winRect;
 
-        if (!GetWindowRect(windowHandle, &winRect)) {
+        if (!GetClientRect(windowHandle, &winRect)) {
             Logger::WErr(L"Failed to get window dimension when trying to set viewport.");
             return;
         }
