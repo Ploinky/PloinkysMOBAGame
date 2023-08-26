@@ -24,9 +24,6 @@
     <ClCompile Include="src\networking.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\physics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,9 +39,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\networking.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\physics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util.h">

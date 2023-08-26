@@ -1,13 +1,13 @@
 #pragma once
 
 #include <DirectXMath.h>
-#include "physics.h"
+#include "pmg_physics.h"
 
 namespace PMG {
     class Camera {
         public:
-            vec3_t position;
-            vec3_t rotation;
+            Physics::Vector3 position;
+            Physics::Vector3 rotation;
             float fov;
             float nearClip;
             float farClip;

@@ -10,7 +10,7 @@ namespace PMG {
     }
 
     bool Mesh::Initialize(Direct3D* direct3D) {
-        vertexBuffer = direct3D->CreateVertexBuffer(vertices, vertexCount, sizeof(Vertex) * vertexCount);
+        vertexBuffer = direct3D->CreateVertexBuffer(vertices, vertexCount, sizeof(color_shader_vertex_t) * vertexCount);
 
         if(vertexBuffer == nullptr) {
             initialized = false;

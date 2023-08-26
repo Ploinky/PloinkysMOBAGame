@@ -1,10 +1,10 @@
 #pragma once
-#include "physics.h"
+#include "pmg_physics.h"
 
 namespace PMG {
 	class Vertex {
 	public:
-		vec3_t position;
-		vec4_t color;
+		Physics::Vector3 position;
+		Physics::Vector4 color;
 	};
 }

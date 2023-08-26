@@ -19,17 +19,27 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="calculation.h" />
     <ClInclude Include="collision.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="pmg_physics.h" />
+    <ClInclude Include="projection.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="sphere.h" />
+    <ClInclude Include="vector2.h" />
     <ClInclude Include="vector3.h" />
+    <ClInclude Include="vector4.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="calculation.cc" />
     <ClCompile Include="collision.cc" />
+    <ClCompile Include="matrix.cc" />
+    <ClCompile Include="projection.cc" />
     <ClCompile Include="ray.cc" />
     <ClCompile Include="sphere.cc" />
+    <ClCompile Include="vector2.cc" />
     <ClCompile Include="vector3.cc" />
+    <ClCompile Include="vector4.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -93,6 +103,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Shared\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -112,6 +123,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Shared\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -131,6 +143,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Shared\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -150,6 +163,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Shared\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>

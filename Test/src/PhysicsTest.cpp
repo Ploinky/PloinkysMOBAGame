@@ -1,5 +1,4 @@
 #include "CppUnitTest.h"
-#include "physics.h"
 #include "pmg_physics.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -14,9 +13,9 @@ namespace PMG
 				constexpr float c = 1.001f + std::numeric_limits<float>::epsilon();
 				float d = 2.001f;
 
-				Assert::IsTrue(comp(a, b), L"Equal floats not equal");
-				Assert::IsTrue(comp(a, c), L"Floats with <= epsilon difference not equal");
-				Assert::IsFalse(comp(a, d), L"Different floats not unequal");
+				Assert::IsTrue(CompareDouble(a, b), L"Equal floats not equal");
+				Assert::IsTrue(CompareDouble(a, c), L"Floats with <= epsilon difference not equal");
+				Assert::IsFalse(CompareDouble(a, d), L"Different floats not unequal");
 			}
 
 			TEST_METHOD(TestSphereCollision) {

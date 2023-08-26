@@ -30,6 +30,21 @@
     <ClInclude Include="collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="projection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vector2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="calculation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vector4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ray.cc">
@@ -42,6 +57,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="collision.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="projection.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vector2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="calculation.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vector4.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="matrix.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

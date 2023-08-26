@@ -4,7 +4,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <string>
-#include "physics.h"
+#include "pmg_physics.h"
 
 namespace PMG {
     class Mesh;
@@ -22,7 +22,7 @@ namespace PMG {
 
             Camera* camera;
             Direct3D* direct3D;
-            mat_t m_projMatrix;
+            Physics::mat_t m_projMatrix;
             DirectX::XMFLOAT4X4 cameraMatrix;
 
 
@@ -34,8 +34,8 @@ namespace PMG {
             void RenderText(int x, int y, int w, int h, float color[3], std::wstring text);
             void RenderText(int x, int y, int w, int h, std::wstring text);
             void DrawRect(int x, int y, int w, int h, float color[3]);
-            void DrawShape(vec2_t* points, int pointCount, float color[3]);
-            void FillShape(vec2_t* points, int pointCount, float color[3]);
+            void DrawShape(Physics::Vector2* points, int pointCount, float color[3]);
+            void FillShape(Physics::Vector2* points, int pointCount, float color[3]);
             void FillRect(int x, int y, int w, int h, float color[3]);
             void UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size);
             

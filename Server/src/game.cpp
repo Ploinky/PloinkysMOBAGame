@@ -2,7 +2,7 @@
 #include "component_registry.h"
 #include "components.h"
 #include "navigation.h"
-#include "physics.h"
+#include "pmg_physics.h"
 #include "networking.h"
 
 namespace PMG {
@@ -31,6 +31,11 @@ namespace PMG {
         m_componentRegistry->AddComponent<network_t>(id, { netId });
         m_componentRegistry->AddComponent<spawn_t>(id, { 0.0f, 0.0f });
         m_componentRegistry->AddComponent<nav_agent_t>(id, { {}, 0.0f });
+
+        packet_t packet{};
+        packet.header.type = PacketType::PCK_CLIENT_UNIT_ID;
+        packet << pck_client_unit_id_t { id };
+        on_sendToClient(netId, &packet);
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
@@ -118,7 +123,7 @@ namespace PMG {
         // ======== Movement system ========
         for (auto ent : m_componentRegistry->GetEntities<transform_t>()) {
             transform_t* transform = m_componentRegistry->GetComponent<transform_t>(ent);
-            if (comp(transform->x, transform->tx) && comp(transform->y, transform->ty)) {
+            if (Physics::CompareDouble(transform->x, transform->tx) && Physics::CompareDouble(transform->y, transform->ty)) {
                 continue;
             }
 

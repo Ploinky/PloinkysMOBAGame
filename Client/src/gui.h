@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include "physics.h"
+#include "pmg_physics.h"
 
 namespace PMG {
 	class Renderer;
@@ -11,9 +11,9 @@ namespace PMG {
 	class GuiElement {
 	public:
 		// Position of top left corner
-		vec2_t m_pos = {0, 0};
-		vec2_t m_size = {0, 0};
-		vec2_t m_prefSize = {0, 0};
+		Physics::Vector2 m_pos = Physics::Vector2(0, 0);
+		Physics::Vector2 m_size = Physics::Vector2(0, 0);
+		Physics::Vector2 m_prefSize = Physics::Vector2(0, 0);
 
 		std::vector<GuiElement*> m_children;
 

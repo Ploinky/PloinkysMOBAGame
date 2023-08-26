@@ -143,7 +143,6 @@
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\navigation.cpp" />
     <ClCompile Include="src\networking.cpp" />
-    <ClCompile Include="src\physics.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -152,7 +151,6 @@
     <ClInclude Include="src\navigation.h" />
     <ClInclude Include="src\networking.h" />
     <ClInclude Include="src\packets.h" />
-    <ClInclude Include="src\physics.h" />
     <ClInclude Include="src\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

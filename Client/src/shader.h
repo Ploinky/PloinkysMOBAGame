@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <string>
 #include <DirectXMath.h>
-#include "physics.h"
+#include "pmg_physics.h"
 
 namespace PMG {
 	class Direct3D;
@@ -16,7 +16,7 @@ namespace PMG {
 
 	typedef struct {
 		float position[3];
-		float color[3];
+		float color[4];
 	} color_shader_vertex_t;
 
 	class Shader {
@@ -32,7 +32,7 @@ namespace PMG {
 	};
 
 	typedef struct {
-		mat_t projMatrix;
+		Physics::mat_t projMatrix;
 		DirectX::XMFLOAT4X4 cameraMatrix;
 	} color_shader_frame_const_t;
 
@@ -58,7 +58,7 @@ namespace PMG {
 	} texture_shader_vertex_t;
 
 	typedef struct {
-		mat_t projMatrix;
+		Physics::mat_t projMatrix;
 		DirectX::XMFLOAT4X4 cameraMatrix;
 	} texture_shader_frame_const_t;
 

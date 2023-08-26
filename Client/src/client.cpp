@@ -13,7 +13,6 @@
 #include "util.h"
 #include "navigation.h"
 #include <locale>
-#include <codecvt>
 #include "settings.h"
 #include "audio_system.h"
 #include "pmg_physics.h"
@@ -156,7 +155,8 @@ namespace PMG {
             // Render scene
             BeginRender();
             // Render 3D world
-            Render(renderer);
+            Render();
+            RenderGameUI();
             // Render 2D graphics
             // Render UI
             // Render Menu/Chat/...
@@ -224,10 +224,10 @@ namespace PMG {
     }
 
     void Client::Update(float dt) {
-        // if (!network->g_isConnected) {
-        //     network->CheckConnected();
-        //     return;
-        // }
+        if (!net_manager_->IsConnected()) {
+            net_manager_->CheckConnected();
+            return;
+        }
 
         int keysX = m_keys['D'] - m_keys['A'];
         int mouseX = (m_mousePos[0] >= (short)m_sceneWidth - 1) - (m_mousePos[0] == 0);
@@ -238,18 +238,24 @@ namespace PMG {
         m_camDir[1] = keysZ + mouseZ;
 
         if (m_keys[' ']) {
-            if (!models.empty()) {
+            if (!models.empty() && unit_id_received_) {
                 // Snap to player
+                Mesh* my_unit = GetModelForUnit(my_unit_id_);
                 m_camDir[0] = 0;
                 m_camDir[1] = 0;
-                m_camPos[0] = models.front()->position.x;
-                m_camPos[2] = models.front()->position.z - 10;
+                m_camPos[0] = my_unit->position.x;
+                m_camPos[1] = 20;
+                m_camPos[2] = my_unit->position.z - 10;
             }
             else {
                 m_camPos[0] = 0;
                 m_camPos[2] = -10;
             }
 
+        }
+        else {
+            m_camPos[0] += m_camDir[0] * dt / 20;
+            m_camPos[2] += m_camDir[1] * dt / 20;
         }
 
         if (m_keys[VK_ESCAPE]) {
@@ -270,14 +276,17 @@ namespace PMG {
 
         HandleTicks();
 
-        m_camPos[0] += m_camDir[0] * dt / 20;
-        m_camPos[1] = 20;
-        m_camPos[2] += m_camDir[1] * dt / 20;
-
         fps = (int)(1000.0f / dt);
     }
     
-    void Client::Render(Renderer* renderer) {
+    void Client::Render() {
+        // ===== Loading Screen =====
+        if (!net_manager_->IsConnected()) {
+            renderer->RenderText(0, 0, 100, 100, L"Connecting");
+            return;
+        }
+
+        // Game Screen
         renderer->camera->position.x = m_camPos[0];
         renderer->camera->position.y = m_camPos[1];
         renderer->camera->position.z = m_camPos[2];
@@ -299,11 +308,59 @@ namespace PMG {
         }
 
 
+        float hp = static_cast<float>(M_PI / 180.0);
+        Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
+            { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
+            { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
+            (float)m_sceneWidth / (float)m_sceneHeight,
+            renderer->camera->fov* hp,
+            renderer->camera->nearClip,
+            renderer->camera->farClip,
+            m_sceneWidth,
+            m_sceneHeight);
+        
+        bool pointing_at_unit = FALSE;
+        for (unit_t unit : units) {
+            Physics::Sphere sphere(Physics::Vector3(unit.pos.x, 0, unit.pos.y), 0.5);
+            if (Physics::TestCollision(ray, sphere)) {
+                pointing_at_unit = true;
+            }
+        }
+
+        if (pointing_at_unit) {
+            SetCursor(LoadCursor(NULL, IDC_HAND));
+        }
+
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
         std::vector<Mesh*> mapMeshVector(mapMeshes.begin(), mapMeshes.end());
         renderer->RenderMeshes(mapMeshVector);
         renderer->RenderMeshes(models);
+    }
 
+    void Client::RenderGameUI() {
+        if (unit_id_received_) {
+            Mesh* my_model = GetModelForUnit(my_unit_id_);
+
+            Physics::Vector3 point_above = Physics::Vector3{0, -4.5, 0};
+
+            float hp = static_cast<float>(M_PI / 180.0);
+            Physics::mat_t persp = Physics::mat_t::Perspective((float)m_sceneWidth / (float)m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
+
+            Physics::mat_t view = Physics::mat_t::Rotation(-renderer->camera->rotation.z, -renderer->camera->rotation.y, -renderer->camera->rotation.x) * Physics::mat_t::Translation(renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z);
+            
+            Physics::mat_t transMat = Physics::mat_t::Translation(my_model->position.x, my_model->position.y, my_model->position.z);
+
+            Physics:: Vector2 screen_point_above = Physics::WorldToScreen(point_above, transMat.inverse(), persp, view);
+
+            double x = (1.0f + screen_point_above.x) * 0.5 * m_sceneWidth;
+            double y = (1.0f - screen_point_above.y) * 0.5 * m_sceneHeight;
+            renderer->RenderText(x - 50, y - 50, 100, 50, L"Ploinky");
+            renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
+            renderer->RenderText(x - 71, y - 12, 20, 20, L"1");
+            renderer->FillRect(x - 50, y - 10, 100, 15, new float[3]{ 0.0f, 0, 0 });
+            renderer->FillRect(x - 50, y - 10, 70, 15, new float[3] { 0.0f, 1.0f, 0 });
+            renderer->DrawRect(x - 51, y - 11, 102, 17, new float[3] { 0.0f, 0.0f, 0 });
+        }
         std::wstring fpsText(L"FPS: ");
         fpsText.append(std::to_wstring(fps));
         renderer->RenderText(0, 0, 100, 50, fpsText);
@@ -312,40 +369,38 @@ namespace PMG {
     void Client::TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y) {
         float hp = static_cast<float>(M_PI / 180.0);
 
-        vec2_t screenCoord = { static_cast<float>(mx), static_cast<float>(my) };
-        vec3_t rayOrigin = renderer->camera->position;
-        mat_t persp = mat_t::Perspective((float)m_sceneWidth / (float)m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
-        mat_t view = mat_t::Rotation(renderer->camera->rotation.z, renderer->camera->rotation.y, renderer->camera->rotation.x) *
-            mat_t::Translation(rayOrigin.x, rayOrigin.y, rayOrigin.z);
-        view = view.inverse().Transpose();
+        Physics::Vector2 screenCoord = { static_cast<float>(mx), static_cast<float>(my) };
+        Physics::Vector3 rayOrigin = renderer->camera->position;
+        Physics::mat_t persp = Physics::mat_t::Perspective((float)m_sceneWidth / (float)m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
+        Physics::mat_t view = Physics::mat_t::Rotation(renderer->camera->rotation.z, renderer->camera->rotation.y, renderer->camera->rotation.x) *
+            Physics::mat_t::Translation(rayOrigin.x, rayOrigin.y, rayOrigin.z);
 
 
-        vec3_t relScreen = {
+        Physics::Vector3 relScreen = {
             screenCoord.x * 2.0f / (float)m_sceneWidth - 1.0f,
             1.0f - (screenCoord.y * 2.0f) / (float)m_sceneHeight,
             1.0f
         };
 
-        vec4_t rayClip = {
+        Physics::Vector4 rayClip = {
             relScreen.x,
             relScreen.y,
             1.0f,
             1.0f
         };
 
-        mat_t perspInverse = persp.inverse();
+        Physics::mat_t perspInverse = persp.inverse();
 
-        vec4_t rayEye = perspInverse * rayClip;
+        Physics::Vector4 rayEye = perspInverse * rayClip;
 
         rayEye = { rayEye.x, rayEye.y, 1.0, 0.0 };
 
-        vec4_t rw4 = (view * rayEye);
-        vec3_t rayWorld = { rw4.x, rw4.y, rw4.z };
+        Physics::Vector4 rw4 = (view * rayEye);
+        Physics::Vector3 rayWorld = { rw4.x, rw4.y, rw4.z };
 
-        rayWorld = rayWorld.normalize();
+        rayWorld = rayWorld.Normalize();
 
         for (unit_t unit : units) {
-
             float xd = rayWorld.x;
             float yd = rayWorld.y;
             float zd = rayWorld.z;
@@ -370,8 +425,8 @@ namespace PMG {
             }
         }
 
-        vec3_t planeNormal = { 0.0, 1.0, 0.0 };
-        vec3_t planeOrigin = { 0.0, 0.0, 0.0 };
+        Physics::Vector3 planeNormal = { 0.0, 1.0, 0.0 };
+        Physics::Vector3 planeOrigin = { 0.0, 0.0, 0.0 };
 
         float denom = planeNormal * rayWorld;
 
@@ -394,22 +449,27 @@ namespace PMG {
 
 
     void Client::SpawnUnit(unsigned long unitId) {
-        unit_t unit = { 0 };
+        unit_t unit = { { 0, 0 }, 0, 0 };
         unit.unitId = unitId;
         units.push_back(unit);
 
         Mesh* model = new Mesh();
-        Vertex* vert = new Vertex[4]{
-            Vertex{{-0.5f, 0.1f, -0.5f}, {1.0f, 0, 0, 1}},
-            Vertex{{0.5f, 0.1f, 0.5f}, {0, 0, 1.0f, 1}},
-            Vertex{{0.5f, 0.1f, -0.5f}, {0, 1.0f, 0, 1}},
-            Vertex{{-0.5f, 0.1f, 0.5f}, {0, 0, 1.0f, 1}},
+        color_shader_vertex_t* vert = new color_shader_vertex_t[8]{
+            color_shader_vertex_t{{-0.5f, 2.0f, -0.5f}, {1.0f, 0, 0, 1}},
+            color_shader_vertex_t{{0.5f, 2.0f, 0.5f}, {0, 0, 1.0f, 1}},
+            color_shader_vertex_t{{0.5f, 2.0f, -0.5f}, {0, 1.0f, 0, 1}},
+            color_shader_vertex_t{{-0.5f, 2.0f, 0.5f}, {0, 0, 1.0f, 1}},
+            color_shader_vertex_t{{-0.5f, 0.2f, -0.5f}, {0, 0, 0.0f, 1}},
+            color_shader_vertex_t{{0.5f, 0.2f, 0.5f}, {0, 0, 0.0f, 1}},
+            color_shader_vertex_t{{0.5f, 0.2f, -0.5f}, {0, 0, 0.0f, 1}},
+            color_shader_vertex_t{{-0.5f, 0.2f, 0.5f}, {0, 0, 0.0f, 1}},
         };
-        unsigned int* indices = new unsigned int[6] {0, 1, 2, 1, 0, 3};
+
+        unsigned int* indices = new unsigned int[12] {0, 1, 2, 1, 0, 3, 4, 5, 6, 5, 4, 7};
         model->vertices = vert;
-        model->vertexCount = 4;
+        model->vertexCount = 8;
         model->indices = indices;
-        model->indexCount = 6;
+        model->indexCount = 12;
         model->unit = unitId;
         models.push_back(model);
     }
@@ -522,7 +582,7 @@ namespace PMG {
                     pck_unit_spawn_t pck{};
                     tickData >> pck;
 
-                    unit_t unit = { vec2_t{ pck.x, pck.y }, 0, pck.unit };
+                    unit_t unit = { Physics::Vector2{ pck.x, pck.y }, 0, pck.unit };
                     SpawnUnit(unit.unitId);
 
                     newTick.units.push_back(unit);
@@ -554,6 +614,15 @@ namespace PMG {
             unit.unitId = 0;
             // *packet >> unit.pos >> unit.rot >> unit.unitId;
             SpawnUnit(unit.unitId);
+        }
+        else if (packet->header.type == PacketType::PCK_CLIENT_UNIT_ID) {
+            Logger::Msg("CLIENT_UNIT_ID");
+
+            pck_client_unit_id_t unit_id{};
+            *packet >> unit_id;
+
+            my_unit_id_ = unit_id.unit;
+            unit_id_received_ = TRUE;
         }
     }
 }

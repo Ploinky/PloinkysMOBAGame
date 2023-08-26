@@ -1,5 +1,6 @@
 #pragma once
 
+
 namespace PMG::Physics {
 	class Vector3 {
 	public:
@@ -9,5 +10,12 @@ namespace PMG::Physics {
 		double x;
 		double y;
 		double z;
+
+        Vector3 operator+(const Vector3& other) const;
+        Vector3 operator-(const Vector3& other) const;
+        float operator*(const Vector3& other) const;
+        bool operator==(const Vector3& other) const;
+        float Length() const;
+		Vector3 Normalize() const;
 	};
 }

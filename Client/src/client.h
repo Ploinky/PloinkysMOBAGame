@@ -7,7 +7,7 @@
 #include "client_network_manager.h"
 #include "audio_system.h"
 #include "settings.h"
-#include "physics.h"
+#include "pmg_physics.h"
 
 // Main game application
 namespace PMG {
@@ -29,7 +29,7 @@ namespace PMG {
     class GuiTextfield;
 
     typedef struct {
-        vec2_t pos;
+        Physics::Vector2 pos;
         float rot;
         unsigned long unitId;
     } unit_t;
@@ -60,8 +60,6 @@ namespace PMG {
 
             // Clears the screen and prepares rendering
             void BeginRender();
-            // Render the specified 3D model to the screen
-            void Render(Mesh* model);
             // Final rendering operations and presents the rendered image to the screen
             void FinishRender();
 
@@ -84,7 +82,8 @@ namespace PMG {
             void HandleNetworkMessage(packet_t* packet);
             void HandleTicks();
 
-            void Render(Renderer* renderer);
+            void Render();
+            void RenderGameUI();
 
             void TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y);
 
@@ -112,10 +111,13 @@ namespace PMG {
 
             int m_mouseClicked[3] = { 0, 0, 0 };
             int m_camDir[2] = { 0, 0 };
-            float m_camPos[3] = { 0, 0, 0 };
+            float m_camPos[3] = { 0, 20.0f, -10.0f };
 
             int fps;
 
             std::vector<Mesh*> models;
+
+            unsigned int my_unit_id_;
+            bool unit_id_received_ = FALSE;
     };
 }

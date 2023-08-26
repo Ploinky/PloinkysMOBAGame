@@ -5,7 +5,7 @@
 #include <DirectXMath.h>
 #include "shader.h"
 #include <string>
-#include "physics.h"
+#include "pmg_physics.h"
 
 namespace PMG {
     class Direct3D;
@@ -14,14 +14,14 @@ namespace PMG {
 
     class Mesh {
         public:
-            Vertex* vertices = 0;
+            color_shader_vertex_t* vertices = 0;
             uint32_t vertexCount = 0;
             unsigned int* indices = 0;
             uint32_t indexCount = 0;
             ID3D11Buffer* vertexBuffer = 0;
             ID3D11Buffer* indexBuffer = 0;
-            vec3_t position = vec3_t { 0, 0, 0 };
-            vec3_t rotation = vec3_t { 0, 0, 0 };
+            Physics::Vector3 position = Physics::Vector3{ 0, 0, 0 };
+            Physics::Vector3 rotation = Physics::Vector3{ 0, 0, 0 };
             ShaderType m_shaderType = ShaderType::COLOR;
             
             unsigned long unit = 0;

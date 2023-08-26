@@ -6,7 +6,6 @@
 #include "util.h"
 #include "camera.h"
 #include "shader.h"
-#include "physics.h"
 #include <DirectXMath.h>
 
 namespace PMG {
@@ -25,7 +24,7 @@ namespace PMG {
 
         float hp = static_cast<float>(M_PI / 180.0);
 
-        m_projMatrix = mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
+        m_projMatrix = Physics::mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
 
         // Where to set this?
         direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -51,7 +50,7 @@ namespace PMG {
         m_height = height;
 
         float hp = static_cast<float>(M_PI / 180.0);
-        m_projMatrix = mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
+        m_projMatrix = Physics::mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
     }
 
     void Renderer::UpdateCameraMatrix() {
@@ -91,7 +90,7 @@ namespace PMG {
         }
 
         direct3D->format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-
+        
         IDWriteTextLayout* textLayout;
 
         hr = direct3D->dWriteFactory->CreateTextLayout(
@@ -153,7 +152,7 @@ namespace PMG {
         brush->Release();
     }
 
-    void Renderer::DrawShape(vec2_t* points, int pointCount, float color[3]) {
+    void Renderer::DrawShape(Physics::Vector2* points, int pointCount, float color[3]) {
         //Set the Font Color
         D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
 
@@ -177,10 +176,10 @@ namespace PMG {
         direct3D->d2d_factory_->CreatePathGeometry(&geometry);
         // Write to the path geometry using the geometry sink.
         geometry->Open(&geometrySink);
-        geometrySink->BeginFigure({ points[0].x, points[0].y }, D2D1_FIGURE_BEGIN_HOLLOW);
+        geometrySink->BeginFigure({ static_cast<float>(points[0].x), static_cast<float>(points[0].y) }, D2D1_FIGURE_BEGIN_HOLLOW);
 
         for (int i = 1; i < pointCount; i++) {
-            geometrySink->AddLine({ points[i].x, points[i].y });
+            geometrySink->AddLine({ static_cast<float>(points[i].x), static_cast<float>(points[i].y) });
         }
 
         geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
@@ -197,7 +196,7 @@ namespace PMG {
         brush->Release();
     };
 
-    void Renderer::FillShape(vec2_t* points, int pointCount, float color[3]) {
+    void Renderer::FillShape(Physics::Vector2* points, int pointCount, float color[3]) {
         if (pointCount < 2) {
             Logger::Err("Failed to draw shape: cannot draw shape from 1 point only");
             return;
@@ -226,10 +225,10 @@ namespace PMG {
         direct3D->d2d_factory_->CreatePathGeometry(&geometry);
         // Write to the path geometry using the geometry sink.
         geometry->Open(&geometrySink);
-        geometrySink->BeginFigure({ points[0].x, points[0].y }, D2D1_FIGURE_BEGIN_FILLED);
+        geometrySink->BeginFigure({ static_cast<float>(points[0].x), static_cast<float>(points[0].y) }, D2D1_FIGURE_BEGIN_FILLED);
 
         for (int i = 1; i < pointCount; i++) {
-            geometrySink->AddLine({ points[i].x, points[i].y });
+            geometrySink->AddLine({ static_cast<float>(points[i].x), static_cast<float>(points[i].y) });
         }
 
         geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
@@ -327,7 +326,7 @@ namespace PMG {
                         direct3D->context->VSSetConstantBuffers(1, 1, &colorShader->m_modelConstBuffer);
 
                         // Render this specific model
-                        UINT stride = sizeof(Vertex);
+                        UINT stride = sizeof(color_shader_vertex_t);
                         UINT offset = 0;
                         direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                         direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);

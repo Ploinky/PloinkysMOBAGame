@@ -24,14 +24,14 @@ namespace PMG {
 				m_color,
 				OptionToString(current_value_));
 
-			vec2_t points[3] = {
+			Physics::Vector2 points[3] = {
 				{ m_pos.x + 10, m_pos.y + m_size.y / 2 },
 				{ m_pos.x + m_size.y - 10, m_pos.y + 10 },
 				{ m_pos.x + m_size.y - 10, m_pos.y + m_size.y - 10 },
 			};
 			renderer->FillShape(points, 3, m_color);
 
-			vec2_t rightPoints[3] = {
+			Physics::Vector2 rightPoints[3] = {
 				{ m_pos.x + m_size.x - 10, m_pos.y + m_size.y / 2 },
 				{ m_pos.x + m_size.x - m_size.y + 10, m_pos.y + 10 },
 				{ m_pos.x + m_size.x - m_size.y + 10, m_pos.y + m_size.y - 10 },

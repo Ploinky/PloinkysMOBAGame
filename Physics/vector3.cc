@@ -1,5 +1,8 @@
 #include "vector3.h"
 
+#include "calculation.h"
+#include <math.h>
+
 namespace PMG::Physics {
 	Vector3::Vector3() {
 		this->x = 0;
@@ -9,5 +12,32 @@ namespace PMG::Physics {
 
 	Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z) {
 
+	}
+
+	Vector3 Vector3::operator+(const Vector3& other) const {
+		return { x + other.x, y + other.y, z + other.z };
+	}
+
+	Vector3 Vector3::operator-(const Vector3& other) const {
+		return { x - other.x, y - other.y, z - other.z };
+	}
+
+	float Vector3::operator*(const Vector3& other) const {
+		return x * other.x + y * other.y + z * other.z;
+	}
+	bool Vector3::operator==(const Vector3& other) const {
+		return CompareDouble(x, other.x)
+			&& CompareDouble(y, other.y)
+			&& CompareDouble(z, other.z);
+	}
+
+	float Vector3::Length() const {
+		return sqrt(x * x + y * y + z * z);
+	}
+
+	Vector3 Vector3::Normalize() const {
+		float l = Length();
+
+		return { x / l, y / l, z / l };
 	}
 }
