@@ -10,6 +10,7 @@ namespace PMG {
         PCK_NAME_REQUEST,
         CMD_READY,
         CMD_NOT_READY,
+        CMD_STOP,
         PCK_CLIENT_UNIT_ID,
     };
 
@@ -117,4 +118,7 @@ namespace PMG {
         float nx;
         float ny;
     } cmd_move_t;
+
+    typedef struct cmd_stop {
+    } cmd_stop_t;
 }

@@ -119,9 +119,8 @@ namespace PMG {
             return false;
         }
 
-        packet->data.resize(packet->header.size - sizeof(packet_header_t));
-
         if (packet->header.size > 8) {
+            packet->data.resize(packet->header.size - sizeof(packet_header_t));
             error = recv(connection->socket, (char*)packet->data.data(), packet->header.size - sizeof(packet_header_t), 0);
 
             if (error < 1) {

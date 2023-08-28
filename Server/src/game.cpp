@@ -58,6 +58,21 @@ namespace PMG {
         }
     }
 
+    void Game::PlayerStopCommand(unsigned long netId) {
+        for (auto ent : m_componentRegistry->GetEntities<network_t>()) {
+            if (m_componentRegistry->GetComponent<network_t>(ent)->netId == netId) {
+                nav_agent_t* agent = m_componentRegistry->GetComponent<nav_agent_t>(ent);
+                transform_t* transform = m_componentRegistry->GetComponent<transform_t>(ent);
+                agent->target.x = transform->x;
+                agent->target.z = transform->y;
+                transform->tx = transform->x;
+                transform->ty = transform->y;
+                // Clear old path!
+                agent->path.clear();
+            }
+        }
+    }
+
     void Game::Start() {
 
     }

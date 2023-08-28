@@ -59,6 +59,7 @@ namespace PMG {
         void RemovePlayerForNetworkId(unsigned long netId);
 
         void PlayerMoveCommand(unsigned long netId, float nx, float ny);
+        void PlayerStopCommand(unsigned long netId);
 
         void Update(float dt);
     private:

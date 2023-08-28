@@ -14,6 +14,7 @@ namespace PMG {
         m_networkManager->on_clientMessageReceived = std::bind(&Server::OnMessageReceived, this, std::placeholders::_1, std::placeholders::_2);
         if (!m_networkManager->CreateListenSocket("23119")) {
             Logger::Msg("Failed to create listen socket");
+            return;
         }
 
         m_game = new Game();
@@ -63,6 +64,12 @@ namespace PMG {
                 *packet >> move;
 
                 m_game->PlayerMoveCommand(clientId, move.nx, move.ny);
+                break;
+            }
+            case PacketType::CMD_STOP: {
+                cmd_stop_t stop{};
+
+                m_game->PlayerStopCommand(clientId);
             }
         }
     }
