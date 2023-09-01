@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mesh.h"
+#include "pmg_physics.h"
 
 namespace PMG {
 	class GameObject {
@@ -10,6 +11,9 @@ namespace PMG {
 		unsigned long net_id;
 		unsigned int health;
 		unsigned int max_health;
+
+		Physics::Vector3 position;
+		Physics::Vector3 rotation;
 
 		Mesh* mesh;
 	};

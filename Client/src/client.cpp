@@ -482,6 +482,8 @@ namespace PMG {
         go->health = 50;
         go->max_health = 100;
         go->mesh = model;
+        go->position = { 0, 0, 0 };
+        go->rotation = { 0, 0, 0 };
         game_objects_.emplace(unitId, go);
     }
 
