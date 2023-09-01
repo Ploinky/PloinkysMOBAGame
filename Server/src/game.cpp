@@ -74,6 +74,16 @@ namespace PMG {
         }
     }
 
+    void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
+        stats_t* target_unit_stats = m_componentRegistry->GetComponent<stats_t>(target_id);
+
+        target_unit_stats->health -= 1;
+
+        if (target_unit_stats->health < 0) {
+            target_unit_stats = 0;
+        }
+    }
+
     void Game::Start() {
 
     }

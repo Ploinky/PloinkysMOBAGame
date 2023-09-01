@@ -63,6 +63,7 @@ namespace PMG {
 
         void PlayerMoveCommand(unsigned long netId, float nx, float ny);
         void PlayerStopCommand(unsigned long netId);
+        void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
 
         void Update(float dt);
     private:

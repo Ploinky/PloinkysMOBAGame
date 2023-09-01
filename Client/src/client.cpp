@@ -297,23 +297,6 @@ namespace PMG {
         renderer->camera->position.y = m_camPos[1];
         renderer->camera->position.z = m_camPos[2];
 
-        if (m_mouseClicked[2] == 1) {
-            renderer->FillRect(m_mouseClicked[0] - 1, m_mouseClicked[1] - 1, 3, 3, new float[3] {1.0f, 1.0f, 0.0f});
-
-            m_mouseClicked[2] = 0;
-
-            float x, y;
-            TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
-
-
-            packet_t packet = {};
-            packet.header.type = PacketType::UNITMOVE;
-            packet << cmd_move_t{ x, y };
-
-            net_manager_->SendPacket(&packet);
-        }
-
-
         float hp = static_cast<float>(M_PI / 180.0);
         Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
             { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
@@ -329,12 +312,33 @@ namespace PMG {
         for (unit_t unit : units) {
             Physics::Sphere sphere(Physics::Vector3(unit.pos.x, 0, unit.pos.y), 0.5);
             if (Physics::TestCollision(ray, sphere)) {
+                SetCursor(LoadCursor(NULL, IDC_HAND));
                 pointing_at_unit = true;
+
+                if (m_mouseButtons[2]) {
+                    packet_t packet = {};
+                    packet.header.type = PacketType::CMD_ATTACK;
+                    packet << cmd_attack_t{ unit.unitId };
+
+                    net_manager_->SendPacket(&packet);
+                }
             }
         }
 
-        if (pointing_at_unit) {
-            SetCursor(LoadCursor(NULL, IDC_HAND));
+        if (!pointing_at_unit && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
+            renderer->FillRect(m_mouseClicked[0] - 1, m_mouseClicked[1] - 1, 3, 3, new float[3] {1.0f, 1.0f, 0.0f});
+
+            m_mouseClicked[2] = 0;
+
+            float x, y;
+            TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
+
+
+            packet_t packet = {};
+            packet.header.type = PacketType::UNITMOVE;
+            packet << cmd_move_t{ x, y };
+
+            net_manager_->SendPacket(&packet);
         }
 
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
@@ -347,31 +351,32 @@ namespace PMG {
     }
 
     void Client::RenderGameUI() {
-        if (unit_id_received_) {
-            GameObject* go = game_objects_.find(my_unit_id_)->second;
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
 
-            Mesh* my_model = GetModelForUnit(my_unit_id_);
+            Mesh* my_model = go->mesh;
 
-            Physics::Vector3 point_above = Physics::Vector3{0, -4.5, 0};
+            Physics::Vector3 point_above = Physics::Vector3{ 0, -4.5, 0 };
 
             float hp = static_cast<float>(M_PI / 180.0);
             Physics::mat_t persp = Physics::mat_t::Perspective((float)m_sceneWidth / (float)m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
 
             Physics::mat_t view = Physics::mat_t::Rotation(-renderer->camera->rotation.z, -renderer->camera->rotation.y, -renderer->camera->rotation.x) * Physics::mat_t::Translation(renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z);
-            
+
             Physics::mat_t transMat = Physics::mat_t::Translation(my_model->position.x, my_model->position.y, my_model->position.z);
 
-            Physics:: Vector2 screen_point_above = Physics::WorldToScreen(point_above, transMat.inverse(), persp, view);
+            Physics::Vector2 screen_point_above = Physics::WorldToScreen(point_above, transMat.inverse(), persp, view);
 
             double x = (1.0f + screen_point_above.x) * 0.5 * m_sceneWidth;
             double y = (1.0f - screen_point_above.y) * 0.5 * m_sceneHeight;
             renderer->RenderText(x - 50, y - 50, 100, 50, L"Ploinky");
             renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
             renderer->RenderText(x - 71, y - 12, 20, 20, L"1");
-            renderer->FillRect(x - 50, y - 10, 100, 15, new float[3]{ 0.0f, 0, 0 });
+            renderer->FillRect(x - 50, y - 10, 100, 15, new float[3] { 0.0f, 0, 0 });
             renderer->FillRect(x - 50, y - 10, go->health, 15, new float[3] { 0.0f, 1.0f, 0 });
             renderer->DrawRect(x - 51, y - 11, 102, 17, new float[3] { 0.0f, 0.0f, 0 });
         }
+
         std::wstring fpsText(L"FPS: ");
         fpsText.append(std::to_wstring(fps));
         renderer->RenderText(0, 0, 100, 50, fpsText);
@@ -410,31 +415,6 @@ namespace PMG {
         Physics::Vector3 rayWorld = { rw4.x, rw4.y, rw4.z };
 
         rayWorld = rayWorld.Normalize();
-
-        for (unit_t unit : units) {
-            float xd = rayWorld.x;
-            float yd = rayWorld.y;
-            float zd = rayWorld.z;
-            float xo = rayOrigin.x;
-            float yo = rayOrigin.y;
-            float zo = rayOrigin.z;
-            float a = unit.pos.x;
-            float b = unit.pos.y;
-            float c = 0;
-            float r = 1;
-            float A = (pow(xd, 2) + pow(yd, 2) + pow(zd, 2));
-            float B = (2 * (xd * (xo - a) + yd * (yo - b) + zd * (zo - c)));
-            float C = (pow((xo - a), 2) + pow((yo - b), 2) + pow((zo - c), 2) - pow(r, 2));
-
-            float t = (-B - sqrt(pow(B, 2) - 4.0f * A * C)) / 2.0f * A;
-
-            Physics::Sphere sphere(Physics::Vector3(unit.pos.x, 0, unit.pos.y), 0.5);
-            Physics::Ray ray(Physics::Vector3(rayOrigin.x, rayOrigin.y, rayOrigin.z), Physics::Vector3(rayWorld.x, rayWorld.y, rayWorld.z));
-            if (Physics::TestCollision(ray, sphere)) {
-                MessageBox(NULL, L"YO", L"HIT", MB_ICONINFORMATION);
-                return;
-            }
-        }
 
         Physics::Vector3 planeNormal = { 0.0, 1.0, 0.0 };
         Physics::Vector3 planeOrigin = { 0.0, 0.0, 0.0 };

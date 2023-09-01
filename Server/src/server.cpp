@@ -70,6 +70,13 @@ namespace PMG {
                 cmd_stop_t stop{};
 
                 m_game->PlayerStopCommand(clientId);
+                break;
+            }
+            case PacketType::CMD_ATTACK: {
+                cmd_attack_t attack{};
+
+                m_game->PlayerAttackCommand(clientId, attack.target_unit);
+                break;
             }
         }
     }
