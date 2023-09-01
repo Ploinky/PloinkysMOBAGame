@@ -15,7 +15,6 @@
 #include <locale>
 #include "settings.h"
 #include "audio_system.h"
-#include "pmg_physics.h"
 
 namespace PMG {
     Client::Client(std::string ip_address, std::string port) {
@@ -41,8 +40,8 @@ namespace PMG {
     }
 
     Client::~Client() {
-        for (Mesh* m : models) {
-            delete m;
+        for (auto go : game_objects_) {
+            delete go.second;
         }
 
         if (net_manager_->IsConnected()) {
@@ -53,7 +52,7 @@ namespace PMG {
             delete m_map;
         }
 
-        models.clear();
+        game_objects_.clear();
 
         if (renderer != nullptr) {
             delete renderer;
@@ -238,7 +237,7 @@ namespace PMG {
         m_camDir[1] = keysZ + mouseZ;
 
         if (m_keys[' ']) {
-            if (!models.empty() && unit_id_received_) {
+            if (unit_id_received_) {
                 // Snap to player
                 Mesh* my_unit = GetModelForUnit(my_unit_id_);
                 m_camDir[0] = 0;
@@ -258,6 +257,13 @@ namespace PMG {
             m_camPos[2] += m_camDir[1] * dt / 20;
         }
 
+        if (m_keys['s']) {
+            packet_t packet = {};
+            packet.header.type = PacketType::CMD_STOP;
+
+            net_manager_->SendPacket(&packet);
+        }
+
         if (m_keys[VK_ESCAPE]) {
             isRunning = false;
         }
@@ -274,7 +280,7 @@ namespace PMG {
             HandleNetworkMessage(&packet);
         }
 
-        HandleTicks();
+        HandleTicks(dt);
 
         fps = (int)(1000.0f / dt);
     }
@@ -334,11 +340,16 @@ namespace PMG {
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
         std::vector<Mesh*> mapMeshVector(mapMeshes.begin(), mapMeshes.end());
         renderer->RenderMeshes(mapMeshVector);
-        renderer->RenderMeshes(models);
+
+        for (auto go : game_objects_) {
+            renderer->RenderMeshes({ go.second->mesh });
+        }
     }
 
     void Client::RenderGameUI() {
         if (unit_id_received_) {
+            GameObject* go = game_objects_.find(my_unit_id_)->second;
+
             Mesh* my_model = GetModelForUnit(my_unit_id_);
 
             Physics::Vector3 point_above = Physics::Vector3{0, -4.5, 0};
@@ -358,7 +369,7 @@ namespace PMG {
             renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
             renderer->RenderText(x - 71, y - 12, 20, 20, L"1");
             renderer->FillRect(x - 50, y - 10, 100, 15, new float[3]{ 0.0f, 0, 0 });
-            renderer->FillRect(x - 50, y - 10, 70, 15, new float[3] { 0.0f, 1.0f, 0 });
+            renderer->FillRect(x - 50, y - 10, go->health, 15, new float[3] { 0.0f, 1.0f, 0 });
             renderer->DrawRect(x - 51, y - 11, 102, 17, new float[3] { 0.0f, 0.0f, 0 });
         }
         std::wstring fpsText(L"FPS: ");
@@ -438,13 +449,8 @@ namespace PMG {
     }
 
     Mesh* Client::GetModelForUnit(unsigned long unitId) {
-        for (auto model = models.begin(); model != models.end(); ++model) {
-            if ((*model)->unit == unitId) {
-                return *model;
-            }
-        }
-
-        return nullptr;
+        GameObject* go = game_objects_.find(unitId)->second;
+        return go->mesh;
     }
 
 
@@ -464,14 +470,19 @@ namespace PMG {
             color_shader_vertex_t{{0.5f, 0.2f, -0.5f}, {0, 0, 0.0f, 1}},
             color_shader_vertex_t{{-0.5f, 0.2f, 0.5f}, {0, 0, 0.0f, 1}},
         };
-
         unsigned int* indices = new unsigned int[12] {0, 1, 2, 1, 0, 3, 4, 5, 6, 5, 4, 7};
         model->vertices = vert;
         model->vertexCount = 8;
         model->indices = indices;
         model->indexCount = 12;
         model->unit = unitId;
-        models.push_back(model);
+
+        GameObject* go = new GameObject();
+        go->net_id = unitId;
+        go->health = 50;
+        go->max_health = 100;
+        go->mesh = model;
+        game_objects_.emplace(unitId, go);
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
@@ -485,16 +496,13 @@ namespace PMG {
             }
         }
 
-        for (auto model = models.begin(); model != models.end(); ++model) {
-            Mesh* mdl = *model;
-            if (mdl->unit == unitId) {
-                models.erase(model);
-                break;
-            }
-        }
+        GameObject* go = game_objects_.find(unitId)->second;
+        game_objects_.erase(unitId);
+        delete go->mesh;
+        delete go;
     }
 
-    void Client::HandleTicks() {
+    void Client::HandleTicks(float dt) {
         long long frameTime = Util::GetSystemTime();
 
         if (ticks.size() <= 3) {
@@ -523,6 +531,23 @@ namespace PMG {
         game_tick_t nextLastTick = ticks[startFrame];
 
         float diff = static_cast<float>(currentFrame) - ((int)currentFrame);
+
+
+
+        nextLastTick = ticks[ticks.size() - 3];
+        lastTick = ticks[ticks.size() - 2];
+
+        long long since_c = frameTime - nextLastTick.received;
+        diff = since_c / (1000.0 / 30.0);
+
+        if (diff >= 1) {
+            nextLastTick = ticks[ticks.size() - 2];
+            lastTick = ticks[ticks.size() - 1];
+
+            since_c = frameTime - nextLastTick.received;
+            diff = since_c / (1000.0 / 30.0);
+        }
+
 
         for (auto unit = units.begin(); unit != units.end(); unit++) {
             float lastX = unit->pos.x;
@@ -564,6 +589,50 @@ namespace PMG {
             unit->pos.y = lastY;
             unit->rot = lastR;
         }
+
+
+        /*
+
+        // Maybe we don't need to do the whole game tick thing :O
+        game_tick_t c_tick = ticks[ticks.size() - 3];
+        game_tick_t b_tick = ticks[ticks.size() - 2];
+        game_tick_t a_tick = ticks[ticks.size() - 1];
+
+        long long since_c = frameTime - c_tick.received;
+        float diff = since_c / (1000.0 / 30.0);
+
+        game_tick_t current_tick = b_tick;
+
+        for (auto unit = units.begin(); unit != units.end(); unit++) {
+            float lastX = unit->pos.x;
+            float lastY = unit->pos.y;
+            float lastR = unit->rot;
+
+            for (auto tick_unit = current_tick.units.begin(); tick_unit != current_tick.units.end(); ++tick_unit) {
+                if (tick_unit->unitId == unit->unitId) {
+                    lastX = tick_unit->pos.x;
+                    lastY = tick_unit->pos.y;
+                    lastR = tick_unit->rot;
+                }
+            }
+
+            Mesh* model = GetModelForUnit(unit->unitId);
+
+            if (model == nullptr) {
+                printf("No model for unit %ld\r\n", unit->unitId);
+                continue;
+            }
+
+            // Interpolate to new position
+            model->position.x = model->position.x + (lastX - model->position.x) * diff;
+            model->position.z = model->position.z + (lastY - model->position.z) * diff;
+            model->rotation.y = model->rotation.y + (lastR - model->rotation.y) * diff;
+
+            unit->pos.x = lastX;
+            unit->pos.y = lastY;
+            unit->rot = lastR;
+        }
+        */
     }
 
     void Client::HandleNetworkMessage(packet_t* packet) {
@@ -602,6 +671,17 @@ namespace PMG {
                     tickData >> id;
                     DespawnUnit(id);
                     break;
+                }
+                case PacketType::PCK_STATS: {
+                    pck_unit_stats_t stats{};
+                    tickData >> stats;
+
+                    auto go_it = game_objects_.find(stats.unit);
+                    if (go_it != game_objects_.end()) {
+                        GameObject* value = go_it->second;
+                        value->health = stats.health;
+                        value->max_health = stats.max_health;
+                    }
                 }
                 }
             }

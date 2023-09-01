@@ -43,6 +43,12 @@
     <Filter Include="Header Files\net">
       <UniqueIdentifier>{35fca8e9-338a-436c-a795-4ec1e624bffb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game_object">
+      <UniqueIdentifier>{911b70db-5423-42c5-a72c-00b2cd4d6279}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game_object">
+      <UniqueIdentifier>{bf61c401-3dfe-495a-a644-94ffc16c11ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -102,6 +108,9 @@
     <ClCompile Include="src\gui_selector.cc">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
+    <ClCompile Include="src\game_object.cc">
+      <Filter>Source Files\game_object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -154,6 +163,9 @@
     </ClInclude>
     <ClInclude Include="src\client_network_manager.h">
       <Filter>Header Files\net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game_object.h">
+      <Filter>Header Files\game_object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -4,8 +4,11 @@
 #include <functional>
 #include <string>
 #include "networking.h"
+#include "components.h"
 
 namespace PMG {
+    static unsigned long current_network_id_ = 0;
+
     class ComponentRegistry;
     class NavMesh;
 

@@ -151,7 +151,6 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
     <ClCompile Include="src\server.cpp" />
-    <ClCompile Include="src\transform_component.cc" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>

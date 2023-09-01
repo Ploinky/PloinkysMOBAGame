@@ -9,42 +9,42 @@
 
 namespace PMG {
     void Logger::Msg(std::string message) {
+        message.append("\n");
+
 #ifdef _DEBUG
-        OutputDebugStringA(message.append("\r\n").c_str());
+        OutputDebugStringA(message.c_str());
 #endif
 
-#ifdef NDEBUG
-        std::cout << message << std::endl;
-#endif
+        std::cout << message;
     }
 
     void Logger::WMsg(std::wstring wmessage) {
+        wmessage.append(L"\n");
+
 #ifdef _DEBUG
-        OutputDebugString(wmessage.append(L"\r\n").c_str());
+        OutputDebugString(wmessage.c_str());
 #endif
 
-#ifdef NDEBUG
-        std::wcout << wmessage << std::endl;
-#endif
+        std::wcout << wmessage;
     }
-    
+
     void Logger::Err(std::string error) {
+        error.append("\n");
+
 #ifdef _DEBUG
-        OutputDebugStringA(error.append("\r\n").c_str());
+        OutputDebugStringA(error.c_str());
 #endif
 
-#ifdef NDEBUG
-        std::cerr << error << std::endl;
-#endif
+        std::cerr << error;
     }
-    
+
     void Logger::WErr(std::wstring werror) {
+        werror.append(L"\n");
+
 #ifdef _DEBUG
-        OutputDebugString(werror.append(L"\r\n").c_str());
+        OutputDebugString(werror.c_str());
 #endif
 
-#ifdef NDEBUG
-        std::wcerr << werror << std::endl;
-#endif
+        std::wcerr << werror;
     }
 }

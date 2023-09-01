@@ -144,6 +144,7 @@
     <ClCompile Include="src\client.cpp" />
     <ClCompile Include="src\DDSTextureLoader11.cpp" />
     <ClCompile Include="src\direct3d.cpp" />
+    <ClCompile Include="src\game_object.cc" />
     <ClCompile Include="src\gui_button.cpp" />
     <ClCompile Include="src\gui_selector.cc" />
     <ClCompile Include="src\gui_simple_pane.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\game_object.h" />
     <ClInclude Include="resources\resource.h" />
     <ClInclude Include="src\audio_system.h" />
     <ClInclude Include="src\camera.h" />

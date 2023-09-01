@@ -31,6 +31,7 @@ namespace PMG {
         m_componentRegistry->AddComponent<network_t>(id, { netId });
         m_componentRegistry->AddComponent<spawn_t>(id, { 0.0f, 0.0f });
         m_componentRegistry->AddComponent<nav_agent_t>(id, { {}, 0.0f });
+        m_componentRegistry->AddComponent<stats_t>(id, { 100, 100 });
 
         packet_t packet{};
         packet.header.type = PacketType::PCK_CLIENT_UNIT_ID;
@@ -181,6 +182,14 @@ namespace PMG {
                 packet_t packet{};
                 packet.header.type = PacketType::UNITMOVE;
                 packet << pck_unit_move_t{ ent, t->x, t->y, t->r };
+                tickPacket << packet;
+            }
+
+            stats_t* stats = m_componentRegistry->GetComponent<stats_t>(ent);
+            if (stats) {
+                packet_t packet{};
+                packet.header.type = PacketType::PCK_STATS;
+                packet << pck_unit_stats_t{ent, stats->health, stats->max_health };
                 tickPacket << packet;
             }
 

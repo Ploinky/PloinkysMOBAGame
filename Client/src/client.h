@@ -8,6 +8,7 @@
 #include "audio_system.h"
 #include "settings.h"
 #include "pmg_physics.h"
+#include "game_object.h"
 
 // Main game application
 namespace PMG {
@@ -80,7 +81,7 @@ namespace PMG {
             void Update(float dt);
 
             void HandleNetworkMessage(packet_t* packet);
-            void HandleTicks();
+            void HandleTicks(float dt);
 
             void Render();
             void RenderGameUI();
@@ -96,6 +97,7 @@ namespace PMG {
 
             Map* m_map;
             std::list<unit_t> units;
+            std::map<unsigned long, GameObject*> game_objects_;
 
             NavMesh* m_navMesh;
 
@@ -114,8 +116,6 @@ namespace PMG {
             float m_camPos[3] = { 0, 20.0f, -10.0f };
 
             int fps;
-
-            std::vector<Mesh*> models;
 
             unsigned int my_unit_id_;
             bool unit_id_received_ = FALSE;

@@ -12,6 +12,7 @@ namespace PMG {
         CMD_NOT_READY,
         CMD_STOP,
         PCK_CLIENT_UNIT_ID,
+        PCK_STATS,
     };
 
     typedef struct packet_header {
@@ -112,6 +113,12 @@ namespace PMG {
     typedef struct pck_client_unit_id {
         unsigned int unit;
     } pck_client_unit_id_t;
+
+    typedef struct pck_unit_stats {
+        unsigned int unit;
+        unsigned int health;
+        unsigned int max_health;
+    } pck_unit_stats_t;
 
     // ====== Client -> Server commands ======
     typedef struct cmd_move {
