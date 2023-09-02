@@ -112,7 +112,7 @@
       <Filter>Source Files\game_object</Filter>
     </ClCompile>
     <ClCompile Include="src\red_box.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\game_object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -171,7 +171,7 @@
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
     <ClInclude Include="src\red_box.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\game_object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

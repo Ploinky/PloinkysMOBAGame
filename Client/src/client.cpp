@@ -383,6 +383,29 @@ namespace PMG {
         fpsText.append(std::to_wstring(fps));
         renderer->RenderText(0, 0, 100, 50, fpsText);
 
+        int done_ticks = ticks.size();
+        int done_seconds = ticks.size() / 30.0;
+        int done_minutes = done_seconds / 60;
+        done_seconds = done_seconds % 60;
+
+        std::wstring time = L"";
+
+        if (done_minutes < 10) {
+            time.append(L"0");
+        }
+
+        time.append(std::to_wstring(done_minutes)).append(L":");
+
+        if (done_seconds < 10) {
+            time.append(L"0");
+        }
+
+        time.append(std::to_wstring(done_seconds));
+
+        float black[3]{ 0, 0, 0 };
+        renderer->FillRect(m_sceneWidth / 2 - 50, 10, 100, 20, black);
+        renderer->RenderText(m_sceneWidth / 2 - 50, 10, 100, 20, time);
+
         if (!unit_id_received_) {
             return;
         }
@@ -394,7 +417,6 @@ namespace PMG {
 
         int percentage_health = (float) my_go->health / (float) my_go->max_health * 400.0f;
 
-        float black[3]{ 0, 0, 0 };
         renderer->FillRect(x - 1, y - 1, 402, 27, black);
 
         float green[3]{ 0, 0.5, 0 };
