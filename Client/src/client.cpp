@@ -315,7 +315,7 @@ namespace PMG {
         bool pointing_at_unit = FALSE;
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
-            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.y), 0.5);
+            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
             if (Physics::TestCollision(ray, sphere)) {
                 SetCursor(LoadCursor(NULL, IDC_HAND));
                 pointing_at_unit = true;

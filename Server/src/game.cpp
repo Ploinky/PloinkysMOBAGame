@@ -26,6 +26,9 @@ namespace PMG {
             GameObject* go = go_it.second;
             packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, go->position.x, go->position.z });
             on_sendToClient(netId, &packet);
+
+            packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { go->unit_id, go->stats.health, go->stats.max_health});
+            on_sendToAllClients(&packet);
         }
 
         entity_id id = current_entity_id_++;
