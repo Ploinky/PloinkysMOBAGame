@@ -18,8 +18,8 @@ namespace PMG {
     } transform_t;
 
     typedef struct {
-        unsigned int health;
-        unsigned int max_health;
+        int health;
+        int max_health;
     } stats_t;
 
     typedef struct {

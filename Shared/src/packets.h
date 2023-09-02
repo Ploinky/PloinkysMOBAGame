@@ -117,8 +117,8 @@ namespace PMG {
 
     typedef struct pck_unit_stats {
         unsigned int unit;
-        unsigned int health;
-        unsigned int max_health;
+        int health;
+        int max_health;
     } pck_unit_stats_t;
 
     // ====== Client -> Server commands ======

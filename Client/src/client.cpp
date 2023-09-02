@@ -382,6 +382,25 @@ namespace PMG {
         std::wstring fpsText(L"FPS: ");
         fpsText.append(std::to_wstring(fps));
         renderer->RenderText(0, 0, 100, 50, fpsText);
+
+        if (!unit_id_received_) {
+            return;
+        }
+
+        GameObject* my_go = game_objects_.find(my_unit_id_)->second;
+
+        int y = m_sceneHeight - 50;
+        int x = m_sceneWidth / 2 - 200;
+
+        int percentage_health = (float) my_go->health / (float) my_go->max_health * 400.0f;
+
+        float black[3]{ 0, 0, 0 };
+        renderer->FillRect(x - 1, y - 1, 402, 27, black);
+
+        float green[3]{ 0, 0.5, 0 };
+        renderer->FillRect(x, y, percentage_health, 25, green);
+
+        renderer->RenderText(x, y, 400, 25, std::to_wstring(my_go->health).append(L"/").append(std::to_wstring(my_go->max_health)).c_str());
     }
 
     void Client::TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y) {
