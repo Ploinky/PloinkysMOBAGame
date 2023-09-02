@@ -15,6 +15,7 @@
 #include <locale>
 #include "settings.h"
 #include "audio_system.h"
+#include "red_box.h"
 
 namespace PMG {
     Client::Client(std::string ip_address, std::string port) {
@@ -436,6 +437,13 @@ namespace PMG {
 
 
     void Client::SpawnUnit(unsigned long unitId) {
+        if (unitId == 0) {
+            GameObject* red_box = new RedBox();
+            red_box->net_id = unitId;
+            game_objects_.emplace(unitId, red_box);
+            return;
+        }
+
         Mesh* model = new Mesh();
         color_shader_vertex_t* vert = new color_shader_vertex_t[8]{
             color_shader_vertex_t{{-0.5f, 2.0f, -0.5f}, {1.0f, 0, 0, 1}},

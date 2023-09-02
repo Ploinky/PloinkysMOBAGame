@@ -14,14 +14,20 @@ namespace PMG {
         m_navMesh->LoadFromFile("map1");
     }
 
+    template<typename T>
+    packet_t CreatePacket(PacketType type, T data) {
+        packet_t packet{};
+        packet.header.type = type;
+        packet << data;
+        return packet;
+    }
+
     void Game::AddPlayerForNetworkId(unsigned long netId) {
 
         for (auto ent : m_componentRegistry->GetEntities<transform_t>()) {
             transform_t* t = m_componentRegistry->GetComponent<transform_t>(ent);
             if (t) {
-                packet_t packet{};
-                packet.header.type = PacketType::UNITSPAWN;
-                packet << pck_unit_spawn_t{ ent, t->x, t->y };
+                packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, {ent, t->x, t->y});
                 on_sendToClient(netId, &packet);
             }
         }
@@ -33,9 +39,7 @@ namespace PMG {
         m_componentRegistry->AddComponent<nav_agent_t>(id, { {}, 0.0f });
         m_componentRegistry->AddComponent<stats_t>(id, { 100, 100 });
 
-        packet_t packet{};
-        packet.header.type = PacketType::PCK_CLIENT_UNIT_ID;
-        packet << pck_client_unit_id_t { id };
+        packet_t packet = CreatePacket<pck_client_unit_id>(PacketType::PCK_CLIENT_UNIT_ID, { id });
         on_sendToClient(netId, &packet);
     }
 
@@ -80,7 +84,7 @@ namespace PMG {
         target_unit_stats->health -= 1;
 
         if (target_unit_stats->health < 0) {
-            target_unit_stats = 0;
+            target_unit_stats->health = 0;
         }
     }
 
@@ -179,9 +183,7 @@ namespace PMG {
         for (auto ent : m_componentRegistry->GetEntities<network_t>()) {
             spawn_t* spawnT = m_componentRegistry->GetComponent<spawn_t>(ent);
             if (spawnT) {
-                packet_t packet{};
-                packet.header.type = PacketType::UNITSPAWN;
-                packet << pck_unit_spawn_t{ ent, spawnT->x, spawnT->y };
+                packet_t packet = CreatePacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { ent, spawnT->x, spawnT->y });
                 tickPacket << packet;
 
                 m_componentRegistry->RemoveComponent<spawn_t>(ent);
@@ -189,25 +191,19 @@ namespace PMG {
 
             transform_t* t = m_componentRegistry->GetComponent<transform_t>(ent);
             if (t) {
-                packet_t packet{};
-                packet.header.type = PacketType::UNITMOVE;
-                packet << pck_unit_move_t{ ent, t->x, t->y, t->r };
+                packet_t packet = CreatePacket<pck_unit_move_t>(PacketType::UNITMOVE, { ent, t->x, t->y, t->r });
                 tickPacket << packet;
             }
 
             stats_t* stats = m_componentRegistry->GetComponent<stats_t>(ent);
             if (stats) {
-                packet_t packet{};
-                packet.header.type = PacketType::PCK_STATS;
-                packet << pck_unit_stats_t{ent, stats->health, stats->max_health };
+                packet_t packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { ent, stats->health, stats->max_health });
                 tickPacket << packet;
             }
 
             despawn_t* despawn = m_componentRegistry->GetComponent<despawn_t>(ent);
             if (despawn) {
-                packet_t packet{};
-                packet.header.type = PacketType::UNITDESPAWN;
-                packet << pck_unit_despawn_t{ ent };;
+                packet_t packet = CreatePacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { ent });
                 tickPacket << packet;
 
                 m_componentRegistry->Destroy(ent);
