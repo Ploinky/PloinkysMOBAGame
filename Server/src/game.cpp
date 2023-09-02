@@ -91,6 +91,9 @@ namespace PMG {
         gameTick++;
         lastTick -= TICKRATE / 1000.0f;
 
+        packet_t packet = CreatePacket<pck_tick_t>(PacketType::GAME_TICK, { gameTick });
+        on_sendToAllClients(&packet);
+
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
 

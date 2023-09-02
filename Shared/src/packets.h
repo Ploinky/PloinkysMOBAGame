@@ -94,6 +94,10 @@ namespace PMG {
     }
 
     // ====== Server -> Client packets ======
+    typedef struct {
+        unsigned long tick;
+    } pck_tick_t;
+
     typedef struct pck_unit_move {
         unsigned int unit;
         float x;

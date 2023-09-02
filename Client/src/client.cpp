@@ -386,8 +386,8 @@ namespace PMG {
         fpsText.append(std::to_wstring(fps));
         renderer->RenderText(0, 0, 100, 50, fpsText);
 
-        int done_ticks = 0;
-        int done_seconds = 0 / 30.0;
+        int done_ticks = current_tick_;
+        int done_seconds = current_tick_ / 30.0;
         int done_minutes = done_seconds / 60;
         done_seconds = done_seconds % 60;
 
@@ -704,6 +704,12 @@ namespace PMG {
 
     void Client::HandleNetworkMessage(packet_t* packet) {
         if (packet->header.type == PacketType::GAME_TICK) {
+            Logger::Msg("GAME_TICK");
+
+            pck_tick_t tick{};
+            *packet >> tick;
+
+            current_tick_ = tick.tick;
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
             Logger::Msg("UNITSPAWN");

@@ -112,5 +112,7 @@ namespace PMG {
 
             unsigned int my_unit_id_;
             bool unit_id_received_ = FALSE;
+
+            unsigned long current_tick_ = 0;
     };
 }
