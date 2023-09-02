@@ -183,7 +183,7 @@ namespace PMG {
                     // ======== Navigation system ========
                     nav_agent_t* navAgent = m_componentRegistry->GetComponent<nav_agent_t>(go->unit_id);
 
-                    if (navAgent->target.x == go->position.x && navAgent->target.z == go->position.y) {
+                    if (navAgent == nullptr || navAgent->target.x == go->position.x && navAgent->target.z == go->position.y) {
                         // Already at target
                         continue;
                     }

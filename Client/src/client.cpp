@@ -550,6 +550,7 @@ namespace PMG {
         float diff = static_cast<float>(currentFrame) - ((int)currentFrame);
 
 
+        /*
 
         nextLastTick = ticks[ticks.size() - 3];
         lastTick = ticks[ticks.size() - 2];
@@ -609,7 +610,6 @@ namespace PMG {
         }
 
 
-        /*
 
         // Maybe we don't need to do the whole game tick thing :O
         game_tick_t c_tick = ticks[ticks.size() - 3];
@@ -651,6 +651,35 @@ namespace PMG {
             unit->rot = lastR;
         }
         */
+
+
+        // smooth as heck but wtf? :O
+        game_tick_t tick = ticks.back();
+
+        long long since = frameTime - tick.received;
+        // double remaining = (1000.0 / 30.0) - since;
+        double remaining = 100.0 - since;
+        diff = dt / remaining;
+
+        for (auto unit = tick.units.begin(); unit != tick.units.end(); unit++) {
+            GameObject* go = game_objects_.find(unit->unitId)->second;
+            go->position.x = unit->pos.x;
+            go->position.y = unit->pos.y;
+            go->rotation.y = unit->rot;
+
+            Mesh* model = GetModelForUnit(unit->unitId);
+
+            if (model == nullptr) {
+                printf("No model for unit %ld\r\n", unit->unitId);
+                continue;
+            }
+
+            // Interpolate to new position
+            model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
+            model->position.z = model->position.z + (go->position.y - model->position.z) * diff;
+            model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
+        }
+
     }
 
     void Client::HandleNetworkMessage(packet_t* packet) {
