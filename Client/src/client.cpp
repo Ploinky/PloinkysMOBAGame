@@ -309,8 +309,9 @@ namespace PMG {
             m_sceneHeight);
         
         bool pointing_at_unit = FALSE;
-        for (unit_t unit : units) {
-            Physics::Sphere sphere(Physics::Vector3(unit.pos.x, 0, unit.pos.y), 0.5);
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.y), 0.5);
             if (Physics::TestCollision(ray, sphere)) {
                 SetCursor(LoadCursor(NULL, IDC_HAND));
                 pointing_at_unit = true;
@@ -318,7 +319,7 @@ namespace PMG {
                 if (m_mouseButtons[2]) {
                     packet_t packet = {};
                     packet.header.type = PacketType::CMD_ATTACK;
-                    packet << cmd_attack_t{ unit.unitId };
+                    packet << cmd_attack_t{ go->net_id };
 
                     net_manager_->SendPacket(&packet);
                 }
@@ -435,10 +436,6 @@ namespace PMG {
 
 
     void Client::SpawnUnit(unsigned long unitId) {
-        unit_t unit = { { 0, 0 }, 0, 0 };
-        unit.unitId = unitId;
-        units.push_back(unit);
-
         Mesh* model = new Mesh();
         color_shader_vertex_t* vert = new color_shader_vertex_t[8]{
             color_shader_vertex_t{{-0.5f, 2.0f, -0.5f}, {1.0f, 0, 0, 1}},
@@ -468,19 +465,8 @@ namespace PMG {
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
-        for (auto unit = units.begin(); unit != units.end(); ++unit) {
-            if (unit->unitId == unitId) {
-                unit = units.erase(unit);
-
-                if (unit == units.end()) {
-                    break;
-                }
-            }
-        }
-
         GameObject* go = game_objects_.find(unitId)->second;
         game_objects_.erase(unitId);
-        delete go->mesh;
         delete go;
     }
 
@@ -531,16 +517,17 @@ namespace PMG {
         }
 
 
-        for (auto unit = units.begin(); unit != units.end(); unit++) {
-            float lastX = unit->pos.x;
-            float lastY = unit->pos.y;
-            float lastR = unit->rot;
-            float nextLastX = unit->pos.x;
-            float nextLastY = unit->pos.y;
-            float nextLastR = unit->rot;
+        for (auto go_it : game_objects_) {
+            GameObject* unit = go_it.second;
+            float lastX = unit->position.x;
+            float lastY = unit->position.y;
+            float lastR = unit->rotation.y;
+            float nextLastX = unit->position.x;
+            float nextLastY = unit->position.y;
+            float nextLastR = unit->rotation.y;
 
             for (auto lastUnit = lastTick.units.begin(); lastUnit != lastTick.units.end(); ++lastUnit) {
-                if (lastUnit->unitId == unit->unitId) {
+                if (lastUnit->unitId == unit->net_id) {
                     lastX = lastUnit->pos.x;
                     lastY = lastUnit->pos.y;
                     lastR = lastUnit->rot;
@@ -548,17 +535,17 @@ namespace PMG {
             }
 
             for (auto nextLastUnit = nextLastTick.units.begin(); nextLastUnit != nextLastTick.units.end(); ++nextLastUnit) {
-                if (nextLastUnit->unitId == unit->unitId) {
+                if (nextLastUnit->unitId == unit->net_id) {
                     nextLastX = nextLastUnit->pos.x;
                     nextLastY = nextLastUnit->pos.y;
                     nextLastR = nextLastUnit->rot;
                 }
             }
 
-            Mesh* model = GetModelForUnit(unit->unitId);
+            Mesh* model = unit->mesh;
 
             if (model == nullptr) {
-                printf("No model for unit %ld\r\n", unit->unitId);
+                printf("No model for unit %ld\r\n", unit->net_id);
                 continue;
             }
 
@@ -567,9 +554,9 @@ namespace PMG {
             model->position.z = nextLastY + (lastY - nextLastY) * diff;
             model->rotation.y = nextLastR + (lastR - nextLastR) * diff;
 
-            unit->pos.x = lastX;
-            unit->pos.y = lastY;
-            unit->rot = lastR;
+            unit->position.x = lastX;
+            unit->position.y = lastY;
+            unit->rotation.y = lastR;
         }
 
 

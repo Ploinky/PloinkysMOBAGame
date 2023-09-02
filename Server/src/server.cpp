@@ -74,7 +74,7 @@ namespace PMG {
             }
             case PacketType::CMD_ATTACK: {
                 cmd_attack_t attack{};
-
+                *packet >> attack;
                 m_game->PlayerAttackCommand(clientId, attack.target_unit);
                 break;
             }

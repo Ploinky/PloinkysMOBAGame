@@ -51,11 +51,11 @@ namespace PMG {
             // Indicates whether the Client is running and should continue running
             bool isRunning;
             // Access to DirectX 11 resources
-            Direct3D* direct3D = 0;
+            Direct3D* direct3D = nullptr;
             // Access to native window 
-            Window* window = 0;
+            Window* window = nullptr;
             // Access to DirectX 11 rendering pipeline
-            Renderer* renderer = 0;
+            Renderer* renderer = nullptr;
 
             long long lastFrame;
 
@@ -96,7 +96,6 @@ namespace PMG {
             std::vector<game_tick_t> ticks;
 
             Map* m_map;
-            std::list<unit_t> units;
             std::map<unsigned long, GameObject*> game_objects_;
 
             NavMesh* m_navMesh;
