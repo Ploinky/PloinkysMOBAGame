@@ -14,6 +14,7 @@ namespace PMG {
 
 		Physics::Vector3 position;
 		Physics::Vector3 rotation;
+		unsigned long long position_received;
 
 		Mesh* mesh;
 	};

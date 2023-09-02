@@ -73,12 +73,12 @@ namespace PMG {
 
         void Update(float dt);
     private:
-        ComponentRegistry* m_componentRegistry;
         NavMesh* m_navMesh;
 
         std::map<unsigned long, player_t> players_;
         std::map<unsigned int, GameObject*> game_objects_;
         float lastTick = 0;
         unsigned long gameTick = 0;
+        unsigned long current_entity_id_ = 0;
     };
 }

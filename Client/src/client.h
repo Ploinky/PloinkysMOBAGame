@@ -34,12 +34,6 @@ namespace PMG {
         float rot;
         unsigned long unitId;
     } unit_t;
-
-    typedef struct {
-        unsigned long index;
-        long long received;
-        std::list<unit_t> units;
-    } game_tick_t;
     
     class Client {
         public:
@@ -92,8 +86,7 @@ namespace PMG {
             void DespawnUnit(unsigned long id);
 
             Mesh* GetModelForUnit(unsigned long untiId);
-
-            std::vector<game_tick_t> ticks;
+            GameObject* GetGameObject(unsigned long unit_id);
 
             Map* m_map;
             std::map<unsigned long, GameObject*> game_objects_;

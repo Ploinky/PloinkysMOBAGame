@@ -102,13 +102,13 @@ namespace PMG {
     } pck_unit_move_t;
 
     typedef struct pck_unit_spawn {
-        unsigned int unit;
-        float x;
-        float y;
+        unsigned long unit;
+        double x;
+        double y;
     } pck_unit_spawn_t;
 
     typedef struct pck_unit_despawn_s {
-        unsigned int unit;
+        unsigned long unit;
     } pck_unit_despawn_t;
 
     typedef struct pck_client_unit_id {

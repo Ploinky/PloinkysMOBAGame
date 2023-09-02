@@ -2,6 +2,7 @@
 
 #include "pmg_physics.h"
 #include "component_registry.h"
+#include "navigation.h"
 
 namespace PMG {
 	class Game;
@@ -57,6 +58,7 @@ namespace PMG {
 	public:
 		GameObjectAction* current_action;
 		unsigned int unit_id;
+		nav_agent_t nav_agent;
 
 		Physics::Vector3 position;
 		Physics::Vector3 rotation;

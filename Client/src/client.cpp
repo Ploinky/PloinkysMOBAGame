@@ -241,11 +241,14 @@ namespace PMG {
             if (unit_id_received_) {
                 // Snap to player
                 Mesh* my_unit = GetModelForUnit(my_unit_id_);
-                m_camDir[0] = 0;
-                m_camDir[1] = 0;
-                m_camPos[0] = my_unit->position.x;
-                m_camPos[1] = 20;
-                m_camPos[2] = my_unit->position.z - 10;
+
+                if (my_unit != nullptr) {
+                    m_camDir[0] = 0;
+                    m_camDir[1] = 0;
+                    m_camPos[0] = my_unit->position.x;
+                    m_camPos[1] = 20;
+                    m_camPos[2] = my_unit->position.z - 10;
+                }
             }
             else {
                 m_camPos[0] = 0;
@@ -383,8 +386,8 @@ namespace PMG {
         fpsText.append(std::to_wstring(fps));
         renderer->RenderText(0, 0, 100, 50, fpsText);
 
-        int done_ticks = ticks.size();
-        int done_seconds = ticks.size() / 30.0;
+        int done_ticks = 0;
+        int done_seconds = 0 / 30.0;
         int done_minutes = done_seconds / 60;
         done_seconds = done_seconds % 60;
 
@@ -410,7 +413,11 @@ namespace PMG {
             return;
         }
 
-        GameObject* my_go = game_objects_.find(my_unit_id_)->second;
+        auto test = game_objects_.find(my_unit_id_);
+        if (test == game_objects_.end()) {
+            return;
+        }
+        GameObject* my_go = test->second;
 
         int y = m_sceneHeight - 50;
         int x = m_sceneWidth / 2 - 200;
@@ -472,7 +479,11 @@ namespace PMG {
     }
 
     Mesh* Client::GetModelForUnit(unsigned long unitId) {
-        GameObject* go = game_objects_.find(unitId)->second;
+        auto test = game_objects_.find(unitId);
+        if (test == game_objects_.end()) {
+            return nullptr;
+        }
+        GameObject* go = test->second;
         return go->mesh;
     }
 
@@ -514,13 +525,19 @@ namespace PMG {
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
-        GameObject* go = game_objects_.find(unitId)->second;
+        auto test = game_objects_.find(unitId);
+        if (test == game_objects_.end()) {
+            return;
+        }
+        GameObject* go = test->second;
         game_objects_.erase(unitId);
         delete go;
     }
 
     void Client::HandleTicks(float dt) {
         long long frameTime = Util::GetSystemTime();
+        /*
+
 
         if (ticks.size() <= 3) {
             // We need at least 2 frames for interpolation
@@ -549,8 +566,6 @@ namespace PMG {
 
         float diff = static_cast<float>(currentFrame) - ((int)currentFrame);
 
-
-        /*
 
         nextLastTick = ticks[ticks.size() - 3];
         lastTick = ticks[ticks.size() - 2];
@@ -652,95 +667,51 @@ namespace PMG {
         }
         */
 
-
         // smooth as heck but wtf? :O
-        game_tick_t tick = ticks.back();
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+            long long since = frameTime - go->position_received;
+            double remaining = 100.0 - since;
 
-        long long since = frameTime - tick.received;
-        // double remaining = (1000.0 / 30.0) - since;
-        double remaining = 100.0 - since;
-        diff = dt / remaining;
+            if (remaining < 0) {
+                // uuuuh..... this seems wrong
+                continue;
+            }
 
-        for (auto unit = tick.units.begin(); unit != tick.units.end(); unit++) {
-            GameObject* go = game_objects_.find(unit->unitId)->second;
-            go->position.x = unit->pos.x;
-            go->position.y = unit->pos.y;
-            go->rotation.y = unit->rot;
+            double diff = dt / remaining;
 
-            Mesh* model = GetModelForUnit(unit->unitId);
+
+            Mesh* model = GetModelForUnit(go->net_id);
 
             if (model == nullptr) {
-                printf("No model for unit %ld\r\n", unit->unitId);
+                printf("No model for unit %ld\r\n", go->net_id);
                 continue;
             }
 
             // Interpolate to new position
             model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
-            model->position.z = model->position.z + (go->position.y - model->position.z) * diff;
+            model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
             model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
-        }
 
+        }
     }
 
     void Client::HandleNetworkMessage(packet_t* packet) {
         if (packet->header.type == PacketType::GAME_TICK) {
-            game_tick_t newTick{};
-
-            *packet >> newTick.index;
-            newTick.index = static_cast<unsigned long>(ticks.size());
-
-            while (packet->data.size() > 0) {
-                packet_t tickData{};
-                *packet >> tickData;
-
-                switch (tickData.header.type) {
-                case PacketType::UNITSPAWN: {
-                    pck_unit_spawn_t pck{};
-                    tickData >> pck;
-
-                    unit_t unit = { Physics::Vector2{ pck.x, pck.y }, 0, pck.unit };
-                    SpawnUnit(unit.unitId);
-
-                    newTick.units.push_back(unit);
-                    break;
-                }
-                case PacketType::UNITMOVE:
-                case PacketType::UNITIDLE: {
-                    pck_unit_move_t move{};
-                    tickData >> move;
-                    unit_t unit = { {move.x, move.y}, move.r, move.unit };
-                    newTick.units.push_back(unit);
-
-                    break;
-                }
-                case PacketType::UNITDESPAWN: {
-                    unsigned long id;
-                    tickData >> id;
-                    DespawnUnit(id);
-                    break;
-                }
-                case PacketType::PCK_STATS: {
-                    pck_unit_stats_t stats{};
-                    tickData >> stats;
-
-                    auto go_it = game_objects_.find(stats.unit);
-                    if (go_it != game_objects_.end()) {
-                        GameObject* value = go_it->second;
-                        value->health = stats.health;
-                        value->max_health = stats.max_health;
-                    }
-                }
-                }
-            }
-            newTick.received = Util::GetSystemTime();
-            ticks.push_back(newTick);
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
             Logger::Msg("UNITSPAWN");
-            unit_t unit{};
-            unit.unitId = 0;
-            // *packet >> unit.pos >> unit.rot >> unit.unitId;
-            SpawnUnit(unit.unitId);
+
+            pck_unit_spawn_t spawn{};
+            *packet >> spawn;
+
+            SpawnUnit(spawn.unit);
+        }
+        else if (packet->header.type == PacketType::UNITDESPAWN) {
+            Logger::Msg("UNITDESPAWN");
+            pck_unit_despawn_t pck{};
+            *packet >> pck;
+            DespawnUnit(pck.unit);
         }
         else if (packet->header.type == PacketType::PCK_CLIENT_UNIT_ID) {
             Logger::Msg("CLIENT_UNIT_ID");
@@ -750,6 +721,44 @@ namespace PMG {
 
             my_unit_id_ = unit_id.unit;
             unit_id_received_ = TRUE;
+        } else if (packet->header.type == PacketType::UNITMOVE || packet->header.type == PacketType::UNITIDLE) {
+            pck_unit_move_t move{};
+            *packet >> move;
+
+            GameObject* go = GetGameObject(move.unit);
+
+            if (go == nullptr) {
+                Logger::Msg("WARNING: received move/idle message for unknown object");
+                return;
+            }
+            go->position.x = move.x;
+            go->position.z = move.y;
+            go->rotation.y = move.r;
+            go->position_received = Util::GetSystemTime();;
         }
+        else if (packet->header.type == PacketType::PCK_STATS) {
+            pck_unit_stats_t stats{};
+            *packet >> stats;
+
+            GameObject* go = GetGameObject(stats.unit);
+
+            if (go == nullptr) {
+                Logger::Msg("WARNING: received stats message for unknown object");
+                return;
+            }
+            
+            go->health = stats.health;
+            go->max_health = stats.max_health;
+        }
+    }
+
+    GameObject* Client::GetGameObject(unsigned long unit_id) {
+        auto it = game_objects_.find(unit_id);
+
+        if (it == game_objects_.end()) {
+            return nullptr;
+        }
+
+        return it->second;
     }
 }

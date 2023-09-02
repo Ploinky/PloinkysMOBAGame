@@ -1,5 +1,4 @@
 #include "game.h"
-#include "component_registry.h"
 #include "components.h"
 #include "navigation.h"
 #include "pmg_physics.h"
@@ -9,7 +8,6 @@ namespace PMG {
     unsigned long g_unitId = 0;
 
     Game::Game() {
-        m_componentRegistry = new ComponentRegistry();
         m_navMesh = new NavMesh();
         m_navMesh->LoadFromFile("map1");
     }
@@ -24,20 +22,13 @@ namespace PMG {
 
     void Game::AddPlayerForNetworkId(unsigned long netId) {
 
-        for (auto ent : m_componentRegistry->GetEntities<transform_t>()) {
-            transform_t* t = m_componentRegistry->GetComponent<transform_t>(ent);
-            if (t) {
-                packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, {ent, t->x, t->y});
-                on_sendToClient(netId, &packet);
-            }
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, go->position.x, go->position.y });
+            on_sendToClient(netId, &packet);
         }
 
-        entity_id id = m_componentRegistry->Create();
-        m_componentRegistry->AddComponent<transform_t>(id, { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f });
-        m_componentRegistry->AddComponent<network_t>(id, { netId });
-        m_componentRegistry->AddComponent<spawn_t>(id, { 0.0f, 0.0f });
-        m_componentRegistry->AddComponent<nav_agent_t>(id, { {}, 0.0f });
-        m_componentRegistry->AddComponent<stats_t>(id, { 100, 100 });
+        entity_id id = current_entity_id_++;
 
         packet_t packet = CreatePacket<pck_client_unit_id>(PacketType::PCK_CLIENT_UNIT_ID, { id });
         on_sendToClient(netId, &packet);
@@ -51,43 +42,28 @@ namespace PMG {
         player.networkId = netId;
         player.unitId = id;
         players_.emplace(netId, player);
+
+        packet = CreatePacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { id, 0, 0 });
+        on_sendToAllClients(&packet);
+
+        packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
+        on_sendToAllClients(&packet);
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
-        for (auto ent : m_componentRegistry->GetEntities<network_t>()) {
-            if (m_componentRegistry->GetComponent<network_t>(ent)->netId == netId) {
-                m_componentRegistry->AddComponent<despawn_t>(ent);
-            }
-        }
+        packet_t packet = CreatePacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { players_.find(netId)->second.unitId });
+        on_sendToAllClients(&packet);
+
+        GameObject* go = game_objects_.find(players_.find(netId)->second.unitId)->second;
+        game_objects_.erase(go->unit_id);
+        delete go;
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
-        for (auto ent : m_componentRegistry->GetEntities<network_t>()) {
-            if (m_componentRegistry->GetComponent<network_t>(ent)->netId == netId) {
-                nav_agent_t* agent = m_componentRegistry->GetComponent<nav_agent_t>(ent);
-                agent->target.x = nx;
-                agent->target.z = ny;
-                // Clear old path!
-                agent->path.clear();
-            }
-        }
-
         game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionMove({ nx, ny, 0 });
     }
 
     void Game::PlayerStopCommand(unsigned long netId) {
-        for (auto ent : m_componentRegistry->GetEntities<network_t>()) {
-            if (m_componentRegistry->GetComponent<network_t>(ent)->netId == netId) {
-                nav_agent_t* agent = m_componentRegistry->GetComponent<nav_agent_t>(ent);
-                transform_t* transform = m_componentRegistry->GetComponent<transform_t>(ent);
-                agent->target.x = transform->x;
-                agent->target.z = transform->y;
-                transform->tx = transform->x;
-                transform->ty = transform->y;
-                // Clear old path!
-                agent->path.clear();
-            }
-        }
 
         game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionStop();
     }
@@ -172,6 +148,9 @@ namespace PMG {
 
                     go->basic_attack_info.last_attack = gameTick;
                     go->basic_attack_info.attack_started = FALSE;
+
+                    packet_t packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { go->unit_id, go->stats.health, go->stats.max_health });
+                    on_sendToAllClients(&packet);
                     break;
                 }
                 case GameObjectActionType::MOVE: {
@@ -181,33 +160,35 @@ namespace PMG {
                     // figure out if we're already going to target
 
                     // ======== Navigation system ========
-                    nav_agent_t* navAgent = m_componentRegistry->GetComponent<nav_agent_t>(go->unit_id);
+                    nav_agent_t navAgent = go->nav_agent;
+                    navAgent.target.x = action->target_point.x;
+                    navAgent.target.z = action->target_point.y;
 
-                    if (navAgent == nullptr || navAgent->target.x == go->position.x && navAgent->target.z == go->position.y) {
+                    if (navAgent.target.x == go->position.x && navAgent.target.z == go->position.y) {
                         // Already at target
                         continue;
                     }
 
-                    if (navAgent->path.empty()) {
+                    if (navAgent.path.empty()) {
                         // No path to follow, we need a new path!
-                        navAgent->path = m_navMesh->PlanPath({ static_cast<float>(go->position.x), 0, static_cast<float>(go->position.y) }, navAgent->target);
+                        navAgent.path = m_navMesh->PlanPath({ static_cast<float>(go->position.x), 0, static_cast<float>(go->position.y) }, navAgent.target);
 
                         // New path is empty, we are requesting an invalid path
-                        if (navAgent->path.empty()) {
+                        if (navAgent.path.empty()) {
                             continue;
                         }
                         // First is our start point? yikes.
-                        navAgent->path.pop_front();
+                        navAgent.path.pop_front();
                     }
 
-                    vertex_t intermediateTarget = navAgent->path.front();
+                    vertex_t intermediateTarget = navAgent.path.front();
 
                     if (abs(go->position.x - intermediateTarget.x) < 0.001 && abs(go->position.y - intermediateTarget.z) < 0.001) {
                         // Next frame we follow next?!
-                        navAgent->path.pop_front();
+                        navAgent.path.pop_front();
 
-                        if (!navAgent->path.empty()) {
-                            intermediateTarget = navAgent->path.front();
+                        if (!navAgent.path.empty()) {
+                            intermediateTarget = navAgent.path.front();
                         }
                     }
 
@@ -235,46 +216,13 @@ namespace PMG {
                     if (go->position.x != tx || go->position.y != ty) {
                         go->rotation.y = -atan2(ty - go->position.y, tx - go->position.x) * 180.0f / M_PI;
                     }
+
+                    packet_t packet = CreatePacket<pck_unit_move_t>(PacketType::UNITMOVE, { go->unit_id, static_cast<float>(go->position.x), static_cast<float>(go->position.y), static_cast<float>(go->rotation.y) });
+                    on_sendToAllClients(&packet);
                     break;
                 }
                 }
             }
         }
-
-        // ======== Networking system ========
-        packet_t tickPacket{};
-        tickPacket.header.type = PacketType::GAME_TICK;
-
-        for (auto ent : m_componentRegistry->GetEntities<network_t>()) {
-            spawn_t* spawnT = m_componentRegistry->GetComponent<spawn_t>(ent);
-            if (spawnT) {
-                packet_t packet = CreatePacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { ent, spawnT->x, spawnT->y });
-                tickPacket << packet;
-
-                m_componentRegistry->RemoveComponent<spawn_t>(ent);
-            }
-
-
-            GameObject* go = game_objects_.find(ent)->second;
-
-            packet_t packet = CreatePacket<pck_unit_move_t>(PacketType::UNITMOVE, { ent, static_cast<float>(go->position.x), static_cast<float>(go->position.y), static_cast<float>(go->rotation.y) });
-            tickPacket << packet;
-
-            packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { ent, go->stats.health, go->stats.max_health });
-            tickPacket << packet;
-
-            despawn_t* despawn = m_componentRegistry->GetComponent<despawn_t>(ent);
-            if (despawn) {
-                packet_t packet = CreatePacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { ent });
-                tickPacket << packet;
-
-                m_componentRegistry->Destroy(ent);
-            }
-        }
-
-        tickPacket << gameTick;
-        tickPacket.header.size = tickPacket.size();
-
-        on_sendToAllClients(&tickPacket);
     }
 }
