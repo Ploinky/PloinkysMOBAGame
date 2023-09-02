@@ -487,11 +487,15 @@ namespace PMG {
         return go->mesh;
     }
 
-
     void Client::SpawnUnit(unsigned long unitId) {
+        SpawnUnit(unitId, Physics::Vector2( 0, 0 ));
+    }
+
+    void Client::SpawnUnit(unsigned long unitId, Physics::Vector2 pos) {
         if (unitId == 0) {
             GameObject* red_box = new RedBox();
             red_box->net_id = unitId;
+            red_box->position = { pos.x, 0, pos.y };
             game_objects_.emplace(unitId, red_box);
             return;
         }
@@ -519,7 +523,7 @@ namespace PMG {
         go->health = 50;
         go->max_health = 100;
         go->mesh = model;
-        go->position = { 0, 0, 0 };
+        go->position = { pos.x, 0, pos.y };
         go->rotation = { 0, 0, 0 };
         game_objects_.emplace(unitId, go);
     }
@@ -673,20 +677,22 @@ namespace PMG {
             long long since = frameTime - go->position_received;
             double remaining = 100.0 - since;
 
-            if (remaining < 0) {
-                // uuuuh..... this seems wrong
-                continue;
-            }
-
-            double diff = dt / remaining;
-
-
             Mesh* model = GetModelForUnit(go->net_id);
 
             if (model == nullptr) {
                 printf("No model for unit %ld\r\n", go->net_id);
                 continue;
             }
+
+            if (remaining < 0) {
+                model->position.x = go->position.x;
+                model->position.z = go->position.z;
+                model->rotation.y = go->rotation.y;
+                // uuuuh..... this seems wrong
+                continue;
+            }
+
+            double diff = dt / remaining;
 
             // Interpolate to new position
             model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
@@ -705,7 +711,7 @@ namespace PMG {
             pck_unit_spawn_t spawn{};
             *packet >> spawn;
 
-            SpawnUnit(spawn.unit);
+            SpawnUnit(spawn.unit, Physics::Vector2{ spawn.x, spawn.y });
         }
         else if (packet->header.type == PacketType::UNITDESPAWN) {
             Logger::Msg("UNITDESPAWN");

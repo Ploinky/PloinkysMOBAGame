@@ -24,7 +24,7 @@ namespace PMG {
 
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
-            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, go->position.x, go->position.y });
+            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, go->position.x, go->position.z });
             on_sendToClient(netId, &packet);
         }
 
