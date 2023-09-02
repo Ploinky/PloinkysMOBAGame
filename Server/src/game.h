@@ -1,10 +1,12 @@
 #pragma once 
 
 #include <list>
+#include <map>
 #include <functional>
 #include <string>
 #include "networking.h"
 #include "components.h"
+#include "game_object.h"
 
 namespace PMG {
     static unsigned long current_network_id_ = 0;
@@ -65,12 +67,17 @@ namespace PMG {
         void PlayerStopCommand(unsigned long netId);
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
 
+        GameObject* GetGameObjectById(unsigned int id) {
+            return this->game_objects_.find(id)->second;
+        }
+
         void Update(float dt);
     private:
         ComponentRegistry* m_componentRegistry;
         NavMesh* m_navMesh;
 
-        std::list<player_t> players;
+        std::map<unsigned long, player_t> players_;
+        std::map<unsigned int, GameObject*> game_objects_;
         float lastTick = 0;
         unsigned long gameTick = 0;
     };

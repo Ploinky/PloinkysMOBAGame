@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\game_object.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
     <ClCompile Include="src\server.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="src\components.h" />
     <ClInclude Include="src\game.h" />
+    <ClInclude Include="src\game_object.h" />
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\network_manager.h" />
     <ClInclude Include="src\server.h" />

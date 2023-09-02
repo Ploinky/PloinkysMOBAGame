@@ -41,6 +41,16 @@ namespace PMG {
 
         packet_t packet = CreatePacket<pck_client_unit_id>(PacketType::PCK_CLIENT_UNIT_ID, { id });
         on_sendToClient(netId, &packet);
+
+        GameObject* game_object = new GameObject();
+        game_object->current_action = nullptr;
+        game_object->unit_id = id;
+        game_objects_.emplace(id, game_object);
+
+        player_t player{};
+        player.networkId = netId;
+        player.unitId = id;
+        players_.emplace(netId, player);
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
@@ -61,6 +71,8 @@ namespace PMG {
                 agent->path.clear();
             }
         }
+
+        game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionMove({ nx, ny, 0 });
     }
 
     void Game::PlayerStopCommand(unsigned long netId) {
@@ -76,16 +88,12 @@ namespace PMG {
                 agent->path.clear();
             }
         }
+
+        game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionStop();
     }
 
     void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
-        stats_t* target_unit_stats = m_componentRegistry->GetComponent<stats_t>(target_id);
-
-        target_unit_stats->health -= 1;
-
-        if (target_unit_stats->health < 0) {
-            target_unit_stats->health = 0;
-        }
+        game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionAttackUnit(target_id);
     }
 
     void Game::Start() {
@@ -104,78 +112,132 @@ namespace PMG {
         gameTick++;
         lastTick -= TICKRATE / 1000.0f;
 
-        // ======== Navigation system ========
-        for (auto ent : m_componentRegistry->GetEntities<nav_agent_t>()) {
-            transform_t* transform = m_componentRegistry->GetComponent<transform_t>(ent);
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
 
-            // What to do with entities that have nav agents but no transforms? Makes no sense.
-            if (!transform) {
-                continue;
-            }
-
-            nav_agent_t* navAgent = m_componentRegistry->GetComponent<nav_agent_t>(ent);
-
-            if (navAgent->target.x == transform->x && navAgent->target.z == transform->y) {
-                // Already at target
-                continue;
-            }
-
-            if (navAgent->path.empty()) {
-                // No path to follow, we need a new path!
-                navAgent->path = m_navMesh->PlanPath({ transform->x, 0, transform->y }, navAgent->target);
-
-                // New path is empty, we are requesting an invalid path
-                if (navAgent->path.empty()) {
-                    continue;
+            if (go->current_action != nullptr) {
+                switch (go->current_action->type) {
+                case GameObjectActionType::STOP: {
+                    go->basic_attack_info.attack_started = FALSE;
+                    break;
                 }
-                // First is our start point? yikes.
-                navAgent->path.pop_front();
-            }
+                case GameObjectActionType::ATTACK_UNIT: {
+                    GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)go->current_action;
+                    GameObject* target = game_objects_.find(action->target_net_id)->second;
+                    
+                    if (target == nullptr) {
+                        // nothing to attack?
+                        break;
+                    }
 
-            vertex_t intermediateTarget = navAgent->path.front();
+                    if ((target->position - go->position).Length() > go->basic_attack_info.range) {
+                        // move towards target?
+                        break;
+                    }
 
-            if (abs(transform->x - intermediateTarget.x) < 0.001 && abs(transform->y - intermediateTarget.z) < 0.001) {
-                // Next frame we follow next?!
-                navAgent->path.pop_front();
+                    // we're in range, check if we can attack
+                    unsigned long long ticks_since = gameTick - go->basic_attack_info.last_attack;
 
-                if (!navAgent->path.empty()) {
-                    intermediateTarget = navAgent->path.front();
+                    // how many ms do we wait after 1 attack
+                    double ms_per_attack = 1000.0 / go->basic_attack_info.attack_speed;
+
+                    if (ticks_since * TICKRATE < ms_per_attack) {
+                        // cannot attack again yet
+                        break;
+                    }
+
+                    // we can attack, wtf to do now?!
+                    // consider forward- and backswing as well, yikes
+                    if (!go->basic_attack_info.attack_started) {
+                        go->basic_attack_info.attack_started_at = gameTick;
+                        go->basic_attack_info.attack_started = TRUE;
+                        // ok we start... do we also need to let someone know? :O
+                        break;
+                    }
+
+                    ticks_since = gameTick - go->basic_attack_info.attack_started_at;
+                    double ms_until_hit = ms_per_attack * go->basic_attack_info.hit_point;
+
+                    if (ticks_since * TICKRATE < ms_until_hit) {
+                        // still swinging!
+                        break;
+                    }
+
+                    // attack hits!
+                    target->stats.health -= go->basic_attack_info.damage;
+
+                    if (target->stats.health < 0) {
+                        target->stats.health = 0;
+                    }
+
+                    go->basic_attack_info.last_attack = gameTick;
+                    go->basic_attack_info.attack_started = FALSE;
+                    break;
                 }
-            }
+                case GameObjectActionType::MOVE: {
+                    go->basic_attack_info.attack_started = FALSE;
+                    GameObjectActionMove* action = (GameObjectActionMove*)go->current_action;
 
-            if (transform->tx != intermediateTarget.x) {
-              transform->tx = intermediateTarget.x;
-            }
+                    // figure out if we're already going to target
 
-            if (transform->ty != intermediateTarget.z) {
-              transform->ty = intermediateTarget.z;
-            }
-        }
+                    // ======== Navigation system ========
+                    nav_agent_t* navAgent = m_componentRegistry->GetComponent<nav_agent_t>(go->unit_id);
+
+                    if (navAgent->target.x == go->position.x && navAgent->target.z == go->position.y) {
+                        // Already at target
+                        continue;
+                    }
+
+                    if (navAgent->path.empty()) {
+                        // No path to follow, we need a new path!
+                        navAgent->path = m_navMesh->PlanPath({ static_cast<float>(go->position.x), 0, static_cast<float>(go->position.y) }, navAgent->target);
+
+                        // New path is empty, we are requesting an invalid path
+                        if (navAgent->path.empty()) {
+                            continue;
+                        }
+                        // First is our start point? yikes.
+                        navAgent->path.pop_front();
+                    }
+
+                    vertex_t intermediateTarget = navAgent->path.front();
+
+                    if (abs(go->position.x - intermediateTarget.x) < 0.001 && abs(go->position.y - intermediateTarget.z) < 0.001) {
+                        // Next frame we follow next?!
+                        navAgent->path.pop_front();
+
+                        if (!navAgent->path.empty()) {
+                            intermediateTarget = navAgent->path.front();
+                        }
+                    }
+
+                    float tx = intermediateTarget.x;
+                    float ty = intermediateTarget.z;
+
+                    if (Physics::CompareDouble(go->position.x, tx) && Physics::CompareDouble(go->position.y, ty)) {
+                        continue;
+                    }
+
+                    float dx = tx - go->position.x;
+                    float dy = ty - go->position.y;
+                    float length = sqrt(dx * dx + dy * dy);
 
 
-        // ======== Movement system ========
-        for (auto ent : m_componentRegistry->GetEntities<transform_t>()) {
-            transform_t* transform = m_componentRegistry->GetComponent<transform_t>(ent);
-            if (Physics::CompareDouble(transform->x, transform->tx) && Physics::CompareDouble(transform->y, transform->ty)) {
-                continue;
-            }
+                    dx /= length;
+                    dy /= length;
 
-            float dx = transform->tx - transform->x;
-            float dy = transform->ty - transform->y;
-            float length = sqrt(dx * dx + dy * dy);
+                    float newX = go->position.x + 6.0f * dx * TICKRATE / 1000.0f;
+                    float newY = go->position.y + 6.0f * dy * TICKRATE / 1000.0f;
 
+                    go->position.x = (go->position.x < tx && newX >= tx) || (go->position.x > tx && newX <= tx) ? tx : newX;
+                    go->position.y = (go->position.y < ty && newY >= ty) || (go->position.y > ty && newY <= ty) ? ty : newY;
 
-            dx /= length;
-            dy /= length;
-
-            float newX = transform->x + 6.0f * dx * TICKRATE / 1000.0f;
-            float newY = transform->y + 6.0f * dy * TICKRATE / 1000.0f;
-
-            transform->x = (transform->x < transform->tx && newX >= transform->tx) || (transform->x > transform->tx && newX <= transform->tx) ? transform->tx : newX;
-            transform->y = (transform->y < transform->ty && newY >= transform->ty) || (transform->y > transform->ty && newY <= transform->ty) ? transform->ty : newY;
-
-            if (transform->x != transform->tx || transform->y != transform->ty) {
-                transform->r = -atan2(transform->ty - transform->y, transform->tx - transform->x) * 180.0f / M_PI;
+                    if (go->position.x != tx || go->position.y != ty) {
+                        go->rotation.y = -atan2(ty - go->position.y, tx - go->position.x) * 180.0f / M_PI;
+                    }
+                    break;
+                }
+                }
             }
         }
 
@@ -192,17 +254,14 @@ namespace PMG {
                 m_componentRegistry->RemoveComponent<spawn_t>(ent);
             }
 
-            transform_t* t = m_componentRegistry->GetComponent<transform_t>(ent);
-            if (t) {
-                packet_t packet = CreatePacket<pck_unit_move_t>(PacketType::UNITMOVE, { ent, t->x, t->y, t->r });
-                tickPacket << packet;
-            }
 
-            stats_t* stats = m_componentRegistry->GetComponent<stats_t>(ent);
-            if (stats) {
-                packet_t packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { ent, stats->health, stats->max_health });
-                tickPacket << packet;
-            }
+            GameObject* go = game_objects_.find(ent)->second;
+
+            packet_t packet = CreatePacket<pck_unit_move_t>(PacketType::UNITMOVE, { ent, static_cast<float>(go->position.x), static_cast<float>(go->position.y), static_cast<float>(go->rotation.y) });
+            tickPacket << packet;
+
+            packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { ent, go->stats.health, go->stats.max_health });
+            tickPacket << packet;
 
             despawn_t* despawn = m_componentRegistry->GetComponent<despawn_t>(ent);
             if (despawn) {
