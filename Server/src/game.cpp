@@ -137,7 +137,10 @@ namespace PMG {
             if (abs(transform->x - intermediateTarget.x) < 0.001 && abs(transform->y - intermediateTarget.z) < 0.001) {
                 // Next frame we follow next?!
                 navAgent->path.pop_front();
-                intermediateTarget = navAgent->path.front();
+
+                if (!navAgent->path.empty()) {
+                    intermediateTarget = navAgent->path.front();
+                }
             }
 
             if (transform->tx != intermediateTarget.x) {

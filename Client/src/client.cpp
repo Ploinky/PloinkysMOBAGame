@@ -31,13 +31,13 @@ namespace PMG {
 
         fps = 0;
 
-        net_manager_ = new ClientNetworkManager();
-        net_manager_->Initialize();
+        net_manager_ = ClientNetworkManager();
+        net_manager_.Initialize();
 
         // TODO: this does not actually work, you know?
         Logger::Msg(std::string("Connecting to server at <").append(ip_address).append(":").append(port).append(">"));
 
-        net_manager_->ConnectToServer(ip_address, port);
+        net_manager_.ConnectToServer(ip_address, port);
     }
 
     Client::~Client() {
@@ -45,8 +45,8 @@ namespace PMG {
             delete go.second;
         }
 
-        if (net_manager_->IsConnected()) {
-            net_manager_->Close();
+        if (net_manager_.IsConnected()) {
+            net_manager_.Close();
         }
 
         if (m_map) {
@@ -224,8 +224,8 @@ namespace PMG {
     }
 
     void Client::Update(float dt) {
-        if (!net_manager_->IsConnected()) {
-            net_manager_->CheckConnected();
+        if (!net_manager_.IsConnected()) {
+            net_manager_.CheckConnected();
             return;
         }
 
@@ -262,7 +262,7 @@ namespace PMG {
             packet_t packet = {};
             packet.header.type = PacketType::CMD_STOP;
 
-            net_manager_->SendPacket(&packet);
+            net_manager_.SendPacket(&packet);
         }
 
         if (m_keys[VK_ESCAPE]) {
@@ -277,7 +277,7 @@ namespace PMG {
 
         // Network handling
         packet_t packet = {};
-        while (net_manager_->ReceivePacket(&packet)) {
+        while (net_manager_.ReceivePacket(&packet)) {
             HandleNetworkMessage(&packet);
         }
 
@@ -288,7 +288,7 @@ namespace PMG {
     
     void Client::Render() {
         // ===== Loading Screen =====
-        if (!net_manager_->IsConnected()) {
+        if (!net_manager_.IsConnected()) {
             renderer->RenderText(0, 0, 100, 100, L"Connecting");
             return;
         }
@@ -322,7 +322,7 @@ namespace PMG {
                     packet.header.type = PacketType::CMD_ATTACK;
                     packet << cmd_attack_t{ go->net_id };
 
-                    net_manager_->SendPacket(&packet);
+                    net_manager_.SendPacket(&packet);
                 }
             }
         }
@@ -340,7 +340,7 @@ namespace PMG {
             packet.header.type = PacketType::UNITMOVE;
             packet << cmd_move_t{ x, y };
 
-            net_manager_->SendPacket(&packet);
+            net_manager_.SendPacket(&packet);
         }
 
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();

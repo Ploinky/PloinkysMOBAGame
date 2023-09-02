@@ -66,7 +66,7 @@ namespace PMG {
 
             void HandleSettingChanged(std::string setting);
             
-            ClientNetworkManager* net_manager_;
+            ClientNetworkManager net_manager_;
 
             Settings settings_;
             AudioSystem audio_system_;

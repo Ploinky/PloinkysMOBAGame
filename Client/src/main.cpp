@@ -8,9 +8,6 @@
     #include <Windows.h>
 #endif
 #include <string>
-#include <dxgidebug.h>
-#include <locale>
-#include <codecvt>
 #include "util.h"
 
 std::string GetDir() {
@@ -51,7 +48,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         }
     }
 
-    if(!showConsole) {
+    if(showConsole) {
         AllocConsole();
         freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
         freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
