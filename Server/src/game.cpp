@@ -4,6 +4,7 @@
 #include "pmg_physics.h"
 #include "networking.h"
 #include "character.h"
+#include "missile.h"
 
 namespace PMG {
     unsigned long g_unitId = 0;
@@ -16,7 +17,7 @@ namespace PMG {
     void Game::AddPlayerForNetworkId(unsigned long netId) {
         for (auto go_it : game_objects_) {
             Character* go = (Character*) go_it.second;
-            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, 0, go->team, go->position.x, go->position.z });
+            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, 0, go->team, go->position.x, go->position.y });
             on_sendToClient(netId, &packet);
 
             packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { go->unit_id, go->stats.health, go->stats.max_health});
@@ -66,7 +67,7 @@ namespace PMG {
         game_objects_.emplace(game_object->unit_id, game_object);
     }
 
-    void Game::SpawnMissile(Character* missile) {
+    void Game::SpawnMissile(Missile* missile) {
         game_objects_.emplace(missile->unit_id, missile);
 
         SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, 1, missile->team, missile->position.x, missile->position.y });
@@ -87,6 +88,7 @@ namespace PMG {
 
         if (target == nullptr || target->unit_id == actor->unit_id || target->team == actor->team) {
             // nothing to attack?
+            // maybe follow if it is a friend?
             actor->current_action = new GameObjectActionStop();
         }
         else {

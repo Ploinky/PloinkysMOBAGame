@@ -6,4 +6,6 @@ namespace PMG {
         TEAM_2,
         NEUTRAL
     };
+
+    typedef unsigned long UnitId;
 }

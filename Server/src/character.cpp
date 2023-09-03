@@ -1,5 +1,6 @@
 #include "character.h"
 #include "game.h"
+#include "missile.h"
 
 namespace PMG {
 	void Character::Think(float dt, Game* game) {
@@ -11,7 +12,7 @@ namespace PMG {
             }
             case GameObjectActionType::ATTACK_UNIT: {
                 GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action;
-                Character* target = (Character*) game->GetGameObjectById(action->target_net_id);
+                Character* target = (Character*)game->GetGameObjectById(action->target_net_id);
 
                 if (target == nullptr || target->unit_id == unit_id) {
                     // nothing to attack?
@@ -63,11 +64,13 @@ namespace PMG {
                     game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
                 }
                 else {
-                    Character* basic_attack_missile = new Character();
+                    Missile* basic_attack_missile = new Missile();
                     basic_attack_missile->unit_id = game->current_entity_id_++;
-                    basic_attack_missile->current_action = new GameObjectActionMissileFollow(target->unit_id);
+                    basic_attack_missile->owner = this;
+                    basic_attack_missile->target = target;
                     basic_attack_missile->position = position;
-                    basic_attack_missile->stats.base_speed = 20;
+                    basic_attack_missile->missile_speed = 60;
+                    basic_attack_missile->damage = basic_attack_info.damage;
                     basic_attack_missile->team = team;
                     game->SpawnMissile(basic_attack_missile);
                 }
@@ -140,42 +143,6 @@ namespace PMG {
                     rotation.y = -atan2(ty - position.y, tx - position.x) * 180.0f / M_PI;
                 }
 
-                game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(rotation.y) });
-                break;
-            }
-            case GameObjectActionType::MISSILE_FOLLOW: {
-                GameObjectActionMissileFollow* action = (GameObjectActionMissileFollow*)current_action;
-                Physics::Vector3 current_position = position;
-
-                Character* target = (Character*) game->GetGameObjectById(action->target_net_id);
-
-                if (target == nullptr) {
-                    // wth?
-                    break;
-                }
-
-                Physics::Vector3 target_current_position = target->position;
-
-                Physics::Vector3 direction_vector = target_current_position - current_position;
-                Physics::Vector3 scaled = direction_vector.ScaleToLength(stats.base_speed);
-                scaled = scaled * dt;
-
-                if (scaled.Length() >= direction_vector.Length()) {
-                    // we hit?!
-                    target->stats.health -= basic_attack_info.damage;
-
-                    if (target->stats.health < 0) {
-                        target->stats.health = 0;
-                    }
-
-                    game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
-                    game->SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { unit_id });
-
-                    is_destroyed = true;
-                    break;
-                }
-
-                position = position + scaled;
                 game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(rotation.y) });
                 break;
             }

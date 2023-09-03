@@ -9,7 +9,7 @@ namespace PMG {
 	public:
 		~GameObject();
 
-		unsigned long net_id;
+		UnitId unit_id;
 		unsigned int health;
 		unsigned int max_health;
 

@@ -323,7 +323,7 @@ namespace PMG {
                 if (m_mouseButtons[2]) {
                     packet_t packet = {};
                     packet.header.type = PacketType::CMD_ATTACK;
-                    packet << cmd_attack_t{ go->net_id };
+                    packet << cmd_attack_t{ go->unit_id };
 
                     net_manager_.SendPacket(&packet);
                 }
@@ -515,7 +515,7 @@ namespace PMG {
             model->position = { pos.x, 0, pos.y };
 
             GameObject* go = new GameObject();
-            go->net_id = unitId;
+            go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
             go->mesh = model;
@@ -528,7 +528,7 @@ namespace PMG {
 
         if (team == Team::TEAM_1) {
             GameObject* red_box = new RedBox();
-            red_box->net_id = unitId;
+            red_box->unit_id = unitId;
             red_box->position = { pos.x, 0, pos.y };
             red_box->mesh->position = { pos.x, 0, pos.y };
             red_box->team;
@@ -556,7 +556,7 @@ namespace PMG {
         model->position = { pos.x, 0, pos.y };
 
         GameObject* go = new GameObject();
-        go->net_id = unitId;
+        go->unit_id = unitId;
         go->health = 50;
         go->max_health = 100;
         go->mesh = model;
@@ -715,10 +715,10 @@ namespace PMG {
             long long since = frameTime - go->position_received;
             double remaining = 100.0 - since;
 
-            Mesh* model = GetModelForUnit(go->net_id);
+            Mesh* model = GetModelForUnit(go->unit_id);
 
             if (model == nullptr) {
-                printf("No model for unit %ld\r\n", go->net_id);
+                printf("No model for unit %ld\r\n", go->unit_id);
                 continue;
             }
 

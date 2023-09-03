@@ -82,15 +82,15 @@ namespace PMG {
 
             void TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y);
 
-            void SpawnUnit(unsigned long id);
-            void SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos);
-            void DespawnUnit(unsigned long id);
+            void SpawnUnit(UnitId id);
+            void SpawnUnit(UnitId unitId, unsigned long unit_type, Team team, Physics::Vector2 pos);
+            void DespawnUnit(UnitId id);
 
-            Mesh* GetModelForUnit(unsigned long untiId);
-            GameObject* GetGameObject(unsigned long unit_id);
+            Mesh* GetModelForUnit(UnitId id);
+            GameObject* GetGameObject(UnitId unit_id);
 
             Map* m_map;
-            std::map<unsigned long, GameObject*> game_objects_;
+            std::map<UnitId, GameObject*> game_objects_;
 
             NavMesh* m_navMesh;
 
@@ -110,7 +110,7 @@ namespace PMG {
 
             int fps;
 
-            unsigned int my_unit_id_;
+            UnitId my_unit_id_;
             bool unit_id_received_ = FALSE;
 
             unsigned long current_tick_ = 0;

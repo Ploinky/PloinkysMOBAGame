@@ -13,7 +13,6 @@ namespace PMG {
 		STOP,
 		MOVE,
 		ATTACK_UNIT,
-		MISSILE_FOLLOW,
 	};
 
 	class GameObjectAction {
@@ -37,13 +36,6 @@ namespace PMG {
 	class GameObjectActionStop : public GameObjectAction {
 	public:
 		GameObjectActionStop() : GameObjectAction(GameObjectActionType::STOP) {};
-	};
-
-	class GameObjectActionMissileFollow : public GameObjectAction {
-	public:
-		GameObjectActionMissileFollow(unsigned long target_net_id) : GameObjectAction(GameObjectActionType::MISSILE_FOLLOW), target_net_id(target_net_id) {};
-
-		unsigned long target_net_id;
 	};
 
 	enum BasicAttackType {

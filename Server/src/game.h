@@ -9,6 +9,7 @@
 #include "game_object.h"
 
 namespace PMG {
+    class Missile;
     static unsigned long current_network_id_ = 0;
 
     class ComponentRegistry;
@@ -93,7 +94,7 @@ namespace PMG {
         }
 
         void AddGameObject(GameObject* game_object);
-        void SpawnMissile(Character* missile);
+        void SpawnMissile(Missile* missile);
 
         void Update(float dt);
         NavMesh* m_navMesh;
