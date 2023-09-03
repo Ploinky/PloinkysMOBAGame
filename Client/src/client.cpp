@@ -794,6 +794,10 @@ namespace PMG {
             }
         }
 
+        if (start_tick >= ticks.size()) {
+            start_tick -= 1;
+        }
+
         game_tick_t to_tick = ticks[start_tick];
 
         double remaining = to_tick.received - sim_time;
