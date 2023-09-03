@@ -13,6 +13,7 @@ namespace PMG {
 
     class ComponentRegistry;
     class NavMesh;
+    class Character;
 
     // Tickrate of the server in ms per tick
     // Lower values require a faster server and connection
@@ -67,18 +68,41 @@ namespace PMG {
         void PlayerStopCommand(unsigned long netId);
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
 
-        GameObject* GetGameObjectById(unsigned int id) {
-            return this->game_objects_.find(id)->second;
+        template<typename T>
+        packet_t CreatePacket(PacketType type, T data) {
+            packet_t packet{};
+            packet.header.type = type;
+            packet << data;
+            return packet;
         }
 
+        template<typename T>
+        void SendPacket(PacketType type, T data) {
+            packet_t packet = CreatePacket(type, data);
+            on_sendToAllClients(&packet);
+        }
+
+        GameObject* GetGameObjectById(unsigned int id) {
+            auto it = this->game_objects_.find(id);
+            
+            if (it == game_objects_.end()) {
+                return nullptr;
+            }
+
+            return it->second;
+        }
+
+        void AddGameObject(GameObject* game_object);
+        void SpawnMissile(Character* missile);
+
         void Update(float dt);
-    private:
         NavMesh* m_navMesh;
+        unsigned long gameTick = 0;
+        unsigned long current_entity_id_ = 0;
+    private:
 
         std::map<unsigned long, player_t> players_;
         std::map<unsigned int, GameObject*> game_objects_;
         float lastTick = 0;
-        unsigned long gameTick = 0;
-        unsigned long current_entity_id_ = 0;
     };
 }

@@ -107,6 +107,7 @@ namespace PMG {
 
     typedef struct pck_unit_spawn {
         unsigned long unit;
+        unsigned long unit_type;
         double x;
         double y;
     } pck_unit_spawn_t;

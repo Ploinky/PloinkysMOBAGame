@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <list>
 
 namespace PMG {
 	typedef struct {

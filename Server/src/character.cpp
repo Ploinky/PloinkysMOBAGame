@@ -1,0 +1,182 @@
+#include "character.h"
+#include "game.h"
+
+namespace PMG {
+	void Character::Think(float dt, Game* game) {
+        if (current_action != nullptr) {
+            switch (current_action->type) {
+            case GameObjectActionType::STOP: {
+                basic_attack_info.attack_started = false;
+                break;
+            }
+            case GameObjectActionType::ATTACK_UNIT: {
+                GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action;
+                Character* target = (Character*) game->GetGameObjectById(action->target_net_id);
+
+                if (target == nullptr) {
+                    // nothing to attack?
+                    break;
+                }
+
+                if ((target->position - position).Length() > basic_attack_info.range) {
+                    // move towards target?
+                    break;
+                }
+
+                // we're in range, check if we can attack
+                unsigned long long ticks_since = game->gameTick - basic_attack_info.last_attack;
+
+                // how many ms do we wait after 1 attack
+                double ms_per_attack = 1000.0 / basic_attack_info.attack_speed;
+
+                if (ticks_since * TICKRATE < ms_per_attack) {
+                    // cannot attack again yet
+                    break;
+                }
+
+                // we can attack, wtf to do now?!
+                // consider forward- and backswing as well, yikes
+                if (!basic_attack_info.attack_started) {
+                    basic_attack_info.attack_started_at = game->gameTick;
+                    basic_attack_info.attack_started = TRUE;
+                    // ok we start... do we also need to let someone know? :O
+                    break;
+                }
+
+                ticks_since = game->gameTick - basic_attack_info.attack_started_at;
+                double ms_until_hit = ms_per_attack * basic_attack_info.hit_point;
+
+                if (ticks_since * TICKRATE < ms_until_hit) {
+                    // still swinging!
+                    break;
+                }
+
+                // attack triggered!
+                if (basic_attack_info.type == MELEE) {
+                    target->stats.health -= basic_attack_info.damage;
+
+                    if (target->stats.health < 0) {
+                        target->stats.health = 0;
+                    }
+
+                    game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+                }
+                else {
+                    Character* basic_attack_missile = new Character();
+                    basic_attack_missile->unit_id = game->current_entity_id_++;
+                    basic_attack_missile->current_action = new GameObjectActionMissileFollow(target->unit_id);
+                    basic_attack_missile->position = position;
+                    game->SpawnMissile(basic_attack_missile);
+                }
+
+                basic_attack_info.last_attack = game->gameTick;
+                basic_attack_info.attack_started = FALSE;
+                break;
+            }
+            case GameObjectActionType::MOVE: {
+                basic_attack_info.attack_started = FALSE;
+                GameObjectActionMove* action = (GameObjectActionMove*)current_action;
+
+                // figure out if we're already going to target
+
+                // ======== Navigation system ========
+                nav_agent_t navAgent = nav_agent;
+                navAgent.target.x = action->target_point.x;
+                navAgent.target.z = action->target_point.y;
+
+                if (navAgent.target.x == position.x && navAgent.target.z == position.y) {
+                    // Already at target
+                    break;
+                }
+
+                if (navAgent.path.empty()) {
+                    // No path to follow, we need a new path!
+                    navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.y) }, navAgent.target);
+
+                    // New path is empty, we are requesting an invalid path
+                    if (navAgent.path.empty()) {
+                        break;
+                    }
+                    // First is our start point? yikes.
+                    navAgent.path.pop_front();
+                }
+
+                vertex_t intermediateTarget = navAgent.path.front();
+
+                if (abs(position.x - intermediateTarget.x) < 0.001 && abs(position.y - intermediateTarget.z) < 0.001) {
+                    // Next frame we follow next?!
+                    navAgent.path.pop_front();
+
+                    if (!navAgent.path.empty()) {
+                        intermediateTarget = navAgent.path.front();
+                    }
+                }
+
+                float tx = intermediateTarget.x;
+                float ty = intermediateTarget.z;
+
+                if (Physics::CompareDouble(position.x, tx) && Physics::CompareDouble(position.y, ty)) {
+                    break;
+                }
+
+                float dx = tx - position.x;
+                float dy = ty - position.y;
+                float length = sqrt(dx * dx + dy * dy);
+
+
+                dx /= length;
+                dy /= length;
+
+                float newX = position.x + 6.0f * dx * TICKRATE / 1000.0f;
+                float newY = position.y + 6.0f * dy * TICKRATE / 1000.0f;
+
+                position.x = (position.x < tx && newX >= tx) || (position.x > tx && newX <= tx) ? tx : newX;
+                position.y = (position.y < ty && newY >= ty) || (position.y > ty && newY <= ty) ? ty : newY;
+
+                if (position.x != tx || position.y != ty) {
+                    rotation.y = -atan2(ty - position.y, tx - position.x) * 180.0f / M_PI;
+                }
+
+                game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(rotation.y) });
+                break;
+            }
+            case GameObjectActionType::MISSILE_FOLLOW: {
+                GameObjectActionMissileFollow* action = (GameObjectActionMissileFollow*)current_action;
+                Physics::Vector3 current_position = position;
+
+                Character* target = (Character*) game->GetGameObjectById(action->target_net_id);
+
+                if (target == nullptr) {
+                    // wth?
+                    break;
+                }
+
+                Physics::Vector3 target_current_position = target->position;
+
+                Physics::Vector3 direction_vector = target_current_position - current_position;
+                Physics::Vector3 scaled = direction_vector.ScaleToLength(stats.base_speed);
+                scaled = scaled * dt;
+
+                if (scaled.Length() >= direction_vector.Length()) {
+                    // we hit?!
+                    target->stats.health -= basic_attack_info.damage;
+
+                    if (target->stats.health < 0) {
+                        target->stats.health = 0;
+                    }
+
+                    game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+                    game->SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { unit_id });
+
+                    is_destroyed = true;
+                    break;
+                }
+
+                position = position + scaled;
+                game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(rotation.y) });
+                break;
+            }
+            }
+        }
+	}
+}

@@ -14,8 +14,10 @@ namespace PMG::Physics {
         Vector3 operator+(const Vector3& other) const;
         Vector3 operator-(const Vector3& other) const;
         float operator*(const Vector3& other) const;
+		Vector3 operator*(double scale) const;
         bool operator==(const Vector3& other) const;
         float Length() const;
 		Vector3 Normalize() const;
+		Vector3 ScaleToLength(double length) const;
 	};
 }

@@ -16,6 +16,8 @@ namespace PMG {
 		Physics::Vector3 rotation;
 		unsigned long long position_received;
 
+		bool has_healthbar = true;
+
 		Mesh* mesh;
 	};
 }

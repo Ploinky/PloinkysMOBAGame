@@ -31,6 +31,10 @@ namespace PMG::Physics {
 			&& CompareDouble(z, other.z);
 	}
 
+	Vector3 Vector3::operator*(double scale) const {
+		return { x * scale, y * scale, z * scale };
+	}
+
 	float Vector3::Length() const {
 		return sqrt(x * x + y * y + z * z);
 	}
@@ -38,6 +42,16 @@ namespace PMG::Physics {
 	Vector3 Vector3::Normalize() const {
 		float l = Length();
 
+		if (l == 0) {
+			return { 0, 0, 0 };
+		}
+
 		return { x / l, y / l, z / l };
+	}
+
+	Vector3 Vector3::ScaleToLength(double length) const {
+		Vector3 scaled = Normalize();
+
+		return scaled * length;
 	}
 }

@@ -20,6 +20,7 @@ namespace PMG {
     typedef struct {
         int health;
         int max_health;
+        int base_speed;
     } stats_t;
 
     typedef struct {

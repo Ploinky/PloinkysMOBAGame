@@ -359,6 +359,10 @@ namespace PMG {
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
 
+            if (!go->has_healthbar) {
+                continue;
+            }
+
             Mesh* my_model = go->mesh;
 
             Physics::Vector3 point_above = Physics::Vector3{ 0, -4.5, 0 };
@@ -488,14 +492,44 @@ namespace PMG {
     }
 
     void Client::SpawnUnit(unsigned long unitId) {
-        SpawnUnit(unitId, Physics::Vector2( 0, 0 ));
+        SpawnUnit(unitId, 0, Physics::Vector2( 0, 0 ));
     }
 
-    void Client::SpawnUnit(unsigned long unitId, Physics::Vector2 pos) {
+    void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Physics::Vector2 pos) {
+        // Hacky missile hack
+        if (unit_type == 1) {
+            Mesh* model = new Mesh();
+            color_shader_vertex_t* vert = new color_shader_vertex_t[8]{
+                color_shader_vertex_t{{-0.1f, 1.0f, -0.1f}, {0, 0, 1.0f, 1}},
+                color_shader_vertex_t{{0.1f, 1.0f, 0.1f}, {0, 0, 1.0f, 1}},
+                color_shader_vertex_t{{0.1f, 1.0f, -0.1f}, {0, 0, 1.0f, 1}},
+                color_shader_vertex_t{{-0.1f, 1.0f, 0.1f}, {0, 0, 1.0f, 1}},
+            };
+
+            unsigned int* indices = new unsigned int[6] {0, 1, 2, 1, 0, 3};
+            model->vertices = vert;
+            model->vertexCount = 8;
+            model->indices = indices;
+            model->indexCount = 6;
+            model->unit = unitId;
+            model->position = { pos.x, 0, pos.y };
+
+            GameObject* go = new GameObject();
+            go->net_id = unitId;
+            go->health = 50;
+            go->max_health = 100;
+            go->mesh = model;
+            go->position = { pos.x, 0, pos.y };
+            go->rotation = { 0, 0, 0 };
+            go->has_healthbar = false;
+            game_objects_.emplace(unitId, go);
+        }
+
         if (unitId == 0) {
             GameObject* red_box = new RedBox();
             red_box->net_id = unitId;
             red_box->position = { pos.x, 0, pos.y };
+            red_box->mesh->position = { pos.x, 0, pos.y };
             game_objects_.emplace(unitId, red_box);
             return;
         }
@@ -517,6 +551,7 @@ namespace PMG {
         model->indices = indices;
         model->indexCount = 12;
         model->unit = unitId;
+        model->position = { pos.x, 0, pos.y };
 
         GameObject* go = new GameObject();
         go->net_id = unitId;
@@ -704,8 +739,6 @@ namespace PMG {
 
     void Client::HandleNetworkMessage(packet_t* packet) {
         if (packet->header.type == PacketType::GAME_TICK) {
-            Logger::Msg("GAME_TICK");
-
             pck_tick_t tick{};
             *packet >> tick;
 
@@ -717,7 +750,7 @@ namespace PMG {
             pck_unit_spawn_t spawn{};
             *packet >> spawn;
 
-            SpawnUnit(spawn.unit, Physics::Vector2{ spawn.x, spawn.y });
+            SpawnUnit(spawn.unit, spawn.unit_type, Physics::Vector2{ spawn.x, spawn.y });
         }
         else if (packet->header.type == PacketType::UNITDESPAWN) {
             Logger::Msg("UNITDESPAWN");
