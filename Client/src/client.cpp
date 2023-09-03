@@ -492,10 +492,10 @@ namespace PMG {
     }
 
     void Client::SpawnUnit(unsigned long unitId) {
-        SpawnUnit(unitId, 0, Physics::Vector2( 0, 0 ));
+        SpawnUnit(unitId, 0, Team::TEAM_1, Physics::Vector2( 0, 0 ));
     }
 
-    void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Physics::Vector2 pos) {
+    void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos) {
         // Hacky missile hack
         if (unit_type == 1) {
             Mesh* model = new Mesh();
@@ -522,14 +522,16 @@ namespace PMG {
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
+            go->team = team;
             game_objects_.emplace(unitId, go);
         }
 
-        if (unitId == 0) {
+        if (team == Team::TEAM_1) {
             GameObject* red_box = new RedBox();
             red_box->net_id = unitId;
             red_box->position = { pos.x, 0, pos.y };
             red_box->mesh->position = { pos.x, 0, pos.y };
+            red_box->team;
             game_objects_.emplace(unitId, red_box);
             return;
         }
@@ -560,6 +562,7 @@ namespace PMG {
         go->mesh = model;
         go->position = { pos.x, 0, pos.y };
         go->rotation = { 0, 0, 0 };
+        go->team = team;
         game_objects_.emplace(unitId, go);
     }
 
@@ -750,7 +753,7 @@ namespace PMG {
             pck_unit_spawn_t spawn{};
             *packet >> spawn;
 
-            SpawnUnit(spawn.unit, spawn.unit_type, Physics::Vector2{ spawn.x, spawn.y });
+            SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
         }
         else if (packet->header.type == PacketType::UNITDESPAWN) {
             Logger::Msg("UNITDESPAWN");

@@ -5,8 +5,10 @@
 
 namespace PMG {
     Mesh::~Mesh() {
-        vertexBuffer->Release();
-        indexBuffer->Release();
+        if (initialized) {
+            vertexBuffer->Release();
+            indexBuffer->Release();
+        }
     }
 
     bool Mesh::Initialize(Direct3D* direct3D) {

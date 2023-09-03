@@ -14,10 +14,9 @@ namespace PMG {
     }
 
     void Game::AddPlayerForNetworkId(unsigned long netId) {
-
         for (auto go_it : game_objects_) {
             Character* go = (Character*) go_it.second;
-            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, 0, go->position.x, go->position.z });
+            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, 0, go->team, go->position.x, go->position.z });
             on_sendToClient(netId, &packet);
 
             packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { go->unit_id, go->stats.health, go->stats.max_health});
@@ -32,6 +31,14 @@ namespace PMG {
         Character* game_object = new Character();
         game_object->current_action = nullptr;
         game_object->unit_id = id;
+
+        if (players_.size() % 2 == 0) {
+            game_object->team = Team::TEAM_1;
+        }
+        else {
+            game_object->team = Team::TEAM_2;
+        }
+
         game_objects_.emplace(id, game_object);
 
         player_t player{};
@@ -39,7 +46,7 @@ namespace PMG {
         player.unitId = id;
         players_.emplace(netId, player);
 
-        packet = CreatePacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { id, 0, 0 });
+        packet = CreatePacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, 0, game_object->team, 0, 0 });
         on_sendToAllClients(&packet);
 
         packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
@@ -62,7 +69,7 @@ namespace PMG {
     void Game::SpawnMissile(Character* missile) {
         game_objects_.emplace(missile->unit_id, missile);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, 1, missile->position.x, missile->position.y });
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, 1, missile->team, missile->position.x, missile->position.y });
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
@@ -75,7 +82,16 @@ namespace PMG {
     }
 
     void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
-        ((Character*) game_objects_.find(players_.find(netId)->second.unitId)->second)->current_action = new GameObjectActionAttackUnit(target_id);
+        Character* actor = (Character*)game_objects_.find(players_.find(netId)->second.unitId)->second;
+        Character* target = (Character*)GetGameObjectById(target_id);
+
+        if (target == nullptr || target->unit_id == actor->unit_id || target->team == actor->team) {
+            // nothing to attack?
+            actor->current_action = new GameObjectActionStop();
+        }
+        else {
+            actor->current_action = new GameObjectActionAttackUnit(target_id);
+        }
     }
 
     void Game::Start() {

@@ -145,6 +145,7 @@
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\pmg_types.h" />
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\navigation.h" />
     <ClInclude Include="src\networking.h" />

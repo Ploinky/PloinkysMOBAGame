@@ -13,8 +13,9 @@ namespace PMG {
                 GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action;
                 Character* target = (Character*) game->GetGameObjectById(action->target_net_id);
 
-                if (target == nullptr) {
+                if (target == nullptr || target->unit_id == unit_id) {
                     // nothing to attack?
+                    this->current_action = new GameObjectActionStop();
                     break;
                 }
 
@@ -66,6 +67,8 @@ namespace PMG {
                     basic_attack_missile->unit_id = game->current_entity_id_++;
                     basic_attack_missile->current_action = new GameObjectActionMissileFollow(target->unit_id);
                     basic_attack_missile->position = position;
+                    basic_attack_missile->stats.base_speed = 20;
+                    basic_attack_missile->team = team;
                     game->SpawnMissile(basic_attack_missile);
                 }
 

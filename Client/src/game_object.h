@@ -2,6 +2,7 @@
 
 #include "mesh.h"
 #include "pmg_physics.h"
+#include "pmg_types.h"
 
 namespace PMG {
 	class GameObject {
@@ -17,6 +18,8 @@ namespace PMG {
 		unsigned long long position_received;
 
 		bool has_healthbar = true;
+
+		Team team;
 
 		Mesh* mesh;
 	};

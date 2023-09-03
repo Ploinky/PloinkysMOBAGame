@@ -44,5 +44,8 @@
     <ClInclude Include="src\packets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\pmg_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pmg_types.h"
+
 namespace PMG {
     enum class PacketType {
         UNITSPAWN,
@@ -108,6 +110,7 @@ namespace PMG {
     typedef struct pck_unit_spawn {
         unsigned long unit;
         unsigned long unit_type;
+        Team team;
         double x;
         double y;
     } pck_unit_spawn_t;

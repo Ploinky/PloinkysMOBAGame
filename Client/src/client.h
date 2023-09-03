@@ -83,7 +83,7 @@ namespace PMG {
             void TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y);
 
             void SpawnUnit(unsigned long id);
-            void SpawnUnit(unsigned long unitId, unsigned long unit_type, Physics::Vector2 pos);
+            void SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos);
             void DespawnUnit(unsigned long id);
 
             Mesh* GetModelForUnit(unsigned long untiId);
