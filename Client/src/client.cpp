@@ -714,16 +714,17 @@ namespace PMG {
         int start_tick = ticks.size() - 1;
         for (; start_tick >= 0; start_tick--) {
             if (ticks[start_tick].received <= sim_time) {
+                start_tick += 1;
                 break;
             }
         }
 
-        if (start_tick < 0) {
+        if (start_tick < 0 || start_tick > ticks.size()) {
             // mhm...
             return;
         }
 
-        while (start_tick >= current_tick_ + 1) {
+        while (start_tick >= current_tick_ + 2) {
             // uhm? we're missing some ticks?
             game_tick_t tick = ticks[current_tick_];
 
@@ -793,15 +794,17 @@ namespace PMG {
             }
         }
 
-        if (start_tick + 1 >= ticks.size()) {
-            // waiting for server to catch up :O
-            return;
+        game_tick_t to_tick = ticks[start_tick];
+
+        double remaining = to_tick.received - sim_time;
+
+        double next_dt = 0;
+
+        if (dt > remaining) {
+            next_dt = dt - remaining;
+            dt = remaining;
         }
-
-        game_tick_t from_tick = ticks[start_tick];
-        game_tick_t to_tick = ticks[start_tick + 1];
-
-        double diff = (sim_time - from_tick.received) / (1000.0 / 30.0);
+        double diff = dt / remaining;
 
         packet_t packet_copy = to_tick.packet;
         packet_t* packet = &packet_copy;
