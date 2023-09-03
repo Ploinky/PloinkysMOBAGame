@@ -36,6 +36,11 @@ namespace PMG {
     } unit_t;
     
     class Client {
+        typedef struct {
+            unsigned long long received;
+            packet_t packet;
+        } game_tick_t;
+
         public:
             Client(std::string ip_address, std::string port);
             ~Client();
@@ -114,5 +119,6 @@ namespace PMG {
             bool unit_id_received_ = FALSE;
 
             unsigned long current_tick_ = 0;
+            std::vector<game_tick_t> ticks;
     };
 }

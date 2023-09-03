@@ -708,7 +708,166 @@ namespace PMG {
             unit->rot = lastR;
         }
         */
+        
+        unsigned long long sim_time = frameTime - 50;
 
+        int start_tick = ticks.size() - 1;
+        for (; start_tick >= 0; start_tick--) {
+            if (ticks[start_tick].received <= sim_time) {
+                break;
+            }
+        }
+
+        if (start_tick < 0) {
+            // mhm...
+            return;
+        }
+
+        while (start_tick >= current_tick_ + 1) {
+            // uhm? we're missing some ticks?
+            game_tick_t tick = ticks[current_tick_];
+
+            packet_t packet_copy = tick.packet;
+            packet_t* packet = &packet_copy;
+
+            unsigned long tick_index;
+            *packet >> tick_index;
+            current_tick_ = tick_index + 1;
+            while (packet->data.size() > 0) {
+                packet_t tickData{};
+                *packet >> tickData;
+
+                switch (tickData.header.type) {
+                case PacketType::UNITSPAWN: {
+                    pck_unit_spawn_t spawn{};
+                    tickData >> spawn;
+
+                    SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
+                    break;
+                }
+                case PacketType::UNITMOVE:
+                case PacketType::UNITIDLE: {
+                    pck_unit_move_t move{};
+                    tickData >> move;
+
+                    GameObject* go = GetGameObject(move.unit);
+                    go->position.x = move.x;
+                    go->position.z = move.y;
+                    go->rotation.y = move.r;
+
+                    Mesh* model = GetModelForUnit(go->unit_id);
+
+                    if (model == nullptr) {
+                        printf("No model for unit %ld\r\n", go->unit_id);
+                        continue;
+                    }
+
+                    model->position.x = go->position.x;
+                    model->position.z = go->position.z;
+                    model->rotation.y = go->rotation.y;
+
+                    break;
+                }
+                case PacketType::UNITDESPAWN: {
+                    pck_unit_despawn_t pck{};
+                    tickData >> pck;
+                    DespawnUnit(pck.unit);
+                    break;
+                }
+                case PacketType::PCK_STATS: {
+                    pck_unit_stats_t stats{};
+                    tickData >> stats;
+
+                    GameObject* go = GetGameObject(stats.unit);
+
+                    if (go == nullptr) {
+                        Logger::Msg("WARNING: received stats message for unknown object");
+                        break;
+                    }
+
+                    go->health = stats.health;
+                    go->max_health = stats.max_health;
+                    break;
+                }
+                }
+            }
+        }
+
+        if (start_tick + 1 >= ticks.size()) {
+            // waiting for server to catch up :O
+            return;
+        }
+
+        game_tick_t from_tick = ticks[start_tick];
+        game_tick_t to_tick = ticks[start_tick + 1];
+
+        double diff = (sim_time - from_tick.received) / (1000.0 / 30.0);
+
+        packet_t packet_copy = to_tick.packet;
+        packet_t* packet = &packet_copy;
+
+        unsigned long tick_index;
+        *packet >> tick_index;
+        current_tick_ = tick_index;
+        while (packet->data.size() > 0) {
+            packet_t tickData{};
+            *packet >> tickData;
+
+            switch (tickData.header.type) {
+            case PacketType::UNITSPAWN: {
+                pck_unit_spawn_t spawn{};
+                tickData >> spawn;
+
+                SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
+                break;
+            }
+            case PacketType::UNITMOVE:
+            case PacketType::UNITIDLE: {
+                pck_unit_move_t move{};
+                tickData >> move;
+
+                GameObject* go = GetGameObject(move.unit);
+                go->position.x = move.x;
+                go->position.z = move.y;
+                go->rotation.y = move.r;
+
+                Mesh* model = GetModelForUnit(go->unit_id);
+
+                if (model == nullptr) {
+                    printf("No model for unit %ld\r\n", go->unit_id);
+                    continue;
+                }
+
+                model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
+                model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
+                model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
+
+                break;
+            }
+            case PacketType::UNITDESPAWN: {
+                UnitId id;
+                tickData >> id;
+                DespawnUnit(id);
+                break;
+            }
+            case PacketType::PCK_STATS: {
+                pck_unit_stats_t stats{};
+                tickData >> stats;
+
+                GameObject* go = GetGameObject(stats.unit);
+
+                if (go == nullptr) {
+                    Logger::Msg("WARNING: received stats message for unknown object");
+                    break;
+                }
+
+                go->health = stats.health;
+                go->max_health = stats.max_health;
+                break;
+            }
+            }
+        }
+        /*
         // smooth as heck but wtf? :O
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
@@ -736,16 +895,56 @@ namespace PMG {
             model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
             model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
             model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
-
         }
+        */
     }
 
     void Client::HandleNetworkMessage(packet_t* packet) {
         if (packet->header.type == PacketType::GAME_TICK) {
-            pck_tick_t tick{};
-            *packet >> tick;
+            game_tick_t newTick{};
+            newTick.packet = *packet;
+            newTick.received = Util::GetSystemTime();
 
-            current_tick_ = tick.tick;
+            /*
+            game_tick_t newTick{};
+            *packet >> newTick.index;
+            newTick.index = static_cast<unsigned long>(ticks.size());
+
+            while (packet->data.size() > 0) {
+                packet_t tickData{};
+                *packet >> tickData;
+
+                switch (tickData.header.type) {
+                case PacketType::UNITSPAWN: {
+                    pck_unit_spawn_t pck{};
+                    tickData >> pck;
+
+                    unit_t unit = { Physics::Vector2{ pck.x, pck.y }, 0, pck.unit };
+                    SpawnUnit(unit.unitId);
+
+                    newTick.units.push_back(unit);
+                    break;
+                }
+                case PacketType::UNITMOVE:
+                case PacketType::UNITIDLE: {
+                    pck_unit_move_t move{};
+                    tickData >> move;
+                    unit_t unit = { {move.x, move.y}, move.r, move.unit };
+                    newTick.units.push_back(unit);
+
+                    break;
+                }
+                case PacketType::UNITDESPAWN: {
+                    unsigned long id;
+                    tickData >> id;
+                    DespawnUnit(id);
+                    break;
+                }
+                }
+            }
+            */
+            newTick.received = Util::GetSystemTime();
+            ticks.push_back(newTick);
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
             Logger::Msg("UNITSPAWN");
@@ -800,7 +999,7 @@ namespace PMG {
         }
     }
 
-    GameObject* Client::GetGameObject(unsigned long unit_id) {
+    GameObject* Client::GetGameObject(UnitId unit_id) {
         auto it = game_objects_.find(unit_id);
 
         if (it == game_objects_.end()) {

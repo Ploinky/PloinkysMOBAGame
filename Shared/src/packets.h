@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pmg_types.h"
+#include <vector>
 
 namespace PMG {
     enum class PacketType {
@@ -96,10 +97,6 @@ namespace PMG {
     }
 
     // ====== Server -> Client packets ======
-    typedef struct {
-        unsigned long tick;
-    } pck_tick_t;
-
     typedef struct pck_unit_move {
         unsigned int unit;
         float x;

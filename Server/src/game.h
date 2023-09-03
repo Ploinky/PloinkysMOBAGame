@@ -80,7 +80,7 @@ namespace PMG {
         template<typename T>
         void SendPacket(PacketType type, T data) {
             packet_t packet = CreatePacket(type, data);
-            on_sendToAllClients(&packet);
+            tick_packets.push_back(packet);
         }
 
         GameObject* GetGameObjectById(unsigned int id) {
@@ -100,6 +100,9 @@ namespace PMG {
         NavMesh* m_navMesh;
         unsigned long gameTick = 0;
         unsigned long current_entity_id_ = 0;
+
+        std::vector<packet_t> tick_packets;
+        std::vector<packet_t> all_ticks;
     private:
 
         std::map<unsigned long, player_t> players_;

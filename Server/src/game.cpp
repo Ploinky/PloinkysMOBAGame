@@ -15,13 +15,8 @@ namespace PMG {
     }
 
     void Game::AddPlayerForNetworkId(unsigned long netId) {
-        for (auto go_it : game_objects_) {
-            Character* go = (Character*) go_it.second;
-            packet_t packet = CreatePacket<pck_unit_spawn>(PacketType::UNITSPAWN, { go->unit_id, 0, go->team, go->position.x, go->position.y });
-            on_sendToClient(netId, &packet);
-
-            packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { go->unit_id, go->stats.health, go->stats.max_health});
-            on_sendToAllClients(&packet);
+        for (auto tick : all_ticks) {
+            on_sendToClient(netId, &tick);
         }
 
         entity_id id = current_entity_id_++;
@@ -47,16 +42,12 @@ namespace PMG {
         player.unitId = id;
         players_.emplace(netId, player);
 
-        packet = CreatePacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, 0, game_object->team, 0, 0 });
-        on_sendToAllClients(&packet);
-
-        packet = CreatePacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
-        on_sendToAllClients(&packet);
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, 0, game_object->team, 0, 0 });
+        SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
-        packet_t packet = CreatePacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { players_.find(netId)->second.unitId });
-        on_sendToAllClients(&packet);
+        SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { players_.find(netId)->second.unitId });
 
         GameObject* go = game_objects_.find(players_.find(netId)->second.unitId)->second;
         game_objects_.erase(go->unit_id);
@@ -109,16 +100,26 @@ namespace PMG {
         }
 
         // Next gametick -> wrap to zero at start. Yikes...
-        gameTick++;
         lastTick -= TICKRATE / 1000.0f;
-
-        packet_t packet = CreatePacket<pck_tick_t>(PacketType::GAME_TICK, { gameTick });
-        on_sendToAllClients(&packet);
 
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
             go->Think(dt, this);
         }
+
+        packet_t packet{};
+        packet.header.type = PacketType::GAME_TICK;
+
+        for (packet_t pack : tick_packets) {
+            packet << pack;
+        }
+
+        packet << gameTick++;
+        all_ticks.push_back(packet);
+
+        on_sendToAllClients(&packet);
+
+        tick_packets.clear();
 
         std::erase_if(game_objects_, [](auto& kv) { return kv.second->is_destroyed; });
     }
