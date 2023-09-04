@@ -648,7 +648,7 @@ namespace PMG {
         int current_tick_index = ticks.size() - 1;
         game_tick_t current_tick = ticks[current_tick_index];
 
-        double frame_dt = (1000.0 / 60.0) - (frameTime - current_tick.received);
+        double frame_dt = (1000.0 / 60.0) + 20 - (frameTime - current_tick.received);
         
         while (frame_dt > (1000.0 / 60.0)) {
             frame_dt -= (1000.0 / 60.0);
