@@ -617,14 +617,14 @@ namespace PMG {
         int current_tick_index = ticks.size() - 1;
         game_tick_t current_tick = ticks[current_tick_index];
 
-        double frame_dt = 100.0 - (frameTime - current_tick.received);
+        double frame_dt = (1000.0 / 60.0) - (frameTime - current_tick.received);
         
-        while (frame_dt > (1000.0 / 30.0)) {
+        while (frame_dt > (1000.0 / 60.0)) {
             frame_dt -= (1000.0 / 30.0);
             current_tick_index--;
         }
 
-        double remaining = (1000.0 / 30.0)  - ((1000.0 / 30.0) - frame_dt);
+        double remaining = (1000.0 / 60.0)  - ((1000.0 / 60.0) - frame_dt);
         double diff = dt / (double)remaining;
         if (diff > 1) {
             // this we can do better?!

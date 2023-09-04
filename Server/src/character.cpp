@@ -172,7 +172,6 @@ namespace PMG {
                 if ((game->gameTick - spell_cast_info.cast_time) * TICKRATE > spell->cast_point) {
                     // spell cast succesfully
                     // wtf now?
-                    printf("SPELL WAS CAST\n");
                     current_action = new CharacterActionStop();
                     spell_cast_info.current_spell = -1;
                     spell_cast_info.cast_time = 0;
