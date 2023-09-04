@@ -578,136 +578,6 @@ namespace PMG {
 
     void Client::HandleTicks(float dt) {
         long long frameTime = Util::GetSystemTime();
-        /*
-
-
-        if (ticks.size() <= 3) {
-            // We need at least 2 frames for interpolation
-            return;
-        }
-
-        // local client time of first received packet
-        long long startTime = ticks.front().received;
-
-        // total time elapsed since first packet
-        long long totalTime = frameTime - ticks.front().received;
-
-        // current frame that we are rendering, including fraction
-        double currentFrame = totalTime / (1000.0 / 30.0);
-
-        // little hacky, this integer cutoff?
-        int startFrame = static_cast<int>(currentFrame);
-        int endFrame = static_cast<int>(startFrame) + 1;
-
-        if (endFrame >= ticks.size()) {
-            return;
-        }
-
-        game_tick_t lastTick = ticks[endFrame];
-        game_tick_t nextLastTick = ticks[startFrame];
-
-        float diff = static_cast<float>(currentFrame) - ((int)currentFrame);
-
-
-        nextLastTick = ticks[ticks.size() - 3];
-        lastTick = ticks[ticks.size() - 2];
-
-        long long since_c = frameTime - nextLastTick.received;
-        diff = since_c / (1000.0 / 30.0);
-
-        if (diff >= 1) {
-            nextLastTick = ticks[ticks.size() - 2];
-            lastTick = ticks[ticks.size() - 1];
-
-            since_c = frameTime - nextLastTick.received;
-            diff = since_c / (1000.0 / 30.0);
-        }
-
-
-        for (auto go_it : game_objects_) {
-            GameObject* unit = go_it.second;
-            float lastX = unit->position.x;
-            float lastY = unit->position.y;
-            float lastR = unit->rotation.y;
-            float nextLastX = unit->position.x;
-            float nextLastY = unit->position.y;
-            float nextLastR = unit->rotation.y;
-
-            for (auto lastUnit = lastTick.units.begin(); lastUnit != lastTick.units.end(); ++lastUnit) {
-                if (lastUnit->unitId == unit->net_id) {
-                    lastX = lastUnit->pos.x;
-                    lastY = lastUnit->pos.y;
-                    lastR = lastUnit->rot;
-                }
-            }
-
-            for (auto nextLastUnit = nextLastTick.units.begin(); nextLastUnit != nextLastTick.units.end(); ++nextLastUnit) {
-                if (nextLastUnit->unitId == unit->net_id) {
-                    nextLastX = nextLastUnit->pos.x;
-                    nextLastY = nextLastUnit->pos.y;
-                    nextLastR = nextLastUnit->rot;
-                }
-            }
-
-            Mesh* model = unit->mesh;
-
-            if (model == nullptr) {
-                printf("No model for unit %ld\r\n", unit->net_id);
-                continue;
-            }
-
-            // Interpolate from second to last to last tick
-            model->position.x = nextLastX + (lastX - nextLastX) * diff;
-            model->position.z = nextLastY + (lastY - nextLastY) * diff;
-            model->rotation.y = nextLastR + (lastR - nextLastR) * diff;
-
-            unit->position.x = lastX;
-            unit->position.y = lastY;
-            unit->rotation.y = lastR;
-        }
-
-
-
-        // Maybe we don't need to do the whole game tick thing :O
-        game_tick_t c_tick = ticks[ticks.size() - 3];
-        game_tick_t b_tick = ticks[ticks.size() - 2];
-        game_tick_t a_tick = ticks[ticks.size() - 1];
-
-        long long since_c = frameTime - c_tick.received;
-        float diff = since_c / (1000.0 / 30.0);
-
-        game_tick_t current_tick = b_tick;
-
-        for (auto unit = units.begin(); unit != units.end(); unit++) {
-            float lastX = unit->pos.x;
-            float lastY = unit->pos.y;
-            float lastR = unit->rot;
-
-            for (auto tick_unit = current_tick.units.begin(); tick_unit != current_tick.units.end(); ++tick_unit) {
-                if (tick_unit->unitId == unit->unitId) {
-                    lastX = tick_unit->pos.x;
-                    lastY = tick_unit->pos.y;
-                    lastR = tick_unit->rot;
-                }
-            }
-
-            Mesh* model = GetModelForUnit(unit->unitId);
-
-            if (model == nullptr) {
-                printf("No model for unit %ld\r\n", unit->unitId);
-                continue;
-            }
-
-            // Interpolate to new position
-            model->position.x = model->position.x + (lastX - model->position.x) * diff;
-            model->position.z = model->position.z + (lastY - model->position.z) * diff;
-            model->rotation.y = model->rotation.y + (lastR - model->rotation.y) * diff;
-
-            unit->pos.x = lastX;
-            unit->pos.y = lastY;
-            unit->rot = lastR;
-        }
-        */
         
         unsigned long long sim_time = frameTime - 100;
 
@@ -728,76 +598,14 @@ namespace PMG {
             // uhm? we're missing some ticks?
             game_tick_t tick = ticks[current_tick_];
 
-            packet_t packet_copy = tick.packet;
-            packet_t* packet = &packet_copy;
+            SimulateTick(tick, 1);
 
-            unsigned long tick_index;
-            *packet >> tick_index;
-            current_tick_ = tick_index + 1;
-            while (packet->data.size() > 0) {
-                packet_t tickData{};
-                *packet >> tickData;
-
-                switch (tickData.header.type) {
-                case PacketType::UNITSPAWN: {
-                    pck_unit_spawn_t spawn{};
-                    tickData >> spawn;
-
-                    SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
-                    break;
-                }
-                case PacketType::UNITMOVE:
-                case PacketType::UNITIDLE: {
-                    pck_unit_move_t move{};
-                    tickData >> move;
-
-                    GameObject* go = GetGameObject(move.unit);
-                    go->position.x = move.x;
-                    go->position.z = move.y;
-                    go->rotation.y = move.r;
-
-                    Mesh* model = GetModelForUnit(go->unit_id);
-
-                    if (model == nullptr) {
-                        printf("No model for unit %ld\r\n", go->unit_id);
-                        continue;
-                    }
-
-                    model->position.x = go->position.x;
-                    model->position.z = go->position.z;
-                    model->rotation.y = go->rotation.y;
-
-                    break;
-                }
-                case PacketType::UNITDESPAWN: {
-                    pck_unit_despawn_t pck{};
-                    tickData >> pck;
-                    DespawnUnit(pck.unit);
-                    break;
-                }
-                case PacketType::PCK_STATS: {
-                    pck_unit_stats_t stats{};
-                    tickData >> stats;
-
-                    GameObject* go = GetGameObject(stats.unit);
-
-                    if (go == nullptr) {
-                        Logger::Msg("WARNING: received stats message for unknown object");
-                        break;
-                    }
-
-                    go->health = stats.health;
-                    go->max_health = stats.max_health;
-                    break;
-                }
-                }
-            }
+            current_tick_++;
         }
 
         if (start_tick >= ticks.size()) {
             start_tick -= 1;
         }
-
 
         int current_tick_index = ticks.size() - 1;
         game_tick_t current_tick = ticks[current_tick_index];
@@ -812,25 +620,24 @@ namespace PMG {
         double remaining = (1000.0 / 30.0)  - ((1000.0 / 30.0) - frame_dt);
         double diff = dt / (double)remaining;
         if (diff > 1) {
+            // this we can do better?!
             diff = 1;
         }
         current_tick = ticks[current_tick_index];
-        /*
 
-        game_tick_t to_tick = ticks[start_tick];
-
-        double remaining = to_tick.received - sim_time;
-
-        double diff = dt / remaining;
-        */
         game_tick_t to_tick = current_tick;
 
-        packet_t packet_copy = to_tick.packet;
+        SimulateTick(to_tick, diff);
+    }
+
+    void Client::SimulateTick(game_tick_t& tick, double diff) {
+        packet_t packet_copy = tick.packet;
         packet_t* packet = &packet_copy;
 
         unsigned long tick_index;
         *packet >> tick_index;
         current_tick_ = tick_index;
+
         while (packet->data.size() > 0) {
             packet_t tickData{};
             *packet >> tickData;
@@ -889,36 +696,6 @@ namespace PMG {
             }
             }
         }
-        /*
-        // smooth as heck but wtf? :O
-        for (auto go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            long long since = frameTime - go->position_received;
-            double remaining = 100.0 - since;
-
-            Mesh* model = GetModelForUnit(go->unit_id);
-
-            if (model == nullptr) {
-                printf("No model for unit %ld\r\n", go->unit_id);
-                continue;
-            }
-
-            if (remaining < 0) {
-                model->position.x = go->position.x;
-                model->position.z = go->position.z;
-                model->rotation.y = go->rotation.y;
-                // uuuuh..... this seems wrong
-                continue;
-            }
-
-            double diff = dt / remaining;
-
-            // Interpolate to new position
-            model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
-            model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
-            model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
-        }
-        */
     }
 
     void Client::HandleNetworkMessage(packet_t* packet) {

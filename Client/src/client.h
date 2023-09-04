@@ -80,6 +80,7 @@ namespace PMG {
             void Update(float dt);
 
             void HandleNetworkMessage(packet_t* packet);
+            void SimulateTick(game_tick_t& tick, double diff);
             void HandleTicks(float dt);
 
             void Render();
