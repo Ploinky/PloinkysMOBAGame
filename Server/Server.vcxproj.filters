@@ -45,6 +45,9 @@
     <ClCompile Include="src\missile.cpp">
       <Filter>Source Files\game_object</Filter>
     </ClCompile>
+    <ClCompile Include="src\spell.cpp">
+      <Filter>Source Files\game_object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\components.h">
@@ -72,6 +75,9 @@
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
     <ClInclude Include="src\missile.h">
+      <Filter>Header Files\game_object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spell.h">
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
   </ItemGroup>

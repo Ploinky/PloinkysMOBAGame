@@ -15,6 +15,7 @@ namespace PMG {
         CMD_NOT_READY,
         CMD_STOP,
         CMD_ATTACK,
+        CMD_CAST,
         PCK_CLIENT_UNIT_ID,
         PCK_STATS,
     };
@@ -138,4 +139,8 @@ namespace PMG {
     typedef struct cmd_attack {
         unsigned int target_unit;
     } cmd_attack_t;
+
+    typedef struct {
+        int spell_slot;
+    } cmd_cast_t;
 }

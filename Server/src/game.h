@@ -68,6 +68,7 @@ namespace PMG {
         void PlayerMoveCommand(unsigned long netId, float nx, float ny);
         void PlayerStopCommand(unsigned long netId);
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
+        void PlayerCastSpellCommand(unsigned long netId, int spell_slot);
 
         template<typename T>
         packet_t CreatePacket(PacketType type, T data) {

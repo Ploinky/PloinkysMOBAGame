@@ -268,6 +268,13 @@ namespace PMG {
             net_manager_.SendPacket(&packet);
         }
 
+        if (m_keys['q']) {
+            packet_t packet{};
+            packet.header.type = PacketType::CMD_CAST;
+            packet << 0;
+            net_manager_.SendPacket(&packet);
+        }
+
         if (m_keys[VK_ESCAPE]) {
             isRunning = false;
         }

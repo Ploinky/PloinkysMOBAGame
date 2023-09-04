@@ -78,6 +78,12 @@ namespace PMG {
                 m_game->PlayerAttackCommand(clientId, attack.target_unit);
                 break;
             }
+            case PacketType::CMD_CAST: {
+                cmd_cast_t cast{};
+                *packet >> cast;
+                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot);
+                break;
+            }
         }
     }
 

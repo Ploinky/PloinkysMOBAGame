@@ -65,12 +65,12 @@ namespace PMG {
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
-        ((Character*) game_objects_.find(players_.find(netId)->second.unitId)->second)->current_action = new GameObjectActionMove({ nx, ny, 0 });
+        ((Character*) game_objects_.find(players_.find(netId)->second.unitId)->second)->current_action = new CharacterActionMove({ nx, ny, 0 });
     }
 
     void Game::PlayerStopCommand(unsigned long netId) {
 
-        ((Character*) game_objects_.find(players_.find(netId)->second.unitId)->second)->current_action = new GameObjectActionStop();
+        ((Character*) game_objects_.find(players_.find(netId)->second.unitId)->second)->current_action = new CharacterActionStop();
     }
 
     void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
@@ -80,11 +80,17 @@ namespace PMG {
         if (target == nullptr || target->unit_id == actor->unit_id || target->team == actor->team) {
             // nothing to attack?
             // maybe follow if it is a friend?
-            actor->current_action = new GameObjectActionStop();
+            actor->current_action = new CharacterActionStop();
         }
         else {
-            actor->current_action = new GameObjectActionAttackUnit(target_id);
+            actor->current_action = new CharacterActionAttackUnit(target_id);
         }
+    }
+
+    void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot) {
+        Character* actor = (Character*) GetGameObjectById(players_.find(netId)->second.unitId);
+
+        actor->current_action = new CharacterActionCastSpell(spell_slot);
     }
 
     void Game::Start() {

@@ -1,22 +1,24 @@
 #include "character.h"
 #include "game.h"
 #include "missile.h"
+#include "logger.h"
 
 namespace PMG {
 	void Character::Think(float dt, Game* game) {
         if (current_action != nullptr) {
             switch (current_action->type) {
-            case GameObjectActionType::STOP: {
+            case CharacterActionType::STOP: {
                 basic_attack_info.attack_started = false;
+                spell_cast_info.current_spell = -1;
                 break;
             }
-            case GameObjectActionType::ATTACK_UNIT: {
-                GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action;
+            case CharacterActionType::ATTACK_UNIT: {
+                CharacterActionAttackUnit* action = (CharacterActionAttackUnit*)current_action;
                 Character* target = (Character*)game->GetGameObjectById(action->target_net_id);
 
                 if (target == nullptr || target->unit_id == unit_id) {
                     // nothing to attack?
-                    this->current_action = new GameObjectActionStop();
+                    this->current_action = new CharacterActionStop();
                     break;
                 }
 
@@ -79,9 +81,10 @@ namespace PMG {
                 basic_attack_info.attack_started = FALSE;
                 break;
             }
-            case GameObjectActionType::MOVE: {
-                basic_attack_info.attack_started = FALSE;
-                GameObjectActionMove* action = (GameObjectActionMove*)current_action;
+            case CharacterActionType::MOVE: {
+                basic_attack_info.attack_started = false;
+                spell_cast_info.current_spell = -1;
+                CharacterActionMove* action = (CharacterActionMove*)current_action;
 
                 // figure out if we're already going to target
 
@@ -145,6 +148,37 @@ namespace PMG {
 
                 game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(rotation.y) });
                 break;
+            }
+            case CharacterActionType::CAST_SPELL: {
+                CharacterActionCastSpell* action = (CharacterActionCastSpell*)current_action;
+                
+                if (action->spell_index < 0 || action->spell_index >= spells.size()) {
+                    // cannot cast spell that does not exist
+                    Logger::Err("Error: Attempt to cast spell that does not exist.");
+                    current_action = new CharacterActionStop();
+                    break;
+                }
+
+                // no spell being cast yet
+                if (spell_cast_info.current_spell == -1) {
+                    spell_cast_info.current_spell = action->spell_index;
+                    spell_cast_info.cast_time = game->gameTick;
+                    // TODO send packet to let clients know what's happening
+                    break;
+                }
+
+                Spell* spell = spells[action->spell_index];
+
+                if ((game->gameTick - spell_cast_info.cast_time) * TICKRATE > spell->cast_point) {
+                    // spell cast succesfully
+                    // wtf now?
+                    printf("SPELL WAS CAST\n");
+                    current_action = new CharacterActionStop();
+                    spell_cast_info.current_spell = -1;
+                    spell_cast_info.cast_time = 0;
+                    spell->TargetHit(game, this);
+                    break;
+                }
             }
             }
         }

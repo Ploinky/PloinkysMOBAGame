@@ -154,6 +154,7 @@
     <ClCompile Include="src\missile.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
     <ClCompile Include="src\server.cpp" />
+    <ClCompile Include="src\spell.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="src\missile.h" />
     <ClInclude Include="src\network_manager.h" />
     <ClInclude Include="src\server.h" />
+    <ClInclude Include="src\spell.h" />
     <ClInclude Include="src\util.h" />
   </ItemGroup>
   <ItemGroup>
