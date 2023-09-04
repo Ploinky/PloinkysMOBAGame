@@ -313,7 +313,7 @@ namespace PMG {
             m_sceneHeight);
         
         bool pointing_at_unit = FALSE;
-        for (auto go_it : game_objects_) {
+        for (auto &go_it : game_objects_) {
             GameObject* go = go_it.second;
             Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
             if (Physics::TestCollision(ray, sphere)) {
@@ -709,7 +709,7 @@ namespace PMG {
         }
         */
         
-        unsigned long long sim_time = frameTime - 50;
+        unsigned long long sim_time = frameTime - 100;
 
         int start_tick = ticks.size() - 1;
         for (; start_tick >= 0; start_tick--) {
@@ -798,17 +798,32 @@ namespace PMG {
             start_tick -= 1;
         }
 
+
+        int current_tick_index = ticks.size() - 1;
+        game_tick_t current_tick = ticks[current_tick_index];
+
+        double frame_dt = 100.0 - (frameTime - current_tick.received);
+        
+        while (frame_dt > (1000.0 / 30.0)) {
+            frame_dt -= (1000.0 / 30.0);
+            current_tick_index--;
+        }
+
+        double remaining = (1000.0 / 30.0)  - ((1000.0 / 30.0) - frame_dt);
+        double diff = dt / (double)remaining;
+        if (diff > 1) {
+            diff = 1;
+        }
+        current_tick = ticks[current_tick_index];
+        /*
+
         game_tick_t to_tick = ticks[start_tick];
 
         double remaining = to_tick.received - sim_time;
 
-        double next_dt = 0;
-
-        if (dt > remaining) {
-            next_dt = dt - remaining;
-            dt = remaining;
-        }
         double diff = dt / remaining;
+        */
+        game_tick_t to_tick = current_tick;
 
         packet_t packet_copy = to_tick.packet;
         packet_t* packet = &packet_copy;
@@ -910,46 +925,6 @@ namespace PMG {
         if (packet->header.type == PacketType::GAME_TICK) {
             game_tick_t newTick{};
             newTick.packet = *packet;
-            newTick.received = Util::GetSystemTime();
-
-            /*
-            game_tick_t newTick{};
-            *packet >> newTick.index;
-            newTick.index = static_cast<unsigned long>(ticks.size());
-
-            while (packet->data.size() > 0) {
-                packet_t tickData{};
-                *packet >> tickData;
-
-                switch (tickData.header.type) {
-                case PacketType::UNITSPAWN: {
-                    pck_unit_spawn_t pck{};
-                    tickData >> pck;
-
-                    unit_t unit = { Physics::Vector2{ pck.x, pck.y }, 0, pck.unit };
-                    SpawnUnit(unit.unitId);
-
-                    newTick.units.push_back(unit);
-                    break;
-                }
-                case PacketType::UNITMOVE:
-                case PacketType::UNITIDLE: {
-                    pck_unit_move_t move{};
-                    tickData >> move;
-                    unit_t unit = { {move.x, move.y}, move.r, move.unit };
-                    newTick.units.push_back(unit);
-
-                    break;
-                }
-                case PacketType::UNITDESPAWN: {
-                    unsigned long id;
-                    tickData >> id;
-                    DespawnUnit(id);
-                    break;
-                }
-                }
-            }
-            */
             newTick.received = Util::GetSystemTime();
             ticks.push_back(newTick);
         }
