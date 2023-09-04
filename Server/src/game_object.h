@@ -11,5 +11,7 @@ namespace PMG {
 		bool is_destroyed = false;
 
 		virtual void Think(float dt, Game* game) = 0;
+		virtual bool IsTargetable() { return false; };
+		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(); };
 	};
 }

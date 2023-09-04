@@ -5,4 +5,5 @@
 
 namespace PMG::Physics {
 	bool TestCollision(Ray ray, Sphere sphere);
+	bool TestCollision(Sphere sphere_a, Sphere sphere_b);
 }

@@ -121,5 +121,7 @@ namespace PMG {
 
             unsigned long current_tick_ = 0;
             std::vector<game_tick_t> ticks;
+
+            int cooldowns[4] = { -1, -1 , -1 , -1 };
     };
 }

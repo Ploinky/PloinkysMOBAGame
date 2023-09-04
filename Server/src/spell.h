@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pmg_physics.h"
 namespace PMG {
 	class Character;
 	class Game;
@@ -15,13 +16,15 @@ namespace PMG {
 	public:
 		// point at which spell is cast in ms
 		int cast_point = 100;
+		int cooldown = 5000;
+		int remaining_cooldown = -1;
 		SpellType type;
-		virtual void TargetHit(Game* game, Character* target) = 0;
+		virtual void OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point) = 0;
 	};
 
 	class TestSpell : public Spell {
 	public:
 		TestSpell();
-		virtual void TargetHit(Game* game, Character* target);
+		virtual void OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point);
 	};
 }

@@ -7,10 +7,11 @@
 namespace PMG {
 	class Missile : public GameObject {
 	public:
-		void Think(float dt, Game* game);
-
+		virtual void Think(float dt, Game* game);
+		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
 		GameObject* owner;
 		Character* target;
+		Physics::Vector3 target_point;
 		Team team;
 
 		Physics::Vector3 position;

@@ -68,7 +68,7 @@ namespace PMG {
         void PlayerMoveCommand(unsigned long netId, float nx, float ny);
         void PlayerStopCommand(unsigned long netId);
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
-        void PlayerCastSpellCommand(unsigned long netId, int spell_slot);
+        void PlayerCastSpellCommand(unsigned long netId, int spell_slot, Physics::Vector3 target_point);
 
         template<typename T>
         packet_t CreatePacket(PacketType type, T data) {
@@ -104,10 +104,10 @@ namespace PMG {
 
         std::vector<packet_t> tick_packets;
         std::vector<packet_t> all_ticks;
+        std::map<unsigned int, GameObject*> game_objects_;
     private:
 
         std::map<unsigned long, player_t> players_;
-        std::map<unsigned int, GameObject*> game_objects_;
         float lastTick = 0;
     };
 }

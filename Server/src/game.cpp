@@ -59,6 +59,7 @@ namespace PMG {
     }
 
     void Game::SpawnMissile(Missile* missile) {
+        missile->unit_id = current_entity_id_++;
         game_objects_.emplace(missile->unit_id, missile);
 
         SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, 1, missile->team, missile->position.x, missile->position.y });
@@ -87,10 +88,17 @@ namespace PMG {
         }
     }
 
-    void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot) {
+    void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot, Physics::Vector3 target_point) {
         Character* actor = (Character*) GetGameObjectById(players_.find(netId)->second.unitId);
 
-        actor->current_action = new CharacterActionCastSpell(spell_slot);
+        if (actor->spells[spell_slot]->remaining_cooldown != -1) {
+            // nope!
+            return;
+        }
+
+        CharacterActionCastSpell* new_action = new CharacterActionCastSpell(spell_slot);
+        new_action->target_point = target_point;
+        actor->current_action = new_action;
     }
 
     void Game::Start() {

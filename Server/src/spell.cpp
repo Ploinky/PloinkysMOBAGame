@@ -2,15 +2,24 @@
 #include "spell.h"
 #include "character.h"
 #include "game.h"
+#include "missile.h"
 
 namespace PMG {
-	void TestSpell::TargetHit(Game* game, Character* target) {
-		target->stats.health -= 50;
-		game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+	void TestSpell::OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point) {
+		Missile* missile = new Missile();
+		missile->damage = 10;
+		missile->missile_speed = 30;
+		missile->team = spell_owner->team;
+		missile->position = spell_owner->position;
+		missile->target = nullptr;
+		missile->target_point = target_point;
+		missile->owner = spell_owner;
+		game->SpawnMissile(missile);
 	}
 	
 	TestSpell::TestSpell() {
-		cast_point = 500;
+		cast_point = 10;
+		cooldown = 1000;
 		type = SpellType::MISSILE;
 	}
 }

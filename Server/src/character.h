@@ -44,6 +44,7 @@ namespace PMG {
 	public:
 		CharacterActionCastSpell(int spell_index) : CharacterAction(CharacterActionType::CAST_SPELL), spell_index(spell_index) {};
 		int spell_index;
+		Physics::Vector3 target_point;
 	};
 
 	enum BasicAttackType {
@@ -71,6 +72,9 @@ namespace PMG {
 	class Character : public GameObject {
 	public:
 		void Think(float dt, Game* game);
+
+		virtual bool IsTargetable() { return true; };
+		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
 
 		CharacterAction* current_action;
 		nav_agent_t nav_agent;

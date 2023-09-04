@@ -5,6 +5,18 @@
 
 namespace PMG {
 	void Character::Think(float dt, Game* game) {
+        for (int i = 0; i < spells.size(); i++) {
+            Spell* s = spells[i];
+            if (s->remaining_cooldown != -1) {
+                s->remaining_cooldown -= dt * 1000;
+
+                if (s->remaining_cooldown <= 0) {
+                    s->remaining_cooldown = -1;
+                    game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, i, s->remaining_cooldown });
+                }
+            }
+        }
+
         if (current_action != nullptr) {
             switch (current_action->type) {
             case CharacterActionType::STOP: {
@@ -100,7 +112,7 @@ namespace PMG {
 
                 if (navAgent.path.empty()) {
                     // No path to follow, we need a new path!
-                    navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.y) }, navAgent.target);
+                    navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.z) }, navAgent.target);
 
                     // New path is empty, we are requesting an invalid path
                     if (navAgent.path.empty()) {
@@ -112,7 +124,7 @@ namespace PMG {
 
                 vertex_t intermediateTarget = navAgent.path.front();
 
-                if (abs(position.x - intermediateTarget.x) < 0.001 && abs(position.y - intermediateTarget.z) < 0.001) {
+                if (abs(position.x - intermediateTarget.x) < 0.001 && abs(position.z - intermediateTarget.z) < 0.001) {
                     // Next frame we follow next?!
                     navAgent.path.pop_front();
 
@@ -124,12 +136,12 @@ namespace PMG {
                 float tx = intermediateTarget.x;
                 float ty = intermediateTarget.z;
 
-                if (Physics::CompareDouble(position.x, tx) && Physics::CompareDouble(position.y, ty)) {
+                if (Physics::CompareDouble(position.x, tx) && Physics::CompareDouble(position.z, ty)) {
                     break;
                 }
 
                 float dx = tx - position.x;
-                float dy = ty - position.y;
+                float dy = ty - position.z;
                 float length = sqrt(dx * dx + dy * dy);
 
 
@@ -137,16 +149,16 @@ namespace PMG {
                 dy /= length;
 
                 float newX = position.x + 6.0f * dx * TICKRATE / 1000.0f;
-                float newY = position.y + 6.0f * dy * TICKRATE / 1000.0f;
+                float newY = position.z + 6.0f * dy * TICKRATE / 1000.0f;
 
                 position.x = (position.x < tx && newX >= tx) || (position.x > tx && newX <= tx) ? tx : newX;
-                position.y = (position.y < ty && newY >= ty) || (position.y > ty && newY <= ty) ? ty : newY;
+                position.z = (position.z < ty && newY >= ty) || (position.z > ty && newY <= ty) ? ty : newY;
 
-                if (position.x != tx || position.y != ty) {
-                    rotation.y = -atan2(ty - position.y, tx - position.x) * 180.0f / M_PI;
+                if (position.x != tx || position.z != ty) {
+                    rotation.y = -atan2(ty - position.z, tx - position.x) * 180.0f / M_PI;
                 }
 
-                game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, static_cast<float>(position.x), static_cast<float>(position.y), static_cast<float>(rotation.y) });
+                game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, static_cast<float>(rotation.y) });
                 break;
             }
             case CharacterActionType::CAST_SPELL: {
@@ -158,24 +170,29 @@ namespace PMG {
                     current_action = new CharacterActionStop();
                     break;
                 }
+                
+                Spell* spell = spells[action->spell_index];
 
                 // no spell being cast yet
                 if (spell_cast_info.current_spell == -1) {
+                    if (spell->remaining_cooldown != -1) {
+                        break;
+                    }
+
                     spell_cast_info.current_spell = action->spell_index;
                     spell_cast_info.cast_time = game->gameTick;
                     // TODO send packet to let clients know what's happening
-                    break;
                 }
 
-                Spell* spell = spells[action->spell_index];
-
                 if ((game->gameTick - spell_cast_info.cast_time) * TICKRATE > spell->cast_point) {
-                    // spell cast succesfully
+                    // spell cast successfully
                     // wtf now?
-                    current_action = new CharacterActionStop();
                     spell_cast_info.current_spell = -1;
                     spell_cast_info.cast_time = 0;
-                    spell->TargetHit(game, this);
+                    spell->OnCast(game, this, action->target_point);
+                    spell->remaining_cooldown = spell->cooldown;
+                    current_action = new CharacterActionStop();
+                    game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, action->spell_index, spell->cooldown });
                     break;
                 }
             }

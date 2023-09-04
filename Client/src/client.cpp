@@ -269,9 +269,17 @@ namespace PMG {
         }
 
         if (m_keys['q']) {
+            float x, y;
+            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+
             packet_t packet{};
             packet.header.type = PacketType::CMD_CAST;
-            packet << 0;
+            cmd_cast_t cast{};
+            cast.spell_slot = 0;
+            cast.x = x;
+            cast.y = 0;
+            cast.z = y;
+            packet << cast;
             net_manager_.SendPacket(&packet);
         }
 
@@ -398,7 +406,7 @@ namespace PMG {
         renderer->RenderText(0, 0, 100, 50, fpsText);
 
         int done_ticks = current_tick_;
-        int done_seconds = current_tick_ / 30.0;
+        int done_seconds = current_tick_ / 60.0;
         int done_minutes = done_seconds / 60;
         done_seconds = done_seconds % 60;
 
@@ -441,6 +449,29 @@ namespace PMG {
         renderer->FillRect(x, y, percentage_health, 25, green);
 
         renderer->RenderText(x, y, 400, 25, std::to_wstring(my_go->health).append(L"/").append(std::to_wstring(my_go->max_health)).c_str());
+
+        float gray[3]{ 0.5, 0.5, 0.5 };
+        // Ability icons ?!
+        y = m_sceneHeight - 110;
+        x = m_sceneWidth / 2 - 115;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[0] != -1 ? black : gray);
+        renderer->RenderText(x, y, 50, 50, L"Q");
+
+        x = m_sceneWidth / 2 - 55;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[1] != -1 ? black : gray);
+        renderer->RenderText(x, y, 50, 50, L"W");
+
+        x = m_sceneWidth / 2 + 5;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[2] != -1 ? black : gray);
+        renderer->RenderText(x, y, 50, 50, L"E");
+
+        x = m_sceneWidth / 2 + 65;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[3] != -1 ? black : gray);
+        renderer->RenderText(x, y, 50, 50, L"R");
     }
 
     void Client::TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y) {
@@ -663,8 +694,14 @@ namespace PMG {
                 tickData >> move;
 
                 GameObject* go = GetGameObject(move.unit);
+
+                if (go == nullptr) {
+                    Logger::Err("Received move command for object that does not exist!");
+                    continue;
+                }
                 go->position.x = move.x;
-                go->position.z = move.y;
+                go->position.y = move.y;
+                go->position.z = move.z;
                 go->rotation.y = move.r;
 
                 Mesh* model = GetModelForUnit(go->unit_id);
@@ -675,6 +712,7 @@ namespace PMG {
                 }
 
                 model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
+                model->position.y = model->position.y + (go->position.y - model->position.y) * diff;
                 model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
                 model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
 
@@ -699,6 +737,15 @@ namespace PMG {
 
                 go->health = stats.health;
                 go->max_health = stats.max_health;
+                break;
+            }
+            case PacketType::PCK_SPELL_COOLDOWN: {
+                pck_spell_cooldown_t cooldown{};
+                tickData >> cooldown;
+                if (cooldown.unit != my_unit_id_) {
+                    break;
+                }
+                cooldowns[cooldown.spell_slot] = cooldown.cooldown;
                 break;
             }
             }

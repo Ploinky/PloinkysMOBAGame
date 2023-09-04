@@ -18,6 +18,7 @@ namespace PMG {
         CMD_CAST,
         PCK_CLIENT_UNIT_ID,
         PCK_STATS,
+        PCK_SPELL_COOLDOWN,
     };
 
     typedef struct packet_header {
@@ -100,8 +101,9 @@ namespace PMG {
     // ====== Server -> Client packets ======
     typedef struct pck_unit_move {
         unsigned int unit;
-        float x;
-        float y;
+        double x;
+        double y;
+        double z;
         float r;
     } pck_unit_move_t;
 
@@ -127,6 +129,12 @@ namespace PMG {
         int max_health;
     } pck_unit_stats_t;
 
+    typedef struct {
+        UnitId unit;
+        int spell_slot;
+        int cooldown;
+    } pck_spell_cooldown_t;
+
     // ====== Client -> Server commands ======
     typedef struct cmd_move {
         float nx;
@@ -142,5 +150,8 @@ namespace PMG {
 
     typedef struct {
         int spell_slot;
+        double x;
+        double y;
+        double z;
     } cmd_cast_t;
 }

@@ -81,7 +81,7 @@ namespace PMG {
             case PacketType::CMD_CAST: {
                 cmd_cast_t cast{};
                 *packet >> cast;
-                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot);
+                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, { cast.x, cast.y, cast.z});
                 break;
             }
         }

@@ -25,4 +25,10 @@ namespace PMG::Physics {
 
         return t >= 0;
 	}
+
+    bool TestCollision(Sphere sphere_a, Sphere sphere_b) {
+        double dist = (sphere_a.origin - sphere_b.origin).Length();
+        
+        return dist <= sphere_a.radius + sphere_b.radius;
+    }
 }
