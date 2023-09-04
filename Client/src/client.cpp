@@ -586,7 +586,7 @@ namespace PMG {
     void Client::HandleTicks(float dt) {
         long long frameTime = Util::GetSystemTime();
         
-        unsigned long long sim_time = frameTime - 100;
+        unsigned long long sim_time = frameTime - (1000.0 / 60.0);
 
         int start_tick = ticks.size() - 1;
         for (; start_tick >= 0; start_tick--) {
@@ -620,7 +620,7 @@ namespace PMG {
         double frame_dt = (1000.0 / 60.0) - (frameTime - current_tick.received);
         
         while (frame_dt > (1000.0 / 60.0)) {
-            frame_dt -= (1000.0 / 30.0);
+            frame_dt -= (1000.0 / 60.0);
             current_tick_index--;
         }
 
