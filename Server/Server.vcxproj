@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="src\building.cpp" />
     <ClCompile Include="src\character.cpp" />
+    <ClCompile Include="src\football_person.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\game_object.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="src\building.h" />
     <ClInclude Include="src\character.h" />
     <ClInclude Include="src\components.h" />
+    <ClInclude Include="src\football_person.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\game_object.h" />
     <ClInclude Include="src\main.h" />

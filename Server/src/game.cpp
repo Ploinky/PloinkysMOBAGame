@@ -6,6 +6,7 @@
 #include "character.h"
 #include "missile.h"
 #include "building.h"
+#include "football_person.h"
 
 namespace PMG {
     unsigned long g_unitId = 0;
@@ -25,7 +26,7 @@ namespace PMG {
         packet_t packet = CreatePacket<pck_client_unit_id>(PacketType::PCK_CLIENT_UNIT_ID, { id });
         on_sendToClient(netId, &packet);
 
-        Character* game_object = new Character();
+        FootballPerson* game_object = new FootballPerson();
         game_object->current_action = nullptr;
         game_object->unit_id = id;
 

@@ -6,7 +6,11 @@ namespace PMG {
 		for (auto go_it : game->game_objects_) {
 			GameObject* go = go_it.second;
 
-			if (go == nullptr || go->unit_id == this->unit_id || !go->IsTargetable()) {
+			if (go == nullptr || go->unit_id == this->unit_id) {
+				continue;
+			}
+
+			if (!go->IsTargetable()) {
 				continue;
 			}
 

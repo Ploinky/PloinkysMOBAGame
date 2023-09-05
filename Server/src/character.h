@@ -81,7 +81,7 @@ namespace PMG {
 
 		Team team;
 
-		std::vector<Spell*> spells = { new TestSpell() };
+		std::vector<Spell*> spells = {};
 
 		basic_attack_info_t basic_attack_info = {
 			BasicAttackType::RANGED,

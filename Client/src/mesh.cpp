@@ -71,28 +71,23 @@ namespace PMG {
         file.read((char*)&vertex_count, sizeof(int));
         mesh->vertexCount = vertex_count;
 
-        mesh->vertices = (texture_shader_vertex_t*)malloc(sizeof(texture_shader_vertex_t) * mesh->vertexCount);
+        mesh->vertices = new texture_shader_vertex_t[mesh->vertexCount];
 
-        for (int i = 0; i < vertex_count; i++) {
+        for (int i = 0; i < mesh->vertexCount; i++) {
             file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
             file.read((char*)&mesh->vertices[i].texCoord[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].texCoord[1], sizeof(float));
-
-
-            std::string str = std::to_string(mesh->vertices[i].position[0]).append("/").append(std::to_string(mesh->vertices[i].position[1])).append("/").append(std::to_string(mesh->vertices[i].position[2]));
-
-            Logger::Msg(str);
         }
 
         int index_count;
         file.read((char*)&index_count, sizeof(int));
         mesh->indexCount = index_count;
 
-        mesh->indices = (unsigned int*)malloc(sizeof(unsigned int) * mesh->indexCount);
+        mesh->indices = new unsigned int[mesh->indexCount];
 
-        for (int i = 0; i < index_count; i++) {
+        for (int i = 0; i < mesh->indexCount; i++) {
             file.read((char*)&mesh->indices[i], sizeof(int));
         }
 

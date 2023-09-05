@@ -18,6 +18,7 @@ namespace PMG {
 		unsigned long long position_received;
 
 		bool has_healthbar = true;
+		bool has_title = true;
 
 		Team team;
 

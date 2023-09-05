@@ -1,7 +1,6 @@
 #include "client.h"
 #include <iostream>
 #include "window.h"
-#include "mesh.h"
 #include "vertex.h"
 #include "logger.h"
 #include "direct3d.h"
@@ -391,17 +390,36 @@ namespace PMG {
 
             double x = (1.0f + screen_point_above.x) * 0.5 * m_sceneWidth;
             double y = (1.0f - screen_point_above.y) * 0.5 * m_sceneHeight;
-            renderer->RenderText(x - 50, y - 50, 100, 50, L"Ploinky");
-            renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
-            renderer->RenderText(x - 71, y - 12, 20, 20, L"1");
-            renderer->FillRect(x - 50, y - 10, 100, 15, new float[3] { 0.0f, 0, 0 });
-            renderer->FillRect(x - 50, y - 10, go->health, 15, new float[3] { 0.0f, 1.0f, 0 });
-            renderer->DrawRect(x - 51, y - 11, 102, 17, new float[3] { 0.0f, 0.0f, 0 });
+            double health_bar_height = 5;
+
+            if (go->has_title) {
+                renderer->RenderText(x - 50, y - 50, 100, 50, L"Ploinky");
+                renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
+                renderer->RenderText(x - 71, y - 12, 20, 20, L"1");
+                renderer->FillRect(x - 50, y - 10, 100, 15, new float[3] { 0.0f, 0, 0 });
+                health_bar_height = 15;
+            }
+
+            float color[3]{ 0, 1, 0 };
+            
+            if (go->team == Team::TEAM_2) {
+                color[0] = 1;
+                color[1] = 0;
+                color[2] = 0;
+            }
+            renderer->FillRect(x - 50, y - 10, go->health, health_bar_height, color);
+            renderer->DrawRect(x - 51, y - 11, 102, health_bar_height+2, new float[3] { 0.0f, 0.0f, 0 });
         }
 
+#ifdef _DEBUG
         std::wstring fpsText(L"FPS: ");
         fpsText.append(std::to_wstring(fps));
-        renderer->RenderText(0, 0, 100, 50, fpsText);
+        renderer->RenderText(0, 0, 150, 20, fpsText);
+
+        std::wstring go_text(L"game_objects: ");
+        go_text.append(std::to_wstring(game_objects_.size()));
+        renderer->RenderText(0, 20, 150, 20, go_text);
+#endif
 
         int done_ticks = current_tick_;
         int done_seconds = current_tick_ / 60.0;
@@ -546,7 +564,8 @@ namespace PMG {
             go->mesh = "tower";
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
-            go->has_healthbar = false;
+            go->has_healthbar = true;
+            go->has_title = false;
             go->team = team;
             game_objects_.emplace(unitId, go);
             return;
@@ -561,25 +580,6 @@ namespace PMG {
             game_objects_.emplace(unitId, red_box);
             return;
         }
-
-        Mesh* model = new Mesh();
-        color_shader_vertex_t* vert = new color_shader_vertex_t[8]{
-            color_shader_vertex_t{{-0.5f, 2.0f, -0.5f}, {1.0f, 0, 0, 1}},
-            color_shader_vertex_t{{0.5f, 2.0f, 0.5f}, {0, 0, 1.0f, 1}},
-            color_shader_vertex_t{{0.5f, 2.0f, -0.5f}, {0, 1.0f, 0, 1}},
-            color_shader_vertex_t{{-0.5f, 2.0f, 0.5f}, {0, 0, 1.0f, 1}},
-            color_shader_vertex_t{{-0.5f, 0.2f, -0.5f}, {0, 0, 0.0f, 1}},
-            color_shader_vertex_t{{0.5f, 0.2f, 0.5f}, {0, 0, 0.0f, 1}},
-            color_shader_vertex_t{{0.5f, 0.2f, -0.5f}, {0, 0, 0.0f, 1}},
-            color_shader_vertex_t{{-0.5f, 0.2f, 0.5f}, {0, 0, 0.0f, 1}},
-        };
-        unsigned int* indices = new unsigned int[12] {0, 1, 2, 1, 0, 3, 4, 5, 6, 5, 4, 7};
-        model->vertices = vert;
-        model->vertexCount = 8;
-        model->indices = indices;
-        model->indexCount = 12;
-        model->unit = unitId;
-        model->position = { pos.x, 0, pos.y };
 
         GameObject* go = new GameObject();
         go->unit_id = unitId;
@@ -687,24 +687,11 @@ namespace PMG {
                     Logger::Err("Received move command for object that does not exist!");
                     continue;
                 }
-                go->position.x = move.x;
-                go->position.y = move.y;
-                go->position.z = move.z;
-                go->rotation.y = move.r;
-
-                /*
-                Mesh* model = GetModelForUnit(go->unit_id);
-
-                if (model == nullptr) {
-                    printf("No model for unit %ld\r\n", go->unit_id);
-                    continue;
-                }
-
-                model->position.x = model->position.x + (go->position.x - model->position.x) * diff;
-                model->position.y = model->position.y + (go->position.y - model->position.y) * diff;
-                model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
-                model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
-                */
+                
+                go->position.x = go->position.x + (move.x - go->position.x) * diff;
+                go->position.y = go->position.y + (move.y - go->position.y) * diff;
+                go->position.z = go->position.z + (move.z - go->position.z) * diff;
+                go->rotation.y = go->rotation.y + (move.r - go->rotation.y) * diff;
 
                 break;
             }

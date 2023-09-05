@@ -21,10 +21,4 @@ namespace PMG {
 		SpellType type;
 		virtual void OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point) = 0;
 	};
-
-	class TestSpell : public Spell {
-	public:
-		TestSpell();
-		virtual void OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point);
-	};
 }

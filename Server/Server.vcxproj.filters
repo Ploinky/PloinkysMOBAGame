@@ -25,6 +25,12 @@
     <Filter Include="Header Files\game_object\targetable">
       <UniqueIdentifier>{86d179dd-2bca-4f21-8a34-d6c355191d98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game_object\football_person">
+      <UniqueIdentifier>{0167f240-31a1-4c71-ad8d-6440b69fe1a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game_object\football_person">
+      <UniqueIdentifier>{4cbe89b5-8c58-4a4c-b62c-353f78baf3e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\game.cpp">
@@ -59,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="src\targetable.cpp">
       <Filter>Source Files\game_object\targetable</Filter>
+    </ClCompile>
+    <ClCompile Include="src\football_person.cpp">
+      <Filter>Source Files\game_object\football_person</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +106,9 @@
     </ClInclude>
     <ClInclude Include="src\targetable.h">
       <Filter>Header Files\game_object\targetable</Filter>
+    </ClInclude>
+    <ClInclude Include="src\football_person.h">
+      <Filter>Header Files\game_object\football_person</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
