@@ -15,23 +15,12 @@ namespace PMG {
         scaled = scaled * dt;
 
         if (target != nullptr && scaled.Length() >= direction_vector.Length()) {
-            // we hit?!
-            target->stats.health -= damage;
-
-            if (target->stats.health < 0) {
-                target->stats.health = 0;
-            }
-
-            game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
-            game->SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { unit_id });
-
-            is_destroyed = true;
+            game->ApplyDamage(target, damage);
+            game->DestroyGameObject(this);
             return;
         }
         else if(scaled.Length() >= direction_vector.Length()) {
-            // is this enough to be non targeted? probably not?
-            game->SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { unit_id });
-            is_destroyed = true;
+            game->DestroyGameObject(this);
             return;
         }
 
@@ -47,24 +36,17 @@ namespace PMG {
                 Physics::Sphere other_hitbox = other_go->GetHitbox();
 
                 if (Physics::TestCollision(GetHitbox(), other_hitbox)) {
-                    Character* charc = (Character*)other_go;
-                    charc->stats.health -= damage;
-
-                    if (charc->stats.health < 0) {
-                        charc->stats.health = 0;
-                    }
-
-                    game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { charc->unit_id, charc->stats.health, charc->stats.max_health });
-                    game->SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { unit_id });
-
-                    is_destroyed = true;
+                    game->ApplyDamage(other_go, damage);
+                    game->DestroyGameObject(this);
                     return;
                 }
             }
         }
 
         position = position + scaled;
-        game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, static_cast<float>(rotation.y) });
+
+        double rotationY = -atan2(target_current_position.z - position.z, target_current_position.x - position.x) * 180.0f / M_PI;
+        game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotationY });
         return;
     }
 }

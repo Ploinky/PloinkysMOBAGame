@@ -5,6 +5,7 @@
 #include "component_registry.h"
 #include "pmg_types.h"
 #include "spell.h"
+#include "targetable.h"
 
 namespace PMG {
 	class Game;
@@ -69,11 +70,10 @@ namespace PMG {
 		int current_spell;
 	} spell_cast_info_t;
 
-	class Character : public GameObject {
+	class Character : public Targetable {
 	public:
 		void Think(float dt, Game* game);
 
-		virtual bool IsTargetable() { return true; };
 		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
 
 		CharacterAction* current_action;
@@ -81,16 +81,7 @@ namespace PMG {
 
 		Team team;
 
-		Physics::Vector3 position;
-		Physics::Vector3 rotation;
-
 		std::vector<Spell*> spells = { new TestSpell() };
-
-		stats_t stats = {
-			100,
-			100,
-			5
-		};
 
 		basic_attack_info_t basic_attack_info = {
 			BasicAttackType::RANGED,

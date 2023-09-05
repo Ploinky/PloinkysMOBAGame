@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 #include "pmg_physics.h"
+#include <map>
+#include "game_object.h"
 
 namespace PMG {
     class Mesh;
@@ -28,8 +30,10 @@ namespace PMG {
 
             // ------------ NEW ------------
             std::vector<Shader*> m_shaders;
+            std::map<std::string, Mesh*> meshes_;
 
             
+            void Render(GameObject* go);
             void RenderMeshes(std::vector<Mesh*> meshes);
             void RenderText(int x, int y, int w, int h, float color[3], std::wstring text);
             void RenderText(int x, int y, int w, int h, std::wstring text);

@@ -21,6 +21,6 @@ namespace PMG {
 
 		Team team;
 
-		Mesh* mesh;
+		std::string mesh;
 	};
 }

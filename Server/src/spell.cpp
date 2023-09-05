@@ -13,7 +13,10 @@ namespace PMG {
 		missile->position = spell_owner->position;
 		missile->target = nullptr;
 		missile->target_point = target_point;
+		missile->max_distance = 10;
 		missile->owner = spell_owner;
+		missile->position.y = 1;
+		missile->target_point.y = 1;
 		game->SpawnMissile(missile);
 	}
 	

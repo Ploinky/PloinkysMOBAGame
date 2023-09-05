@@ -92,7 +92,6 @@ namespace PMG {
             void SpawnUnit(UnitId unitId, unsigned long unit_type, Team team, Physics::Vector2 pos);
             void DespawnUnit(UnitId id);
 
-            Mesh* GetModelForUnit(UnitId id);
             GameObject* GetGameObject(UnitId unit_id);
 
             Map* m_map;
@@ -112,7 +111,7 @@ namespace PMG {
 
             int m_mouseClicked[3] = { 0, 0, 0 };
             int m_camDir[2] = { 0, 0 };
-            float m_camPos[3] = { 0, 20.0f, -10.0f };
+            float m_camPos[3] = { 0, 15.0f, -8.0f };
 
             int fps;
 

@@ -240,14 +240,14 @@ namespace PMG {
         if (m_keys[' ']) {
             if (unit_id_received_) {
                 // Snap to player
-                Mesh* my_unit = GetModelForUnit(my_unit_id_);
+                GameObject* my_unit = GetGameObject(my_unit_id_);
 
                 if (my_unit != nullptr) {
                     m_camDir[0] = 0;
                     m_camDir[1] = 0;
                     m_camPos[0] = my_unit->position.x;
-                    m_camPos[1] = 20;
-                    m_camPos[2] = my_unit->position.z - 10;
+                    m_camPos[1] = 15;
+                    m_camPos[2] = my_unit->position.z - 8;
                 }
             }
             else {
@@ -366,7 +366,7 @@ namespace PMG {
         renderer->RenderMeshes(mapMeshVector);
 
         for (auto go : game_objects_) {
-            renderer->RenderMeshes({ go.second->mesh });
+            renderer->Render(go.second);
         }
     }
 
@@ -378,8 +378,6 @@ namespace PMG {
                 continue;
             }
 
-            Mesh* my_model = go->mesh;
-
             Physics::Vector3 point_above = Physics::Vector3{ 0, -4.5, 0 };
 
             float hp = static_cast<float>(M_PI / 180.0);
@@ -387,7 +385,7 @@ namespace PMG {
 
             Physics::mat_t view = Physics::mat_t::Rotation(-renderer->camera->rotation.z, -renderer->camera->rotation.y, -renderer->camera->rotation.x) * Physics::mat_t::Translation(renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z);
 
-            Physics::mat_t transMat = Physics::mat_t::Translation(my_model->position.x, my_model->position.y, my_model->position.z);
+            Physics::mat_t transMat = Physics::mat_t::Translation(go->position.x, go->position.y, go->position.z);
 
             Physics::Vector2 screen_point_above = Physics::WorldToScreen(point_above, transMat.inverse(), persp, view);
 
@@ -520,15 +518,6 @@ namespace PMG {
         }
     }
 
-    Mesh* Client::GetModelForUnit(unsigned long unitId) {
-        auto test = game_objects_.find(unitId);
-        if (test == game_objects_.end()) {
-            return nullptr;
-        }
-        GameObject* go = test->second;
-        return go->mesh;
-    }
-
     void Client::SpawnUnit(unsigned long unitId) {
         SpawnUnit(unitId, 0, Team::TEAM_1, Physics::Vector2( 0, 0 ));
     }
@@ -536,39 +525,38 @@ namespace PMG {
     void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos) {
         // Hacky missile hack
         if (unit_type == 1) {
-            Mesh* model = new Mesh();
-            color_shader_vertex_t* vert = new color_shader_vertex_t[8]{
-                color_shader_vertex_t{{-0.1f, 1.0f, -0.1f}, {0, 0, 1.0f, 1}},
-                color_shader_vertex_t{{0.1f, 1.0f, 0.1f}, {0, 0, 1.0f, 1}},
-                color_shader_vertex_t{{0.1f, 1.0f, -0.1f}, {0, 0, 1.0f, 1}},
-                color_shader_vertex_t{{-0.1f, 1.0f, 0.1f}, {0, 0, 1.0f, 1}},
-            };
-
-            unsigned int* indices = new unsigned int[6] {0, 1, 2, 1, 0, 3};
-            model->vertices = vert;
-            model->vertexCount = 8;
-            model->indices = indices;
-            model->indexCount = 6;
-            model->unit = unitId;
-            model->position = { pos.x, 0, pos.y };
-
             GameObject* go = new GameObject();
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = model;
+            go->mesh = "missile";
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
             go->team = team;
             game_objects_.emplace(unitId, go);
+            return;
+        }
+
+        if (unit_type == 2) {
+            GameObject* go = new GameObject();
+            go->unit_id = unitId;
+            go->health = 50;
+            go->max_health = 100;
+            go->mesh = "tower";
+            go->position = { pos.x, 0, pos.y };
+            go->rotation = { 0, 0, 0 };
+            go->has_healthbar = false;
+            go->team = team;
+            game_objects_.emplace(unitId, go);
+            return;
         }
 
         if (team == Team::TEAM_1) {
             GameObject* red_box = new RedBox();
             red_box->unit_id = unitId;
             red_box->position = { pos.x, 0, pos.y };
-            red_box->mesh->position = { pos.x, 0, pos.y };
+            // red_box->mesh->position = { pos.x, 0, pos.y };
             red_box->team;
             game_objects_.emplace(unitId, red_box);
             return;
@@ -597,7 +585,7 @@ namespace PMG {
         go->unit_id = unitId;
         go->health = 50;
         go->max_health = 100;
-        go->mesh = model;
+        go->mesh = "chess_person";
         go->position = { pos.x, 0, pos.y };
         go->rotation = { 0, 0, 0 };
         go->team = team;
@@ -704,6 +692,7 @@ namespace PMG {
                 go->position.z = move.z;
                 go->rotation.y = move.r;
 
+                /*
                 Mesh* model = GetModelForUnit(go->unit_id);
 
                 if (model == nullptr) {
@@ -715,6 +704,7 @@ namespace PMG {
                 model->position.y = model->position.y + (go->position.y - model->position.y) * diff;
                 model->position.z = model->position.z + (go->position.z - model->position.z) * diff;
                 model->rotation.y = model->rotation.y + (go->rotation.y - model->rotation.y) * diff;
+                */
 
                 break;
             }

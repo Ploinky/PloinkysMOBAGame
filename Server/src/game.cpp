@@ -5,6 +5,7 @@
 #include "networking.h"
 #include "character.h"
 #include "missile.h"
+#include "building.h"
 
 namespace PMG {
     unsigned long g_unitId = 0;
@@ -55,10 +56,20 @@ namespace PMG {
     }
 
     void Game::AddGameObject(GameObject* game_object) {
+        game_object->unit_id = current_entity_id_++;
         game_objects_.emplace(game_object->unit_id, game_object);
+
     }
 
     void Game::SpawnMissile(Missile* missile) {
+        // adjust target point here???
+        Physics::Vector3 dir = missile->target_point - missile->position;
+        dir = dir.Normalize();
+
+        dir = dir * missile->max_distance;
+
+        missile->target_point = missile->position + dir;
+
         missile->unit_id = current_entity_id_++;
         game_objects_.emplace(missile->unit_id, missile);
 
@@ -102,7 +113,33 @@ namespace PMG {
     }
 
     void Game::Start() {
+        Building* tower = new Building();
+        tower->position = { 10, 0, 0 };
+        AddGameObject(tower);
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower->unit_id, 2, tower->team, tower->position.x, tower->position.y });
 
+    }
+
+    void Game::ApplyDamage(GameObject* target, double damage) {
+        if (!target->IsTargetable()) {
+            return;
+        }
+
+        Targetable* targetable = (Targetable*)target;
+
+        targetable->stats.health -= damage;
+
+        if (targetable->stats.health < 0) {
+            targetable->stats.health = 0;
+            // do something?
+        }
+
+        SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { targetable->unit_id, targetable->stats.health, targetable->stats.max_health });
+    }
+
+    void Game::DestroyGameObject(GameObject* to_destroy) {
+        SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { to_destroy->unit_id });
+        to_destroy->is_destroyed = true;
     }
 
     void Game::Update(float dt) {

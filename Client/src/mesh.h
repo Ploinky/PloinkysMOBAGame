@@ -32,6 +32,8 @@ namespace PMG {
             virtual bool Initialize(Direct3D* direct3D);
             bool IsInitialized();
             bool initialized = false;
+
+            static Mesh* LoadMesh(std::string file_name, std::string texture_file_name);
     };
 
     class TextureMesh : public Mesh {

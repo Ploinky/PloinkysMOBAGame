@@ -104,7 +104,7 @@ namespace PMG {
         double x;
         double y;
         double z;
-        float r;
+        double r;
     } pck_unit_move_t;
 
     typedef struct pck_unit_spawn {

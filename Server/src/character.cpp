@@ -148,8 +148,8 @@ namespace PMG {
                 dx /= length;
                 dy /= length;
 
-                float newX = position.x + 6.0f * dx * TICKRATE / 1000.0f;
-                float newY = position.z + 6.0f * dy * TICKRATE / 1000.0f;
+                float newX = position.x + 3.0f * dx * TICKRATE / 1000.0f;
+                float newY = position.z + 3.0f * dy * TICKRATE / 1000.0f;
 
                 position.x = (position.x < tx && newX >= tx) || (position.x > tx && newX <= tx) ? tx : newX;
                 position.z = (position.z < ty && newY >= ty) || (position.z > ty && newY <= ty) ? ty : newY;
@@ -182,6 +182,9 @@ namespace PMG {
                     spell_cast_info.current_spell = action->spell_index;
                     spell_cast_info.cast_time = game->gameTick;
                     // TODO send packet to let clients know what's happening
+
+                    rotation.y = -atan2(action->target_point.z - position.z, action->target_point.x - position.x) * 180.0f / M_PI;
+                    game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotation.y });
                 }
 
                 if ((game->gameTick - spell_cast_info.cast_time) * TICKRATE > spell->cast_point) {

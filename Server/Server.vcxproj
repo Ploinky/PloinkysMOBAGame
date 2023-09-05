@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\building.cpp" />
     <ClCompile Include="src\character.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\game_object.cpp" />
@@ -155,9 +156,11 @@
     <ClCompile Include="src\network_manager.cpp" />
     <ClCompile Include="src\server.cpp" />
     <ClCompile Include="src\spell.cpp" />
+    <ClCompile Include="src\targetable.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\building.h" />
     <ClInclude Include="src\character.h" />
     <ClInclude Include="src\components.h" />
     <ClInclude Include="src\game.h" />
@@ -167,6 +170,7 @@
     <ClInclude Include="src\network_manager.h" />
     <ClInclude Include="src\server.h" />
     <ClInclude Include="src\spell.h" />
+    <ClInclude Include="src\targetable.h" />
     <ClInclude Include="src\util.h" />
   </ItemGroup>
   <ItemGroup>

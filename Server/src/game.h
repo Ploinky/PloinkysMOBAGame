@@ -97,6 +97,10 @@ namespace PMG {
         void AddGameObject(GameObject* game_object);
         void SpawnMissile(Missile* missile);
 
+        void ApplyDamage(GameObject* target, double damage);
+
+        void DestroyGameObject(GameObject* to_destroy);
+
         void Update(float dt);
         NavMesh* m_navMesh;
         unsigned long gameTick = 0;
