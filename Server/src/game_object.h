@@ -1,17 +1,122 @@
 #pragma once
 
+#include "pmg_types.h"
 #include "pmg_physics.h"
+#include "spell.h"
+#include "component_registry.h"
+#include "navigation.h"
 
 namespace PMG {
 	class Game;
 
+	enum class GameObjectActionType {
+		STOP,
+		MOVE,
+		ATTACK_UNIT,
+		CAST_SPELL,
+	};
+
+	class GameObjectAction {
+	public:
+		GameObjectAction(GameObjectActionType type) : type(type) {};
+		GameObjectActionType type;
+	};
+
+	class GameObjectActionAttackUnit : public GameObjectAction {
+	public:
+		GameObjectActionAttackUnit(unsigned int target_net_id) : GameObjectAction(GameObjectActionType::ATTACK_UNIT), target_net_id(target_net_id) {};
+		unsigned int target_net_id;
+	};
+
+	class GameObjectActionMove : public GameObjectAction {
+	public:
+		GameObjectActionMove(Physics::Vector3 target_point) : GameObjectAction(GameObjectActionType::MOVE), target_point(target_point) {};
+		Physics::Vector3 target_point;
+	};
+
+	class GameObjectActionStop : public GameObjectAction {
+	public:
+		GameObjectActionStop() : GameObjectAction(GameObjectActionType::STOP) {};
+	};
+
+	class GameObjectActionCastSpell : public GameObjectAction {
+	public:
+		GameObjectActionCastSpell(int spell_index) : GameObjectAction(GameObjectActionType::CAST_SPELL), spell_index(spell_index) {};
+		int spell_index;
+		Physics::Vector3 target_point;
+	};
+
+	enum BasicAttackType {
+		MELEE,
+		RANGED,
+	};
+
+	typedef struct basic_attack_info {
+		BasicAttackType type;
+		int range;
+		int damage;
+		double attack_speed;
+		double hit_point;
+		unsigned long long last_attack;
+		bool attack_started;
+		unsigned long long attack_started_at;
+
+	} basic_attack_info_t;
+
+	typedef struct {
+		unsigned long long cast_time;
+		int current_spell;
+	} spell_cast_info_t;
+
+	enum class TargetType {
+		CHARACTER,
+		BUILDING,
+		UNTARGETABLE
+	};
+
+	class GameObjectController {
+	public:
+		virtual void Think(Game* game, GameObject* go) {};
+	};
+
 	class GameObject {
 	public:
-		unsigned int unit_id;
+		UnitId unit_id;
 		bool is_destroyed = false;
 
-		virtual void Think(float dt, Game* game) = 0;
-		virtual bool IsTargetable() { return false; };
-		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(); };
+		GameObjectAction* current_action = nullptr;
+		GameObjectController* controller = new GameObjectController();
+
+		std::vector<Spell*> spells = {};
+
+		basic_attack_info_t basic_attack_info = {
+			BasicAttackType::RANGED,
+			5,
+			5,
+			1,
+			0.5,
+			0
+		};
+
+		spell_cast_info_t spell_cast_info = {
+			0,
+			-1,
+		};
+
+		stats_t stats = {
+			100,
+			100,
+			5
+		};
+
+		Physics::Vector3 position;
+		Physics::Vector3 rotation;
+		TargetType target_type;
+		Team team;
+		nav_agent_t nav_agent;
+
+		virtual void Think(float dt, Game* game);
+		virtual bool IsTargetable() { return target_type != TargetType::UNTARGETABLE; };
+		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
 	};
 }

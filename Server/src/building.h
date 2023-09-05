@@ -1,12 +1,17 @@
 #pragma once
 
-#include "character.h"
+#include "game_object.h"
 
 namespace PMG {
 	class Game;
 
-	class Building : public Character {
+	class TowerGameObjectController : public GameObjectController {
 	public:
-		virtual void Think(float dt, Game* game);
+		virtual void Think(Game* game, GameObject* go);
+	};
+
+	class Building : public GameObject {
+	public:
+		Building();
 	};
 }

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "pmg_physics.h"
+
 namespace PMG {
-	class Character;
+	class GameObject;
 	class Game;
 
 	enum class SpellType {
@@ -19,6 +20,7 @@ namespace PMG {
 		int cooldown = 5000;
 		int remaining_cooldown = -1;
 		SpellType type;
-		virtual void OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point) = 0;
+
+		virtual void OnCast(Game* game, GameObject* spell_owner, Physics::Vector3 target_point) = 0;
 	};
 }

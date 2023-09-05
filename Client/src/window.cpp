@@ -84,11 +84,15 @@ namespace PMG {
         RECT wr = {0, 0, width, height};       // set the size, but not the position
         AdjustWindowRectEx(&wr, dwStyle, false, WS_EX_APPWINDOW); // adjust the window's size
 
-        LPCWSTR winTitle = L"Ploinky's MOBA Game";
+        std::wstring window_title = L"Ploinky's MOBA Game";
+
+#ifdef _DEBUG
+        window_title.append(L"__DEBUG BUILD__");
+#endif
 
         windowHandle = CreateWindowExW(WS_EX_APPWINDOW,
                                        wc.lpszClassName,
-                                       winTitle,
+                                       window_title.c_str(),
                                        dwStyle,
                                        posX,
                                        posY,

@@ -2,7 +2,7 @@
 
 #include "game_object.h"
 #include "pmg_types.h"
-#include "character.h"
+#include "game_object.h"
 #include "game.h"
 namespace PMG {
 	class Missile : public GameObject {
@@ -10,7 +10,7 @@ namespace PMG {
 		virtual void Think(float dt, Game* game);
 		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 0.1); }
 		GameObject* owner;
-		Character* target;
+		GameObject* target;
 		Physics::Vector3 target_point;
 		Team team;
 

@@ -2,7 +2,7 @@
 #include "missile.h"
 
 namespace PMG {
-	void ThrowFootball::OnCast(Game* game, Character* spell_owner, Physics::Vector3 target_point) {
+	void ThrowFootball::OnCast(Game* game, GameObject* spell_owner, Physics::Vector3 target_point) {
 		Missile* missile = new Missile();
 		missile->damage = 10;
 		missile->missile_speed = 30;
@@ -24,7 +24,12 @@ namespace PMG {
 	}
 
 	FootballPerson::FootballPerson() {
+		target_type = TargetType::CHARACTER;
+
 		// Q
+		spells.push_back(new ThrowFootball());
+		spells.push_back(new ThrowFootball());
+		spells.push_back(new ThrowFootball());
 		spells.push_back(new ThrowFootball());
 	}
 }

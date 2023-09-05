@@ -19,12 +19,6 @@
     <Filter Include="Header Files\game_object">
       <UniqueIdentifier>{7ffaaec1-5547-409c-a32d-9f9c2b598055}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\game_object\targetable">
-      <UniqueIdentifier>{924dd7a0-8872-48d7-80de-ad5db86786f6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\game_object\targetable">
-      <UniqueIdentifier>{86d179dd-2bca-4f21-8a34-d6c355191d98}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\game_object\football_person">
       <UniqueIdentifier>{0167f240-31a1-4c71-ad8d-6440b69fe1a5}</UniqueIdentifier>
     </Filter>
@@ -51,9 +45,6 @@
     <ClCompile Include="src\game_object.cpp">
       <Filter>Source Files\game_object</Filter>
     </ClCompile>
-    <ClCompile Include="src\character.cpp">
-      <Filter>Source Files\game_object</Filter>
-    </ClCompile>
     <ClCompile Include="src\missile.cpp">
       <Filter>Source Files\game_object</Filter>
     </ClCompile>
@@ -62,9 +53,6 @@
     </ClCompile>
     <ClCompile Include="src\building.cpp">
       <Filter>Source Files\game_object</Filter>
-    </ClCompile>
-    <ClCompile Include="src\targetable.cpp">
-      <Filter>Source Files\game_object\targetable</Filter>
     </ClCompile>
     <ClCompile Include="src\football_person.cpp">
       <Filter>Source Files\game_object\football_person</Filter>
@@ -92,9 +80,6 @@
     <ClInclude Include="src\game_object.h">
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
-    <ClInclude Include="src\character.h">
-      <Filter>Header Files\game_object</Filter>
-    </ClInclude>
     <ClInclude Include="src\missile.h">
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
@@ -103,9 +88,6 @@
     </ClInclude>
     <ClInclude Include="src\building.h">
       <Filter>Header Files\game_object</Filter>
-    </ClInclude>
-    <ClInclude Include="src\targetable.h">
-      <Filter>Header Files\game_object\targetable</Filter>
     </ClInclude>
     <ClInclude Include="src\football_person.h">
       <Filter>Header Files\game_object\football_person</Filter>

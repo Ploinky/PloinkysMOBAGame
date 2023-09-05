@@ -33,6 +33,10 @@ namespace PMG {
                     continue;
                 }
 
+                if (other_go->target_type == TargetType::BUILDING) {
+                    continue;
+                }
+
                 Physics::Sphere other_hitbox = other_go->GetHitbox();
 
                 if (Physics::TestCollision(GetHitbox(), other_hitbox)) {

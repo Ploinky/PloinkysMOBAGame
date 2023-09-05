@@ -282,6 +282,51 @@ namespace PMG {
             net_manager_.SendPacket(&packet);
         }
 
+        if (m_keys['w']) {
+            float x, y;
+            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+
+            packet_t packet{};
+            packet.header.type = PacketType::CMD_CAST;
+            cmd_cast_t cast{};
+            cast.spell_slot = 1;
+            cast.x = x;
+            cast.y = 0;
+            cast.z = y;
+            packet << cast;
+            net_manager_.SendPacket(&packet);
+        }
+
+        if (m_keys['e']) {
+            float x, y;
+            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+
+            packet_t packet{};
+            packet.header.type = PacketType::CMD_CAST;
+            cmd_cast_t cast{};
+            cast.spell_slot = 2;
+            cast.x = x;
+            cast.y = 0;
+            cast.z = y;
+            packet << cast;
+            net_manager_.SendPacket(&packet);
+        }
+
+        if (m_keys['r']) {
+            float x, y;
+            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+
+            packet_t packet{};
+            packet.header.type = PacketType::CMD_CAST;
+            cmd_cast_t cast{};
+            cast.spell_slot = 3;
+            cast.x = x;
+            cast.y = 0;
+            cast.z = y;
+            packet << cast;
+            net_manager_.SendPacket(&packet);
+        }
+
         if (m_keys[VK_ESCAPE]) {
             isRunning = false;
         }
