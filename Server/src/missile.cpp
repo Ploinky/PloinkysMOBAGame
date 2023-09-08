@@ -15,7 +15,7 @@ namespace PMG {
         scaled = scaled * dt;
 
         if (target != nullptr && scaled.Length() >= direction_vector.Length()) {
-            game->ApplyDamage(target, damage);
+            target->TakeDamage(game, damage, owner);
             game->DestroyGameObject(this);
             return;
         }

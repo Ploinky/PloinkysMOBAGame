@@ -9,6 +9,7 @@
 // Geometric shapes
 #include "sphere.h"
 #include "ray.h"
+#include "circle.h"
 
 // Advanced
 #include "collision.h"

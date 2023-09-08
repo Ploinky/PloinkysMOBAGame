@@ -68,7 +68,7 @@ namespace PMG {
         void PlayerMoveCommand(unsigned long netId, float nx, float ny);
         void PlayerStopCommand(unsigned long netId);
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
-        void PlayerCastSpellCommand(unsigned long netId, int spell_slot, Physics::Vector3 target_point);
+        void PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info);
 
         template<typename T>
         packet_t CreatePacket(PacketType type, T data) {
@@ -98,8 +98,11 @@ namespace PMG {
         void SpawnMissile(Missile* missile);
 
         void ApplyDamage(GameObject* target, double damage);
+        void Heal(GameObject* target, double heal);
 
         void DestroyGameObject(GameObject* to_destroy);
+
+        void CheckCollision(GameObject* collider);
 
         void Update(float dt);
         NavMesh* m_navMesh;

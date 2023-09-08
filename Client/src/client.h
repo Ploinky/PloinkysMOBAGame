@@ -122,5 +122,6 @@ namespace PMG {
             std::vector<game_tick_t> ticks;
 
             int cooldowns[4] = { -1, -1 , -1 , -1 };
+            int total_cooldowns[4] = { -1, -1 , -1 , -1 };
     };
 }

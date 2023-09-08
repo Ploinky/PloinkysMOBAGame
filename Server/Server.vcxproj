@@ -147,18 +147,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\area_spell.cpp" />
+    <ClCompile Include="src\buff.cpp" />
     <ClCompile Include="src\building.cpp" />
     <ClCompile Include="src\football_person.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\game_object.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\missile.cpp" />
+    <ClCompile Include="src\missile_spell.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
     <ClCompile Include="src\server.cpp" />
     <ClCompile Include="src\spell.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\area_spell.h" />
+    <ClInclude Include="src\buff.h" />
     <ClInclude Include="src\building.h" />
     <ClInclude Include="src\components.h" />
     <ClInclude Include="src\football_person.h" />
@@ -166,6 +171,7 @@
     <ClInclude Include="src\game_object.h" />
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\missile.h" />
+    <ClInclude Include="src\missile_spell.h" />
     <ClInclude Include="src\network_manager.h" />
     <ClInclude Include="src\server.h" />
     <ClInclude Include="src\spell.h" />

@@ -14,5 +14,7 @@ namespace PMG::Physics {
 		Vector2 operator-(const Vector2& other) const;
 
 		bool operator==(const Vector2& other) const;
+
+		double Length();
 	};
 }

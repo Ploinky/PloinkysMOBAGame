@@ -1,6 +1,6 @@
 #include "vector2.h"
-
 #include "calculation.h"
+#include <math.h>
 
 namespace PMG::Physics {
 	Vector2::Vector2() {
@@ -22,5 +22,9 @@ namespace PMG::Physics {
 
 	bool Vector2::operator==(const Vector2& other) const {
 		return CompareDouble(x, other.x) && CompareDouble(y, other.y);
+	}
+
+	double Vector2::Length() {
+		return sqrt(x * x + y * y);
 	}
 }

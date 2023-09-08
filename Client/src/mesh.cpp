@@ -122,7 +122,60 @@ namespace PMG {
             initialized = true;
             return true;
         }
+        /*
+        char* data = new char[1024 * 1024 * 4]{};
 
+        for (UINT row = 0; row < 1024; row++)
+        {
+            UINT rowStart = row * 1024;
+            for (UINT col = 0; col < 1024; col++)
+            {
+                UINT colStart = col * 4;
+                data[rowStart + colStart + 0] = 255; // Red
+                data[rowStart + colStart + 1] = 0; // Green
+                data[rowStart + colStart + 2] = 0;  // Blue
+                data[rowStart + colStart + 3] = 255;  // Alpha
+            }
+        }
+
+        for (int i = 0; i < 1024 * 1024 * 4; i += 4) {
+            data[i] = 255;
+            data[i + 1] = 0; // Green
+            data[i + 2] = 0;  // Blue
+            data[i + 3] = 255;  // Alpha
+        }
+        D3D11_SUBRESOURCE_DATA subresource_data{};
+        subresource_data.pSysMem = data;
+        subresource_data.SysMemPitch = 1024 * sizeof(char) * 4;
+        subresource_data.SysMemSlicePitch= 0;
+
+
+        D3D11_TEXTURE2D_DESC descs[1];
+        D3D11_TEXTURE2D_DESC desc{};
+        desc.Width = 1024;
+        desc.Height = 1024;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        descs[0] = desc;
+
+        ID3D11Texture2D* pTexture = NULL;
+        HRESULT hr = direct3D->device->CreateTexture2D(descs, &subresource_data, &pTexture);
+        if (FAILED(hr)) {
+            printf("Could not create texture from dds file");
+            return false;
+        }
+        hr = direct3D->device->CreateShaderResourceView(pTexture, nullptr, &m_texture);
+        if (FAILED(hr)) {
+            printf("Could not create texture from dds file");
+            return false;
+        }
+        */
+        
         HRESULT hr = DirectX::CreateDDSTextureFromFile(direct3D->device, std::wstring(m_textureFileName.begin(), m_textureFileName.end()).c_str(), NULL, &m_texture, 0, NULL);
 
         if (FAILED(hr)) {

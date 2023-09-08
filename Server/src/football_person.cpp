@@ -1,26 +1,73 @@
 #include "football_person.h"
-#include "missile.h"
+#include "missile_spell.h"
+#include "game.h"
 
 namespace PMG {
-	void ThrowFootball::OnCast(Game* game, GameObject* spell_owner, Physics::Vector3 target_point) {
-		Missile* missile = new Missile();
-		missile->damage = 10;
-		missile->missile_speed = 30;
-		missile->team = spell_owner->team;
-		missile->position = spell_owner->position;
-		missile->target = nullptr;
-		missile->target_point = target_point;
-		missile->max_distance = 10;
+	void ThrowFootball::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+		ThrowFootballMissile* missile = new ThrowFootballMissile(target_info, spell_owner);
 		missile->owner = spell_owner;
-		missile->position.y = 1;
-		missile->target_point.y = 1;
-		game->SpawnMissile(missile);
+		missile->position = spell_owner->position;
+		game->AddGameObject(missile);
+		game->SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, UnitPrefab::THROW_FOOTBALL, missile->team, missile->position.x, missile->position.y });
+	}
+	
+	void ThrowFootballMissile::TargetHit(Game* game, GameObject* owner, GameObject* target) {
+		target->TakeDamage(game, 10, owner);
 	}
 
 	ThrowFootball::ThrowFootball() {
 		cast_point = 10;
 		cooldown = 1000;
-		type = SpellType::MISSILE;
+	}
+
+	HealPerson::HealPerson() {
+		cast_point = 300;
+		cooldown = 3000;
+	}
+
+	KnockedOutCold::KnockedOutCold() {
+		remaining_duration = 1000;
+		total_duration = 1000;
+	}
+
+	void KnockedOutCold::Apply(stats_t* stats, int* status_enable, int* status_disable) {
+		*status_enable |= STATUS_STUNNED;
+	}
+
+	void HealPerson::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+		game->Heal(target_info->target, 50);
+	}
+
+	DoBlastArea::DoBlastArea() {
+	}
+
+	void DoBlastArea::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+		BlastArea* blast_area = new BlastArea(target_info);
+		blast_area->position = target_info->target_point;
+		blast_area->owner = spell_owner;
+
+		game->AddGameObject(blast_area);
+	}
+
+	void BlastArea::TargetHit(Game* game, GameObject* owner, GameObject* target) {
+		target->TakeDamage(game, 10, owner);
+		target->buffs.push_back(new KnockedOutCold());
+	}
+
+	MakeRunFast::MakeRunFast() {
+	}
+
+	void MakeRunFast::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+		target_info->target->buffs.push_back(new RunFast());
+	}
+
+	RunFast::RunFast() {
+		remaining_duration = 5000;
+		total_duration = 5000;
+	}
+
+	void RunFast::Apply(stats_t* stats, int* status_enable, int* status_disable) {
+		stats->base_speed *= 2;
 	}
 
 	FootballPerson::FootballPerson() {
@@ -28,8 +75,20 @@ namespace PMG {
 
 		// Q
 		spells.push_back(new ThrowFootball());
-		spells.push_back(new ThrowFootball());
-		spells.push_back(new ThrowFootball());
-		spells.push_back(new ThrowFootball());
+
+		// W
+		HealPerson* hp = new HealPerson();
+		hp->cooldown = 3000;
+		spells.push_back(hp);
+
+		// E
+		DoBlastArea* blast_area = new DoBlastArea();
+		blast_area->cooldown = 4000;
+		spells.push_back(blast_area);
+
+		// R
+		MakeRunFast* make_run_fast = new MakeRunFast();
+		make_run_fast->cooldown = 6000;
+		spells.push_back(make_run_fast);
 	}
 }

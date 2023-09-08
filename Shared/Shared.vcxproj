@@ -139,12 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\component_registry.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\navigation.cpp" />
     <ClCompile Include="src\networking.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\component_registry.h" />
     <ClInclude Include="src\pmg_types.h" />
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\navigation.h" />

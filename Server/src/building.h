@@ -13,5 +13,6 @@ namespace PMG {
 	class Building : public GameObject {
 	public:
 		Building();
+		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
 	};
 }

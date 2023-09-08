@@ -2,12 +2,15 @@
 
 #include "pmg_types.h"
 #include "pmg_physics.h"
-#include "spell.h"
 #include "component_registry.h"
 #include "navigation.h"
 
 namespace PMG {
 	class Game;
+	class Buff;
+	class Spell;
+	class SpellTargetInfo;
+	class GameObject;
 
 	enum class GameObjectActionType {
 		STOP,
@@ -43,7 +46,7 @@ namespace PMG {
 	public:
 		GameObjectActionCastSpell(int spell_index) : GameObjectAction(GameObjectActionType::CAST_SPELL), spell_index(spell_index) {};
 		int spell_index;
-		Physics::Vector3 target_point;
+		SpellTargetInfo* target_info = nullptr;
 	};
 
 	enum BasicAttackType {
@@ -68,6 +71,13 @@ namespace PMG {
 		int current_spell;
 	} spell_cast_info_t;
 
+	typedef struct {
+		bool can_move;
+		int health;
+		int max_health;
+		int base_speed;
+	} stats_t;
+
 	enum class TargetType {
 		CHARACTER,
 		BUILDING,
@@ -78,6 +88,8 @@ namespace PMG {
 	public:
 		virtual void Think(Game* game, GameObject* go) {};
 	};
+
+	extern int STATUS_STUNNED;
 
 	class GameObject {
 	public:
@@ -103,20 +115,33 @@ namespace PMG {
 			-1,
 		};
 
+		int current_status = 0;
+
 		stats_t stats = {
+			true,
 			100,
 			100,
-			5
+			3
 		};
+
+		stats_t frame_stats = stats;
 
 		Physics::Vector3 position;
 		Physics::Vector3 rotation;
+		double collision_radius = 0;
 		TargetType target_type;
 		Team team;
 		nav_agent_t nav_agent;
+		std::vector<Buff*> buffs;
 
+		virtual void Update(float dt, Game* game);
 		virtual void Think(float dt, Game* game);
 		virtual bool IsTargetable() { return target_type != TargetType::UNTARGETABLE; };
 		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
+		void MoveToward(double x, double z, Game* game, double move_speed);
+
+		void TakeDamage(Game* game, double damage, GameObject* source);
+
+		virtual void OnCollision(Game* game, GameObject* other) {};
 	};
 }

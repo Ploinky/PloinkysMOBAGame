@@ -16,6 +16,7 @@ namespace PMG {
         CMD_STOP,
         CMD_ATTACK,
         CMD_CAST,
+        CMD_CAST_TARGET,
         PCK_CLIENT_UNIT_ID,
         PCK_STATS,
         PCK_SPELL_COOLDOWN,
@@ -133,6 +134,7 @@ namespace PMG {
         UnitId unit;
         int spell_slot;
         int cooldown;
+        int total_cooldown;
     } pck_spell_cooldown_t;
 
     // ====== Client -> Server commands ======
@@ -154,4 +156,9 @@ namespace PMG {
         double y;
         double z;
     } cmd_cast_t;
+
+    typedef struct {
+        int spell_slot;
+        UnitId target;
+    } cmd_cast_target_t;
 }

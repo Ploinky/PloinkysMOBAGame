@@ -5,8 +5,13 @@ namespace PMG {
 	void TowerGameObjectController::Think(Game* game, GameObject* go) {
 		if (go->current_action != nullptr && go->current_action->type == GameObjectActionType::ATTACK_UNIT) {
 			GameObjectActionAttackUnit* attack = (GameObjectActionAttackUnit*)go->current_action;
+			GameObject* target = game->GetGameObjectById(attack->target_net_id);
 
-			double dist = (game->GetGameObjectById(attack->target_net_id)->position - go->position).Length();
+			if (go == nullptr || attack == nullptr || target == nullptr) {
+				return;
+			}
+
+			double dist = (target->position - go->position).Length();
 
 			if (dist > 5) {
 				delete go->current_action;
@@ -24,7 +29,7 @@ namespace PMG {
 				continue;
 			}
 
-			if (!other_go->IsTargetable()) {
+			if (!other_go->IsTargetable() || other_go->target_type == TargetType::UNTARGETABLE) {
 				continue;
 			}
 
@@ -39,5 +44,8 @@ namespace PMG {
 	Building::Building() {
 		target_type = TargetType::BUILDING;
 		controller = new TowerGameObjectController();
+
+		stats.can_move = false;
+		stats.base_speed = 0;
 	}
 }

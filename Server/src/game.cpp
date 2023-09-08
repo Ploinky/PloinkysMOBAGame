@@ -44,7 +44,7 @@ namespace PMG {
         player.unitId = id;
         players_.emplace(netId, player);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, 0, game_object->team, 0, 0 });
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, UnitPrefab::FOOTBALL_PERSON, game_object->team, 0, 0 });
         SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
     }
 
@@ -59,8 +59,7 @@ namespace PMG {
     void Game::AddGameObject(GameObject* game_object) {
         game_object->unit_id = current_entity_id_++;
         game_objects_.emplace(game_object->unit_id, game_object);
-
-        }
+    }
 
     void Game::SpawnMissile(Missile* missile) {
         // adjust target point here???
@@ -74,7 +73,7 @@ namespace PMG {
         missile->unit_id = current_entity_id_++;
         game_objects_.emplace(missile->unit_id, missile);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, 1, missile->team, missile->position.x, missile->position.y });
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, UnitPrefab::THROW_FOOTBALL, missile->team, missile->position.x, missile->position.y });
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
@@ -89,18 +88,10 @@ namespace PMG {
     void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
         GameObject* actor = game_objects_.find(players_.find(netId)->second.unitId)->second;
         GameObject* target = GetGameObjectById(target_id);
-
-        if (target == nullptr || target->unit_id == actor->unit_id || target->team == actor->team) {
-            // nothing to attack?
-            // maybe follow if it is a friend?
-            actor->current_action = new GameObjectActionStop();
-        }
-        else {
-            actor->current_action = new GameObjectActionAttackUnit(target_id);
-        }
+        actor->current_action = new GameObjectActionAttackUnit(target_id);
     }
 
-    void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot, Physics::Vector3 target_point) {
+    void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info) {
         GameObject* actor = GetGameObjectById(players_.find(netId)->second.unitId);
 
         if (actor->spells[spell_slot]->remaining_cooldown != -1) {
@@ -109,7 +100,7 @@ namespace PMG {
         }
 
         GameObjectActionCastSpell* new_action = new GameObjectActionCastSpell(spell_slot);
-        new_action->target_point = target_point;
+        new_action->target_info = target_info;
         actor->current_action = new_action;
     }
 
@@ -118,14 +109,14 @@ namespace PMG {
         tower->position = { 10, 0, 0 };
         tower->team = Team::TEAM_2;
         AddGameObject(tower);
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower->unit_id, 2, tower->team, tower->position.x, tower->position.y });
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower->unit_id, UnitPrefab::TOWER, tower->team, tower->position.x, tower->position.y });
 
 
         Building* tower2 = new Building();
         tower2->position = { -10, 0, 0 };
         tower2->team = Team::TEAM_1;
         AddGameObject(tower2);
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower2->unit_id, 2, tower2->team, tower2->position.x, tower2->position.y });
+        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower2->unit_id, UnitPrefab::TOWER, tower2->team, tower2->position.x, tower2->position.y });
     }
 
     void Game::ApplyDamage(GameObject* target, double damage) {
@@ -140,12 +131,43 @@ namespace PMG {
             // do something?
         }
 
+    }
+
+    void Game::Heal(GameObject* target, double heal) {
+        if (!target->IsTargetable()) {
+            return;
+        }
+
+        target->stats.health += heal;
+
+        if (target->stats.health > target->stats.max_health) {
+            target->stats.health = target->stats.max_health;
+            // do something?
+        }
+
         SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
     }
 
     void Game::DestroyGameObject(GameObject* to_destroy) {
         SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { to_destroy->unit_id });
         to_destroy->is_destroyed = true;
+    }
+
+    void Game::CheckCollision(GameObject* collider) {
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+
+            if (go->unit_id == collider->unit_id) {
+                continue;
+            }
+
+            if (Physics::TestCollision(
+                Physics::Circle({ go->position.x, go->position.z }, go->collision_radius),
+                Physics::Circle({ collider->position.x, collider->position.z }, collider->collision_radius))
+                ) {
+                collider->OnCollision(this, go);
+            }
+        }
     }
 
     void Game::Update(float dt) {
@@ -159,9 +181,28 @@ namespace PMG {
         // Next gametick -> wrap to zero at start. Yikes...
         lastTick -= TICKRATE / 1000.0f;
 
+        // collide
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+            CheckCollision(go);
+        }
+
+        // make sure we figure out all the buffs and such first
+        // also passive regen and whatnot
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+            go->Update(dt, this);
+        }
+
+        // now let them cook?
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
             go->controller->Think(this, go);
+        }
+
+        // ok, action
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
             go->Think(dt, this);
         }
 

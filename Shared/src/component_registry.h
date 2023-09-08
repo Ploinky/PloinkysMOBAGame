@@ -18,12 +18,6 @@ namespace PMG {
     } transform_t;
 
     typedef struct {
-        int health;
-        int max_health;
-        int base_speed;
-    } stats_t;
-
-    typedef struct {
         unsigned int netId;
     } network_t;
 

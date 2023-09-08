@@ -5,6 +5,8 @@
 #include "game.h"
 #include "util.h"
 #include "logger.h"
+#include "spell.h"
+
 namespace PMG {
     void Server::Start() {
         m_networkManager = new ClientNetworkManager();
@@ -82,7 +84,19 @@ namespace PMG {
             case PacketType::CMD_CAST: {
                 cmd_cast_t cast{};
                 *packet >> cast;
-                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, { cast.x, cast.y, cast.z});
+
+                SpellTargetInfo* target_info = new SpellTargetInfo();
+                target_info->target_point = { cast.x, cast.y, cast.z };
+                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, target_info);
+                break;
+            }
+            case PacketType::CMD_CAST_TARGET: {
+                cmd_cast_target_t cast{};
+                *packet >> cast;
+
+                SpellTargetInfo* target_info = new SpellTargetInfo();
+                target_info->target = m_game->GetGameObjectById(cast.target);
+                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, target_info);
                 break;
             }
         }

@@ -14,7 +14,6 @@
 #include <locale>
 #include "settings.h"
 #include "audio_system.h"
-#include "red_box.h"
 
 namespace PMG {
     Client::Client(std::string ip_address, std::string port) {
@@ -283,18 +282,30 @@ namespace PMG {
         }
 
         if (m_keys['w']) {
-            float x, y;
-            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+            float hp = static_cast<float>(M_PI / 180.0);
+            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
+                { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
+                { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
+                (float)m_sceneWidth / (float)m_sceneHeight,
+                renderer->camera->fov * hp,
+                renderer->camera->nearClip,
+                renderer->camera->farClip,
+                m_sceneWidth,
+                m_sceneHeight);
 
-            packet_t packet{};
-            packet.header.type = PacketType::CMD_CAST;
-            cmd_cast_t cast{};
-            cast.spell_slot = 1;
-            cast.x = x;
-            cast.y = 0;
-            cast.z = y;
-            packet << cast;
-            net_manager_.SendPacket(&packet);
+            for (auto& go_it : game_objects_) {
+                GameObject* go = go_it.second;
+                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
+                if (Physics::TestCollision(ray, sphere)) {
+                    packet_t packet{};
+                    packet.header.type = PacketType::CMD_CAST_TARGET;
+                    cmd_cast_target_t cast{};
+                    cast.spell_slot = 1;
+                    cast.target = go->unit_id;
+                    packet << cast;
+                    net_manager_.SendPacket(&packet);
+                }
+            }
         }
 
         if (m_keys['e']) {
@@ -313,18 +324,30 @@ namespace PMG {
         }
 
         if (m_keys['r']) {
-            float x, y;
-            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+            float hp = static_cast<float>(M_PI / 180.0);
+            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
+                { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
+                { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
+                (float)m_sceneWidth / (float)m_sceneHeight,
+                renderer->camera->fov * hp,
+                renderer->camera->nearClip,
+                renderer->camera->farClip,
+                m_sceneWidth,
+                m_sceneHeight);
 
-            packet_t packet{};
-            packet.header.type = PacketType::CMD_CAST;
-            cmd_cast_t cast{};
-            cast.spell_slot = 3;
-            cast.x = x;
-            cast.y = 0;
-            cast.z = y;
-            packet << cast;
-            net_manager_.SendPacket(&packet);
+            for (auto& go_it : game_objects_) {
+                GameObject* go = go_it.second;
+                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
+                if (Physics::TestCollision(ray, sphere)) {
+                    packet_t packet{};
+                    packet.header.type = PacketType::CMD_CAST_TARGET;
+                    cmd_cast_target_t cast{};
+                    cast.spell_slot = 3;
+                    cast.target = go->unit_id;
+                    packet << cast;
+                    net_manager_.SendPacket(&packet);
+                }
+            }
         }
 
         if (m_keys[VK_ESCAPE]) {
@@ -452,6 +475,21 @@ namespace PMG {
                 color[1] = 0;
                 color[2] = 0;
             }
+
+
+            /*
+            int fracs = go->health / 10;
+            int last = go->health % 10;
+
+            for (int i = 0; i < fracs; i++) {
+                renderer->FillRect(x - 50.0 + (go->health / fracs) * i, y - 10, go->health / fracs - 1, health_bar_height, color);
+            }
+
+            if (last > 0) {
+                renderer->FillRect(x - 50.0 + go->health - last, y - 10, last, health_bar_height, color);
+            }
+            */
+
             renderer->FillRect(x - 50, y - 10, go->health, health_bar_height, color);
             renderer->DrawRect(x - 51, y - 11, 102, health_bar_height+2, new float[3] { 0.0f, 0.0f, 0 });
         }
@@ -516,22 +554,298 @@ namespace PMG {
         y = m_sceneHeight - 110;
         x = m_sceneWidth / 2 - 115;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[0] != -1 ? black : gray);
+        renderer->FillRect(x + 1, y + 1, 48, 48, gray);
+        if (cooldowns[0] != -1) {
+            double cd_remaining = (double) cooldowns[0] / (double) total_cooldowns[0];
+
+            if (cd_remaining > 0.875) {
+                double dx = 0.125 - (cd_remaining - 0.875);
+                double fx = 24 * (dx / 0.125);
+
+                Physics::Vector2 points[7]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 25.0 + fx, y + 1.0 },
+                    { x + 49.0, y + 1.0 },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 7, black);
+            }
+            else if (cd_remaining > 0.625) {
+                double dx = 0.25 - (cd_remaining - 0.625);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[6]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0, y + 1.0 + fx },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 6, black);
+            }
+            else if (cd_remaining > 0.375) {
+                double dx = 0.25 - (cd_remaining - 0.375);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[5]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0 - fx, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 5, black);
+            }
+            else if (cd_remaining > 0.125) {
+                double dx = 0.25 - (cd_remaining - 0.125);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[4]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0, y + 49.0 - fx },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 4, black);
+            }
+            else if (cd_remaining > 0) {
+                double dx = 0.125 - cd_remaining;
+                double fx = 24.0 * (dx / 0.125);
+
+                Physics::Vector2 points[3]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0 + fx, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 3, black);
+            }
+        }
         renderer->RenderText(x, y, 50, 50, L"Q");
 
         x = m_sceneWidth / 2 - 55;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[1] != -1 ? black : gray);
+        renderer->FillRect(x + 1, y + 1, 48, 48, gray);
+        if (cooldowns[1] != -1) {
+            double cd_remaining = (double)cooldowns[1] / (double)total_cooldowns[1];
+
+            if (cd_remaining > 0.875) {
+                double dx = 0.125 - (cd_remaining - 0.875);
+                double fx = 24 * (dx / 0.125);
+
+                Physics::Vector2 points[7]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 25.0 + fx, y + 1.0 },
+                    { x + 49.0, y + 1.0 },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 7, black);
+            }
+            else if (cd_remaining > 0.625) {
+                double dx = 0.25 - (cd_remaining - 0.625);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[6]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0, y + 1.0 + fx },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 6, black);
+            }
+            else if (cd_remaining > 0.375) {
+                double dx = 0.25 - (cd_remaining - 0.375);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[5]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0 - fx, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 5, black);
+            }
+            else if (cd_remaining > 0.125) {
+                double dx = 0.25 - (cd_remaining - 0.125);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[4]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0, y + 49.0 - fx },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 4, black);
+            }
+            else if (cd_remaining > 0) {
+                double dx = 0.125 - cd_remaining;
+                double fx = 24.0 * (dx / 0.125);
+
+                Physics::Vector2 points[3]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0 + fx, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 3, black);
+            }
+        }
         renderer->RenderText(x, y, 50, 50, L"W");
 
         x = m_sceneWidth / 2 + 5;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[2] != -1 ? black : gray);
+        renderer->FillRect(x + 1, y + 1, 48, 48, gray);
+        if (cooldowns[2] != -1) {
+            double cd_remaining = (double)cooldowns[2] / (double)total_cooldowns[2];
+
+            if (cd_remaining > 0.875) {
+                double dx = 0.125 - (cd_remaining - 0.875);
+                double fx = 24 * (dx / 0.125);
+
+                Physics::Vector2 points[7]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 25.0 + fx, y + 1.0 },
+                    { x + 49.0, y + 1.0 },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 7, black);
+            }
+            else if (cd_remaining > 0.625) {
+                double dx = 0.25 - (cd_remaining - 0.625);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[6]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0, y + 1.0 + fx },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 6, black);
+            }
+            else if (cd_remaining > 0.375) {
+                double dx = 0.25 - (cd_remaining - 0.375);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[5]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0 - fx, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 5, black);
+            }
+            else if (cd_remaining > 0.125) {
+                double dx = 0.25 - (cd_remaining - 0.125);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[4]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0, y + 49.0 - fx },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 4, black);
+            }
+            else if (cd_remaining > 0) {
+                double dx = 0.125 - cd_remaining;
+                double fx = 24.0 * (dx / 0.125);
+
+                Physics::Vector2 points[3]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0 + fx, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 3, black);
+            }
+        }
         renderer->RenderText(x, y, 50, 50, L"E");
 
         x = m_sceneWidth / 2 + 65;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->FillRect(x + 1, y + 1, 48, 48, cooldowns[3] != -1 ? black : gray);
+        renderer->FillRect(x + 1, y + 1, 48, 48, gray);
+        if (cooldowns[3] != -1) {
+            double cd_remaining = (double)cooldowns[3] / (double)total_cooldowns[3];
+
+            if (cd_remaining > 0.875) {
+                double dx = 0.125 - (cd_remaining - 0.875);
+                double fx = 24 * (dx / 0.125);
+
+                Physics::Vector2 points[7]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 25.0 + fx, y + 1.0 },
+                    { x + 49.0, y + 1.0 },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 7, black);
+            }
+            else if (cd_remaining > 0.625) {
+                double dx = 0.25 - (cd_remaining - 0.625);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[6]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0, y + 1.0 + fx },
+                    { x + 49.0, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 6, black);
+            }
+            else if (cd_remaining > 0.375) {
+                double dx = 0.25 - (cd_remaining - 0.375);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[5]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 49.0 - fx, y + 49.0 },
+                    { x + 1.0, y + 49.0 },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 5, black);
+            }
+            else if (cd_remaining > 0.125) {
+                double dx = 0.25 - (cd_remaining - 0.125);
+                double fx = 49 * (dx / 0.25);
+
+                Physics::Vector2 points[4]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0, y + 49.0 - fx },
+                    { x + 1.0, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 4, black);
+            }
+            else if (cd_remaining > 0) {
+                double dx = 0.125 - cd_remaining;
+                double fx = 24.0 * (dx / 0.125);
+
+                Physics::Vector2 points[3]{
+                    { x + 25.0, y + 25.0 },
+                    { x + 1.0 + fx, y + 1.0 },
+                    { x + 25.0, y + 1.0 },
+                };
+                renderer->FillShape(points, 3, black);
+            }
+        }
         renderer->RenderText(x, y, 50, 50, L"R");
     }
 
@@ -587,7 +901,7 @@ namespace PMG {
 
     void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos) {
         // Hacky missile hack
-        if (unit_type == 1) {
+        if (unit_type == UnitPrefab::THROW_FOOTBALL) {
             GameObject* go = new GameObject();
             go->unit_id = unitId;
             go->health = 50;
@@ -601,7 +915,20 @@ namespace PMG {
             return;
         }
 
-        if (unit_type == 2) {
+        if (unit_type == UnitPrefab::FOOTBALL_PERSON) {
+            GameObject* go = new GameObject();
+            go->unit_id = unitId;
+            go->health = 50;
+            go->max_health = 100;
+            go->mesh = "chess_person";
+            go->position = { pos.x, 0, pos.y };
+            go->rotation = { 0, 0, 0 };
+            go->team = team;
+            game_objects_.emplace(unitId, go);
+            return;
+        }
+
+        if (unit_type == UnitPrefab::TOWER) {
             GameObject* go = new GameObject();
             go->unit_id = unitId;
             go->health = 50;
@@ -616,25 +943,20 @@ namespace PMG {
             return;
         }
 
-        if (team == Team::TEAM_1) {
-            GameObject* red_box = new RedBox();
-            red_box->unit_id = unitId;
-            red_box->position = { pos.x, 0, pos.y };
-            // red_box->mesh->position = { pos.x, 0, pos.y };
-            red_box->team;
-            game_objects_.emplace(unitId, red_box);
+        if (unit_type == UnitPrefab::GENERIC_EMPTY) {
+            GameObject* go = new GameObject();
+            go->unit_id = unitId;
+            go->health = 50;
+            go->max_health = 100;
+            go->mesh = "";
+            go->position = { pos.x, 0, pos.y };
+            go->rotation = { 0, 0, 0 };
+            go->has_healthbar = true;
+            go->has_title = false;
+            go->team = team;
+            game_objects_.emplace(unitId, go);
             return;
         }
-
-        GameObject* go = new GameObject();
-        go->unit_id = unitId;
-        go->health = 50;
-        go->max_health = 100;
-        go->mesh = "chess_person";
-        go->position = { pos.x, 0, pos.y };
-        go->rotation = { 0, 0, 0 };
-        go->team = team;
-        game_objects_.emplace(unitId, go);
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
@@ -768,6 +1090,7 @@ namespace PMG {
                     break;
                 }
                 cooldowns[cooldown.spell_slot] = cooldown.cooldown;
+                total_cooldowns[cooldown.spell_slot] = cooldown.total_cooldown;
                 break;
             }
             }

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="calculation.h" />
+    <ClInclude Include="circle.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="pmg_physics.h" />
@@ -32,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="calculation.cc" />
+    <ClCompile Include="circle.cpp" />
     <ClCompile Include="collision.cc" />
     <ClCompile Include="matrix.cc" />
     <ClCompile Include="projection.cc" />

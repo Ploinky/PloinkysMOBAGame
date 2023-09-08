@@ -31,4 +31,10 @@ namespace PMG::Physics {
         
         return dist <= sphere_a.radius + sphere_b.radius;
     }
+
+    bool TestCollision(Circle circle_a, Circle circle_b) {
+        double dist = (circle_a.position - circle_b.position).Length();
+
+        return dist <= circle_a.radius + circle_b.radius;
+    }
 }

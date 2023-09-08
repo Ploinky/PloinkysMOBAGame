@@ -1,16 +1,17 @@
 #pragma once
 
 #include "pmg_physics.h"
+#include <vector>
+#include "game_object.h"
 
 namespace PMG {
 	class GameObject;
 	class Game;
 
-	enum class SpellType {
-		MISSILE,
-		TARGETED_MISSILE,
-		TARGETED,
-		AREA
+	class SpellTargetInfo {
+	public:
+		GameObject* target = nullptr;
+		Physics::Vector3 target_point;
 	};
 
 	class Spell {
@@ -19,8 +20,10 @@ namespace PMG {
 		int cast_point = 100;
 		int cooldown = 5000;
 		int remaining_cooldown = -1;
-		SpellType type;
+		
+		void CastStart(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
 
-		virtual void OnCast(Game* game, GameObject* spell_owner, Physics::Vector3 target_point) = 0;
+		void Cast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) = 0;
 	};
 }
