@@ -6,6 +6,9 @@
 #include "shader.h"
 #include <string>
 #include "pmg_physics.h"
+#include "armature.h"
+#include <map>
+#include "animation.h"
 
 namespace PMG {
     class Direct3D;
@@ -34,18 +37,37 @@ namespace PMG {
             bool initialized = false;
 
             static Mesh* LoadMesh(std::string file_name, std::string texture_file_name);
+            static Mesh* LoadSkinnedTexturedMesh(std::string file_name, std::string texture_file_name);
     };
 
     class TextureMesh : public Mesh {
     public:
         std::string m_textureFileName = "";
         ID3D11ShaderResourceView* m_texture = 0;
-        ShaderType m_shaderType = ShaderType::TEXTURE;
         texture_shader_vertex_t* vertices = 0;
 
         TextureMesh() : Mesh(ShaderType::TEXTURE) {};
         ~TextureMesh();
 
         bool Initialize(Direct3D* direct3D);
+    };
+
+    class SkinnedTexturedMesh : public Mesh {
+    public:
+        std::string m_textureFileName = "";
+        ID3D11ShaderResourceView* m_texture = 0;
+        Armature* armature = nullptr;
+        std::map<std::string, Animation*> animations;
+        skinned_textured_shader_vertex_t* vertices = 0;
+        Physics::mat_t animation_palette[256];
+        Animation* current_animation = nullptr;
+        double current_animation_time = 0;
+
+        SkinnedTexturedMesh() : Mesh(ShaderType::SKINNED_TEXTURED) {};
+        ~SkinnedTexturedMesh();
+
+        bool Initialize(Direct3D* direct3D);
+        void CalculateMatrixPalette();
+        double PlayAnimation(std::string animation_name, double time);
     };
 }

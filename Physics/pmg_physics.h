@@ -5,6 +5,7 @@
 #include "vector3.h"
 #include "vector4.h"
 #include "matrix.h"
+#include "quaternion.h"
 
 // Geometric shapes
 #include "sphere.h"

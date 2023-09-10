@@ -25,6 +25,7 @@
     <ClInclude Include="matrix.h" />
     <ClInclude Include="pmg_physics.h" />
     <ClInclude Include="projection.h" />
+    <ClInclude Include="quaternion.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="vector2.h" />

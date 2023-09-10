@@ -266,6 +266,11 @@ namespace PMG {
             net_manager_.SendPacket(&packet);
         }
 
+        if (m_keys['c']) {
+            m_keys['c'] = false;
+            ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->PlayAnimation("wave", ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->current_animation_time + 1);
+        }
+
         if (m_keys['q']) {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);

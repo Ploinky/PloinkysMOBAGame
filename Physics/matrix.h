@@ -5,6 +5,8 @@
 #include <limits>
 #include <math.h>
 #include "vector4.h"
+#include "quaternion.h"
+#include <DirectXMath.h>
 
 namespace PMG::Physics {
     typedef struct mat {
@@ -153,6 +155,109 @@ namespace PMG::Physics {
                 {0, 0, 0, 1}
                 }
             };
+        }
+
+        static mat Rotation(Quaternion q) {
+            /*
+
+            float m[4][4] = { {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0} };
+
+            float x = q.x, y = q.y, z = q.z, w = q.w;
+            float x2 = x + x, y2 = y + y, z2 = z + z;
+            float xx = x * x2, xy = x * y2, xz = x * z2;
+            float yy = y * y2, yz = y * z2, zz = z * z2;
+            float wx = w * x2, wy = w * y2, wz = w * z2;
+
+            return {
+                {
+                    {
+                        m[0][0] = 1.0 - (yy + zz),
+                        m[0][1] = xy - wz,
+                        m[0][2] = xz + wy,
+                        m[0][3] = 0
+                    }, {
+                        m[1][0] = xy + wz,
+                        m[1][1] = 1.0 - (xx + zz),
+                        m[1][2] = yz - wx,
+                        m[1][3] = 0
+                    }, {
+                        m[2][0] = xz - wy,
+                        m[2][1] = yz + wx,
+                        m[2][2] = 1.0 - (xx + yy),
+                        m[2][3] = 0
+                    }, {
+                        m[3][0] = 0,
+                        m[3][1] = 0,
+                        m[3][2] = 0,
+                        m[3][3] = 1.0
+                    }
+                }
+            };
+            */
+            /*
+            */
+            DirectX::XMVECTOR vec{q.x, q.y, q.z, q.w};
+            vec = DirectX::XMVectorSetX(vec, q.x);
+            vec = DirectX::XMVectorSetY(vec, q.y);
+            vec = DirectX::XMVectorSetZ(vec, q.z);
+            vec = DirectX::XMVectorSetW(vec, q.w);
+            DirectX::XMMATRIX matrix = DirectX::XMMatrixRotationQuaternion(vec);
+
+            return {
+                {
+                    {
+                        DirectX::XMVectorGetX(matrix.r[0]),
+                        DirectX::XMVectorGetY(matrix.r[0]),
+                        DirectX::XMVectorGetZ(matrix.r[0]),
+                        DirectX::XMVectorGetW(matrix.r[0]),
+                    }, {
+                        DirectX::XMVectorGetX(matrix.r[1]),
+                        DirectX::XMVectorGetY(matrix.r[1]),
+                        DirectX::XMVectorGetZ(matrix.r[1]),
+                        DirectX::XMVectorGetW(matrix.r[1]),
+                    }, {
+                        DirectX::XMVectorGetX(matrix.r[2]),
+                        DirectX::XMVectorGetY(matrix.r[2]),
+                        DirectX::XMVectorGetZ(matrix.r[2]),
+                        DirectX::XMVectorGetW(matrix.r[2]),
+                    }, {
+                        DirectX::XMVectorGetX(matrix.r[3]),
+                        DirectX::XMVectorGetY(matrix.r[3]),
+                        DirectX::XMVectorGetZ(matrix.r[3]),
+                        DirectX::XMVectorGetW(matrix.r[3]),
+                    }
+                }
+            };
+            /*  
+            return {
+                {
+                    {
+                        1.0f - 2.0f * (float) q.y * (float)q.y - 2.0f * (float)q.z * (float)q.z,
+                        2.0f * (float)q.x * (float)q.y + 2.0f * (float)q.w * (float)q.z,
+                        2.0f * (float)q.x * (float)q.z - 2.0f * (float)q.w * (float)q.y,
+                        0.0f
+                    },
+                    {
+                        2.0f * (float)q.x * (float)q.y - 2.0f * (float)q.w * (float)q.z,
+                        1.0f - 2.0f * (float)q.x * (float)q.x - 2.0f * (float)q.z * (float)q.z,
+                        2.0f * (float)q.y * (float)q.z + 2.0f * (float)q.w * (float)q.x,
+                        0.0f
+                    },
+                    {
+                        2.0f * (float)q.x * (float)q.z + 2.0f * (float)q.w * (float)q.y,
+                        2.0f * (float)q.y * (float)q.z - 2.0f * (float)q.w * (float)q.x,
+                        1.0f - 2.0f * (float)q.x * (float)q.x - 2.0f * (float)q.y * (float)q.y,
+                        0.0f
+                    },
+                    {
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        1.0f
+                    }
+                }
+            };
+            */
         }
 
         static mat Rotation(float yaw, float pitch, float roll) {

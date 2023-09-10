@@ -49,6 +49,9 @@
     <Filter Include="Source Files\game_object">
       <UniqueIdentifier>{bf61c401-3dfe-495a-a644-94ffc16c11ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader Files">
+      <UniqueIdentifier>{0f46bfff-8d2f-41c5-9f66-439afc984115}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -111,6 +114,12 @@
     <ClCompile Include="src\game_object.cc">
       <Filter>Source Files\game_object</Filter>
     </ClCompile>
+    <ClCompile Include="src\armature.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\animation.cpp">
+      <Filter>Source Files\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -167,12 +176,29 @@
     <ClInclude Include="src\game_object.h">
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
+    <ClInclude Include="src\armature.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\animation.h">
+      <Filter>Header Files\graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\pixel_ps.hlsl" />
-    <FxCompile Include="src\texture_ps.hlsl" />
-    <FxCompile Include="src\texture_vs.hlsl" />
-    <FxCompile Include="src\vertex_vs.hlsl" />
+    <FxCompile Include="src\pixel_ps.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="src\texture_ps.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="src\texture_vs.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="src\vertex_vs.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="src\skinned_textured_vs.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\Client.aps" />

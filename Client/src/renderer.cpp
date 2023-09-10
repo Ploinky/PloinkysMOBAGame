@@ -7,6 +7,7 @@
 #include "camera.h"
 #include "shader.h"
 #include <DirectXMath.h>
+#include "animation.h"
 
 namespace PMG {
     Renderer::~Renderer() {
@@ -42,18 +43,23 @@ namespace PMG {
         // ------------ NEW ------------
         ColorShader* colorShader = new ColorShader();
         colorShader->Initialize(direct3D);
-
         m_shaders.push_back(colorShader);
 
         TextureShader* textureShader = new TextureShader();
         textureShader->Initialize(direct3D);
-
         m_shaders.push_back(textureShader);
 
+        SkinnedTexturedShader* skinned_textured_shader = new SkinnedTexturedShader();
+        skinned_textured_shader->Initialize(direct3D);
+        m_shaders.push_back(skinned_textured_shader);
+
         // load resources?
-        Mesh* mesh1 = Mesh::LoadMesh("models/chess_person.p3d", "models/chess_person.dds");
+        SkinnedTexturedMesh* mesh1 = (SkinnedTexturedMesh*) Mesh::LoadSkinnedTexturedMesh("models/chess_person.p3d", "models/chess_person.dds");
         mesh1->Initialize(direct3D);
+        Animation* wave = Animation::LoadAnimation("models/chess_person_test.p3d_anim");
+        mesh1->animations.emplace("wave", wave);
         meshes_.emplace("chess_person", mesh1);
+        mesh1->CalculateMatrixPalette();
 
         Mesh* mesh2 = Mesh::LoadMesh("models/missile.p3d", "models/missile.dds");
         mesh2->Initialize(direct3D);
@@ -340,7 +346,7 @@ namespace PMG {
                 direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                 direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
                 direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-                direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                //direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
                 break;
             }
             case ShaderType::TEXTURE: {
@@ -373,6 +379,47 @@ namespace PMG {
 
                 // Render this specific model
                 UINT stride = sizeof(texture_shader_vertex_t);
+                UINT offset = 0;
+                direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
+                direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+                direct3D->context->PSSetShaderResources(0, 1, &textureMesh->m_texture);
+                //direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                break;
+            }
+            case ShaderType::SKINNED_TEXTURED: {
+                SkinnedTexturedShader* textureShader = (SkinnedTexturedShader*)shader;
+                // Do some stuff to update the frame constants for this shader
+
+                // Update and set frame constant buffer
+                textureShader->m_frameConstData.cameraMatrix = cameraMatrix;
+                textureShader->m_frameConstData.projMatrix = m_projMatrix;
+                UpdateBuffer(textureShader->m_frameConstBuffer, &textureShader->m_frameConstData, sizeof(textureShader->m_frameConstData));
+                direct3D->context->VSSetConstantBuffers(0, 1, &textureShader->m_frameConstBuffer);
+                direct3D->context->PSSetSamplers(0, 1, &textureShader->m_samplerState);
+                // That uses this shader!
+                if (mesh->m_shaderType != shader->m_type) {
+                    continue;
+                }
+
+                SkinnedTexturedMesh* textureMesh = (SkinnedTexturedMesh*)mesh;
+
+                // Do some stuff to update the model specific constants that this specific shader uses
+                // Update model constant buffer
+                DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(go->rotation.x),
+                    DirectX::XMConvertToRadians(go->rotation.y),
+                    DirectX::XMConvertToRadians(go->rotation.z));
+                DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(go->position.x, go->position.y, go->position.z);
+                DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+
+                for (int i = 0; i < textureMesh->armature->bones.size(); i++) {
+                    textureShader->m_modelConstData.animation_palette[i] = textureMesh->animation_palette[i];
+                }
+
+                UpdateBuffer(textureShader->m_modelConstBuffer, &textureShader->m_modelConstData, sizeof(textureShader->m_modelConstData));
+                direct3D->context->VSSetConstantBuffers(1, 1, &textureShader->m_modelConstBuffer);
+
+                // Render this specific model
+                UINT stride = sizeof(skinned_textured_shader_vertex_t);
                 UINT offset = 0;
                 direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
                 direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -497,6 +544,59 @@ namespace PMG {
                         direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
                         direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
                         direct3D->context->PSSetShaderResources(0, 1, &textureMesh->m_texture); 
+                        //direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                    }
+                    break;
+                }
+                case ShaderType::SKINNED_TEXTURED: {
+                    SkinnedTexturedShader* textureShader = (SkinnedTexturedShader*)shader;
+                    // Do some stuff to update the frame constants for this shader
+
+                    // Update and set frame constant buffer
+                    textureShader->m_frameConstData.cameraMatrix = cameraMatrix;
+                    textureShader->m_frameConstData.projMatrix = m_projMatrix;
+                    UpdateBuffer(textureShader->m_frameConstBuffer, &textureShader->m_frameConstData, sizeof(textureShader->m_frameConstData));
+                    direct3D->context->VSSetConstantBuffers(0, 1, &textureShader->m_frameConstBuffer);
+                    direct3D->context->PSSetSamplers(0, 1, &textureShader->m_samplerState);
+                    // For each model in the scene
+                    for (Mesh* mesh : meshes) {
+                        // That uses this shader!
+                        if (mesh->m_shaderType != shader->m_type) {
+                            continue;
+                        }
+
+                        // Lazy initialize the model's Direct3D resources
+                        if (!mesh->IsInitialized()) {
+                            if (!mesh->Initialize(direct3D)) {
+                                Logger::Err("Failed to initialize 3D model!");
+                                // Maybe quit here?
+                                return;
+                            }
+                        }
+
+                        SkinnedTexturedMesh* textureMesh = (SkinnedTexturedMesh*)mesh;
+
+                        // Do some stuff to update the model specific constants that this specific shader uses
+                        // Update model constant buffer
+                        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(mesh->rotation.x),
+                            DirectX::XMConvertToRadians(mesh->rotation.y),
+                            DirectX::XMConvertToRadians(mesh->rotation.z));
+                        DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(mesh->position.x, mesh->position.y, mesh->position.z);
+                        DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+
+                        for (int i = 0; i < textureMesh->armature->bones.size(); i++) {
+                            textureShader->m_modelConstData.animation_palette[i] = textureMesh->animation_palette[i];
+                        }
+
+                        UpdateBuffer(textureShader->m_modelConstBuffer, &textureShader->m_modelConstData, sizeof(textureShader->m_modelConstData));
+                        direct3D->context->VSSetConstantBuffers(1, 1, &textureShader->m_modelConstBuffer);
+
+                        // Render this specific model
+                        UINT stride = sizeof(texture_shader_vertex_t);
+                        UINT offset = 0;
+                        direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
+                        direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+                        direct3D->context->PSSetShaderResources(0, 1, &textureMesh->m_texture);
                         direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
                     }
                     break;

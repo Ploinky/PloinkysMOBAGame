@@ -11,6 +11,7 @@ namespace PMG {
 	enum ShaderType {
 		COLOR,
 		TEXTURE,
+		SKINNED_TEXTURED,
 		NONE
 	};
 
@@ -64,12 +65,34 @@ namespace PMG {
 
 	typedef struct {
 		DirectX::XMFLOAT4X4 modelMatrix;
+		Physics::mat_t animation_palette[256];
 	} texture_shader_model_const_t;
 
 	class TextureShader : public Shader {
 	public:
 		TextureShader();
 		~TextureShader();
+		void Initialize(Direct3D* direct3D);
+
+		ID3D11Buffer* m_frameConstBuffer;
+		texture_shader_frame_const_t m_frameConstData;
+		ID3D11Buffer* m_modelConstBuffer;
+		texture_shader_model_const_t m_modelConstData;
+		ID3D11SamplerState* m_samplerState;
+	};
+
+	typedef struct {
+		float position[3];
+		float normal[3];
+		float texCoord[2];
+		float bone_indices[4];
+		float bone_weights[4];
+	} skinned_textured_shader_vertex_t;
+
+	class SkinnedTexturedShader : public Shader {
+	public:
+		SkinnedTexturedShader();
+		~SkinnedTexturedShader();
 		void Initialize(Direct3D* direct3D);
 
 		ID3D11Buffer* m_frameConstBuffer;
