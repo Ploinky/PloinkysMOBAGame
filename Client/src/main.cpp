@@ -91,8 +91,8 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     PMG::Renderer renderer = PMG::Renderer();
     renderer.Initialize(&d3d, window.width, window.height);
-    renderer.camera->position = { 0, 10, -6 };
-    renderer.camera->rotation = { 60, 0, 0 };
+    renderer.camera->position = { -10, 1, -2 };
+    renderer.camera->rotation = { 0, 90, 0 };
     PMG::Renderer* p_renderer = &renderer;
     
     PMG::GameObject gotest = PMG::GameObject();
