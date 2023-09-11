@@ -68,6 +68,81 @@ namespace PMG {
         Mesh* mesh3 = Mesh::LoadMesh("models/tower.p3d", "models/tower.dds");
         mesh3->Initialize(direct3D);
         meshes_.emplace("tower", mesh3);
+
+        skinned_textured_shader_vertex_t verts[3]{
+            {
+                { 1.0f, 0.0f, 0.0f},
+                { 1.0f, 0.0f, 0.0f},
+                { 1.0f, 0.0f },
+                { 1, 0, 0, 0 },
+                { 1, 0, 0, 0 },
+            },
+            {
+                { -1.0f, 0.0f, -1.0f},
+                { -1.0f, 0.0f, 1.0f},
+                { 1.0f, 0.0f },
+                { 1, 0, 0, 0 },
+                { 1, 0, 0, 0 },
+            },
+            {
+                { -1.0f, 0.0f, 1.0f},
+                { -1.0f, 0.0f, 1.0f},
+                { 1.0f, 0.0f },
+                { 1, 0, 0, 0 },
+                { 1, 0, 0, 0 },
+            },
+        };
+        // texture_shader_vertex_t* verts = new texture_shader_vertex_t[]{
+        //     {
+        //         { 1.0f, 0.0f, 0.0f},
+        //         { 1.0f, 0.0f },
+        //     },
+        //     {
+        //         { -1.0f, 0.0f, -1.0f},
+        //         { 1.0f, 0.0f },
+        //     },
+        //     {
+        //         { -1.0f, 0.0f, 1.0f},
+        //         { 1.0f, 0.0f },
+        //     },
+        // };
+        unsigned int* indices = new unsigned int[3]{ 0, 1, 2 };
+
+        SkinnedTexturedMesh* test_mesh = new SkinnedTexturedMesh();
+        //TextureMesh* test_mesh = new TextureMesh();
+        test_mesh->indexCount = 3;
+        test_mesh->vertexCount = 3;
+        test_mesh->vertices = verts;
+        test_mesh->indices = indices;
+        test_mesh->m_textureFileName = "models/test.dds";
+        test_mesh->Initialize(direct3D);
+
+        Armature* arm = new Armature();
+        arm->bones.resize(1);
+        arm->bones[0].name = "root";
+        arm->bones[0].parent_index = 0;
+
+        arm->bones[0].bind_pose = BonePosition();
+        arm->bones[0].bind_pose.rotation = Physics::Quaternion(1, 0, 0, 0);
+        arm->bones[0].bind_pose.translation = { 0, 0, 0 };
+
+        Animation* anim = new Animation();
+        anim->bone_count = 1;
+        anim->duration = 0.1;
+        anim->frame_duration = 0.1;
+        anim->frame_count = 1;
+        anim->animation_tracks.resize(1);
+        anim->animation_tracks[0].resize(1);
+        anim->animation_tracks[0][0].rotation = Physics::Quaternion(1, 0, 0, 0);
+        anim->animation_tracks[0][0].translation = { 0, 0, 0 };
+
+        test_mesh->armature = arm;
+        test_mesh->animations.emplace("idle", anim);
+        
+        arm->ComputeGlobalInverseBindPoses();
+        test_mesh->CalculateMatrixPalette();
+        test_mesh->m_shaderType = ShaderType::TEXTURE;
+        meshes_.emplace("test", test_mesh);
     }
 
     void Renderer::SetDimensions(int width, int height) {
@@ -383,7 +458,7 @@ namespace PMG {
                 direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
                 direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
                 direct3D->context->PSSetShaderResources(0, 1, &textureMesh->m_texture);
-                //direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
                 break;
             }
             case ShaderType::SKINNED_TEXTURED: {

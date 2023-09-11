@@ -17,7 +17,15 @@ std::string GetDir() {
 	return std::string(buffer).substr(0, pos);
 }
 
+#include "window.h"
+#include "direct3d.h"
+#include "renderer.h"
+#include "game_object.h"
+
+
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
+    /*
+    
     // Attempt to read command line arguments
     int argc;
     wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
@@ -66,5 +74,46 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     delete client;
     client = 0;
 
+    */
+
+    PMG::Window window = PMG::Window(
+        1024, 768, PMG::WindowMode::WINDOWED
+    );
+    window.Show();
+
+    window.e_charTyped = [](WORD ch) { };
+    window.e_keyPressed = [&window](WORD key) { window.SetShouldClose(); };
+    window.e_keyReleased = [](WORD key) { };
+    window.e_mouseButtonPressed = [](int button) { };
+    window.e_mouseButtonReleased = [](int button) { };
+    window.e_mouseMoved = [](int x, int y) { };
+
+    PMG::Direct3D d3d = PMG::Direct3D();
+    if (!d3d.Initialize(window.GetWindowHandle(), false)) {
+        MessageBoxA(NULL, "fml", "fml", MB_ICONERROR);
+    }
+
+
+    PMG::Renderer renderer = PMG::Renderer();
+    renderer.Initialize(&d3d, window.width, window.height);
+    
+    PMG::GameObject go = PMG::GameObject();
+    go.position = { 0, 0, 0 };
+    go.mesh = "chess_person";
+
+    PMG::GameObject gotest = PMG::GameObject();
+    gotest.position = { 1, 0, 0 };
+    gotest.mesh = "test";
+
+    while (!window.ShouldClose()) {
+        window.HandleEvents();
+
+        d3d.ClearScreen();
+        renderer.UpdateCameraMatrix();
+
+        renderer.Render(&go);
+        renderer.Render(&gotest);
+        d3d.Present();
+    }
     return 0;
 }
