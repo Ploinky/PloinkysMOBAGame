@@ -10,10 +10,10 @@ namespace PMG {
 	void Armature::ComputeGlobalInverseBindPoses() {
 		global_inverse_bind_poses.resize(bones.size());
 
-		global_inverse_bind_poses[0] = bones[0].bind_pose.ToMatrix();
+        global_inverse_bind_poses[0] = bones[0].bind_pose.ToMatrix();
 
 		for (int i = 1; i < global_inverse_bind_poses.size(); i++) {
-			Physics::mat_t local_mat = bones[i].bind_pose.ToMatrix();
+            Physics::mat_t local_mat = bones[i].bind_pose.ToMatrix();
 			global_inverse_bind_poses[i] = local_mat * global_inverse_bind_poses[bones[i].parent_index];
 		}
 

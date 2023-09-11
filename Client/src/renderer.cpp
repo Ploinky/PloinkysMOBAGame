@@ -31,7 +31,7 @@ namespace PMG {
 
         float hp = static_cast<float>(M_PI / 180.0);
 
-        m_projMatrix = Physics::mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
+        m_projMatrix = Physics::mat_t::Perspective((float)m_width / (float)m_height, camera->fov * hp, camera->nearClip, camera->farClip);
 
         // Where to set this?
         direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -54,6 +54,7 @@ namespace PMG {
         m_shaders.push_back(skinned_textured_shader);
 
         // load resources?
+        /*
         SkinnedTexturedMesh* mesh1 = (SkinnedTexturedMesh*) Mesh::LoadSkinnedTexturedMesh("models/chess_person.p3d", "models/chess_person.dds");
         mesh1->Initialize(direct3D);
         Animation* wave = Animation::LoadAnimation("models/chess_person_test.p3d_anim");
@@ -68,27 +69,28 @@ namespace PMG {
         Mesh* mesh3 = Mesh::LoadMesh("models/tower.p3d", "models/tower.dds");
         mesh3->Initialize(direct3D);
         meshes_.emplace("tower", mesh3);
+        */
 
         skinned_textured_shader_vertex_t verts[3]{
             {
                 { 1.0f, 0.0f, 0.0f},
                 { 1.0f, 0.0f, 0.0f},
                 { 1.0f, 0.0f },
-                { 1, 0, 0, 0 },
+                { 0, 0, 0, 0 },
                 { 1, 0, 0, 0 },
             },
             {
                 { -1.0f, 0.0f, -1.0f},
                 { -1.0f, 0.0f, 1.0f},
                 { 1.0f, 0.0f },
-                { 1, 0, 0, 0 },
+                { 0, 0, 0, 0 },
                 { 1, 0, 0, 0 },
             },
             {
                 { -1.0f, 0.0f, 1.0f},
                 { -1.0f, 0.0f, 1.0f},
                 { 1.0f, 0.0f },
-                { 1, 0, 0, 0 },
+                { 0, 0, 0, 0 },
                 { 1, 0, 0, 0 },
             },
         };
@@ -108,23 +110,17 @@ namespace PMG {
         // };
         unsigned int* indices = new unsigned int[3]{ 0, 1, 2 };
 
-        SkinnedTexturedMesh* test_mesh = new SkinnedTexturedMesh();
-        //TextureMesh* test_mesh = new TextureMesh();
-        test_mesh->indexCount = 3;
-        test_mesh->vertexCount = 3;
-        test_mesh->vertices = verts;
-        test_mesh->indices = indices;
-        test_mesh->m_textureFileName = "models/test.dds";
+        SkinnedTexturedMesh* test_mesh = (SkinnedTexturedMesh*) SkinnedTexturedMesh::LoadSkinnedTexturedMesh("models/test_person.p3d", "models/test_person.dds");
         test_mesh->Initialize(direct3D);
+        // TextureMesh* test_mesh = new TextureMesh();
+        // test_mesh->indexCount = 3;
+        // test_mesh->vertexCount = 3;
+        // test_mesh->vertices = verts;
+        // test_mesh->indices = indices;
+        // test_mesh->m_textureFileName = "models/test_person.dds";
+        // test_mesh->Initialize(direct3D);
 
-        Armature* arm = new Armature();
-        arm->bones.resize(1);
-        arm->bones[0].name = "root";
-        arm->bones[0].parent_index = 0;
-
-        arm->bones[0].bind_pose = BonePosition();
-        arm->bones[0].bind_pose.rotation = Physics::Quaternion(1, 0, 0, 0);
-        arm->bones[0].bind_pose.translation = { 0, 0, 0 };
+        Armature* arm = Armature::LoadArmature("models/test_person.p3d_skn");
 
         Animation* anim = new Animation();
         anim->bone_count = 1;
@@ -133,15 +129,17 @@ namespace PMG {
         anim->frame_count = 1;
         anim->animation_tracks.resize(1);
         anim->animation_tracks[0].resize(1);
-        anim->animation_tracks[0][0].rotation = Physics::Quaternion(1, 0, 0, 0);
-        anim->animation_tracks[0][0].translation = { 0, 0, 0 };
+
+        anim = Animation::LoadAnimation("models/test_person_test_action.p3d_anim");
+        test_mesh->animations.emplace("test_action", anim);
 
         test_mesh->armature = arm;
         test_mesh->animations.emplace("idle", anim);
         
         arm->ComputeGlobalInverseBindPoses();
         test_mesh->CalculateMatrixPalette();
-        test_mesh->m_shaderType = ShaderType::TEXTURE;
+        test_mesh->m_shaderType = ShaderType::SKINNED_TEXTURED;
+        // test_mesh->m_shaderType = ShaderType::TEXTURE;
         meshes_.emplace("test", test_mesh);
     }
 

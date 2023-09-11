@@ -41,7 +41,6 @@ def export_p3d(context, filepath):
     my_armature.data.update_tag()
     bpy.context.scene.frame_set(bpy.context.scene.frame_current)
 
-
     me = my_mesh.data
 
     me.calc_loop_triangles()
@@ -89,9 +88,9 @@ def export_p3d(context, filepath):
         
         for v in verts:
             # x, y, z
-            f.write(struct.pack('f', -v[0][1]))
+            f.write(struct.pack('f', -v[0][0]))
             f.write(struct.pack('f', v[0][2]))
-            f.write(struct.pack('f', v[0][0]))
+            f.write(struct.pack('f', -v[0][1]))
             
             # nx, ny, ny            
             f.write(struct.pack('f', v[1][0]))
@@ -118,10 +117,6 @@ def export_p3d(context, filepath):
         
         for i in indices:
             f.write(struct.pack('i', i))
-
-    my_armature.data.pose_position = "POSE"
-    my_armature.data.update_tag()
-    bpy.context.scene.frame_set(bpy.context.scene.frame_current)
                 
     with open(filepath + "_skn", 'wb') as f:
         f.write("p3d".encode())
@@ -143,14 +138,20 @@ def export_p3d(context, filepath):
 
             translation = mat.to_translation()
             rotation = mat.to_quaternion()
+            print(mat.to_quaternion())
+            print("????")
 
-            f.write(struct.pack('f', -rotation.y))
-            f.write(struct.pack('f', rotation.z))
             f.write(struct.pack('f', rotation.x))
-            f.write(struct.pack('f', rotation.w))
+            f.write(struct.pack('f', rotation.z))
+            f.write(struct.pack('f', -rotation.y))
+            f.write(struct.pack('f', -rotation.w))
             f.write(struct.pack('f', -translation.y))
             f.write(struct.pack('f', translation.z))
             f.write(struct.pack('f', translation.x))
+
+    my_armature.data.pose_position = "POSE"
+    my_armature.data.update_tag()
+    bpy.context.scene.frame_set(bpy.context.scene.frame_current)
 
     for a in my_animations:
         my_armature.animation_data.action = a
@@ -174,16 +175,17 @@ def export_p3d(context, filepath):
 
                     translation = mat.to_translation()
                     rotation = mat.to_quaternion()
+                    print(mat.to_quaternion())
 
-                    f.write(struct.pack('f', -rotation.y))
-                    f.write(struct.pack('f', rotation.z))
                     f.write(struct.pack('f', rotation.x))
-                    f.write(struct.pack('f', rotation.w))
+                    f.write(struct.pack('f', rotation.z))
+                    f.write(struct.pack('f', -rotation.y))
+                    f.write(struct.pack('f', -rotation.w))
                     f.write(struct.pack('f', -translation.y))
                     f.write(struct.pack('f', translation.z))
                     f.write(struct.pack('f', translation.x))
 
-        
+
     print("Done!")
 
     return {'FINISHED'}

@@ -362,13 +362,20 @@ namespace PMG {
         std::vector<Physics::mat_t> current_poses;
 
         if (current_animation == nullptr) {
-            for (int i = 0; i < armature->bones.size(); i++) {
-                animation_palette[i] = Physics::mat_t::Identity();
+            current_poses.resize(armature->bones.size());
+
+            current_poses[0] = armature->bones[0].bind_pose.ToMatrix();
+
+            for (int bone = 1; bone < armature->bones.size(); bone++) {
+                Physics::mat_t mat = Physics::mat_t::Identity();
+
+                current_poses[bone] = armature->bones[bone].bind_pose.ToMatrix() * current_poses[armature->bones[bone].parent_index];
             }
-            return;
+        }
+        else {
+            current_animation->GetGlobalPoseAtTime(current_poses, armature, current_animation_time);
         }
         
-        current_animation->GetGlobalPoseAtTime(current_poses, armature, current_animation_time);
 
         for (int i = 0; i < armature->bones.size(); i++) {
             animation_palette[i] = armature->global_inverse_bind_poses[i] * current_poses[i];

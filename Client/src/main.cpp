@@ -21,7 +21,8 @@ std::string GetDir() {
 #include "direct3d.h"
 #include "renderer.h"
 #include "game_object.h"
-
+#include "camera.h"
+#include "mesh.h"
 
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
     /*
@@ -81,12 +82,6 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     );
     window.Show();
 
-    window.e_charTyped = [](WORD ch) { };
-    window.e_keyPressed = [&window](WORD key) { window.SetShouldClose(); };
-    window.e_keyReleased = [](WORD key) { };
-    window.e_mouseButtonPressed = [](int button) { };
-    window.e_mouseButtonReleased = [](int button) { };
-    window.e_mouseMoved = [](int x, int y) { };
 
     PMG::Direct3D d3d = PMG::Direct3D();
     if (!d3d.Initialize(window.GetWindowHandle(), false)) {
@@ -96,14 +91,25 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     PMG::Renderer renderer = PMG::Renderer();
     renderer.Initialize(&d3d, window.width, window.height);
+    renderer.camera->position = { 0, 10, -6 };
+    renderer.camera->rotation = { 60, 0, 0 };
+    PMG::Renderer* p_renderer = &renderer;
     
-    PMG::GameObject go = PMG::GameObject();
-    go.position = { 0, 0, 0 };
-    go.mesh = "chess_person";
-
     PMG::GameObject gotest = PMG::GameObject();
-    gotest.position = { 1, 0, 0 };
+    gotest.position = { 0, 0, 0 };
     gotest.mesh = "test";
+
+    window.e_charTyped = [](WORD ch) {};
+    window.e_keyPressed = [&window](WORD key) { window.SetShouldClose(); };
+    window.e_keyReleased = [](WORD key) {};
+    int c = 0;
+    int* p_c = &c;
+    window.e_mouseButtonPressed = [p_renderer, p_c](int button) {
+        ((PMG::SkinnedTexturedMesh*)p_renderer->meshes_.find("test")->second)->PlayAnimation("test_action", *p_c);
+        *p_c += 1;
+    };
+    window.e_mouseButtonReleased = [](int button) {};
+    window.e_mouseMoved = [](int x, int y) {};
 
     while (!window.ShouldClose()) {
         window.HandleEvents();
@@ -111,7 +117,6 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         d3d.ClearScreen();
         renderer.UpdateCameraMatrix();
 
-        renderer.Render(&go);
         renderer.Render(&gotest);
         d3d.Present();
     }
