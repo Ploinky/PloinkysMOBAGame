@@ -59,6 +59,8 @@ namespace PMG {
         mesh1->Initialize(direct3D);
         Animation* wave = Animation::LoadAnimation("models/chess_person_wave.p3d_anim");
         mesh1->animations.emplace("wave", wave);
+        Animation* run = Animation::LoadAnimation("models/chess_person_run.p3d_anim");
+        mesh1->animations.emplace("run", run);
         meshes_.emplace("chess_person", mesh1);
         mesh1->CalculateMatrixPalette();
 

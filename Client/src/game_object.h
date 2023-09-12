@@ -1,8 +1,8 @@
 #pragma once
 
-#include "mesh.h"
 #include "pmg_physics.h"
 #include "pmg_types.h"
+#include <string>
 
 namespace PMG {
 	class GameObject {

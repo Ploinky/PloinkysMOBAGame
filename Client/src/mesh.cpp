@@ -375,7 +375,6 @@ namespace PMG {
         else {
             current_animation->GetGlobalPoseAtTime(current_poses, armature, current_animation_time);
         }
-        
 
         for (int i = 0; i < armature->bones.size(); i++) {
             animation_palette[i] = armature->global_inverse_bind_poses[i] * current_poses[i];
@@ -384,7 +383,12 @@ namespace PMG {
 
     double SkinnedTexturedMesh::PlayAnimation(std::string animation_name, double time) {
         current_animation = animations.find(animation_name)->second;
-        current_animation_time = time;
+        current_animation_time += time;
+
+
+        if (current_animation_time > current_animation->duration * 1000) {
+            current_animation_time = 0;
+        }
 
         CalculateMatrixPalette();
 

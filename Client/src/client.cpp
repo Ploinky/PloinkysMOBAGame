@@ -14,6 +14,7 @@
 #include <locale>
 #include "settings.h"
 #include "audio_system.h"
+#include "mesh.h"
 
 namespace PMG {
     Client::Client(std::string ip_address, std::string port) {
@@ -221,6 +222,8 @@ namespace PMG {
         m_mousePos[1] = screenY;
     }
 
+    static bool animate;
+
     void Client::Update(float dt) {
         if (!net_manager_.IsConnected()) {
             net_manager_.CheckConnected();
@@ -267,8 +270,11 @@ namespace PMG {
         }
 
         if (m_keys['c']) {
-            m_keys['c'] = false;
-            ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->PlayAnimation("wave", ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->current_animation_time + 1);
+            animate = true;
+        }
+
+        if (animate) {
+            ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->PlayAnimation("run", dt);
         }
 
         if (m_keys['q']) {

@@ -9,10 +9,6 @@ from math import radians
 import bpy
 from mathutils import *
 
-def getAxisMappingMatrix():
-    mat = (Matrix.Scale(-1, 4, Vector((0, 0, 1))) @ Matrix.Rotation(radians(-90), 4, 'X') @ Matrix.Rotation(radians(90), 4, 'Z'))
-    return mat
-
 def getMesh():
     for obj in bpy.context.selected_objects:
         if obj.type == "MESH":
@@ -45,10 +41,7 @@ def export_p3d(context, filepath):
     my_armature.data.update_tag()
     bpy.context.scene.frame_set(bpy.context.scene.frame_current)
 
-    sceneWithAppliedModifiers = bpy.context.evaluated_depsgraph_get()
-
-    me = my_mesh.evaluated_get(sceneWithAppliedModifiers).to_mesh(preserve_all_data_layers=True, depsgraph=bpy.context.evaluated_depsgraph_get())
-    me.transform(getAxisMappingMatrix() @ my_mesh.matrix_world)
+    me = my_mesh.data
 
     me.calc_loop_triangles()
     me.calc_normals_split()
@@ -95,9 +88,9 @@ def export_p3d(context, filepath):
         
         for v in verts:
             # x, y, z
-            f.write(struct.pack('f', v[0][0]))
-            f.write(struct.pack('f', v[0][1]))
+            f.write(struct.pack('f', -v[0][0]))
             f.write(struct.pack('f', v[0][2]))
+            f.write(struct.pack('f', -v[0][1]))
             
             # nx, ny, ny            
             f.write(struct.pack('f', v[1][0]))
@@ -119,47 +112,47 @@ def export_p3d(context, filepath):
             f.write(struct.pack('f', v[4][1]))
             f.write(struct.pack('f', v[4][2]))
             f.write(struct.pack('f', v[4][3]))
+            print(v[3])
+            print(v[4])
+
         
         f.write(struct.pack('i', len(indices)))
         
         for i in indices:
             f.write(struct.pack('i', i))
-
-    my_armature.data.pose_position = "POSE"
-    my_armature.data.update_tag()
-    bpy.context.scene.frame_set(bpy.context.scene.frame_current)
                 
     with open(filepath + "_skn", 'wb') as f:
         f.write("p3d".encode())
         f.write(struct.pack('i', 1))
         
         f.write(struct.pack('i', len(my_armature.data.bones)))
-        
         for b in my_armature.data.bones:
             f.write(struct.pack('i', len(b.name)))
             f.write(b.name.encode())
-            
+
             if b.parent and b.parent.name:
                 f.write(struct.pack('i', my_armature.data.bones.find(b.parent.name)))
             else:
                 f.write(struct.pack('i', 0))
-            
+
             mat = b.matrix_local
             if b.parent:
                 mat = b.parent.matrix_local.inverted() @ mat
-            else:
-                mat = getAxisMappingMatrix() @ mat
 
             translation = mat.to_translation()
-            rotation = mat.to_quaternion().inverted()
-    
-            f.write(struct.pack('f', rotation.w))
-            f.write(struct.pack('f', rotation.x))
-            f.write(struct.pack('f', rotation.y))
+            rotation = mat.to_quaternion()
+
+            f.write(struct.pack('f', -rotation.x))
             f.write(struct.pack('f', rotation.z))
-            f.write(struct.pack('f', translation.x))
-            f.write(struct.pack('f', translation.y))
+            f.write(struct.pack('f', -rotation.y))
+            f.write(struct.pack('f', -rotation.w))
+            f.write(struct.pack('f', -translation.x))
             f.write(struct.pack('f', translation.z))
+            f.write(struct.pack('f', -translation.y))
+
+    my_armature.data.pose_position = "POSE"
+    my_armature.data.update_tag()
+    bpy.context.scene.frame_set(bpy.context.scene.frame_current)
 
     for a in my_animations:
         my_armature.animation_data.action = a
@@ -180,28 +173,20 @@ def export_p3d(context, filepath):
                     
                     if bone.parent:
                         mat = bone.parent.matrix.inverted() @ mat
-                    else:
-                        mat = getAxisMappingMatrix() @ mat
+                    print(mat.to_quaternion())
 
                     translation = mat.to_translation()
-                    rotation = mat.to_quaternion().inverted()
-                    
-                    if bone.name == "arm_rl" and a.name == "test":
-                        pct = frame_index / 19
-                        rotation.x = 0
-                        rotation.y = 0
-                        rotation.z = pct * 1
-                        rotation.w = 1
-                        
+                    rotation = mat.to_quaternion()
 
-                    f.write(struct.pack('f', rotation.w))
-                    f.write(struct.pack('f', rotation.x))
-                    f.write(struct.pack('f', rotation.y))
+                    f.write(struct.pack('f', -rotation.x))
                     f.write(struct.pack('f', rotation.z))
-                    f.write(struct.pack('f', translation.x))
-                    f.write(struct.pack('f', translation.y))
+                    f.write(struct.pack('f', -rotation.y))
+                    f.write(struct.pack('f', -rotation.w))
+                    f.write(struct.pack('f', -translation.x))
                     f.write(struct.pack('f', translation.z))
-        
+                    f.write(struct.pack('f', -translation.y))
+
+
     print("Done!")
 
     return {'FINISHED'}

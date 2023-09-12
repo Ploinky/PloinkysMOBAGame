@@ -82,10 +82,15 @@ namespace PMG {
             poses.resize(bone_count);
         }
 
-        const int frame = time;
+        double frame = time / (duration * 1000) * frame_count;
+
+        if (frame >= frame_count - 1) {
+            frame = 0;
+        }
+        double frm_pct = frame - (int)frame;
 
         if (animation_tracks[0].size() > 0) {
-            poses[0] = animation_tracks[0][frame].ToMatrix();
+            poses[0] = BonePosition::Interpolate(animation_tracks[0][frame], animation_tracks[0][frame + 1], frm_pct).ToMatrix();
         }
         else {
             poses[0] = DirectX::XMMatrixIdentity();
@@ -95,7 +100,7 @@ namespace PMG {
             DirectX::XMMATRIX mat = DirectX::XMMatrixIdentity();
 
             if (animation_tracks[bone].size() > 0) {
-                mat = animation_tracks[bone][frame].ToMatrix();
+                mat = BonePosition::Interpolate(animation_tracks[bone][frame], animation_tracks[bone][frame + 1], frm_pct).ToMatrix();
             }
 
             poses[bone] = mat * poses[armature->bones[bone].parent_index];

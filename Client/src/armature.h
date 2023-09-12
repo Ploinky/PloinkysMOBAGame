@@ -10,6 +10,8 @@ namespace PMG {
 		DirectX::XMVECTOR rotation;
 		DirectX::XMFLOAT3 translation;
 		DirectX::XMMATRIX ToMatrix() const;
+
+		static BonePosition Interpolate(BonePosition from, BonePosition to, double pct);
 	};
 
 	class Bone {
