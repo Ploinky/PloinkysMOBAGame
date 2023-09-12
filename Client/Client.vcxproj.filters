@@ -120,9 +120,6 @@
     <ClCompile Include="src\animation.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderable_component.cpp">
-      <Filter>Source Files\game_object</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -184,9 +181,6 @@
     </ClInclude>
     <ClInclude Include="src\animation.h">
       <Filter>Header Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderable_component.h">
-      <Filter>Header Files\game_object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

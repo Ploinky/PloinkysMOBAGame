@@ -155,7 +155,6 @@
     <ClCompile Include="src\map.cpp" />
     <ClCompile Include="src\mesh.cpp" />
     <ClCompile Include="src\client_network_manager.cc" />
-    <ClCompile Include="src\renderable_component.cpp" />
     <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\settings.cc" />
     <ClCompile Include="src\shader.cpp" />
@@ -178,7 +177,6 @@
     <ClInclude Include="src\map.h" />
     <ClInclude Include="src\mesh.h" />
     <ClInclude Include="src\client_network_manager.h" />
-    <ClInclude Include="src\renderable_component.h" />
     <ClInclude Include="src\renderer.h" />
     <ClInclude Include="src\settings.h" />
     <ClInclude Include="src\shader.h" />
