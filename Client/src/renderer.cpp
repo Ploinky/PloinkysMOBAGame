@@ -31,7 +31,7 @@ namespace PMG {
 
         float hp = static_cast<float>(M_PI / 180.0);
 
-        m_projMatrix = Physics::mat_t::Perspective((float)m_width / (float)m_height, camera->fov * hp, camera->nearClip, camera->farClip);
+        DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(camera->fov), (float)m_width / (float)m_height, camera->nearClip, camera->farClip)));
 
         // Where to set this?
         direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -54,14 +54,29 @@ namespace PMG {
         m_shaders.push_back(skinned_textured_shader);
 
         // load resources?
-        /*
+        Mesh* mesh = new Mesh();
+        unsigned int* ind = new unsigned int[3] { 0, 1, 2 };
+        color_shader_vertex_t* vert = new color_shader_vertex_t[3]{
+            { { 2, -1, 3 }, { 1, 1, 1, 0} },
+            { { -2, -1, 3 }, { 1, 1, 1, 0} },
+            { { 0, 2, 3}, { 1, 0, 0, 0} },
+        };
+        mesh->indexCount = 3;
+        mesh->vertexCount = 3;
+        mesh->indices = ind;
+        mesh->vertices = vert;
+        mesh->position = { 0, 0, 0 };
+        mesh->Initialize(direct3D);
+        // meshes_.emplace("test", mesh);
+
         SkinnedTexturedMesh* mesh1 = (SkinnedTexturedMesh*) Mesh::LoadSkinnedTexturedMesh("models/chess_person.p3d", "models/chess_person.dds");
         mesh1->Initialize(direct3D);
-        Animation* wave = Animation::LoadAnimation("models/chess_person_test.p3d_anim");
+        Animation* wave = Animation::LoadAnimation("models/chess_person_wave.p3d_anim");
         mesh1->animations.emplace("wave", wave);
         meshes_.emplace("chess_person", mesh1);
         mesh1->CalculateMatrixPalette();
 
+        /*
         Mesh* mesh2 = Mesh::LoadMesh("models/missile.p3d", "models/missile.dds");
         mesh2->Initialize(direct3D);
         meshes_.emplace("missile", mesh2);
@@ -140,7 +155,7 @@ namespace PMG {
         test_mesh->CalculateMatrixPalette();
         test_mesh->m_shaderType = ShaderType::SKINNED_TEXTURED;
         // test_mesh->m_shaderType = ShaderType::TEXTURE;
-        meshes_.emplace("test", test_mesh);
+        // meshes_.emplace("test", test_mesh);
     }
 
     void Renderer::SetDimensions(int width, int height) {
@@ -148,7 +163,7 @@ namespace PMG {
         m_height = height;
 
         float hp = static_cast<float>(M_PI / 180.0);
-        m_projMatrix = Physics::mat_t::Perspective((float) m_width / (float) m_height, camera->fov * hp, camera->nearClip, camera->farClip);
+        DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(camera->fov), (float) m_width / (float) m_height, camera->nearClip, camera->farClip)));
     }
 
     void Renderer::UpdateCameraMatrix() {
@@ -406,9 +421,6 @@ namespace PMG {
                 DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(mesh->position.x, mesh->position.y, mesh->position.z);
                 DirectX::XMStoreFloat4x4(&colorShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
 
-                transMat = DirectX::XMMatrixAffineTransformation(DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f), DirectX::XMVectorSet(0, 0, 0, 1.0f),
-                    DirectX::XMQuaternionRotationMatrix(DirectX::XMMatrixRotationRollPitchYaw(mesh->rotation.x * 0.0174532925f, mesh->rotation.y * 0.0174532925f, mesh->rotation.z * 0.0174532925f)),
-                    DirectX::XMVectorSet(mesh->position.x, mesh->position.y, mesh->position.z, 1.0f));
 
                 UpdateBuffer(colorShader->m_modelConstBuffer, &colorShader->m_modelConstData, sizeof(colorShader->m_modelConstData));
                 direct3D->context->VSSetConstantBuffers(1, 1, &colorShader->m_modelConstBuffer);
@@ -419,7 +431,7 @@ namespace PMG {
                 direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                 direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
                 direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-                //direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
                 break;
             }
             case ShaderType::TEXTURE: {
@@ -485,7 +497,7 @@ namespace PMG {
                 DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
 
                 for (int i = 0; i < textureMesh->armature->bones.size(); i++) {
-                    textureShader->m_modelConstData.animation_palette[i] = textureMesh->animation_palette[i];
+                    DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.animation_palette[i], DirectX::XMMatrixTranspose(textureMesh->animation_palette[i]));
                 }
 
                 UpdateBuffer(textureShader->m_modelConstBuffer, &textureShader->m_modelConstData, sizeof(textureShader->m_modelConstData));
@@ -658,7 +670,7 @@ namespace PMG {
                         DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
 
                         for (int i = 0; i < textureMesh->armature->bones.size(); i++) {
-                            textureShader->m_modelConstData.animation_palette[i] = textureMesh->animation_palette[i];
+                            DirectX::XMStoreFloat4x4(&textureShader->m_modelConstData.animation_palette[i], DirectX::XMMatrixTranspose(textureMesh->animation_palette[i]));
                         }
 
                         UpdateBuffer(textureShader->m_modelConstBuffer, &textureShader->m_modelConstData, sizeof(textureShader->m_modelConstData));

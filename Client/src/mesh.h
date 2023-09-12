@@ -59,7 +59,7 @@ namespace PMG {
         Armature* armature = nullptr;
         std::map<std::string, Animation*> animations;
         skinned_textured_shader_vertex_t* vertices = 0;
-        Physics::mat_t animation_palette[256];
+        DirectX::XMMATRIX animation_palette[256];
         Animation* current_animation = nullptr;
         double current_animation_time = 0;
 

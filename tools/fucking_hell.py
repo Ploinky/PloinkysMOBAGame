@@ -112,6 +112,9 @@ def export_p3d(context, filepath):
             f.write(struct.pack('f', v[4][1]))
             f.write(struct.pack('f', v[4][2]))
             f.write(struct.pack('f', v[4][3]))
+            print(v[3])
+            print(v[4])
+
         
         f.write(struct.pack('i', len(indices)))
         
@@ -138,16 +141,14 @@ def export_p3d(context, filepath):
 
             translation = mat.to_translation()
             rotation = mat.to_quaternion()
-            print(mat.to_quaternion())
-            print("????")
 
-            f.write(struct.pack('f', rotation.x))
+            f.write(struct.pack('f', -rotation.x))
             f.write(struct.pack('f', rotation.z))
             f.write(struct.pack('f', -rotation.y))
             f.write(struct.pack('f', -rotation.w))
-            f.write(struct.pack('f', -translation.y))
+            f.write(struct.pack('f', -translation.x))
             f.write(struct.pack('f', translation.z))
-            f.write(struct.pack('f', translation.x))
+            f.write(struct.pack('f', -translation.y))
 
     my_armature.data.pose_position = "POSE"
     my_armature.data.update_tag()
@@ -172,18 +173,18 @@ def export_p3d(context, filepath):
                     
                     if bone.parent:
                         mat = bone.parent.matrix.inverted() @ mat
+                    print(mat.to_quaternion())
 
                     translation = mat.to_translation()
                     rotation = mat.to_quaternion()
-                    print(mat.to_quaternion())
 
-                    f.write(struct.pack('f', rotation.x))
+                    f.write(struct.pack('f', -rotation.x))
                     f.write(struct.pack('f', rotation.z))
                     f.write(struct.pack('f', -rotation.y))
                     f.write(struct.pack('f', -rotation.w))
-                    f.write(struct.pack('f', -translation.y))
+                    f.write(struct.pack('f', -translation.x))
                     f.write(struct.pack('f', translation.z))
-                    f.write(struct.pack('f', translation.x))
+                    f.write(struct.pack('f', -translation.y))
 
 
     print("Done!")

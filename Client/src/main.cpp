@@ -91,21 +91,55 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     PMG::Renderer renderer = PMG::Renderer();
     renderer.Initialize(&d3d, window.width, window.height);
-    renderer.camera->position = { -10, 1, -2 };
-    renderer.camera->rotation = { 0, 90, 0 };
+    renderer.camera->position = { 0, 1, 0 };
+    renderer.camera->rotation = { 0, 0, 0 };
     PMG::Renderer* p_renderer = &renderer;
     
     PMG::GameObject gotest = PMG::GameObject();
     gotest.position = { 0, 0, 0 };
-    gotest.mesh = "test";
+    gotest.mesh = "chess_person";
 
     window.e_charTyped = [](WORD ch) {};
-    window.e_keyPressed = [&window](WORD key) { window.SetShouldClose(); };
+    window.e_keyPressed = [&window, p_renderer](WORD key) {
+        if (key == 'w') {
+            p_renderer->camera->position.z += 1;
+            return;
+        }
+        if (key == 's') {
+            p_renderer->camera->position.z -= 1;
+            return;
+        }
+        if (key == 'd') {
+            p_renderer->camera->position.x += 1;
+            return;
+        }
+        if (key == 'a') {
+            p_renderer->camera->position.x -= 1;
+            return;
+        }
+        if (key == 'e') {
+            p_renderer->camera->rotation.y += 5;
+            return;
+        }
+        if (key == 'q') {
+            p_renderer->camera->rotation.y -= 5;
+            return;
+        }
+        if (key == 'r') {
+            p_renderer->camera->position.y += 1;
+            return;
+        }
+        if (key == 'f') {
+            p_renderer->camera->position.y -= 1;
+            return;
+        }
+        window.SetShouldClose();
+    };
     window.e_keyReleased = [](WORD key) {};
     int c = 0;
     int* p_c = &c;
     window.e_mouseButtonPressed = [p_renderer, p_c](int button) {
-        ((PMG::SkinnedTexturedMesh*)p_renderer->meshes_.find("test")->second)->PlayAnimation("test_action", *p_c);
+        ((PMG::SkinnedTexturedMesh*)p_renderer->meshes_.find("chess_person")->second)->PlayAnimation("wave", *p_c);
         *p_c += 1;
     };
     window.e_mouseButtonReleased = [](int button) {};

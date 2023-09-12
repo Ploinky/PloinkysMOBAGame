@@ -1,15 +1,15 @@
 #pragma once
 
-#include "pmg_physics.h"
+#include <DirectXMath.h>
 #include <string>
 #include <vector>
 
 namespace PMG {
 	class BonePosition {
 	public:
-		Physics::Quaternion rotation;
-		Physics::Vector3 translation;
-		Physics::mat_t ToMatrix() const;
+		DirectX::XMVECTOR rotation;
+		DirectX::XMFLOAT3 translation;
+		DirectX::XMMATRIX ToMatrix() const;
 	};
 
 	class Bone {
@@ -25,7 +25,7 @@ namespace PMG {
 		void ComputeGlobalInverseBindPoses();
 
 		std::vector<Bone> bones;
-		std::vector<Physics::mat_t> global_inverse_bind_poses;
+		std::vector<DirectX::XMMATRIX> global_inverse_bind_poses;
 
 	};
 }

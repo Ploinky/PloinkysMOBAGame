@@ -3,8 +3,8 @@
 #include "logger.h"
 
 namespace PMG {
-	Physics::mat_t BonePosition::ToMatrix() const {
-        return Physics::mat_t::Translation(translation.x, translation.y, translation.z) * Physics::mat_t::Rotation(rotation);
+	DirectX::XMMATRIX BonePosition::ToMatrix() const {
+        return DirectX::XMMatrixRotationQuaternion(rotation) * DirectX::XMMatrixTranslation(translation.x, translation.y, translation.z);
 	};
 
 	void Armature::ComputeGlobalInverseBindPoses() {
@@ -13,12 +13,12 @@ namespace PMG {
         global_inverse_bind_poses[0] = bones[0].bind_pose.ToMatrix();
 
 		for (int i = 1; i < global_inverse_bind_poses.size(); i++) {
-            Physics::mat_t local_mat = bones[i].bind_pose.ToMatrix();
+            DirectX::XMMATRIX local_mat = bones[i].bind_pose.ToMatrix();
 			global_inverse_bind_poses[i] = local_mat * global_inverse_bind_poses[bones[i].parent_index];
 		}
 
 		for (int i = 0; i < global_inverse_bind_poses.size(); i++) {
-			global_inverse_bind_poses[i] = global_inverse_bind_poses[i].inverse();
+			global_inverse_bind_poses[i] = DirectX::XMMatrixInverse(nullptr, global_inverse_bind_poses[i]);
 		}
 	}
 
@@ -78,10 +78,10 @@ namespace PMG {
             file.read((char*)&quaternion[2], sizeof(float));
             file.read((char*)&quaternion[3], sizeof(float));
 
-            b.bind_pose.rotation.x = quaternion[0];
-            b.bind_pose.rotation.y = quaternion[1];
-            b.bind_pose.rotation.z = quaternion[2];
-            b.bind_pose.rotation.w = quaternion[3];
+            b.bind_pose.rotation = DirectX::XMVectorSetX(b.bind_pose.rotation, quaternion[0]);
+            b.bind_pose.rotation = DirectX::XMVectorSetY(b.bind_pose.rotation, quaternion[1]);
+            b.bind_pose.rotation = DirectX::XMVectorSetZ(b.bind_pose.rotation, quaternion[2]);
+            b.bind_pose.rotation = DirectX::XMVectorSetW(b.bind_pose.rotation, quaternion[3]);
 
             float translation[3];
             file.read((char*)&translation[0], sizeof(float));

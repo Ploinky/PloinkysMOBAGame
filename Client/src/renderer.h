@@ -24,7 +24,7 @@ namespace PMG {
 
             Camera* camera;
             Direct3D* direct3D;
-            Physics::mat_t m_projMatrix;
+            DirectX::XMFLOAT4X4 m_projMatrix;
             DirectX::XMFLOAT4X4 cameraMatrix;
 
 

@@ -33,7 +33,7 @@ namespace PMG {
 	};
 
 	typedef struct {
-		Physics::mat_t projMatrix;
+		DirectX::XMFLOAT4X4 projMatrix;
 		DirectX::XMFLOAT4X4 cameraMatrix;
 	} color_shader_frame_const_t;
 
@@ -59,13 +59,13 @@ namespace PMG {
 	} texture_shader_vertex_t;
 
 	typedef struct {
-		Physics::mat_t projMatrix;
+		DirectX::XMFLOAT4X4 projMatrix;
 		DirectX::XMFLOAT4X4 cameraMatrix;
 	} texture_shader_frame_const_t;
 
 	typedef struct {
 		DirectX::XMFLOAT4X4 modelMatrix;
-		Physics::mat_t animation_palette[256];
+		DirectX::XMFLOAT4X4 animation_palette[256];
 	} texture_shader_model_const_t;
 
 	class TextureShader : public Shader {

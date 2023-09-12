@@ -3,10 +3,10 @@
 
 namespace PMG {
     Camera::Camera() {
-        this->fov = 60;
+        this->fov = 30;
         this->nearClip = 0.001f;
         this->farClip = 1000.0f;
-        this->position = Physics::Vector3{ 0.0f, 15.0f, -8.0f };
-        this->rotation = Physics::Vector3{ 60.0f, 0.0f, 0.0f };
+        this->position = Physics::Vector3{ 0.0f, 0.0f, 0 };
+        this->rotation = Physics::Vector3{ 0, 0.0f, 0.0f };
     }
 }

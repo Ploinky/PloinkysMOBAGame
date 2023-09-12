@@ -359,7 +359,7 @@ namespace PMG {
     }
 
     void SkinnedTexturedMesh::CalculateMatrixPalette() {
-        std::vector<Physics::mat_t> current_poses;
+        std::vector<DirectX::XMMATRIX> current_poses;
 
         if (current_animation == nullptr) {
             current_poses.resize(armature->bones.size());

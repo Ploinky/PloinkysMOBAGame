@@ -63,10 +63,10 @@ namespace PMG {
                 file.read((char*)&translation[2], sizeof(float));
 
                 BonePosition pose = BonePosition();
-                pose.rotation.x = quaternion[0];
-                pose.rotation.y = quaternion[1];
-                pose.rotation.z = quaternion[2];
-                pose.rotation.w = quaternion[3];
+                pose.rotation = DirectX::XMVectorSetX(pose.rotation, quaternion[0]);
+                pose.rotation = DirectX::XMVectorSetY(pose.rotation, quaternion[1]);
+                pose.rotation = DirectX::XMVectorSetZ(pose.rotation, quaternion[2]);
+                pose.rotation = DirectX::XMVectorSetW(pose.rotation, quaternion[3]);
                 pose.translation.x = translation[0];
                 pose.translation.y = translation[1];
                 pose.translation.z = translation[2];
@@ -77,7 +77,7 @@ namespace PMG {
         return animation;
 	}
 
-    void Animation::GetGlobalPoseAtTime(std::vector<Physics::mat_t>& poses, const Armature* armature, double time) {
+    void Animation::GetGlobalPoseAtTime(std::vector<DirectX::XMMATRIX>& poses, const Armature* armature, double time) {
         if (poses.size() != bone_count) {
             poses.resize(bone_count);
         }
@@ -88,11 +88,11 @@ namespace PMG {
             poses[0] = animation_tracks[0][frame].ToMatrix();
         }
         else {
-            poses[0] = Physics::mat_t::Identity();
+            poses[0] = DirectX::XMMatrixIdentity();
         }
 
         for (int bone = 1; bone < bone_count; bone++) {
-            Physics::mat_t mat = Physics::mat_t::Identity();
+            DirectX::XMMATRIX mat = DirectX::XMMatrixIdentity();
 
             if (animation_tracks[bone].size() > 0) {
                 mat = animation_tracks[bone][frame].ToMatrix();
