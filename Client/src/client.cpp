@@ -120,6 +120,8 @@ namespace PMG {
         renderer = new Renderer();
         renderer->Initialize(direct3D, window->width, window->height);
 
+        m_map->Initialize(direct3D);
+
         if (!audio_system_.Initialize()) {
             Logger::Msg("Failed to initialize audio system");
             return;
@@ -222,8 +224,6 @@ namespace PMG {
         m_mousePos[1] = screenY;
     }
 
-    static bool animate;
-
     void Client::Update(float dt) {
         if (!net_manager_.IsConnected()) {
             net_manager_.CheckConnected();
@@ -269,14 +269,6 @@ namespace PMG {
             net_manager_.SendPacket(&packet);
         }
 
-        if (m_keys['c']) {
-            animate = true;
-        }
-
-        if (animate) {
-            ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->PlayAnimation("run", dt);
-        }
-
         if (m_keys['q']) {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
@@ -290,6 +282,13 @@ namespace PMG {
             cast.z = y;
             packet << cast;
             net_manager_.SendPacket(&packet);
+        }
+
+        if (m_keys['c']) {
+            if (unit_id_received_) {
+                GetGameObject(my_unit_id_)->mesh_component->PlayAnimation("run");
+            }
+            m_keys['c'] = false;
         }
 
         if (m_keys['w']) {
@@ -379,6 +378,9 @@ namespace PMG {
 
         HandleTicks(dt);
 
+        for (auto go_it : game_objects_) {
+            go_it.second->Update(dt);
+        }
         fps = (int)(1000.0f / dt);
     }
     
@@ -441,10 +443,16 @@ namespace PMG {
 
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
         std::vector<Mesh*> mapMeshVector(mapMeshes.begin(), mapMeshes.end());
-        renderer->RenderMeshes(mapMeshVector);
+        for (auto mesh : mapMeshVector) {
+            mesh->Render(renderer);
+        }
 
-        for (auto go : game_objects_) {
-            renderer->Render(go.second);
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+
+            if (go->mesh_component != nullptr) {
+                go->mesh_component->Render(renderer);
+            }
         }
     }
 
@@ -917,7 +925,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "missile";
+            go->mesh_component = TextureMesh::Load("models/missile", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
@@ -931,7 +939,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "chess_person";
+            go->mesh_component = SkinnedTexturedMesh::Load("models/chess_person", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->team = team;
@@ -944,7 +952,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "tower";
+            go->mesh_component = TextureMesh::Load("models/tower", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
@@ -959,7 +967,6 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "";
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;

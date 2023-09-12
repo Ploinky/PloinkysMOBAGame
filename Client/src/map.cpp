@@ -5,6 +5,7 @@
 #include <fstream>
 #include "vertex.h"
 #include <map>
+#include "direct3d.h"
 
 namespace PMG {
     Map::~Map() {
@@ -94,6 +95,12 @@ namespace PMG {
                 // FFS DO NOT FORGET THIS YOU FUCK
                 currVertex++;
             }
+        }
+    }
+
+    void Map::Initialize(Direct3D* direct3D) {
+        for (Mesh* mesh : m_meshes) {
+            mesh->Initialize(direct3D);
         }
     }
 

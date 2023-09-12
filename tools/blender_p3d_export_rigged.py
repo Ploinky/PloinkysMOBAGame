@@ -120,6 +120,13 @@ def export_p3d(context, filepath):
         
         for i in indices:
             f.write(struct.pack('i', i))
+        
+        f.write(struct.pack('i', len(my_animations))
+
+        for a in my_animations:
+            f.write(struct.pack('i', len(a.name)))
+            f.write(a.name.encode())
+        
                 
     with open(filepath + "_skn", 'wb') as f:
         f.write("p3d".encode())

@@ -67,7 +67,7 @@ namespace PMG {
 
                 if (stats.can_move) {
                     // we always rotate, no matter what happens!
-                    double rotationY = -atan2(target->position.z - position.z, target->position.x - position.x) * 180.0f / M_PI;
+                    double rotationY = atan2(target->position.x - position.x, target->position.z - position.z) * 180.0f / M_PI;
                     game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotationY });
                 }
 

@@ -52,6 +52,9 @@
     <Filter Include="Shader Files">
       <UniqueIdentifier>{0f46bfff-8d2f-41c5-9f66-439afc984115}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\graphics\mesh">
+      <UniqueIdentifier>{5c599e22-9b04-4d57-bb5e-94cb554e6e93}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -119,6 +122,9 @@
     </ClCompile>
     <ClCompile Include="src\animation.cpp">
       <Filter>Source Files\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\skinned_textured_mesh.cpp">
+      <Filter>Source Files\graphics\mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

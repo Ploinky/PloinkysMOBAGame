@@ -5,9 +5,12 @@
 #include <string>
 
 namespace PMG {
+	class Mesh;
 	class GameObject {
 	public:
 		~GameObject();
+
+		void Update(double dt);
 
 		UnitId unit_id;
 		unsigned int health;
@@ -22,6 +25,6 @@ namespace PMG {
 
 		Team team;
 
-		std::string mesh;
+		Mesh* mesh_component = nullptr;
 	};
 }
