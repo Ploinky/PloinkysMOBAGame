@@ -124,6 +124,11 @@ namespace PMG {
 
         if (it == animations.end() || it->second == nullptr) {
             Logger::Err("Attempt to play missing animation");
+            StopAnimation();
+            return;
+        }
+
+        if (current_animation == it->second) {
             return;
         }
 
@@ -132,7 +137,9 @@ namespace PMG {
     }
 
     void SkinnedTexturedMesh::StopAnimation() {
-
+        current_animation = nullptr;
+        current_animation_time = 0;
+        CalculateMatrixPalette();
     }
 
     void SkinnedTexturedMesh::Render(Renderer* renderer) {

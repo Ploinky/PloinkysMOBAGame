@@ -128,7 +128,7 @@ namespace PMG {
 
         if (target->stats.health < 0) {
             target->stats.health = 0;
-            // do something?
+            // TODO do something?
         }
 
     }
@@ -220,6 +220,14 @@ namespace PMG {
 
         tick_packets.clear();
 
-        std::erase_if(game_objects_, [](auto& kv) { return kv.second->is_destroyed; });
+        // TODO why is this stupid
+        std::erase_if(game_objects_, [](auto& kv) {
+            if (kv.second->is_destroyed) {
+                delete kv.second;
+                return true;
+            }
+
+            return false;
+        });
     }
 }

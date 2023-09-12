@@ -32,6 +32,11 @@ namespace PMG {
 		}
 
 		TargetHit(game, owner, target);
+
+		// TODO this does not work
+		if (spell_data.max_targets_hit == 1) {
+			game->DestroyGameObject(this);
+		}
 	}
 
 	void MissileSpell::Update(float dt, Game* game) {

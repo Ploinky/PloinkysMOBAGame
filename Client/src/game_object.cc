@@ -3,6 +3,10 @@
 
 namespace PMG {
 	GameObject::~GameObject() {
+		if (mesh_component != nullptr) {
+			delete mesh_component;
+			mesh_component = nullptr;
+		}
 	}
 
 	void GameObject::Update(double dt) {

@@ -1111,6 +1111,32 @@ namespace PMG {
                 total_cooldowns[cooldown.spell_slot] = cooldown.total_cooldown;
                 break;
             }
+            case PacketType::PCK_START_ANIMATION: {
+                pck_start_animation_t animation{};
+                tickData >> animation;
+
+                switch (animation.animation) {
+                case EAnimation::IDLE: {
+                    GetGameObject(animation.unit)->mesh_component->PlayAnimation("idle");
+                    break;
+                }
+                case EAnimation::STUNNED: {
+                    GetGameObject(animation.unit)->mesh_component->PlayAnimation("stunned");
+                    break;
+                }
+                case EAnimation::RUN: {
+                    GetGameObject(animation.unit)->mesh_component->PlayAnimation("run");
+                    break;
+                }
+                default: {
+                    Logger::Err("Received unknown packet animation to run");
+                }
+                }
+                break;
+            }
+            default:
+                Logger::Err("Received unknown packet type");
+                break;
             }
         }
     }

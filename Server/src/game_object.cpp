@@ -41,6 +41,17 @@ namespace PMG {
                 game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, i, s->remaining_cooldown, s->cooldown });
             }
         }
+
+        // update animation?!
+        if (current_status & STATUS_STUNNED == STATUS_STUNNED) {
+            PlayAnimation(game, EAnimation::STUNNED);
+        }
+        else if (current_action != nullptr && current_action->type == GameObjectActionType::MOVE) {
+            PlayAnimation(game, EAnimation::RUN);
+        }
+        else {
+            PlayAnimation(game, EAnimation::IDLE);
+        }
     }
     
     void GameObject::Think(float dt, Game* game) {
@@ -201,12 +212,14 @@ namespace PMG {
         navAgent.target.x = x;
         navAgent.target.z = z;
 
-        if (navAgent.target.x == position.x && navAgent.target.z == position.y) {
+        if (Physics::CompareDouble(navAgent.target.x, position.x) && Physics::CompareDouble(navAgent.target.z, position.z)) {
+            current_action = new GameObjectActionStop();
             // Already at target
             return;
         }
 
         if (navAgent.path.empty()) {
+
             // No path to follow, we need a new path!
             navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.z) }, navAgent.target);
 
@@ -260,5 +273,19 @@ namespace PMG {
     void GameObject::TakeDamage(Game* game, double damage, GameObject* source) {
         stats.health = max(0.0, stats.health - damage);
         game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { unit_id, stats.health, stats.max_health });
+    }
+
+    void GameObject::PlayAnimation(Game* game, EAnimation animation) {
+        if (current_animation == animation) {
+            // already playing animation
+            return;
+        }
+
+        current_animation = animation;
+        pck_start_animation_t anim{};
+        anim.unit = unit_id;
+        anim.animation = animation;
+
+        game->SendPacket<pck_start_animation_t>(PacketType::PCK_START_ANIMATION, anim);
     }
 }

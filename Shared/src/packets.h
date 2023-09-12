@@ -20,6 +20,13 @@ namespace PMG {
         PCK_CLIENT_UNIT_ID,
         PCK_STATS,
         PCK_SPELL_COOLDOWN,
+        PCK_START_ANIMATION,
+    };
+
+    enum class EAnimation {
+        IDLE,
+        STUNNED,
+        RUN
     };
 
     typedef struct packet_header {
@@ -34,7 +41,6 @@ namespace PMG {
         size_t size() const {
             return sizeof(packet_header_t) + data.size();
         }
-
     } packet_t;
 
     template<typename DataType>
@@ -66,7 +72,7 @@ namespace PMG {
 
         return packet;
     }
-
+    
     inline packet_t& operator << (packet_t& packet, packet_t& data) {
         size_t i = packet.data.size();
 
@@ -136,6 +142,15 @@ namespace PMG {
         int cooldown;
         int total_cooldown;
     } pck_spell_cooldown_t;
+
+    typedef struct {
+        UnitId unit;
+        EAnimation animation;
+    } pck_start_animation_t;
+
+    typedef struct {
+        UnitId unit;
+    } pck_stop_animation_t;
 
     // ====== Client -> Server commands ======
     typedef struct cmd_move {
