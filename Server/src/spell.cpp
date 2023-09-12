@@ -13,7 +13,7 @@ namespace PMG {
 			target_point = target_info->target_point;
 		}
 
-		spell_owner->rotation.y = -atan2(target_point.z - spell_owner->position.z, target_point.x - spell_owner->position.x) * 180.0f / M_PI;
+		spell_owner->rotation.y = atan2(target_point.x - spell_owner->position.x, target_point.z - spell_owner->position.z) * 180.0f / M_PI;
 		game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { spell_owner->unit_id, spell_owner->position.x, spell_owner->position.y, spell_owner->position.z, spell_owner->rotation.y });
 	}
 

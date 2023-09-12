@@ -54,6 +54,23 @@ namespace PMG {
         m_shaders.push_back(skinned_textured_shader);
 
         // load resources?
+
+        SkinnedTexturedMesh* mesh1 = (SkinnedTexturedMesh*) Mesh::LoadSkinnedTexturedMesh("models/chess_person.p3d", "models/chess_person.dds");
+        mesh1->Initialize(direct3D);
+        Animation* wave = Animation::LoadAnimation("models/chess_person_wave.p3d_anim");
+        mesh1->animations.emplace("wave", wave);
+        meshes_.emplace("chess_person", mesh1);
+        mesh1->CalculateMatrixPalette();
+
+        Mesh* mesh2 = Mesh::LoadMesh("models/missile.p3d", "models/missile.dds");
+        mesh2->Initialize(direct3D);
+        meshes_.emplace("missile", mesh2);
+
+        Mesh* mesh3 = Mesh::LoadMesh("models/tower.p3d", "models/tower.dds");
+        mesh3->Initialize(direct3D);
+        meshes_.emplace("tower", mesh3);
+
+        /*
         Mesh* mesh = new Mesh();
         unsigned int* ind = new unsigned int[3] { 0, 1, 2 };
         color_shader_vertex_t* vert = new color_shader_vertex_t[3]{
@@ -68,23 +85,6 @@ namespace PMG {
         mesh->position = { 0, 0, 0 };
         mesh->Initialize(direct3D);
         // meshes_.emplace("test", mesh);
-
-        SkinnedTexturedMesh* mesh1 = (SkinnedTexturedMesh*) Mesh::LoadSkinnedTexturedMesh("models/chess_person.p3d", "models/chess_person.dds");
-        mesh1->Initialize(direct3D);
-        Animation* wave = Animation::LoadAnimation("models/chess_person_wave.p3d_anim");
-        mesh1->animations.emplace("wave", wave);
-        meshes_.emplace("chess_person", mesh1);
-        mesh1->CalculateMatrixPalette();
-
-        /*
-        Mesh* mesh2 = Mesh::LoadMesh("models/missile.p3d", "models/missile.dds");
-        mesh2->Initialize(direct3D);
-        meshes_.emplace("missile", mesh2);
-
-        Mesh* mesh3 = Mesh::LoadMesh("models/tower.p3d", "models/tower.dds");
-        mesh3->Initialize(direct3D);
-        meshes_.emplace("tower", mesh3);
-        */
 
         skinned_textured_shader_vertex_t verts[3]{
             {
@@ -156,6 +156,7 @@ namespace PMG {
         test_mesh->m_shaderType = ShaderType::SKINNED_TEXTURED;
         // test_mesh->m_shaderType = ShaderType::TEXTURE;
         // meshes_.emplace("test", test_mesh);
+        */
     }
 
     void Renderer::SetDimensions(int width, int height) {
@@ -629,7 +630,7 @@ namespace PMG {
                         direct3D->context->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &stride, &offset);
                         direct3D->context->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
                         direct3D->context->PSSetShaderResources(0, 1, &textureMesh->m_texture); 
-                        //direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
+                        direct3D->context->DrawIndexed(mesh->indexCount, 0, 0);
                     }
                     break;
                 }

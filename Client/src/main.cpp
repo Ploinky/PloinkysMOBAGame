@@ -25,7 +25,6 @@ std::string GetDir() {
 #include "mesh.h"
 
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
-    /*
     
     // Attempt to read command line arguments
     int argc;
@@ -75,7 +74,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     delete client;
     client = 0;
 
-    */
+    /*
 
     PMG::Window window = PMG::Window(
         1024, 768, PMG::WindowMode::WINDOWED
@@ -155,4 +154,6 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         d3d.Present();
     }
     return 0;
+
+    */
 }

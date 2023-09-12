@@ -251,7 +251,7 @@ namespace PMG {
         position.z = (position.z < ty && newY >= ty) || (position.z > ty && newY <= ty) ? ty : newY;
 
         if (position.x != tx || position.z != ty) {
-            rotation.y = -atan2(ty - position.z, tx - position.x) * 180.0f / M_PI;
+            rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
         }
 
         game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotation.y });
