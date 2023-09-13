@@ -175,6 +175,33 @@ namespace PMG {
         }
     }
 
+    void ClientNetworkManager::SendToClient(unsigned long id, Networking::BasePacket* packet) {
+        Logger::Msg("ATTEMPT TO SEND!!!");
+        std::vector<uint8_t>* buf = new std::vector<uint8_t>();
+        packet->Write(buf);
+
+        for (auto client : clients_) {
+            if (client.socket == id && client.isConnected) {
+                int error = send(client.socket, (char*)buf->data(), buf->size(), 0);
+
+                if (error < 1) {
+                    printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
+                        packet->type,
+                        buf->size(),
+                        client.socket,
+                        WSAGetLastError()
+                    );
+                }
+
+                if (error > 10000) {
+                    throw new std::exception();
+                }
+
+                return;
+            }
+        }
+    }
+
     void ClientNetworkManager::SendToClient(unsigned long id, packet_t* packet) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             net_client_t client = *it;
@@ -204,6 +231,10 @@ namespace PMG {
                         // TODO close connection to client?
                         //  Close(&client);
                         return; // false;
+                    }
+
+                    if (error > 10000) {
+                        throw new std::exception();
                     }
 
                     free(sendBuf);

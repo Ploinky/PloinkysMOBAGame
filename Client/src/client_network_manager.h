@@ -1,11 +1,15 @@
 #pragma once
 #include <string>
 #include "networking.h"
+#include "packets.h"
+#include "pmg_networking.h"
 
 namespace PMG {
+	class Client;
+
 	class ClientNetworkManager {
 	public:
-		bool Initialize();
+		bool Initialize(Networking::NetworkHandlerManager<PacketType>* manager);
 		void ConnectToServer(std::string serverAddress, std::string port);
 		bool CheckConnected();
 		bool IsConnected();
@@ -16,5 +20,6 @@ namespace PMG {
 
 	private:
 		net_client_t connection_;
+		Networking::NetworkHandlerManager<PacketType>* packet_manager;
 	};
 }

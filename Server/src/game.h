@@ -5,8 +5,10 @@
 #include <functional>
 #include <string>
 #include "networking.h"
+#include "pmg_networking.h"
 #include "components.h"
 #include "game_object.h"
+#include "igame_object.h"
 
 namespace PMG {
     class Missile;
@@ -57,8 +59,11 @@ namespace PMG {
         Game();
 
         std::function<void(unsigned long, packet_t*)> on_sendToClient;
+        std::function<void(unsigned long, Networking::BasePacket*)> on_sendNewToClient;
         std::function<void(packet_t*)> on_sendToAllClients;
         std::function<void(std::vector<packet_t>)> on_batchSendToAllClients;
+
+        Networking::NetworkHandlerManager<PacketType>* packet_manager;
 
         void Start();
 
@@ -112,6 +117,7 @@ namespace PMG {
         std::vector<packet_t> tick_packets;
         std::vector<packet_t> all_ticks;
         std::map<unsigned int, GameObject*> game_objects_;
+        std::map<unsigned int, IGameObject*> igame_objects_;
     private:
 
         std::map<unsigned long, player_t> players_;

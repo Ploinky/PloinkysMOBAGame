@@ -1,12 +1,15 @@
 #include "client_network_manager.h"
 #include "logger.h"
+#include "pmg_networking.h"
+
+#include "client.h"
 
 namespace PMG {
 	bool ClientNetworkManager::IsConnected() {
 		return connection_.isConnected;
 	}
 
-	bool ClientNetworkManager::Initialize() {
+	bool ClientNetworkManager::Initialize(Networking::NetworkHandlerManager<PacketType>* manager) {
 		WSADATA wsaData = {};
 
 		int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -14,6 +17,8 @@ namespace PMG {
 		if (wsaStartupResult != 0) {
 			return false;
 		}
+
+		this->packet_manager = manager;
 
 		return true;
 	}
@@ -144,6 +149,12 @@ namespace PMG {
 				);
 				return false;
 			}
+		}
+
+		std::function fun = packet_manager->GetHandler(packet->header.type);
+
+		if(fun != nullptr) {
+			fun(packet->data);
 		}
 
 		return true;

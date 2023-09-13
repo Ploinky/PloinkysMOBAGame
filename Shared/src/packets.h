@@ -126,10 +126,6 @@ namespace PMG {
         unsigned long unit;
     } pck_unit_despawn_t;
 
-    typedef struct pck_client_unit_id {
-        unsigned int unit;
-    } pck_client_unit_id_t;
-
     typedef struct pck_unit_stats {
         unsigned int unit;
         int health;
@@ -176,4 +172,16 @@ namespace PMG {
         int spell_slot;
         UnitId target;
     } cmd_cast_target_t;
+
+    // NEW
+    class GameTickData {
+    public:
+        int tick;
+    };
+
+
+    class ClientUnitIdData {
+    public:
+        UnitId unit_id;
+    };
 }

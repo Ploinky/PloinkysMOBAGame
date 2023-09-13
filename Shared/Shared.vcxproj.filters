@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\packets">
+      <UniqueIdentifier>{6184bc54-4672-40ad-afbd-3822db7371ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\logger.cpp">
@@ -29,6 +32,9 @@
     </ClCompile>
     <ClCompile Include="src\component_registry.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\client_unit_id.cpp">
+      <Filter>Source Files\packets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

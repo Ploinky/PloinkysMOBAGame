@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\client_unit_id.cpp" />
     <ClCompile Include="src\component_registry.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\navigation.cpp" />

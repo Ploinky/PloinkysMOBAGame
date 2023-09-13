@@ -8,6 +8,9 @@
 #include "building.h"
 #include "football_person.h"
 
+#include "minion_spawner.h"
+#include "pmg_networking.h"
+
 namespace PMG {
     unsigned long g_unitId = 0;
 
@@ -21,10 +24,14 @@ namespace PMG {
             on_sendToClient(netId, &tick);
         }
 
+        packet_manager = new Networking::NetworkHandlerManager<PacketType>();
+
         entity_id id = current_entity_id_++;
 
-        packet_t packet = CreatePacket<pck_client_unit_id>(PacketType::PCK_CLIENT_UNIT_ID, { id });
-        on_sendToClient(netId, &packet);
+
+        Networking::UnitIdPacket packet = Networking::UnitIdPacket();
+        packet.unit_id = id;
+        on_sendNewToClient(netId, &packet);
 
         FootballPerson* game_object = new FootballPerson();
         game_object->current_action = nullptr;
@@ -117,6 +124,9 @@ namespace PMG {
         tower2->team = Team::TEAM_1;
         AddGameObject(tower2);
         SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower2->unit_id, UnitPrefab::TOWER, tower2->team, tower2->position.x, tower2->position.y });
+
+        MinionSpawner* minion_spawner = new MinionSpawner();
+        igame_objects_.emplace(0, minion_spawner);
     }
 
     void Game::ApplyDamage(GameObject* target, double damage) {
@@ -192,6 +202,11 @@ namespace PMG {
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
             go->Update(dt, this);
+        }
+
+        for (auto go_it : igame_objects_) {
+            IGameObject* go = go_it.second;
+            go->Update(this, dt);
         }
 
         // now let them cook?

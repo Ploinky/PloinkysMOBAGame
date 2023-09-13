@@ -42,10 +42,11 @@ namespace PMG {
         } game_tick_t;
 
         public:
-            Client(std::string ip_address, std::string port);
+            Client();
             ~Client();
-            void Run();
+            void Run(std::string ip_address, std::string port);
 
+            void HandleUnitIdPacket(std::vector<uint8_t> data);
         private:
             // Indicates whether the Client is running and should continue running
             bool isRunning;

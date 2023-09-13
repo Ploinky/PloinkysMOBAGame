@@ -92,10 +92,6 @@ namespace PMG {
 
 	extern int STATUS_STUNNED;
 
-	class IGameObject {
-		virtual void Update(double dt) = 0;
-	};
-
 	class GameObject {
 	public:
 		UnitId unit_id;

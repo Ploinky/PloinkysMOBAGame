@@ -4,6 +4,7 @@
 #include <list>
 #include <functional>
 #include "networking.h"
+#include "pmg_networking.h"
 
 namespace PMG {
 
@@ -19,6 +20,7 @@ namespace PMG {
         bool ReceivePacket(net_client_t* connection, packet_t* packet);
 
         void SendToClient(unsigned long clientId, packet_t* packet);
+        void SendToClient(unsigned long clientId, Networking::BasePacket* packet);
         void SendToAllClients(packet_t* packet);
 
         bool Close();

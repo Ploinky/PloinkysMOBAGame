@@ -22,6 +22,7 @@ namespace PMG {
         m_game = new Game();
         m_game->on_batchSendToAllClients = std::bind(&Server::BroadcastMessage, this, std::placeholders::_1);
         m_game->on_sendToClient = std::bind(&Server::SendMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
+        m_game->on_sendNewToClient = std::bind(&Server::SendNewMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
         m_game->on_sendToAllClients = std::bind(&Server::SendMessageToAllClients, this, std::placeholders::_1);
         m_game->Start();
 
@@ -109,6 +110,9 @@ namespace PMG {
     }
 
     void Server::SendMessageToClient(unsigned long clientId, packet_t* packet) {
+        m_networkManager->SendToClient(clientId, packet);
+    }
+    void Server::SendNewMessageToClient(unsigned long clientId, Networking::BasePacket* packet) {
         m_networkManager->SendToClient(clientId, packet);
     }
 

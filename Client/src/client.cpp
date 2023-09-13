@@ -15,9 +15,10 @@
 #include "settings.h"
 #include "audio_system.h"
 #include "mesh.h"
+#include "pmg_networking.h"
 
 namespace PMG {
-    Client::Client(std::string ip_address, std::string port) {
+    Client::Client() {
         isRunning = false;
         lastFrame = 0;
 
@@ -29,14 +30,7 @@ namespace PMG {
         m_map->Load("map1");
 
         fps = 0;
-
         net_manager_ = ClientNetworkManager();
-        net_manager_.Initialize();
-
-        // TODO: this does not actually work, you know?
-        Logger::Msg(std::string("Connecting to server at <").append(ip_address).append(":").append(port).append(">"));
-
-        net_manager_.ConnectToServer(ip_address, port);
     }
 
     Client::~Client() {
@@ -70,10 +64,20 @@ namespace PMG {
         }
     }
 
-    void Client::Run() {
+    void Client::Run(std::string ip_address, std::string port) {
         Logger::Msg("Starting Ploinky's MOBA Game client...");
 
         std::vector<PMGSystem*> systems;
+
+        Networking::NetworkHandlerManager<PacketType> packet_manager = Networking::NetworkHandlerManager<PacketType>();
+        // Register network packets, the fuck...
+        packet_manager.RegisterHandler(PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
+        net_manager_.Initialize(&packet_manager);
+
+        // TODO: this does not actually work, you know?
+        Logger::Msg(std::string("Connecting to server at <").append(ip_address).append(":").append(port).append(">"));
+
+        net_manager_.ConnectToServer(ip_address, port);
 
         Logger::Msg("Loading settings...");
 
@@ -1124,7 +1128,7 @@ namespace PMG {
                     GetGameObject(animation.unit)->mesh_component->PlayAnimation("stunned");
                     break;
                 }
-                case EAnimation::RUN: {
+                case EAnimation::RUN: {   
                     GetGameObject(animation.unit)->mesh_component->PlayAnimation("run");
                     break;
                 }
@@ -1161,15 +1165,6 @@ namespace PMG {
             pck_unit_despawn_t pck{};
             *packet >> pck;
             DespawnUnit(pck.unit);
-        }
-        else if (packet->header.type == PacketType::PCK_CLIENT_UNIT_ID) {
-            Logger::Msg("CLIENT_UNIT_ID");
-
-            pck_client_unit_id_t unit_id{};
-            *packet >> unit_id;
-
-            my_unit_id_ = unit_id.unit;
-            unit_id_received_ = TRUE;
         } else if (packet->header.type == PacketType::UNITMOVE || packet->header.type == PacketType::UNITIDLE) {
             pck_unit_move_t move{};
             *packet >> move;
@@ -1209,5 +1204,13 @@ namespace PMG {
         }
 
         return it->second;
+    }
+    
+    void Client::HandleUnitIdPacket(std::vector<uint8_t> data) {
+        Networking::UnitIdPacket pck = Networking::UnitIdPacket();
+        pck.Read(&data);
+
+        my_unit_id_ = pck.unit_id;
+        unit_id_received_ = true;
     }
 }

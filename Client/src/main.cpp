@@ -66,8 +66,8 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     
     PMG::Logger::Msg("Starting Ploinky's MOBA Game...");
 
-    PMG::Client* client = new PMG::Client(ip_address, port);
-    client->Run();
+    PMG::Client* client = new PMG::Client();
+    client->Run(ip_address, port);
 
     PMG::Logger::Msg("Stopping Ploinky's MOBA Game.");
 
