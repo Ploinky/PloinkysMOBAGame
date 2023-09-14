@@ -226,6 +226,18 @@ namespace PMG {
 
         for (packet_t pack : tick_packets) {
             packet << pack;
+            if (pack.header.size == 0) {
+                throw std::exception();
+            }
+        }
+
+        for (Networking::BasePacket* base : tick_base_packets_) {
+            std::vector<uint8_t> appendage;
+            base->Write(&appendage);
+            
+            packet.data.resize(packet.data.size() + appendage.size());
+            std::memcpy(packet.data.data() + packet.header.size - sizeof(packet_header_t), appendage.data(), appendage.size());
+            packet.header.size = packet.size();
         }
 
         packet << gameTick++;
@@ -234,6 +246,7 @@ namespace PMG {
         on_sendToAllClients(&packet);
 
         tick_packets.clear();
+        tick_base_packets_.clear();
 
         // TODO why is this stupid
         std::erase_if(game_objects_, [](auto& kv) {

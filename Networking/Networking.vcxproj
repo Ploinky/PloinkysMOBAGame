@@ -28,8 +28,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="animation_packet.cpp" />
     <ClCompile Include="client_unit_id.cpp" />
     <ClCompile Include="game_tick.cpp" />
+    <ClCompile Include="move_command.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

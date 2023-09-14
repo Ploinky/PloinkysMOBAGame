@@ -438,12 +438,11 @@ namespace PMG {
             float x, y;
             TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
 
+            Networking::MoveCommandPacket mv = Networking::MoveCommandPacket();
+            mv.x = x;
+            mv.y = y;
 
-            packet_t packet = {};
-            packet.header.type = PacketType::UNITMOVE;
-            packet << cmd_move_t{ x, y };
-
-            net_manager_.SendPacket(&packet);
+            net_manager_.SendNewPacket(&mv);
         }
 
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
@@ -1052,6 +1051,7 @@ namespace PMG {
 
         unsigned long tick_index;
         *packet >> tick_index;
+
         current_tick_ = tick_index;
 
         while (packet->data.size() > 0) {
@@ -1117,26 +1117,17 @@ namespace PMG {
                 break;
             }
             case PacketType::PCK_START_ANIMATION: {
-                pck_start_animation_t animation{};
-                tickData >> animation;
+                Networking::AnimationPacket anim = Networking::AnimationPacket();
 
-                switch (animation.animation) {
-                case EAnimation::IDLE: {
-                    GetGameObject(animation.unit)->mesh_component->PlayAnimation("idle");
-                    break;
-                }
-                case EAnimation::STUNNED: {
-                    GetGameObject(animation.unit)->mesh_component->PlayAnimation("stunned");
-                    break;
-                }
-                case EAnimation::RUN: {   
-                    GetGameObject(animation.unit)->mesh_component->PlayAnimation("run");
-                    break;
-                }
-                default: {
-                    Logger::Err("Received unknown packet animation to run");
-                }
-                }
+                // hack wtf TODO
+                std::vector<uint8_t> new_data;
+                new_data.resize(tickData.header.size);
+                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
+
+                anim.Read(&new_data);
+
+                GetGameObject(anim.unit_id)->mesh_component->PlayAnimation(anim.animation_name);
                 break;
             }
             default:

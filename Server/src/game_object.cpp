@@ -44,13 +44,13 @@ namespace PMG {
 
         // update animation?!
         if (current_status & STATUS_STUNNED == STATUS_STUNNED) {
-            PlayAnimation(game, EAnimation::STUNNED);
+            PlayAnimation(game, "stunned");
         }
         else if (current_action != nullptr && current_action->type == GameObjectActionType::MOVE) {
-            PlayAnimation(game, EAnimation::RUN);
+            PlayAnimation(game, "run");
         }
         else {
-            PlayAnimation(game, EAnimation::IDLE);
+            PlayAnimation(game, "idle");
         }
     }
     
@@ -275,17 +275,18 @@ namespace PMG {
         game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { unit_id, stats.health, stats.max_health });
     }
 
-    void GameObject::PlayAnimation(Game* game, EAnimation animation) {
+    void GameObject::PlayAnimation(Game* game, std::string animation) {
         if (current_animation == animation) {
             // already playing animation
             return;
         }
 
         current_animation = animation;
-        pck_start_animation_t anim{};
-        anim.unit = unit_id;
-        anim.animation = animation;
 
-        game->SendPacket<pck_start_animation_t>(PacketType::PCK_START_ANIMATION, anim);
+        Networking::AnimationPacket* pck = new Networking::AnimationPacket();
+        pck->unit_id = unit_id;
+        pck->animation_name = animation;
+
+        game->SendPacket(pck);
     }
 }

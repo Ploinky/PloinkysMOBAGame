@@ -46,6 +46,16 @@ namespace PMG::Networking {
         UnitId unit_id;
     };
 
+    class AnimationPacket : public BasePacket {
+    public:
+        AnimationPacket() : BasePacket(PacketType::PCK_START_ANIMATION) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        UnitId unit_id;
+        std::string animation_name;
+    };
+
     class GameTickPacket : public BasePacket {
     public:
         GameTickPacket() : BasePacket(PacketType::GAME_TICK) {};
@@ -53,5 +63,15 @@ namespace PMG::Networking {
         virtual void Write(std::vector<uint8_t>* data) override;
 
         std::vector<uint8_t> data;
+    };
+
+    class MoveCommandPacket : public BasePacket {
+    public:
+        MoveCommandPacket() : BasePacket(PacketType::UNITMOVE) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        double x;
+        double y;
     };
 }

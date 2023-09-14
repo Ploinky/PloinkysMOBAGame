@@ -35,5 +35,11 @@
     <ClCompile Include="game_tick.cpp">
       <Filter>Source Files\packets</Filter>
     </ClCompile>
+    <ClCompile Include="animation_packet.cpp">
+      <Filter>Source Files\packets</Filter>
+    </ClCompile>
+    <ClCompile Include="move_command.cpp">
+      <Filter>Source Files\packets</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

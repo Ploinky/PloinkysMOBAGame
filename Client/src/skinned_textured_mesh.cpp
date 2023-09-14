@@ -120,7 +120,7 @@ namespace PMG {
     }
 
     void SkinnedTexturedMesh::PlayAnimation(std::string animation_name) {
-        auto it = animations.find(animation_name);
+        auto it = animations.find(animation_name.c_str());
 
         if (it == animations.end() || it->second == nullptr) {
             Logger::Err("Attempt to play missing animation");

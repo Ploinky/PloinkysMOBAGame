@@ -64,10 +64,15 @@ namespace PMG {
     void Server::OnMessageReceived(unsigned long clientId, packet_t* packet) {
         switch (packet->header.type) {
             case PacketType::UNITMOVE: {
-                cmd_move_t move{};
-                *packet >> move;
+                std::vector<uint8_t> new_data;
+                new_data.resize(packet->header.size);
+                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
 
-                m_game->PlayerMoveCommand(clientId, move.nx, move.ny);
+                Networking::MoveCommandPacket move_command = Networking::MoveCommandPacket();
+                move_command.Read(&new_data);
+
+                m_game->PlayerMoveCommand(clientId, move_command.x, move_command.y);
                 break;
             }
             case PacketType::CMD_STOP: {

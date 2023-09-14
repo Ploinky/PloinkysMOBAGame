@@ -16,6 +16,7 @@ namespace PMG {
 		bool Close();
 		bool ReceivePacket(packet_t* packet);
 
+		bool SendNewPacket(Networking::BasePacket* packet);
 		bool SendPacket(packet_t* packet);
 
 	private:

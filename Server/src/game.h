@@ -89,6 +89,16 @@ namespace PMG {
             tick_packets.push_back(packet);
         }
 
+        void SendPacket(Networking::BasePacket* packet) {
+            std::vector<uint8_t> data;
+            packet->Write(&data);
+            packet_t p{};
+            std::memcpy(&p.header, data.data(), sizeof(packet_header_t));
+            p.data.resize(data.size());
+            std::memcpy(p.data.data(), data.data(), data.size());
+            tick_base_packets_.push_back(packet);
+        }
+
         GameObject* GetGameObjectById(unsigned int id) {
             auto it = this->game_objects_.find(id);
             
@@ -115,6 +125,7 @@ namespace PMG {
         unsigned long current_entity_id_ = 0;
 
         std::vector<packet_t> tick_packets;
+        std::vector<Networking::BasePacket*> tick_base_packets_;
         std::vector<packet_t> all_ticks;
         std::map<unsigned int, GameObject*> game_objects_;
         std::map<unsigned int, IGameObject*> igame_objects_;

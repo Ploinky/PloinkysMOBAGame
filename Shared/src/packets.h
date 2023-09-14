@@ -23,15 +23,9 @@ namespace PMG {
         PCK_START_ANIMATION,
     };
 
-    enum class EAnimation {
-        IDLE,
-        STUNNED,
-        RUN
-    };
-
-    typedef struct packet_header {
-        PacketType type{};
-        size_t size = 0;
+    typedef struct {
+        PacketType type;
+        size_t size;
     } packet_header_t;
 
     typedef struct packet {
@@ -139,21 +133,7 @@ namespace PMG {
         int total_cooldown;
     } pck_spell_cooldown_t;
 
-    typedef struct {
-        UnitId unit;
-        EAnimation animation;
-    } pck_start_animation_t;
-
-    typedef struct {
-        UnitId unit;
-    } pck_stop_animation_t;
-
     // ====== Client -> Server commands ======
-    typedef struct cmd_move {
-        float nx;
-        float ny;
-    } cmd_move_t;
-
     typedef struct cmd_stop {
     } cmd_stop_t;
 
@@ -172,16 +152,4 @@ namespace PMG {
         int spell_slot;
         UnitId target;
     } cmd_cast_target_t;
-
-    // NEW
-    class GameTickData {
-    public:
-        int tick;
-    };
-
-
-    class ClientUnitIdData {
-    public:
-        UnitId unit_id;
-    };
 }

@@ -128,6 +128,26 @@ namespace PMG {
 		return true;
 	}
 
+	bool ClientNetworkManager::SendNewPacket(Networking::BasePacket* packet) {
+		std::vector<uint8_t> data;
+		packet->Write(&data);
+
+		int error = send(connection_.socket, (char*)data.data(), data.size(), 0);
+
+		if (error < 1) {
+			printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
+				packet->type,
+				data.size(),
+				connection_.socket,
+				WSAGetLastError()
+			);
+			Close();
+			return false;
+		}
+
+		return true;
+	}
+
 	bool ClientNetworkManager::ReceivePacket(packet_t* packet) {
 		std::vector<uint8_t> data;
 		int error = recv(connection_.socket, (char*)&packet->header, sizeof(packet_header_t), 0);
@@ -164,10 +184,13 @@ namespace PMG {
 				packet_t tick_packet{};
 				std::memcpy(&tick_packet.header, data.data() + data_index, sizeof(packet_header_t));
 				data_index += sizeof(packet_header_t);
+
 				tick_packet.data.resize(tick_packet.header.size);
 				std::memcpy(tick_packet.data.data(), &tick_packet.header, sizeof(packet_header_t));
-				std::memcpy(tick_packet.data.data() + sizeof(packet_header_t), data.data(), tick_packet.header.size - sizeof(packet_header_t));
-				data_index += tick_packet.header.size - sizeof(packet_header_t);
+				if (tick_packet.header.size > sizeof(packet_header_t)) {
+					std::memcpy(tick_packet.data.data() + sizeof(packet_header_t), data.data(), tick_packet.header.size - sizeof(packet_header_t));
+					data_index += tick_packet.header.size - sizeof(packet_header_t);
+				}
 
 				std::function fun = packet_manager->GetHandler(tick_packet.header.type);
 
