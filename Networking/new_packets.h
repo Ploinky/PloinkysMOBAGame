@@ -145,4 +145,17 @@ namespace PMG::Networking {
 
         unsigned long unit;
     };
+
+    class SpawnPacket : public BasePacket {
+    public:
+        SpawnPacket() : BasePacket(PacketType::UNITSPAWN) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        unsigned long unit;
+        unsigned long unit_type;
+        Team team;
+        double x;
+        double y;
+    };
 }

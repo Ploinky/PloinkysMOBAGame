@@ -8,7 +8,14 @@ namespace PMG {
 		missile->owner = spell_owner;
 		missile->position = spell_owner->position;
 		game->AddGameObject(missile);
-		game->SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, UnitPrefab::THROW_FOOTBALL, missile->team, missile->position.x, missile->position.y });
+
+		Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+		spawn->unit = missile->unit_id;
+		spawn->unit_type = UnitPrefab::THROW_FOOTBALL;
+		spawn->team = missile->team;
+		spawn->x = missile->position.x;
+		spawn->y = missile->position.y;
+		game->SendPacket(spawn);
 	}
 	
 	void ThrowFootballMissile::TargetHit(Game* game, GameObject* owner, GameObject* target) {

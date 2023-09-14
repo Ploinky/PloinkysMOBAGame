@@ -1046,8 +1046,15 @@ namespace PMG {
 
             switch (tickData.header.type) {
             case PacketType::UNITSPAWN: {
-                pck_unit_spawn_t spawn{};
-                tickData >> spawn;
+                Networking::SpawnPacket spawn = Networking::SpawnPacket();
+
+                // hack wtf TODO
+                std::vector<uint8_t> new_data;
+                new_data.resize(tickData.header.size);
+                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
+
+                spawn.Read(&new_data);
 
                 SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
                 break;
@@ -1129,7 +1136,11 @@ namespace PMG {
 
                 anim.Read(&new_data);
 
-                GetGameObject(anim.unit_id)->mesh_component->PlayAnimation(anim.animation_name);
+                GameObject* gp = GetGameObject(anim.unit_id);
+
+                if (gp != nullptr) {
+                    GetGameObject(anim.unit_id)->mesh_component->PlayAnimation(anim.animation_name);
+                }
                 break;
             }
             default:
@@ -1148,9 +1159,15 @@ namespace PMG {
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
             Logger::Msg("UNITSPAWN");
+            Networking::SpawnPacket spawn = Networking::SpawnPacket();
 
-            pck_unit_spawn_t spawn{};
-            *packet >> spawn;
+            // hack wtf TODO
+            std::vector<uint8_t> new_data;
+            new_data.resize(packet->header.size);
+            std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+            std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+            spawn.Read(&new_data);
 
             SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
         }

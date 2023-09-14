@@ -107,12 +107,4 @@ namespace PMG {
         double z;
         double r;
     } pck_unit_move_t;
-
-    typedef struct pck_unit_spawn {
-        unsigned long unit;
-        unsigned long unit_type;
-        Team team;
-        double x;
-        double y;
-    } pck_unit_spawn_t;
 }

@@ -51,7 +51,13 @@ namespace PMG {
         player.unitId = id;
         players_.emplace(netId, player);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, UnitPrefab::FOOTBALL_PERSON, game_object->team, 0, 0 });
+        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+        spawn->unit = game_object->unit_id;
+        spawn->unit_type = UnitPrefab::FOOTBALL_PERSON;
+        spawn->team = game_object->team;
+        spawn->x = 0;
+        spawn->y = 0;
+        SendPacket(spawn);
 
         Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
         stats->unit = id;
@@ -88,7 +94,14 @@ namespace PMG {
         missile->unit_id = current_entity_id_++;
         game_objects_.emplace(missile->unit_id, missile);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, UnitPrefab::THROW_FOOTBALL, missile->team, missile->position.x, missile->position.y });
+
+        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+        spawn->unit = missile->unit_id;
+        spawn->unit_type = UnitPrefab::THROW_FOOTBALL;
+        spawn->team = missile->team;
+        spawn->x = missile->position.x;
+        spawn->y = missile->position.y;
+        SendPacket(spawn);
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
@@ -124,14 +137,27 @@ namespace PMG {
         tower->position = { 10, 0, 0 };
         tower->team = Team::TEAM_2;
         AddGameObject(tower);
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower->unit_id, UnitPrefab::TOWER, tower->team, tower->position.x, tower->position.y });
 
+        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+        spawn->unit = tower->unit_id;
+        spawn->unit_type = UnitPrefab::TOWER;
+        spawn->team = tower->team;
+        spawn->x = tower->position.x;
+        spawn->y = tower->position.y;
+        SendPacket(spawn);
 
         Building* tower2 = new Building();
         tower2->position = { -10, 0, 0 };
         tower2->team = Team::TEAM_1;
         AddGameObject(tower2);
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower2->unit_id, UnitPrefab::TOWER, tower2->team, tower2->position.x, tower2->position.y });
+
+        spawn = new Networking::SpawnPacket();
+        spawn->unit = tower2->unit_id;
+        spawn->unit_type = UnitPrefab::TOWER;
+        spawn->team = tower2->team;
+        spawn->x = tower2->position.x;
+        spawn->y = tower2->position.y;
+        SendPacket(spawn);
 
         MinionSpawner* minion_spawner = new MinionSpawner();
         igame_objects_.emplace(0, minion_spawner);
