@@ -108,8 +108,9 @@ namespace PMG {
         return true;
     }
 
-    bool ClientNetworkManager::ReceivePacket(net_client_t* connection, packet_t* packet) {
-        int error = recv(connection->socket, (char*)&packet->header, sizeof(packet_header_t), 0);
+    bool ClientNetworkManager::ReceivePacket(net_client_t* connection, std::vector<uint8_t>* packet) {
+        Networking::packet_header_t header{};
+        int error = recv(connection->socket, (char*)&header, sizeof(header), 0);
 
         if (error == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK) {
             connection->isConnected = false;
@@ -119,13 +120,15 @@ namespace PMG {
             return false;
         }
 
-        if (packet->header.size > 16) {
-            packet->data.resize(packet->header.size - sizeof(packet_header_t));
-            error = recv(connection->socket, (char*)packet->data.data(), packet->header.size - sizeof(packet_header_t), 0);
+        packet->resize(header.size);
+        std::memcpy(packet->data(), &header, sizeof(header));
+
+        if (header.size > 16) {
+            error = recv(connection->socket, (char*)packet->data() + sizeof(header), header.size - sizeof(header), 0);
 
             if (error < 1) {
                 printf("failed receiving <%d> with <%I64u> bytes from <%I64u>: %d\r\n",
-                    packet->header.type,
+                    header.type,
                     packet->size(),
                     connection->socket,
                     WSAGetLastError()
@@ -159,7 +162,7 @@ namespace PMG {
         }
 
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
-            packet_t packet = {};
+            std::vector<uint8_t> packet = {};
 
             while (ReceivePacket(&(*it), &packet)) {
                 on_clientMessageReceived(it->socket, &packet);
@@ -167,10 +170,10 @@ namespace PMG {
         }
     }
 
-    void ClientNetworkManager::SendToAllClients(packet_t* packet) {
+    void ClientNetworkManager::SendToAllClients(std::vector<uint8_t>* data) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             if(it != clients_.end() && it->isConnected) {
-                SendToClient(it->socket, packet);
+                SendToClient(it->socket, data);
             }
         }
     }
@@ -202,31 +205,22 @@ namespace PMG {
         }
     }
 
-    void ClientNetworkManager::SendToClient(unsigned long id, packet_t* packet) {
+    void ClientNetworkManager::SendToClient(unsigned long id, std::vector<uint8_t>* data) {
         for (auto it = clients_.begin(); it != clients_.end(); ++it) {
             net_client_t client = *it;
 
             if (client.socket == id) {
                 if(client.isConnected) {
-                    size_t sendBufLen = packet->size();
-                    char* sendBuf = (char*)std::malloc(sendBufLen);
+                    int error = send(client.socket, (char*)data->data(), data->size(), 0);
 
-                    if (sendBuf == 0) {
-                        return;  // false;
-                    }
-
-                    std::memcpy(sendBuf, &packet->header, sizeof(packet_header_t));
-                    std::memcpy(&sendBuf[sizeof(packet_header_t)], packet->data.data(), packet->size() - sizeof(packet_header_t));
-                    int error = send(client.socket, sendBuf, sendBufLen, 0);
-
+                    // TODO err msg?
                     if (error < 1) {
                         printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
-                            packet->header.type,
-                            packet->size(),
+                            0,
+                            data->size(),
                             client.socket,
                             WSAGetLastError()
                         );
-                        free(sendBuf);
                         
                         // TODO close connection to client?
                         //  Close(&client);
@@ -236,8 +230,6 @@ namespace PMG {
                     if (error > 10000) {
                         throw new std::exception();
                     }
-
-                    free(sendBuf);
 
                     return; // true;
                 }

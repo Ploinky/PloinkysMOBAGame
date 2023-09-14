@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include "networking.h"
-#include "packets.h"
 #include "pmg_networking.h"
 
 namespace PMG {
@@ -9,18 +8,17 @@ namespace PMG {
 
 	class ClientNetworkManager {
 	public:
-		bool Initialize(Networking::NetworkHandlerManager<PacketType>* manager);
+		bool Initialize(Networking::NetworkHandlerManager<Networking::PacketType>* manager);
 		void ConnectToServer(std::string serverAddress, std::string port);
 		bool CheckConnected();
 		bool IsConnected();
 		bool Close();
-		bool ReceivePacket(packet_t* packet);
+		bool ReceivePacket();
 
-		bool SendNewPacket(Networking::BasePacket* packet);
-		bool SendPacket(packet_t* packet);
+		bool SendPacket(Networking::BasePacket* packet);
 
 	private:
 		net_client_t connection_;
-		Networking::NetworkHandlerManager<PacketType>* packet_manager;
+		Networking::NetworkHandlerManager<Networking::PacketType>* packet_manager;
 	};
 }

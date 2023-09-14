@@ -39,6 +39,7 @@
     <ClCompile Include="move_command.cpp" />
     <ClCompile Include="spawn_packet.cpp" />
     <ClCompile Include="stop_command.cpp" />
+    <ClCompile Include="unit_move_packet.cpp" />
     <ClCompile Include="unit_stats_packet.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

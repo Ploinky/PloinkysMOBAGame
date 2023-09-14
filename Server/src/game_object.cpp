@@ -85,7 +85,13 @@ namespace PMG {
                 if (stats.can_move) {
                     // we always rotate, no matter what happens!
                     double rotationY = atan2(target->position.x - position.x, target->position.z - position.z) * 180.0f / M_PI;
-                    game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotationY });
+                    Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+                    move->unit = unit_id;
+                    move->x = position.x;
+                    move->y = position.y;
+                    move->z = position.z;
+                    move->r = rotationY;
+                    game->SendPacket(move);
                 }
 
                 if (target->team == team) {
@@ -283,7 +289,13 @@ namespace PMG {
             rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
         }
 
-        game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotation.y });
+        Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+        move->unit = unit_id;
+        move->x = position.x;
+        move->y = position.y;
+        move->z = position.z;
+        move->r = rotation.y;
+        game->SendPacket(move);
     }
 
     void GameObject::TakeDamage(Game* game, double damage, GameObject* source) {

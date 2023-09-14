@@ -19,7 +19,7 @@ namespace PMG::Networking {
 		data->resize(header.size);
 
 		int mem_index = 0;
-		std::memcpy(data->data(), &header.type, sizeof(packet_header_t));
+		std::memcpy(data->data(), &header, sizeof(packet_header_t));
 		std::memcpy(data->data() + sizeof(packet_header_t), this->data.data(), this->data.size());
 	}
 }

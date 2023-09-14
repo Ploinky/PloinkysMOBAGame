@@ -38,7 +38,7 @@ namespace PMG {
     class Client {
         typedef struct {
             unsigned long long received;
-            packet_t packet;
+            std::vector<uint8_t> data;
         } game_tick_t;
 
         public:
@@ -81,7 +81,6 @@ namespace PMG {
 
             void Update(float dt);
 
-            void HandleNetworkMessage(packet_t* packet);
             void SimulateTick(game_tick_t& tick, double diff);
             void HandleTicks(float dt);
 

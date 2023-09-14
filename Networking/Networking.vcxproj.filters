@@ -65,5 +65,8 @@
     <ClCompile Include="spawn_packet.cpp">
       <Filter>Source Files\packets</Filter>
     </ClCompile>
+    <ClCompile Include="unit_move_packet.cpp">
+      <Filter>Source Files\packets</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

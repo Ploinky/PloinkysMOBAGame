@@ -17,11 +17,11 @@ namespace PMG {
 
         bool AcceptConnection(net_client_t* listenServer, net_client_t* client);
 
-        bool ReceivePacket(net_client_t* connection, packet_t* packet);
+        bool ReceivePacket(net_client_t* connection, std::vector<uint8_t>* packet);
 
-        void SendToClient(unsigned long clientId, packet_t* packet);
+        void SendToClient(unsigned long clientId, std::vector<uint8_t>* data);
         void SendToClient(unsigned long clientId, Networking::BasePacket* packet);
-        void SendToAllClients(packet_t* packet);
+        void SendToAllClients(std::vector<uint8_t>* packet);
 
         bool Close();
 
@@ -29,7 +29,7 @@ namespace PMG {
 
         std::function<void(unsigned long)> on_clientConnected;
         std::function<void(unsigned long)> on_clientDisconnected;
-        std::function<void(unsigned long, packet_t*)> on_clientMessageReceived;
+        std::function<void(unsigned long, std::vector<uint8_t>*)> on_clientMessageReceived;
 
     private:
         std::list<net_client_t> clients_;

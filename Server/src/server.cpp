@@ -20,9 +20,7 @@ namespace PMG {
         }
 
         m_game = new Game();
-        m_game->on_batchSendToAllClients = std::bind(&Server::BroadcastMessage, this, std::placeholders::_1);
         m_game->on_sendToClient = std::bind(&Server::SendMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
-        m_game->on_sendNewToClient = std::bind(&Server::SendNewMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
         m_game->on_sendToAllClients = std::bind(&Server::SendMessageToAllClients, this, std::placeholders::_1);
         m_game->Start();
 
@@ -61,52 +59,35 @@ namespace PMG {
         m_game->RemovePlayerForNetworkId(id);
     }
 
-    void Server::OnMessageReceived(unsigned long clientId, packet_t* packet) {
-        switch (packet->header.type) {
-            case PacketType::UNITMOVE: {
-                std::vector<uint8_t> new_data;
-                new_data.resize(packet->header.size);
-                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+    void Server::OnMessageReceived(unsigned long clientId, std::vector<uint8_t>* data) {
+        Networking::packet_header_t header{};
+        std::memcpy(&header, data->data(), sizeof(header));
 
+        switch (header.type) {
+            case Networking::PacketType::UNITMOVE: {
                 Networking::MoveCommandPacket move_command = Networking::MoveCommandPacket();
-                move_command.Read(&new_data);
+                move_command.Read(data);
 
                 m_game->PlayerMoveCommand(clientId, move_command.x, move_command.y);
                 break;
             }
-            case PacketType::CMD_STOP: {
-                std::vector<uint8_t> new_data;
-                new_data.resize(packet->header.size);
-                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
+            case Networking::PacketType::CMD_STOP: {
                 Networking::StopCommandPacket move_command = Networking::StopCommandPacket();
-                move_command.Read(&new_data);
+                move_command.Read(data);
 
                 m_game->PlayerStopCommand(clientId);
                 break;
             }
-            case PacketType::CMD_ATTACK: {
-                std::vector<uint8_t> new_data;
-                new_data.resize(packet->header.size);
-                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
+            case Networking::PacketType::CMD_ATTACK: {
                 Networking::AttackCommandPacket atk_command = Networking::AttackCommandPacket();
-                atk_command.Read(&new_data);
+                atk_command.Read(data);
 
                 m_game->PlayerAttackCommand(clientId, atk_command.target_unit);
                 break;
             }
-            case PacketType::CMD_CAST: {
-                std::vector<uint8_t> new_data;
-                new_data.resize(packet->header.size);
-                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
+            case Networking::PacketType::CMD_CAST: {
                 Networking::CastCommandPacket cast = Networking::CastCommandPacket();
-                cast.Read(&new_data);
+                cast.Read(data);
 
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
@@ -114,14 +95,9 @@ namespace PMG {
                 m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, target_info);
                 break;
             }
-            case PacketType::CMD_CAST_TARGET: {
-                std::vector<uint8_t> new_data;
-                new_data.resize(packet->header.size);
-                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
+            case Networking::PacketType::CMD_CAST_TARGET: {
                 Networking::CastTargetCommandPacket cast_command = Networking::CastTargetCommandPacket();
-                cast_command.Read(&new_data);
+                cast_command.Read(data);
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
                 target_info->target = m_game->GetGameObjectById(cast_command.target);
@@ -131,20 +107,11 @@ namespace PMG {
         }
     }
 
-    void Server::BroadcastMessage(std::vector<packet_t> packet) {
-        for(auto p : packet) {
-            m_networkManager->SendToAllClients(&p);
-        }
-    }
-
-    void Server::SendMessageToClient(unsigned long clientId, packet_t* packet) {
-        m_networkManager->SendToClient(clientId, packet);
-    }
-    void Server::SendNewMessageToClient(unsigned long clientId, Networking::BasePacket* packet) {
+    void Server::SendMessageToClient(unsigned long clientId, std::vector<uint8_t>* packet) {
         m_networkManager->SendToClient(clientId, packet);
     }
 
-    void Server::SendMessageToAllClients(packet_t* packet) {
+    void Server::SendMessageToAllClients(std::vector<uint8_t>* packet) {
         m_networkManager->SendToAllClients(packet);
     }
 }

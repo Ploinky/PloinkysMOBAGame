@@ -6,9 +6,32 @@
 #include <iostream>
 #include <functional>
 #include <stdint.h>
-#include "packets.h"
 
 namespace PMG::Networking {
+    enum class PacketType {
+        UNITSPAWN,
+        UNITMOVE,
+        UNITIDLE,
+        UNITDESPAWN,
+        GAME_TICK,
+        PCK_NAME_REQUEST,
+        CMD_READY,
+        CMD_NOT_READY,
+        CMD_STOP,
+        CMD_ATTACK,
+        CMD_CAST,
+        CMD_CAST_TARGET,
+        PCK_CLIENT_UNIT_ID,
+        PCK_STATS,
+        PCK_SPELL_COOLDOWN,
+        PCK_START_ANIMATION,
+    };
+
+    typedef struct {
+        PacketType type;
+        size_t size;
+    } packet_header_t;
+
     template<typename PACKET_TYPE>
     class NetworkHandlerManager {
     public:
@@ -157,5 +180,18 @@ namespace PMG::Networking {
         Team team;
         double x;
         double y;
+    };
+
+    class UnitMovePacket : public BasePacket {
+    public:
+        UnitMovePacket() : BasePacket(PacketType::UNITMOVE) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        unsigned int unit;
+        double x;
+        double y;
+        double z;
+        double r;
     };
 }

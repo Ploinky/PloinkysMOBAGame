@@ -58,12 +58,10 @@ namespace PMG {
     public:
         Game();
 
-        std::function<void(unsigned long, packet_t*)> on_sendToClient;
-        std::function<void(unsigned long, Networking::BasePacket*)> on_sendNewToClient;
-        std::function<void(packet_t*)> on_sendToAllClients;
-        std::function<void(std::vector<packet_t>)> on_batchSendToAllClients;
+        std::function<void(unsigned long, std::vector<uint8_t>*)> on_sendToClient;
+        std::function<void(std::vector<uint8_t>*)> on_sendToAllClients;
 
-        Networking::NetworkHandlerManager<PacketType>* packet_manager;
+        Networking::NetworkHandlerManager<Networking::PacketType>* packet_manager;
 
         void Start();
 
@@ -75,22 +73,9 @@ namespace PMG {
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
         void PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info);
 
-        template<typename T>
-        packet_t CreatePacket(PacketType type, T data) {
-            packet_t packet{};
-            packet.header.type = type;
-            packet << data;
-            return packet;
-        }
-
-        template<typename T>
-        void SendPacket(PacketType type, T data) {
-            packet_t packet = CreatePacket(type, data);
-            tick_packets.push_back(packet);
-        }
 
         void SendPacket(Networking::BasePacket* packet) {
-            tick_base_packets_.push_back(packet);
+            tick_packets_.push_back(packet);
         }
 
         GameObject* GetGameObjectById(unsigned int id) {
@@ -118,9 +103,8 @@ namespace PMG {
         unsigned long gameTick = 0;
         unsigned long current_entity_id_ = 0;
 
-        std::vector<packet_t> tick_packets;
-        std::vector<Networking::BasePacket*> tick_base_packets_;
-        std::vector<packet_t> all_ticks;
+        std::vector<Networking::BasePacket*> tick_packets_;
+        std::vector<std::vector<uint8_t>> all_ticks;
         std::map<unsigned int, GameObject*> game_objects_;
         std::map<unsigned int, IGameObject*> igame_objects_;
     private:

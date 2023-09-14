@@ -20,10 +20,8 @@ namespace PMG {
 
         void OnClientConnected(unsigned long id);
         void OnClientDisconnected(unsigned long id);
-        void OnMessageReceived(unsigned long clientId, packet_t* packet);
-        void BroadcastMessage(std::vector<packet_t> packet);
-        void SendMessageToClient(unsigned long clientId, packet_t* packet);
-        void SendNewMessageToClient(unsigned long clientId, Networking::BasePacket* packet);
-        void SendMessageToAllClients(packet_t* packet);
+        void OnMessageReceived(unsigned long clientId, std::vector<uint8_t>* packet);
+        void SendMessageToClient(unsigned long clientId, std::vector<uint8_t>* packet);
+        void SendMessageToAllClients(std::vector<uint8_t>* packet);
     };
 }

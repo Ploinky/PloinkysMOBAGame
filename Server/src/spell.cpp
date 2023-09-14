@@ -14,7 +14,14 @@ namespace PMG {
 		}
 
 		spell_owner->rotation.y = atan2(target_point.x - spell_owner->position.x, target_point.z - spell_owner->position.z) * 180.0f / M_PI;
-		game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { spell_owner->unit_id, spell_owner->position.x, spell_owner->position.y, spell_owner->position.z, spell_owner->rotation.y });
+
+		Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+		move->unit = spell_owner->unit_id;
+		move->x = spell_owner->position.x;
+		move->y = spell_owner->position.y;
+		move->z = spell_owner->position.z;
+		move->r = spell_owner->rotation.y;
+		game->SendPacket(move);
 	}
 
 	void Spell::Cast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {

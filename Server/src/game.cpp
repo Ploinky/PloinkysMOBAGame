@@ -24,14 +24,16 @@ namespace PMG {
             on_sendToClient(netId, &tick);
         }
 
-        packet_manager = new Networking::NetworkHandlerManager<PacketType>();
+        packet_manager = new Networking::NetworkHandlerManager<Networking::PacketType>();
 
         entity_id id = current_entity_id_++;
 
 
         Networking::UnitIdPacket packet = Networking::UnitIdPacket();
         packet.unit_id = id;
-        on_sendNewToClient(netId, &packet);
+        std::vector<uint8_t> data;
+        packet.Write(&data);
+        on_sendToClient(netId, &data);
 
         FootballPerson* game_object = new FootballPerson();
         game_object->current_action = nullptr;
@@ -261,39 +263,42 @@ namespace PMG {
             go->Think(dt, this);
         }
 
-        packet_t packet{};
-        packet.header.type = PacketType::GAME_TICK;
+        Networking::packet_header_t header{};
+        header.type = Networking::PacketType::GAME_TICK;
 
-        for (packet_t pack : tick_packets) {
-            packet << pack;
-            if (pack.header.size == 0) {
-                throw std::exception();
-            }
-        }
+        std::vector<uint8_t> data;
+        data.resize(sizeof(header));
 
-        for (Networking::BasePacket* base : tick_base_packets_) {
+        header.size = data.size();
+
+        for (Networking::BasePacket* base : tick_packets_) {
             std::vector<uint8_t> appendage;
             base->Write(&appendage);
             
-            packet.data.resize(packet.data.size() + appendage.size());
+            data.resize(data.size() + appendage.size());
 
             // TODO pls fixerino
-            if (packet.header.size == 0) {
-                std::memcpy(packet.data.data(), appendage.data(), appendage.size());
+            if (header.size == 0) {
+                std::memcpy(data.data(), appendage.data(), appendage.size());
             }
             else {
-                std::memcpy(packet.data.data() + packet.header.size - sizeof(packet_header_t), appendage.data(), appendage.size());
+                std::memcpy(data.data() + header.size, appendage.data(), appendage.size());
             }
-            packet.header.size = packet.size();
+            header.size = data.size();
         }
 
-        packet << gameTick++;
-        all_ticks.push_back(packet);
 
-        on_sendToAllClients(&packet);
+        data.resize(data.size() + sizeof(gameTick));
+        std::memcpy(data.data(), &gameTick, sizeof(gameTick));
+        gameTick++;
+        header.size += sizeof(gameTick);
+        std::memcpy(data.data(), &header, sizeof(header));
 
-        tick_packets.clear();
-        tick_base_packets_.clear();
+        all_ticks.push_back(data);
+
+        on_sendToAllClients(&data);
+
+        tick_packets_.clear();
 
         // TODO why is this stupid
         std::erase_if(game_objects_, [](auto& kv) {

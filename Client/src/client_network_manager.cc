@@ -9,7 +9,7 @@ namespace PMG {
 		return connection_.isConnected;
 	}
 
-	bool ClientNetworkManager::Initialize(Networking::NetworkHandlerManager<PacketType>* manager) {
+	bool ClientNetworkManager::Initialize(Networking::NetworkHandlerManager<Networking::PacketType>* manager) {
 		WSADATA wsaData = {};
 
 		int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -99,36 +99,7 @@ namespace PMG {
 		return true;
 	}
 
-	bool ClientNetworkManager::SendPacket(packet_t* packet) {
-		size_t sendBufLen = packet->size();
-		char* sendBuf = (char*)std::malloc(sendBufLen);
-
-		if (sendBuf == 0) {
-			return false;
-		}
-
-		std::memcpy(sendBuf, &packet->header, sizeof(packet_header_t));
-		std::memcpy(&sendBuf[sizeof(packet_header_t)], packet->data.data(), packet->size() - sizeof(packet_header_t));
-		int error = send(connection_.socket, sendBuf, sendBufLen, 0);
-
-		if (error < 1) {
-			printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
-				packet->header.type,
-				packet->size(),
-				connection_.socket,
-				WSAGetLastError()
-			);
-			free(sendBuf);
-			Close();
-			return false;
-		}
-
-		free(sendBuf);
-
-		return true;
-	}
-
-	bool ClientNetworkManager::SendNewPacket(Networking::BasePacket* packet) {
+	bool ClientNetworkManager::SendPacket(Networking::BasePacket* packet) {
 		std::vector<uint8_t> data;
 		packet->Write(&data);
 
@@ -148,54 +119,55 @@ namespace PMG {
 		return true;
 	}
 
-	bool ClientNetworkManager::ReceivePacket(packet_t* packet) {
+	bool ClientNetworkManager::ReceivePacket() {
+		Networking::packet_header_t header{};
+
 		std::vector<uint8_t> data;
-		int error = recv(connection_.socket, (char*)&packet->header, sizeof(packet_header_t), 0);
+		int error = recv(connection_.socket, (char*)&header, sizeof(header), 0);
 
 		if (error < 1) {
 			return false;
 		}
 
-		data.resize(packet->header.size);
-		std::memcpy(data.data(), &packet->header, sizeof(packet_header_t));
+		data.resize(header.size);
+		std::memcpy(data.data(), &header, sizeof(header));
 
-		packet->data.resize(packet->header.size - sizeof(packet_header_t));
-
-		if (packet->header.size > 8) {
-			error = recv(connection_.socket, (char*)packet->data.data(), packet->header.size - sizeof(packet_header_t), 0);
+		if (header.size > 8) {
+			error = recv(connection_.socket, (char*)data.data() + sizeof(header), header.size - sizeof(header), 0);
 
 			if (error < 1) {
 				printf("failed receiving <%d> with <%I64u> bytes from <%I64u>: %d\r\n",
-					packet->header.type,
-					packet->size(),
+					header.type,
+					data.size(),
 					connection_.socket,
 					WSAGetLastError()
 				);
 				return false;
 			}
 		}
-		std::memcpy(data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
 
-		if (packet->header.type == PacketType::GAME_TICK) {
-			int data_index = sizeof(packet_header_t);
+		/*
+		if (header.type == Networking::PacketType::GAME_TICK) {
+			int data_index = sizeof(header);
 
+			std::vector<uint8_t> tick_data;
 			// read all packets
 			while (data_index < data.size() - 4) {
-				packet_t tick_packet{};
-				std::memcpy(&tick_packet.header, data.data() + data_index, sizeof(packet_header_t));
-				data_index += sizeof(packet_header_t);
+				Networking::packet_header_t tick_packet_header{};
+				std::memcpy(&tick_packet_header, data.data() + data_index, sizeof(tick_packet_header));
+				data_index += sizeof(tick_packet_header);
 
-				tick_packet.data.resize(tick_packet.header.size);
-				std::memcpy(tick_packet.data.data(), &tick_packet.header, sizeof(packet_header_t));
-				if (tick_packet.header.size > sizeof(packet_header_t)) {
-					std::memcpy(tick_packet.data.data() + sizeof(packet_header_t), data.data(), tick_packet.header.size - sizeof(packet_header_t));
-					data_index += tick_packet.header.size - sizeof(packet_header_t);
+				tick_data.resize(tick_packet_header.size);
+				std::memcpy(tick_data.data(), &tick_packet_header, sizeof(tick_packet_header));
+				if (tick_packet_header.size > sizeof(tick_packet_header)) {
+					std::memcpy(tick_data.data() + sizeof(tick_packet_header), data.data(), tick_packet_header.size - sizeof(tick_packet_header));
+					data_index += tick_packet_header.size - sizeof(tick_packet_header);
 				}
 
-				std::function fun = packet_manager->GetHandler(tick_packet.header.type);
+				std::function fun = packet_manager->GetHandler(tick_packet_header.type);
 
 				if (fun != nullptr) {
-					fun(tick_packet.data);
+					fun(tick_data);
 				}
 			}
 
@@ -204,8 +176,9 @@ namespace PMG {
 			std::memcpy(&game_tick, data.data() + data_index, sizeof(unsigned long));
 			data_index += sizeof(unsigned long);
 		}
+		*/
 
-		std::function fun = packet_manager->GetHandler(packet->header.type);
+		std::function fun = packet_manager->GetHandler(header.type);
 
 		if(fun != nullptr) {
 			fun(data);

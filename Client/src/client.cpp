@@ -69,10 +69,10 @@ namespace PMG {
 
         std::vector<PMGSystem*> systems;
 
-        Networking::NetworkHandlerManager<PacketType> packet_manager = Networking::NetworkHandlerManager<PacketType>();
+        Networking::NetworkHandlerManager<Networking::PacketType> packet_manager = Networking::NetworkHandlerManager<Networking::PacketType>();
         // Register network packets, the fuck...
-        packet_manager.RegisterHandler(PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
-        packet_manager.RegisterHandler(PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });
+        packet_manager.RegisterHandler(Networking::PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
+        packet_manager.RegisterHandler(Networking::PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });
         net_manager_.Initialize(&packet_manager);
 
         // TODO: this does not actually work, you know?
@@ -270,7 +270,7 @@ namespace PMG {
         if (m_keys['s']) {
             Networking::StopCommandPacket stop = Networking::StopCommandPacket();
 
-            net_manager_.SendNewPacket(&stop);
+            net_manager_.SendPacket(&stop);
         }
 
         if (m_keys['q']) {
@@ -282,7 +282,7 @@ namespace PMG {
             cast.x = x;
             cast.y = 0;
             cast.z = y;
-            net_manager_.SendNewPacket(&cast);
+            net_manager_.SendPacket(&cast);
         }
 
         if (m_keys['c']) {
@@ -311,7 +311,7 @@ namespace PMG {
                     Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
                     cmd.spell_slot = 1;
                     cmd.target = go->unit_id;
-                    net_manager_.SendNewPacket(&cmd);
+                    net_manager_.SendPacket(&cmd);
                 }
             }
         }
@@ -325,7 +325,7 @@ namespace PMG {
             cast.x = x;
             cast.y = 0;
             cast.z = y;
-            net_manager_.SendNewPacket(&cast);
+            net_manager_.SendPacket(&cast);
         }
 
         if (m_keys['r']) {
@@ -347,7 +347,7 @@ namespace PMG {
                     Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
                     cmd.spell_slot = 3;
                     cmd.target = go->unit_id;
-                    net_manager_.SendNewPacket(&cmd);
+                    net_manager_.SendPacket(&cmd);
                 }
             }
         }
@@ -363,9 +363,7 @@ namespace PMG {
         }
 
         // Network handling
-        packet_t packet = {};
-        while (net_manager_.ReceivePacket(&packet)) {
-            HandleNetworkMessage(&packet);
+        while (net_manager_.ReceivePacket()) {
         }
 
         HandleTicks(dt);
@@ -411,7 +409,7 @@ namespace PMG {
                     Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
                     atk_pk.target_unit = go->unit_id;
 
-                    net_manager_.SendNewPacket(&atk_pk);
+                    net_manager_.SendPacket(&atk_pk);
                 }
             }
         }
@@ -428,7 +426,7 @@ namespace PMG {
             mv.x = x;
             mv.y = y;
 
-            net_manager_.SendNewPacket(&mv);
+            net_manager_.SendPacket(&mv);
         }
 
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
@@ -1032,37 +1030,31 @@ namespace PMG {
     }
 
     void Client::SimulateTick(game_tick_t& tick, double diff) {
-        packet_t packet_copy = tick.packet;
-        packet_t* packet = &packet_copy;
+        std::vector<uint8_t> new_data;
 
-        unsigned long tick_index;
-        *packet >> tick_index;
+        // ignore tick packet header pls
+        int offset = sizeof(Networking::packet_header_t);
 
-        current_tick_ = tick_index;
+        while (offset < tick.data.size() - sizeof(current_tick_)) {
+            Networking::packet_header_t header{};
+            std::memcpy(&header, tick.data.data() + offset, sizeof(header));
 
-        while (packet->data.size() > 0) {
-            packet_t tickData{};
-            *packet >> tickData;
+            new_data.resize(header.size);
+            std::memcpy(new_data.data(), tick.data.data() + offset, header.size);
+            offset += header.size;
 
-            switch (tickData.header.type) {
-            case PacketType::UNITSPAWN: {
+            switch (header.type) {
+            case Networking::PacketType::UNITSPAWN: {
                 Networking::SpawnPacket spawn = Networking::SpawnPacket();
-
-                // hack wtf TODO
-                std::vector<uint8_t> new_data;
-                new_data.resize(tickData.header.size);
-                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
-
                 spawn.Read(&new_data);
 
                 SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
                 break;
             }
-            case PacketType::UNITMOVE:
-            case PacketType::UNITIDLE: {
-                pck_unit_move_t move{};
-                tickData >> move;
+            case Networking::PacketType::UNITMOVE:
+            case Networking::PacketType::UNITIDLE: {
+                Networking::UnitMovePacket move = Networking::UnitMovePacket();
+                move.Read(&new_data);
 
                 GameObject* go = GetGameObject(move.unit);
 
@@ -1078,21 +1070,14 @@ namespace PMG {
 
                 break;
             }
-            case PacketType::UNITDESPAWN: {
-                UnitId id;
-                tickData >> id;
-                DespawnUnit(id);
+            case Networking::PacketType::UNITDESPAWN: {
+                Networking::DespawnPacket despawn = Networking::DespawnPacket();
+                despawn.Read(&new_data);
+                DespawnUnit(despawn.unit);
                 break;
             }
-            case PacketType::PCK_STATS: {
+            case Networking::PacketType::PCK_STATS: {
                 Networking::UnitStatsPacket stats = Networking::UnitStatsPacket();
-
-                // hack wtf TODO
-                std::vector<uint8_t> new_data;
-                new_data.resize(tickData.header.size);
-                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
-
                 stats.Read(&new_data);
 
                 GameObject* go = GetGameObject(stats.unit);
@@ -1106,15 +1091,8 @@ namespace PMG {
                 go->max_health = stats.max_health;
                 break;
             }
-            case PacketType::PCK_SPELL_COOLDOWN: {
+            case Networking::PacketType::PCK_SPELL_COOLDOWN: {
                 Networking::CooldownPacket cd = Networking::CooldownPacket();
-
-                // hack wtf TODO
-                std::vector<uint8_t> new_data;
-                new_data.resize(tickData.header.size);
-                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
-
                 cd.Read(&new_data);
 
                 if (cd.unit != my_unit_id_) {
@@ -1125,15 +1103,8 @@ namespace PMG {
                 total_cooldowns[cd.spell_slot] = cd.total_cooldown;
                 break;
             }
-            case PacketType::PCK_START_ANIMATION: {
+            case Networking::PacketType::PCK_START_ANIMATION: {
                 Networking::AnimationPacket anim = Networking::AnimationPacket();
-
-                // hack wtf TODO
-                std::vector<uint8_t> new_data;
-                new_data.resize(tickData.header.size);
-                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
-                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
-
                 anim.Read(&new_data);
 
                 GameObject* gp = GetGameObject(anim.unit_id);
@@ -1147,78 +1118,6 @@ namespace PMG {
                 Logger::Err("Received unknown packet type");
                 break;
             }
-        }
-    }
-
-    void Client::HandleNetworkMessage(packet_t* packet) {
-        if (packet->header.type == PacketType::GAME_TICK) {
-            game_tick_t newTick{};
-            newTick.packet = *packet;
-            newTick.received = Util::GetSystemTime();
-//            ticks.push_back(newTick);
-        }
-        else if (packet->header.type == PacketType::UNITSPAWN) {
-            Logger::Msg("UNITSPAWN");
-            Networking::SpawnPacket spawn = Networking::SpawnPacket();
-
-            // hack wtf TODO
-            std::vector<uint8_t> new_data;
-            new_data.resize(packet->header.size);
-            std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-            std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
-            spawn.Read(&new_data);
-
-            SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
-        }
-        else if (packet->header.type == PacketType::UNITDESPAWN) {
-            Logger::Msg("UNITDESPAWN");
-            Networking::DespawnPacket despawn = Networking::DespawnPacket();
-
-            // hack wtf TODO
-            std::vector<uint8_t> new_data;
-            new_data.resize(packet->header.size);
-            std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-            std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
-            despawn.Read(&new_data);
-
-            DespawnUnit(despawn.unit);
-        } else if (packet->header.type == PacketType::UNITMOVE || packet->header.type == PacketType::UNITIDLE) {
-            pck_unit_move_t move{};
-            *packet >> move;
-
-            GameObject* go = GetGameObject(move.unit);
-
-            if (go == nullptr) {
-                Logger::Msg("WARNING: received move/idle message for unknown object");
-                return;
-            }
-            go->position.x = move.x;
-            go->position.z = move.y;
-            go->rotation.y = move.r;
-            go->position_received = Util::GetSystemTime();;
-        }
-        else if (packet->header.type == PacketType::PCK_STATS) {
-            Networking::UnitStatsPacket stats = Networking::UnitStatsPacket();
-
-            // hack wtf TODO
-            std::vector<uint8_t> new_data;
-            new_data.resize(packet->header.size);
-            std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
-            std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
-
-            stats.Read(&new_data);
-
-            GameObject* go = GetGameObject(stats.unit);
-
-            if (go == nullptr) {
-                Logger::Msg("WARNING: received stats message for unknown object");
-                return;
-            }
-            
-            go->health = stats.health;
-            go->max_health = stats.max_health;
         }
     }
 
@@ -1243,12 +1142,12 @@ namespace PMG {
     void Client::HandleGameTickPacket(std::vector<uint8_t> data) {
         game_tick_t new_tick{};
         new_tick.received = Util::GetSystemTime();
-        new_tick.packet = packet_t{};
-        
-        std::memcpy(&new_tick.packet.header, data.data(), sizeof(packet_header_t));
-        new_tick.packet.data.resize(new_tick.packet.header.size - sizeof(packet_header_t));
+        Networking::packet_header_t header{};
 
-        std::memcpy(new_tick.packet.data.data(), data.data() + sizeof(packet_header_t), new_tick.packet.header.size - sizeof(packet_header_t));
+        std::memcpy(&header, data.data(), sizeof(header));
+        new_tick.data.resize(header.size);
+
+        std::memcpy(new_tick.data.data(), data.data(), header.size);
 
         ticks.push_back(new_tick);
     }
