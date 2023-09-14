@@ -129,11 +129,15 @@ namespace PMG {
 	}
 
 	bool ClientNetworkManager::ReceivePacket(packet_t* packet) {
+		std::vector<uint8_t> data;
 		int error = recv(connection_.socket, (char*)&packet->header, sizeof(packet_header_t), 0);
 
 		if (error < 1) {
 			return false;
 		}
+
+		data.resize(packet->header.size);
+		std::memcpy(data.data(), &packet->header, sizeof(packet_header_t));
 
 		packet->data.resize(packet->header.size - sizeof(packet_header_t));
 
@@ -150,11 +154,38 @@ namespace PMG {
 				return false;
 			}
 		}
+		std::memcpy(data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+		if (packet->header.type == PacketType::GAME_TICK) {
+			int data_index = sizeof(packet_header_t);
+
+			// read all packets
+			while (data_index < data.size() - 4) {
+				packet_t tick_packet{};
+				std::memcpy(&tick_packet.header, data.data() + data_index, sizeof(packet_header_t));
+				data_index += sizeof(packet_header_t);
+				tick_packet.data.resize(tick_packet.header.size);
+				std::memcpy(tick_packet.data.data(), &tick_packet.header, sizeof(packet_header_t));
+				std::memcpy(tick_packet.data.data() + sizeof(packet_header_t), data.data(), tick_packet.header.size - sizeof(packet_header_t));
+				data_index += tick_packet.header.size - sizeof(packet_header_t);
+
+				std::function fun = packet_manager->GetHandler(tick_packet.header.type);
+
+				if (fun != nullptr) {
+					fun(tick_packet.data);
+				}
+			}
+
+			// read game tick
+			unsigned long game_tick;
+			std::memcpy(&game_tick, data.data() + data_index, sizeof(unsigned long));
+			data_index += sizeof(unsigned long);
+		}
 
 		std::function fun = packet_manager->GetHandler(packet->header.type);
 
 		if(fun != nullptr) {
-			fun(packet->data);
+			fun(data);
 		}
 
 		return true;

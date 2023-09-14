@@ -55,9 +55,6 @@
     <Filter Include="Source Files\graphics\mesh">
       <UniqueIdentifier>{5c599e22-9b04-4d57-bb5e-94cb554e6e93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\net\packets">
-      <UniqueIdentifier>{bd46fa59-ebd1-4f8b-94e0-5bbe9282b9de}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">

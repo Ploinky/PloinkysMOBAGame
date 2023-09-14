@@ -2,8 +2,10 @@
 
 namespace PMG::Networking {
 	void UnitIdPacket::Read(std::vector<uint8_t>* data) {
-		int mem_index = sizeof(type) + sizeof(size_t); // skip type bytes & size bytes?! yikes
-		std::memcpy(&unit_id, data->data(), sizeof(unit_id));
+		packet_header_t header;
+
+		std::memcpy(&header, data->data(), sizeof(packet_header_t));
+		std::memcpy(&unit_id, data->data() + sizeof(packet_header_t), sizeof(unit_id));
 	}
 
 	void UnitIdPacket::Write(std::vector<uint8_t>* data) {
@@ -14,7 +16,7 @@ namespace PMG::Networking {
 		data->resize(header.size);
 
 		int mem_index = 0;
-		std::memcpy(data->data(), &header.type, sizeof(packet_header_t));
+		std::memcpy(data->data(), &header, sizeof(packet_header_t));
 		std::memcpy(data->data() + sizeof(packet_header_t), &unit_id, sizeof(unit_id));
 	}
 }

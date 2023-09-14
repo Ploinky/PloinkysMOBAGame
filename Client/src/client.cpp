@@ -72,6 +72,7 @@ namespace PMG {
         Networking::NetworkHandlerManager<PacketType> packet_manager = Networking::NetworkHandlerManager<PacketType>();
         // Register network packets, the fuck...
         packet_manager.RegisterHandler(PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
+        packet_manager.RegisterHandler(PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });
         net_manager_.Initialize(&packet_manager);
 
         // TODO: this does not actually work, you know?
@@ -1150,7 +1151,7 @@ namespace PMG {
             game_tick_t newTick{};
             newTick.packet = *packet;
             newTick.received = Util::GetSystemTime();
-            ticks.push_back(newTick);
+//            ticks.push_back(newTick);
         }
         else if (packet->header.type == PacketType::UNITSPAWN) {
             Logger::Msg("UNITSPAWN");
@@ -1212,5 +1213,18 @@ namespace PMG {
 
         my_unit_id_ = pck.unit_id;
         unit_id_received_ = true;
+    }
+
+    void Client::HandleGameTickPacket(std::vector<uint8_t> data) {
+        game_tick_t new_tick{};
+        new_tick.received = Util::GetSystemTime();
+        new_tick.packet = packet_t{};
+        
+        std::memcpy(&new_tick.packet.header, data.data(), sizeof(packet_header_t));
+        new_tick.packet.data.resize(new_tick.packet.header.size - sizeof(packet_header_t));
+
+        std::memcpy(new_tick.packet.data.data(), data.data() + sizeof(packet_header_t), new_tick.packet.header.size - sizeof(packet_header_t));
+
+        ticks.push_back(new_tick);
     }
 }

@@ -32,5 +32,8 @@
     <ClCompile Include="client_unit_id.cpp">
       <Filter>Source Files\packets</Filter>
     </ClCompile>
+    <ClCompile Include="game_tick.cpp">
+      <Filter>Source Files\packets</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
