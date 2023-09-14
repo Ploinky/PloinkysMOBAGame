@@ -141,9 +141,4 @@ namespace PMG {
         double y;
         double z;
     } cmd_cast_t;
-
-    typedef struct {
-        int spell_slot;
-        UnitId target;
-    } cmd_cast_target_t;
 }

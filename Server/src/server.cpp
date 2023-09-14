@@ -109,12 +109,17 @@ namespace PMG {
                 break;
             }
             case PacketType::CMD_CAST_TARGET: {
-                cmd_cast_target_t cast{};
-                *packet >> cast;
+                std::vector<uint8_t> new_data;
+                new_data.resize(packet->header.size);
+                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+                Networking::CastTargetCommandPacket cast_command = Networking::CastTargetCommandPacket();
+                cast_command.Read(&new_data);
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
-                target_info->target = m_game->GetGameObjectById(cast.target);
-                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, target_info);
+                target_info->target = m_game->GetGameObjectById(cast_command.target);
+                m_game->PlayerCastSpellCommand(clientId, cast_command.spell_slot, target_info);
                 break;
             }
         }

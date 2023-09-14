@@ -311,13 +311,10 @@ namespace PMG {
                 GameObject* go = go_it.second;
                 Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
                 if (Physics::TestCollision(ray, sphere)) {
-                    packet_t packet{};
-                    packet.header.type = PacketType::CMD_CAST_TARGET;
-                    cmd_cast_target_t cast{};
-                    cast.spell_slot = 1;
-                    cast.target = go->unit_id;
-                    packet << cast;
-                    net_manager_.SendPacket(&packet);
+                    Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
+                    cmd.spell_slot = 1;
+                    cmd.target = go->unit_id;
+                    net_manager_.SendNewPacket(&cmd);
                 }
             }
         }
@@ -353,13 +350,10 @@ namespace PMG {
                 GameObject* go = go_it.second;
                 Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
                 if (Physics::TestCollision(ray, sphere)) {
-                    packet_t packet{};
-                    packet.header.type = PacketType::CMD_CAST_TARGET;
-                    cmd_cast_target_t cast{};
-                    cast.spell_slot = 3;
-                    cast.target = go->unit_id;
-                    packet << cast;
-                    net_manager_.SendPacket(&packet);
+                    Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
+                    cmd.spell_slot = 3;
+                    cmd.target = go->unit_id;
+                    net_manager_.SendNewPacket(&cmd);
                 }
             }
         }
