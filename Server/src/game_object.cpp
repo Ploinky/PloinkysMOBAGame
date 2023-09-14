@@ -38,7 +38,13 @@ namespace PMG {
 
                 // maybe not necessary to update on every tick? seems like a lot of work, but the accuracy does not need to be quite as high
                 // maybe only update once cooldown is ready again?
-                game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, i, s->remaining_cooldown, s->cooldown });
+
+                Networking::CooldownPacket* pck = new Networking::CooldownPacket();
+                pck->unit = unit_id;
+                pck->spell_slot = i;
+                pck->cooldown = s->remaining_cooldown;
+                pck->total_cooldown = s->cooldown;
+                game->SendPacket(pck);
             }
         }
 
@@ -200,7 +206,13 @@ namespace PMG {
 
                     spell->remaining_cooldown = spell->cooldown;
                     current_action = new GameObjectActionStop();
-                    game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, action->spell_index, spell->remaining_cooldown, spell->cooldown });
+
+                    Networking::CooldownPacket* pck = new Networking::CooldownPacket();
+                    pck->unit = unit_id;
+                    pck->spell_slot = action->spell_index;
+                    pck->cooldown = spell->remaining_cooldown;
+                    pck->total_cooldown = spell->cooldown;
+                    game->SendPacket(pck);
                     break;
                 }
             }

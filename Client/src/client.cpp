@@ -1093,13 +1093,22 @@ namespace PMG {
                 break;
             }
             case PacketType::PCK_SPELL_COOLDOWN: {
-                pck_spell_cooldown_t cooldown{};
-                tickData >> cooldown;
-                if (cooldown.unit != my_unit_id_) {
+                Networking::CooldownPacket cd = Networking::CooldownPacket();
+
+                // hack wtf TODO
+                std::vector<uint8_t> new_data;
+                new_data.resize(tickData.header.size);
+                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
+
+                cd.Read(&new_data);
+
+                if (cd.unit != my_unit_id_) {
                     break;
                 }
-                cooldowns[cooldown.spell_slot] = cooldown.cooldown;
-                total_cooldowns[cooldown.spell_slot] = cooldown.total_cooldown;
+
+                cooldowns[cd.spell_slot] = cd.cooldown;
+                total_cooldowns[cd.spell_slot] = cd.total_cooldown;
                 break;
             }
             case PacketType::PCK_START_ANIMATION: {

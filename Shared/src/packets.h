@@ -125,11 +125,4 @@ namespace PMG {
         int health;
         int max_health;
     } pck_unit_stats_t;
-
-    typedef struct {
-        UnitId unit;
-        int spell_slot;
-        int cooldown;
-        int total_cooldown;
-    } pck_spell_cooldown_t;
 }

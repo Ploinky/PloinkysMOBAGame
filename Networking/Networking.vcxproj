@@ -33,6 +33,7 @@
     <ClCompile Include="cast_command.cpp" />
     <ClCompile Include="cast_target_command.cpp" />
     <ClCompile Include="client_unit_id.cpp" />
+    <ClCompile Include="coodown_packet.cpp" />
     <ClCompile Include="game_tick.cpp" />
     <ClCompile Include="move_command.cpp" />
     <ClCompile Include="stop_command.cpp" />
