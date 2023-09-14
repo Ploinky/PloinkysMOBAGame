@@ -62,7 +62,9 @@ namespace PMG {
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
-        SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { players_.find(netId)->second.unitId });
+        Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
+        despawn->unit = players_.find(netId)->second.unitId;
+        SendPacket(despawn);
 
         GameObject* go = game_objects_.find(players_.find(netId)->second.unitId)->second;
         game_objects_.erase(go->unit_id);
@@ -169,7 +171,9 @@ namespace PMG {
     }
 
     void Game::DestroyGameObject(GameObject* to_destroy) {
-        SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { to_destroy->unit_id });
+        Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
+        despawn->unit = to_destroy->unit_id;
+        SendPacket(despawn);
         to_destroy->is_destroyed = true;
     }
 

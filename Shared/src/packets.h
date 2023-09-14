@@ -115,8 +115,4 @@ namespace PMG {
         double x;
         double y;
     } pck_unit_spawn_t;
-
-    typedef struct pck_unit_despawn_s {
-        unsigned long unit;
-    } pck_unit_despawn_t;
 }

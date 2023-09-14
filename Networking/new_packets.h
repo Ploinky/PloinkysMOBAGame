@@ -131,9 +131,18 @@ namespace PMG::Networking {
         UnitStatsPacket() : BasePacket(PacketType::PCK_STATS) {};
         virtual void Read(std::vector<uint8_t>* data) override;
         virtual void Write(std::vector<uint8_t>* data) override;
-
+        
         unsigned int unit;
         int health;
         int max_health;
+    };
+
+    class DespawnPacket : public BasePacket {
+    public:
+        DespawnPacket() : BasePacket(PacketType::UNITDESPAWN) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        unsigned long unit;
     };
 }

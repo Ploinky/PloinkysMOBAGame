@@ -1156,9 +1156,17 @@ namespace PMG {
         }
         else if (packet->header.type == PacketType::UNITDESPAWN) {
             Logger::Msg("UNITDESPAWN");
-            pck_unit_despawn_t pck{};
-            *packet >> pck;
-            DespawnUnit(pck.unit);
+            Networking::DespawnPacket despawn = Networking::DespawnPacket();
+
+            // hack wtf TODO
+            std::vector<uint8_t> new_data;
+            new_data.resize(packet->header.size);
+            std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+            std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+            despawn.Read(&new_data);
+
+            DespawnUnit(despawn.unit);
         } else if (packet->header.type == PacketType::UNITMOVE || packet->header.type == PacketType::UNITIDLE) {
             pck_unit_move_t move{};
             *packet >> move;
