@@ -74,4 +74,20 @@ namespace PMG::Networking {
         double x;
         double y;
     };
+
+    class StopCommandPacket : public BasePacket {
+    public:
+        StopCommandPacket() : BasePacket(PacketType::CMD_STOP) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+    };
+
+    class AttackCommandPacket : public BasePacket {
+    public:
+        AttackCommandPacket() : BasePacket(PacketType::CMD_ATTACK) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        UnitId target_unit;
+    };
 }

@@ -268,10 +268,9 @@ namespace PMG {
         }
 
         if (m_keys['s']) {
-            packet_t packet = {};
-            packet.header.type = PacketType::CMD_STOP;
+            Networking::StopCommandPacket stop = Networking::StopCommandPacket();
 
-            net_manager_.SendPacket(&packet);
+            net_manager_.SendNewPacket(&stop);
         }
 
         if (m_keys['q']) {
@@ -421,11 +420,10 @@ namespace PMG {
                 pointing_at_unit = true;
 
                 if (m_mouseButtons[2]) {
-                    packet_t packet = {};
-                    packet.header.type = PacketType::CMD_ATTACK;
-                    packet << cmd_attack_t{ go->unit_id };
+                    Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
+                    atk_pk.target_unit = go->unit_id;
 
-                    net_manager_.SendPacket(&packet);
+                    net_manager_.SendNewPacket(&atk_pk);
                 }
             }
         }

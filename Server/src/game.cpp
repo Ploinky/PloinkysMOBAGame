@@ -236,7 +236,14 @@ namespace PMG {
             base->Write(&appendage);
             
             packet.data.resize(packet.data.size() + appendage.size());
-            std::memcpy(packet.data.data() + packet.header.size - sizeof(packet_header_t), appendage.data(), appendage.size());
+
+            // TODO pls fixerino
+            if (packet.header.size == 0) {
+                std::memcpy(packet.data.data(), appendage.data(), appendage.size());
+            }
+            else {
+                std::memcpy(packet.data.data() + packet.header.size - sizeof(packet_header_t), appendage.data(), appendage.size());
+            }
             packet.header.size = packet.size();
         }
 

@@ -134,12 +134,6 @@ namespace PMG {
     } pck_spell_cooldown_t;
 
     // ====== Client -> Server commands ======
-    typedef struct cmd_stop {
-    } cmd_stop_t;
-
-    typedef struct cmd_attack {
-        unsigned int target_unit;
-    } cmd_attack_t;
 
     typedef struct {
         int spell_slot;

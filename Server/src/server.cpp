@@ -76,15 +76,27 @@ namespace PMG {
                 break;
             }
             case PacketType::CMD_STOP: {
-                cmd_stop_t stop{};
+                std::vector<uint8_t> new_data;
+                new_data.resize(packet->header.size);
+                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+                Networking::StopCommandPacket move_command = Networking::StopCommandPacket();
+                move_command.Read(&new_data);
 
                 m_game->PlayerStopCommand(clientId);
                 break;
             }
             case PacketType::CMD_ATTACK: {
-                cmd_attack_t attack{};
-                *packet >> attack;
-                m_game->PlayerAttackCommand(clientId, attack.target_unit);
+                std::vector<uint8_t> new_data;
+                new_data.resize(packet->header.size);
+                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+                Networking::AttackCommandPacket atk_command = Networking::AttackCommandPacket();
+                atk_command.Read(&new_data);
+
+                m_game->PlayerAttackCommand(clientId, atk_command.target_unit);
                 break;
             }
             case PacketType::CMD_CAST: {
