@@ -100,8 +100,14 @@ namespace PMG {
                 break;
             }
             case PacketType::CMD_CAST: {
-                cmd_cast_t cast{};
-                *packet >> cast;
+                std::vector<uint8_t> new_data;
+                new_data.resize(packet->header.size);
+                std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+                Networking::CastCommandPacket cast = Networking::CastCommandPacket();
+                cast.Read(&new_data);
+
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
                 target_info->target_point = { cast.x, cast.y, cast.z };

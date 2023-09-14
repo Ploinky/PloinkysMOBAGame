@@ -132,13 +132,4 @@ namespace PMG {
         int cooldown;
         int total_cooldown;
     } pck_spell_cooldown_t;
-
-    // ====== Client -> Server commands ======
-
-    typedef struct {
-        int spell_slot;
-        double x;
-        double y;
-        double z;
-    } cmd_cast_t;
 }

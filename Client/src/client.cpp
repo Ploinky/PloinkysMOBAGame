@@ -277,15 +277,12 @@ namespace PMG {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
 
-            packet_t packet{};
-            packet.header.type = PacketType::CMD_CAST;
-            cmd_cast_t cast{};
+            Networking::CastCommandPacket cast = Networking::CastCommandPacket();
             cast.spell_slot = 0;
             cast.x = x;
             cast.y = 0;
             cast.z = y;
-            packet << cast;
-            net_manager_.SendPacket(&packet);
+            net_manager_.SendNewPacket(&cast);
         }
 
         if (m_keys['c']) {
@@ -323,15 +320,12 @@ namespace PMG {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
 
-            packet_t packet{};
-            packet.header.type = PacketType::CMD_CAST;
-            cmd_cast_t cast{};
+            Networking::CastCommandPacket cast = Networking::CastCommandPacket();
             cast.spell_slot = 2;
             cast.x = x;
             cast.y = 0;
             cast.z = y;
-            packet << cast;
-            net_manager_.SendPacket(&packet);
+            net_manager_.SendNewPacket(&cast);
         }
 
         if (m_keys['r']) {

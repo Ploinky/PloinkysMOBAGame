@@ -50,5 +50,8 @@
     <ClCompile Include="cast_target_command.cpp">
       <Filter>Source Files\packets</Filter>
     </ClCompile>
+    <ClCompile Include="cast_command.cpp">
+      <Filter>Source Files\packets</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
