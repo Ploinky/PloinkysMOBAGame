@@ -119,10 +119,4 @@ namespace PMG {
     typedef struct pck_unit_despawn_s {
         unsigned long unit;
     } pck_unit_despawn_t;
-
-    typedef struct pck_unit_stats {
-        unsigned int unit;
-        int health;
-        int max_health;
-    } pck_unit_stats_t;
 }

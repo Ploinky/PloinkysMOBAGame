@@ -52,7 +52,13 @@ namespace PMG {
         players_.emplace(netId, player);
 
         SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, UnitPrefab::FOOTBALL_PERSON, game_object->team, 0, 0 });
-        SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
+
+        Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+        stats->unit = id;
+        stats->health = 100;
+        stats->max_health = 100;
+
+        SendPacket(stats);
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
@@ -155,7 +161,11 @@ namespace PMG {
             // do something?
         }
 
-        SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+        Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+        stats->unit = target->unit_id;
+        stats->health = target->stats.health;
+        stats->max_health = target->stats.max_health;
+        SendPacket(stats);
     }
 
     void Game::DestroyGameObject(GameObject* to_destroy) {

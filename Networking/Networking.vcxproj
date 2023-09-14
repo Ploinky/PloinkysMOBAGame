@@ -37,6 +37,7 @@
     <ClCompile Include="game_tick.cpp" />
     <ClCompile Include="move_command.cpp" />
     <ClCompile Include="stop_command.cpp" />
+    <ClCompile Include="unit_stats_packet.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

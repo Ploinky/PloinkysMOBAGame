@@ -146,7 +146,11 @@ namespace PMG {
                         target->stats.health = 0;
                     }
 
-                    game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+                    Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+                    stats->unit = target->unit_id;
+                    stats->health = target->stats.health;
+                    stats->max_health = target->stats.max_health;
+                    game->SendPacket(stats);
                 }
                 else {
                     Missile* basic_attack_missile = new Missile();
@@ -284,7 +288,13 @@ namespace PMG {
 
     void GameObject::TakeDamage(Game* game, double damage, GameObject* source) {
         stats.health = max(0.0, stats.health - damage);
-        game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { unit_id, stats.health, stats.max_health });
+
+        Networking::UnitStatsPacket* pck = new Networking::UnitStatsPacket();
+        pck->unit = unit_id;
+        pck->health = stats.health;
+        pck->max_health = stats.max_health;
+
+        game->SendPacket(pck);
     }
 
     void GameObject::PlayAnimation(Game* game, std::string animation) {

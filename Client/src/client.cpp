@@ -1078,8 +1078,15 @@ namespace PMG {
                 break;
             }
             case PacketType::PCK_STATS: {
-                pck_unit_stats_t stats{};
-                tickData >> stats;
+                Networking::UnitStatsPacket stats = Networking::UnitStatsPacket();
+
+                // hack wtf TODO
+                std::vector<uint8_t> new_data;
+                new_data.resize(tickData.header.size);
+                std::memcpy(new_data.data(), &tickData.header, sizeof(packet_header_t));
+                std::memcpy(new_data.data() + sizeof(packet_header_t), tickData.data.data(), tickData.header.size - sizeof(packet_header_t));
+
+                stats.Read(&new_data);
 
                 GameObject* go = GetGameObject(stats.unit);
 
@@ -1168,8 +1175,15 @@ namespace PMG {
             go->position_received = Util::GetSystemTime();;
         }
         else if (packet->header.type == PacketType::PCK_STATS) {
-            pck_unit_stats_t stats{};
-            *packet >> stats;
+            Networking::UnitStatsPacket stats = Networking::UnitStatsPacket();
+
+            // hack wtf TODO
+            std::vector<uint8_t> new_data;
+            new_data.resize(packet->header.size);
+            std::memcpy(new_data.data(), &packet->header, sizeof(packet_header_t));
+            std::memcpy(new_data.data() + sizeof(packet_header_t), packet->data.data(), packet->header.size - sizeof(packet_header_t));
+
+            stats.Read(&new_data);
 
             GameObject* go = GetGameObject(stats.unit);
 
