@@ -39,6 +39,9 @@ namespace PMG {
 
             //Creates an index buffer
             ID3D11Buffer* CreateIndexBuffer(unsigned int* indices, int indexCount);
+            
+            // Creates an instance buffer
+            ID3D11Buffer* CreateInstanceBuffer(void* instances, int instance_count, size_t size);
 
             ID3D11Device* device;
             ID3D11DeviceContext* context;

@@ -23,9 +23,13 @@ std::string GetDir() {
 #include "game_object.h"
 #include "camera.h"
 #include "mesh.h"
+#include "particle.h"
+#include "particle_system.h"
 
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
-    
+    /*
+
+    */
     // Attempt to read command line arguments
     int argc;
     wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
@@ -75,6 +79,9 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     client = 0;
 
     /*
+    AllocConsole();
+    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+    freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
 
     PMG::Window window = PMG::Window(
         1024, 768, PMG::WindowMode::WINDOWED
@@ -87,16 +94,14 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         MessageBoxA(NULL, "fml", "fml", MB_ICONERROR);
     }
 
-
     PMG::Renderer renderer = PMG::Renderer();
     renderer.Initialize(&d3d, window.width, window.height);
-    renderer.camera->position = { 0, 1, 0 };
+    renderer.camera->position = { 0, 0, -5 };
     renderer.camera->rotation = { 0, 0, 0 };
     PMG::Renderer* p_renderer = &renderer;
     
-    PMG::GameObject gotest = PMG::GameObject();
-    gotest.position = { 0, 0, 0 };
-    gotest.mesh = "chess_person";
+    PMG::ParticleSystem particle_system = PMG::ParticleSystem();
+    particle_system.Initialize(&d3d);
 
     window.e_charTyped = [](WORD ch) {};
     window.e_keyPressed = [&window, p_renderer](WORD key) {
@@ -137,10 +142,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     window.e_keyReleased = [](WORD key) {};
     int c = 0;
     int* p_c = &c;
-    window.e_mouseButtonPressed = [p_renderer, p_c](int button) {
-        ((PMG::SkinnedTexturedMesh*)p_renderer->meshes_.find("chess_person")->second)->PlayAnimation("wave", *p_c);
-        *p_c += 1;
-    };
+    window.e_mouseButtonPressed = [p_renderer, p_c](int button) {};
     window.e_mouseButtonReleased = [](int button) {};
     window.e_mouseMoved = [](int x, int y) {};
 
@@ -150,7 +152,9 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         d3d.ClearScreen();
         renderer.UpdateCameraMatrix();
 
-        renderer.Render(&gotest);
+        particle_system.Update(0.1);
+
+        particle_system.Render(&renderer);
         d3d.Present();
     }
     return 0;

@@ -55,6 +55,18 @@
     <Filter Include="Source Files\graphics\mesh">
       <UniqueIdentifier>{5c599e22-9b04-4d57-bb5e-94cb554e6e93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\graphics\particles">
+      <UniqueIdentifier>{bfb8aea0-8dc9-4a60-b664-b9ca0db66c7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\graphics\particles">
+      <UniqueIdentifier>{7953982e-a4b3-4892-99b9-d6e382c4ba80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\graphics\shaders">
+      <UniqueIdentifier>{229d03ba-1754-41e0-8f63-d482ad8eeb79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\graphics\shaders">
+      <UniqueIdentifier>{efb78bcd-97d7-4ff9-a0ae-b8ae8a79ca8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -126,6 +138,12 @@
     <ClCompile Include="src\skinned_textured_mesh.cpp">
       <Filter>Source Files\graphics\mesh</Filter>
     </ClCompile>
+    <ClCompile Include="src\particle_system.cpp">
+      <Filter>Source Files\graphics\particles</Filter>
+    </ClCompile>
+    <ClCompile Include="src\particle_shader.cpp">
+      <Filter>Source Files\graphics\shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -188,6 +206,15 @@
     <ClInclude Include="src\animation.h">
       <Filter>Header Files\graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\particle.h">
+      <Filter>Header Files\graphics\particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\particle_system.h">
+      <Filter>Header Files\graphics\particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\particle_shader.h">
+      <Filter>Header Files\graphics\shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\pixel_ps.hlsl">
@@ -205,10 +232,15 @@
     <FxCompile Include="src\skinned_textured_vs.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
+    <FxCompile Include="src\particle_vs.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\Client.aps" />
     <None Include="resources\Cursor.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\Client.aps">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -499,6 +499,34 @@ namespace PMG {
             return buffer;
         }
     }
+
+    ID3D11Buffer* Direct3D::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
+        ID3D11Buffer* buffer;
+
+        D3D11_BUFFER_DESC bufferDesc;
+        bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+        bufferDesc.ByteWidth = size * instance_count;
+        bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        bufferDesc.MiscFlags = 0;
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = instances;
+        data.SysMemPitch = 0;
+        data.SysMemSlicePitch = 0;
+
+        HRESULT hr = device->CreateBuffer(&bufferDesc, &data, &buffer);
+
+        if (FAILED(hr)) {
+            std::wostringstream os;
+            os << L"Error creating D3D instance Buffer. <" << hr << ">: " << _com_error(hr).ErrorMessage();
+            Logger::WErr(os.str());
+            return nullptr;
+        }
+        else {
+            return buffer;
+        }
+    }
     
     void Direct3D::SetFullScreen(bool full_screen) {
         if (full_screen) {

@@ -8,6 +8,7 @@
 #include "shader.h"
 #include <DirectXMath.h>
 #include "animation.h"
+#include "particle_shader.h"
 
 namespace PMG {
     Renderer::~Renderer() {
@@ -46,6 +47,10 @@ namespace PMG {
         SkinnedTexturedShader* skinned_textured_shader = new SkinnedTexturedShader();
         skinned_textured_shader->Initialize(direct3D);
         m_shaders.push_back(skinned_textured_shader);
+
+        ParticleShader* particle_shader = new ParticleShader();
+        particle_shader->Initialize(direct3D);
+        m_shaders.push_back(particle_shader);
     }
 
     void Renderer::SetDimensions(int width, int height) {
@@ -335,6 +340,46 @@ namespace PMG {
     }
 
     template<>
+    void Renderer::UpdateShaderConst(particle_shader_frame_const_t const_data) {
+        ParticleShader* shader = nullptr;
+
+        for (Shader* s : m_shaders) {
+            if (s->m_type == ShaderType::PARTICLE) {
+                shader = (ParticleShader*)s;
+                break;
+            }
+        }
+
+        if (shader == nullptr) {
+            Logger::Err("Failed to find shader");
+            return;
+        }
+
+        UpdateBuffer(shader->m_frameConstBuffer, &const_data, sizeof(shader->m_frameConstData));
+        direct3D->context->VSSetConstantBuffers(0, 1, &shader->m_frameConstBuffer);
+    }
+
+    template<>
+    void Renderer::UpdateShaderConst(particle_shader_model_const_t const_data) {
+        ParticleShader* shader = nullptr;
+
+        for (Shader* s : m_shaders) {
+            if (s->m_type == ShaderType::PARTICLE) {
+                shader = (ParticleShader*)s;
+                break;
+            }
+        }
+
+        if (shader == nullptr) {
+            Logger::Err("Failed to find shader");
+            return;
+        }
+
+        UpdateBuffer(shader->m_modelConstBuffer, &const_data, sizeof(shader->m_modelConstData));
+        direct3D->context->VSSetConstantBuffers(1, 1, &shader->m_modelConstBuffer);
+    }
+
+    template<>
     void Renderer::UpdateShaderConst(color_shader_frame_const_t const_data) {
         ColorShader* shader = nullptr;
 
@@ -380,6 +425,10 @@ namespace PMG {
         direct3D->context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
     }
 
+    void Renderer::SetVertexBuffers(ID3D11Buffer** buffers, UINT* stride, UINT* offset) {
+        direct3D->context->IASetVertexBuffers(0, 2, buffers, stride, offset);
+    }
+
     void Renderer::SetIndexBuffer(ID3D11Buffer* buffer) {
         direct3D->context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
     }
@@ -390,5 +439,9 @@ namespace PMG {
 
     void Renderer::DrawIndexed(int count) {
         direct3D->context->DrawIndexed(count, 0, 0);
+    }
+
+    void Renderer::DrawInstanced(int vertex_count, int instance_count) {
+        direct3D->context->DrawInstanced(vertex_count, instance_count, 0, 0);
     }
 }

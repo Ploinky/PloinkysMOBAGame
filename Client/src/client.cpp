@@ -16,6 +16,7 @@
 #include "audio_system.h"
 #include "mesh.h"
 #include "pmg_networking.h"
+#include "particle_system.h"
 
 namespace PMG {
     Client::Client() {
@@ -141,6 +142,9 @@ namespace PMG {
 
         Logger::Msg("Starting main game loop");
 
+        ParticleSystem particle_system = ParticleSystem();
+        particle_system.Initialize(direct3D);
+
         // Main game loop
         // Keep running while both the client wants to keep runnning and the window has not been closed
         isRunning = true;
@@ -157,12 +161,14 @@ namespace PMG {
             window->HandleEvents();
 
             Update(dt);
-
+            particle_system.Update(dt);
             // Render scene
             BeginRender();
             // Render 3D world
             Render();
             RenderGameUI();
+
+            particle_system.Render(renderer);
             // Render 2D graphics
             // Render UI
             // Render Menu/Chat/...

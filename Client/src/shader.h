@@ -12,6 +12,7 @@ namespace PMG {
 		COLOR,
 		TEXTURE,
 		SKINNED_TEXTURED,
+		PARTICLE,
 		NONE
 	};
 

@@ -47,9 +47,11 @@ namespace PMG {
             void UpdateShaderConst(T const_data);
             
             void SetVertexBuffer(ID3D11Buffer* buffer, UINT stride, UINT offset);
+            void SetVertexBuffers(ID3D11Buffer** buffers, UINT* stride, UINT* offset);
             void SetIndexBuffer(ID3D11Buffer* buffer);
             void SetShaderResource(UINT start_slot, UINT num_views, ID3D11ShaderResourceView* resource);
             void DrawIndexed(int count);
+            void DrawInstanced(int vertex_count, int instance_count);
             
         private:
             int m_width;
