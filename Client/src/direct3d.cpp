@@ -60,6 +60,11 @@ namespace PMG {
             return false;
         }
 
+        // Create depth buffer and depth stencil view
+        if (!CreateAlphaBlendState()) {
+            return false;
+        }
+
         //Create back buffer and render target view
         if (!CreateBackBuffer()) {
             return false;
@@ -354,6 +359,49 @@ namespace PMG {
         }
 
         return true;
+    }
+
+    bool Direct3D::CreateAlphaBlendState() {
+        D3D11_BLEND_DESC blend_desc{};
+        blend_desc.IndependentBlendEnable = false;
+        blend_desc.AlphaToCoverageEnable = false;
+        blend_desc.RenderTarget[0].BlendEnable = TRUE;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+        
+        HRESULT hr = device->CreateBlendState(&blend_desc, &alpha_blend_state);
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to create alpha blend state");
+            return false;
+        }
+
+        hr = device->CreateBlendState(&blend_desc, &alpha_blend_disabled_state);
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to create alpha blend disabled state");
+            return false;
+        }
+
+        float input[4] = { 0,0,0,0 };
+
+        context->OMSetBlendState(alpha_blend_disabled_state, input, 1);
+    }
+
+    void Direct3D::EnableAlphaBlending() {
+        float input[4] = { 0,0,0,0 };
+        context->OMSetBlendState(alpha_blend_state, 0, 0xffffffffff);
+    }
+
+    void Direct3D::DisableAlphaBlending() {
+        float input[4] = { 0,0,0,0 };
+        context->OMSetBlendState(alpha_blend_disabled_state, input, 1);
     }
 
     bool Direct3D::InitializeDirectWrite() {

@@ -43,6 +43,11 @@ namespace PMG {
 
 	void HealPerson::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
 		game->Heal(target_info->target, 50);
+
+		Networking::PlayParticlePacket* pck = new Networking::PlayParticlePacket();
+		pck->unit = target_info->target->unit_id;
+		pck->particle = "test";
+		game->SendPacket(pck);
 	}
 
 	DoBlastArea::DoBlastArea() {

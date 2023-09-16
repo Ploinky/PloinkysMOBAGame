@@ -4,11 +4,11 @@ namespace PMG {
 	void ParticleShader::Initialize(Direct3D* direct3D) {
 		D3D11_INPUT_ELEMENT_DESC inputLayoutDesc[]{
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"POSITION", 1, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"POSITION", 1, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 		};
 
-		Shader::Initialize(direct3D, "./shaders/particle_vs.cso", "./shaders/pixel_ps.cso", inputLayoutDesc, 3);
+		Shader::Initialize(direct3D, "./shaders/particle_vs.cso", "./shaders/texture_ps.cso", inputLayoutDesc, sizeof(inputLayoutDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
 		D3D11_BUFFER_DESC desc;
 		desc.ByteWidth = sizeof(m_frameConstData);
@@ -41,6 +41,29 @@ namespace PMG {
 
 		if (FAILED(hr)) {
 			printf("Failed to create color shader model constant buffer!");
+			return;
+		}
+
+
+		D3D11_SAMPLER_DESC samplerDesc;
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = 1;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerDesc.BorderColor[0] = 0;
+		samplerDesc.BorderColor[1] = 0;
+		samplerDesc.BorderColor[2] = 0;
+		samplerDesc.BorderColor[3] = 0;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		hr = direct3D->device->CreateSamplerState(&samplerDesc, &m_samplerState);
+
+		if (FAILED(hr)) {
+			printf("Failed to create texture shader model sampler state!");
 			return;
 		}
 	}

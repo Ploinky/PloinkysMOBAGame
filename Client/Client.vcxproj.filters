@@ -215,6 +215,9 @@
     <ClInclude Include="src\particle_shader.h">
       <Filter>Header Files\graphics\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderable.h">
+      <Filter>Header Files\game_object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\pixel_ps.hlsl">

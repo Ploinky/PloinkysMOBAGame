@@ -444,4 +444,12 @@ namespace PMG {
     void Renderer::DrawInstanced(int vertex_count, int instance_count) {
         direct3D->context->DrawInstanced(vertex_count, instance_count, 0, 0);
     }
+
+    void Renderer::EnableAlphaBlending() {
+        direct3D->EnableAlphaBlending();
+    }
+
+    void Renderer::DisableAlphaBlending() {
+        direct3D->EnableAlphaBlending();
+    }
 }

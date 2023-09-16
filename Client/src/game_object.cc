@@ -1,19 +1,26 @@
 #include "game_object.h"
 #include "mesh.h"
+#include "renderer.h"
 
 namespace PMG {
 	GameObject::~GameObject() {
-		if (mesh_component != nullptr) {
-			delete mesh_component;
-			mesh_component = nullptr;
+		if (renderable != nullptr) {
+			delete renderable;
+			renderable = nullptr;
 		}
 	}
 
 	void GameObject::Update(double dt) {
-		if (mesh_component != nullptr) {
-			mesh_component->position = position;
-			mesh_component->rotation = rotation;
-			mesh_component->Update(dt);
+		if (renderable != nullptr) {
+			renderable->position = position;
+			renderable->rotation = rotation;
+			renderable->Update(dt);
+		}
+	}
+
+	void GameObject::Render(Renderer* renderer) {
+		if (renderable != nullptr) {
+			renderable->Render(renderer);
 		}
 	}
 }

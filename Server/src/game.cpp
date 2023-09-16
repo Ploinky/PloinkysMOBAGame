@@ -180,7 +180,7 @@ namespace PMG {
     }
 
     void Game::Heal(GameObject* target, double heal) {
-        if (!target->IsTargetable()) {
+        if (target == nullptr || !target->IsTargetable()) {
             return;
         }
 

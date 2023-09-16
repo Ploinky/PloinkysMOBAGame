@@ -17,7 +17,7 @@ namespace PMG {
     class Vector3D;
     class Vertex;
 
-    class Mesh {
+    class Mesh : public IRenderable {
     public:
         Mesh() : m_shaderType(ShaderType::COLOR) {};
         Mesh(ShaderType shaderType) : m_shaderType(shaderType) {};
@@ -41,8 +41,6 @@ namespace PMG {
         uint32_t vertexCount = 0;
         unsigned int* indices = 0;
         uint32_t indexCount = 0;
-        Physics::Vector3 position = Physics::Vector3{ 0, 0, 0 };
-        Physics::Vector3 rotation = Physics::Vector3{ 0, 0, 0 };
 
     protected:
         ID3D11Buffer* vertexBuffer = 0;

@@ -52,6 +52,9 @@ namespace PMG {
             void SetShaderResource(UINT start_slot, UINT num_views, ID3D11ShaderResourceView* resource);
             void DrawIndexed(int count);
             void DrawInstanced(int vertex_count, int instance_count);
+
+            void EnableAlphaBlending();
+            void DisableAlphaBlending();
             
         private:
             int m_width;

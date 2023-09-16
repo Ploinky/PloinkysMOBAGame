@@ -142,9 +142,6 @@ namespace PMG {
 
         Logger::Msg("Starting main game loop");
 
-        ParticleSystem particle_system = ParticleSystem();
-        particle_system.Initialize(direct3D);
-
         // Main game loop
         // Keep running while both the client wants to keep runnning and the window has not been closed
         isRunning = true;
@@ -161,14 +158,12 @@ namespace PMG {
             window->HandleEvents();
 
             Update(dt);
-            particle_system.Update(dt);
             // Render scene
             BeginRender();
             // Render 3D world
             Render();
             RenderGameUI();
 
-            particle_system.Render(renderer);
             // Render 2D graphics
             // Render UI
             // Render Menu/Chat/...
@@ -293,7 +288,7 @@ namespace PMG {
 
         if (m_keys['c']) {
             if (unit_id_received_) {
-                GetGameObject(my_unit_id_)->mesh_component->PlayAnimation("run");
+                // GetGameObject(my_unit_id_)->renderable->PlayAnimation("run");
             }
             m_keys['c'] = false;
         }
@@ -377,6 +372,16 @@ namespace PMG {
         for (auto go_it : game_objects_) {
             go_it.second->Update(dt);
         }
+
+        std::erase_if(game_objects_, [](auto kv) {
+            if (kv.second->destroy) {
+                delete kv.second;
+                return true;
+            }
+
+            return false;
+        });
+
         fps = (int)(1000.0f / dt);
     }
     
@@ -444,9 +449,7 @@ namespace PMG {
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
 
-            if (go->mesh_component != nullptr) {
-                go->mesh_component->Render(renderer);
-            }
+            go->Render(renderer);
         }
     }
 
@@ -919,7 +922,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh_component = TextureMesh::Load("models/missile", direct3D);
+            go->renderable = TextureMesh::Load("models/missile", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
@@ -933,7 +936,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh_component = SkinnedTexturedMesh::Load("models/chess_person", direct3D);
+            go->renderable = SkinnedTexturedMesh::Load("models/chess_person", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->team = team;
@@ -946,7 +949,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh_component = TextureMesh::Load("models/tower", direct3D);
+            go->renderable = TextureMesh::Load("models/tower", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
@@ -972,13 +975,13 @@ namespace PMG {
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
-        auto test = game_objects_.find(unitId);
-        if (test == game_objects_.end()) {
+        GameObject* go = GetGameObject(unitId);
+
+        if (go == nullptr) {
             return;
         }
-        GameObject* go = test->second;
-        game_objects_.erase(unitId);
-        delete go;
+
+        go->destroy = true;
     }
 
     void Client::HandleTicks(float dt) {
@@ -1116,8 +1119,24 @@ namespace PMG {
                 GameObject* gp = GetGameObject(anim.unit_id);
 
                 if (gp != nullptr) {
-                    GetGameObject(anim.unit_id)->mesh_component->PlayAnimation(anim.animation_name);
+                    GetGameObject(anim.unit_id)->renderable->PlayAnimation(anim.animation_name);
                 }
+                break;
+            }
+            case Networking::PacketType::PCK_PLAY_PARTICLE: {
+                Networking::PlayParticlePacket part = Networking::PlayParticlePacket();
+                part.Read(&new_data);
+
+                GameObject* go = GetGameObject(part.unit);
+
+                ParticleSystem* particle_system = new ParticleSystem();
+                particle_system->Initialize(direct3D);
+                particle_system->position.x = go->position.x;
+                particle_system->position.y = 1;
+                particle_system->position.z = go->position.z;
+                // particle_system->Attach(GetGameObject(my_unit_id_));
+
+                game_objects_.emplace(current_tick_, particle_system);
                 break;
             }
             default:

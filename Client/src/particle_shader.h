@@ -7,7 +7,7 @@
 namespace PMG {
 	typedef struct {
 		float position[3];
-		float color[4];
+		float tex_coord[2];
 	} particle_shader_vertex_t;
 
 	typedef struct {
@@ -17,6 +17,7 @@ namespace PMG {
 	typedef struct {
 		DirectX::XMFLOAT4X4 projMatrix;
 		DirectX::XMFLOAT4X4 cameraMatrix;
+		DirectX::XMFLOAT4X4 billboard_matrix;
 	} particle_shader_frame_const_t;
 
 	typedef struct {
@@ -33,5 +34,6 @@ namespace PMG {
 		particle_shader_frame_const_t m_frameConstData;
 		ID3D11Buffer* m_modelConstBuffer;
 		particle_shader_model_const_t m_modelConstData;
+		ID3D11SamplerState* m_samplerState;
 	};
 }

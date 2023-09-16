@@ -25,6 +25,7 @@ namespace PMG::Networking {
         PCK_STATS,
         PCK_SPELL_COOLDOWN,
         PCK_START_ANIMATION,
+        PCK_PLAY_PARTICLE,
     };
 
     typedef struct {
@@ -193,5 +194,15 @@ namespace PMG::Networking {
         double y;
         double z;
         double r;
+    };
+
+    class PlayParticlePacket : public BasePacket {
+    public:
+        PlayParticlePacket() : BasePacket(PacketType::PCK_PLAY_PARTICLE) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        unsigned int unit;
+        std::string particle;
     };
 }
