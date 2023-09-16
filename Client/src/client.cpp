@@ -268,6 +268,12 @@ namespace PMG {
             m_camPos[2] += m_camDir[1] * dt / 20;
         }
 
+        if (m_mouseButtons[2]) {
+            m_mouseClicked[0] = m_mousePos[0];
+            m_mouseClicked[1] = m_mousePos[1];
+            m_mouseClicked[2] = 1;
+        }
+
         if (m_keys['s']) {
             Networking::StopCommandPacket stop = Networking::StopCommandPacket();
 
@@ -353,14 +359,67 @@ namespace PMG {
             }
         }
 
-        if (m_keys[VK_ESCAPE]) {
-            isRunning = false;
+        last_move = max(0, last_move - dt);
+        
+        if (last_move == 0 && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
+
+
+            float hp = static_cast<float>(M_PI / 180.0);
+            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
+                { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
+                { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
+                (float)m_sceneWidth / (float)m_sceneHeight,
+                renderer->camera->fov * hp,
+                renderer->camera->nearClip,
+                renderer->camera->farClip,
+                m_sceneWidth,
+                m_sceneHeight);
+
+            bool pointing_at_unit = FALSE;
+            for (auto& go_it : game_objects_) {
+                GameObject* go = go_it.second;
+                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
+                if (Physics::TestCollision(ray, sphere) && go->has_healthbar) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    pointing_at_unit = true;
+                    last_move = 50;
+
+                    if (m_mouseButtons[2]) {
+                        Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
+                        atk_pk.target_unit = go->unit_id;
+
+                        net_manager_.SendPacket(&atk_pk);
+                    }
+                }
+            }
+
+            if (!pointing_at_unit) {
+                float x, y;
+                TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
+
+                Networking::MoveCommandPacket mv = Networking::MoveCommandPacket();
+                mv.x = x;
+                mv.y = y;
+                net_manager_.SendPacket(&mv);
+
+
+                ParticleSystem* particle_system = new ParticleSystem("models/move_to.dds");
+                particle_system->particle_velocity.x = 0;
+                particle_system->particle_velocity.y = 2;
+                particle_system->particle_velocity.z = 0;
+                particle_system->particle_count = 1;
+                particle_system->system_lifetime = 300;
+                particle_system->Initialize(direct3D);
+                particle_system->position = { x, 0, y };
+
+                game_objects_.emplace(Util::GetSystemTime(), particle_system);
+
+                last_move = 50;
+            }
         }
 
-        if (m_mouseButtons[2]) {
-            m_mouseClicked[0] = m_mousePos[0];
-            m_mouseClicked[1] = m_mousePos[1];
-            m_mouseClicked[2] = 1;
+        if (m_keys[VK_ESCAPE]) {
+            isRunning = false;
         }
 
         // Network handling
@@ -396,49 +455,6 @@ namespace PMG {
         renderer->camera->position.x = m_camPos[0];
         renderer->camera->position.y = m_camPos[1];
         renderer->camera->position.z = m_camPos[2];
-
-        float hp = static_cast<float>(M_PI / 180.0);
-        Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
-            { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
-            { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
-            (float)m_sceneWidth / (float)m_sceneHeight,
-            renderer->camera->fov* hp,
-            renderer->camera->nearClip,
-            renderer->camera->farClip,
-            m_sceneWidth,
-            m_sceneHeight);
-        
-        bool pointing_at_unit = FALSE;
-        for (auto &go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
-            if (Physics::TestCollision(ray, sphere)) {
-                SetCursor(LoadCursor(NULL, IDC_HAND));
-                pointing_at_unit = true;
-
-                if (m_mouseButtons[2]) {
-                    Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
-                    atk_pk.target_unit = go->unit_id;
-
-                    net_manager_.SendPacket(&atk_pk);
-                }
-            }
-        }
-
-        if (!pointing_at_unit && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
-            renderer->FillRect(m_mouseClicked[0] - 1, m_mouseClicked[1] - 1, 3, 3, new float[3] {1.0f, 1.0f, 0.0f});
-
-            m_mouseClicked[2] = 0;
-
-            float x, y;
-            TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
-
-            Networking::MoveCommandPacket mv = Networking::MoveCommandPacket();
-            mv.x = x;
-            mv.y = y;
-
-            net_manager_.SendPacket(&mv);
-        }
 
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
         std::vector<Mesh*> mapMeshVector(mapMeshes.begin(), mapMeshes.end());
@@ -1129,12 +1145,13 @@ namespace PMG {
 
                 GameObject* go = GetGameObject(part.unit);
 
-                ParticleSystem* particle_system = new ParticleSystem();
+                ParticleSystem* particle_system = new ParticleSystem("models/particle.dds");
+                particle_system->particle_velocity = { 0, 0, 0 };
+                particle_system->particle_velocity_range = { 3, 3, 3 };
+                particle_system->particle_count = 100;
+                particle_system->system_lifetime = 400;
                 particle_system->Initialize(direct3D);
-                particle_system->position.x = go->position.x;
-                particle_system->position.y = 1;
-                particle_system->position.z = go->position.z;
-                // particle_system->Attach(GetGameObject(my_unit_id_));
+                particle_system->Attach(go);
 
                 game_objects_.emplace(current_tick_, particle_system);
                 break;

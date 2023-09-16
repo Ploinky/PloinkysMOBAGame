@@ -42,6 +42,10 @@ namespace PMG {
 	}
 
 	void HealPerson::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+		if (target_info->target == nullptr) {
+			// TODO this seems bad
+			return;
+		}
 		game->Heal(target_info->target, 50);
 
 		Networking::PlayParticlePacket* pck = new Networking::PlayParticlePacket();

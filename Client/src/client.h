@@ -113,6 +113,7 @@ namespace PMG {
             int m_mouseClicked[3] = { 0, 0, 0 };
             int m_camDir[2] = { 0, 0 };
             float m_camPos[3] = { 0, 15.0f, -8.0f };
+            double last_move = 0;
 
             int fps;
 
