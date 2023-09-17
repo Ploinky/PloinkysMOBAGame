@@ -16,7 +16,7 @@ namespace PMG {
 	ParticleSystem::~ParticleSystem() {
 		if (vertex_buffer_) {
 			vertex_buffer_->Release();
-			instance_buffer_ = nullptr;
+			vertex_buffer_ = nullptr;
 		}
 
 		if (instance_buffer_) {
