@@ -1,6 +1,22 @@
 #include "particle_shader.h"
 
 namespace PMG {
+	ParticleShader::~ParticleShader() {
+		if (m_frameConstBuffer) {
+			m_frameConstBuffer->Release();
+			m_frameConstBuffer = nullptr;
+		}
+		
+		if (m_modelConstBuffer) {
+			m_modelConstBuffer->Release();
+			m_modelConstBuffer = nullptr;
+		}
+
+		if (m_samplerState) {
+			m_samplerState->Release();
+			m_samplerState = nullptr;
+		}
+	}
 	void ParticleShader::Initialize(Direct3D* direct3D) {
 		D3D11_INPUT_ELEMENT_DESC inputLayoutDesc[]{
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},

@@ -14,6 +14,20 @@ namespace PMG {
 	}
 
 	ParticleSystem::~ParticleSystem() {
+		if (vertex_buffer_) {
+			vertex_buffer_->Release();
+			instance_buffer_ = nullptr;
+		}
+
+		if (instance_buffer_) {
+			instance_buffer_->Release();
+			instance_buffer_ = nullptr;
+		}
+
+		if (texture_) {
+			texture_->Release();
+			texture_ = nullptr;
+		}
 	}
 
 	static double test = 0;

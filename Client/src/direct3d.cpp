@@ -22,6 +22,9 @@ namespace PMG {
 
         context->ClearState();
 
+        alpha_blend_state->Release();
+        alpha_blend_disabled_state->Release();
+
         dWriteFactory->Release();
         renderTargetView->Release();
         renderTarget2D->Release();

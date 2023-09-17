@@ -27,7 +27,7 @@ namespace PMG {
 	class ParticleShader : public Shader {
 	public:
 		ParticleShader() : Shader(ShaderType::PARTICLE) {};
-		~ParticleShader() {};
+		~ParticleShader();
 		void Initialize(Direct3D* direct3D);
 
 		ID3D11Buffer* m_frameConstBuffer;
