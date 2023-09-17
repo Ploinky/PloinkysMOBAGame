@@ -12,7 +12,7 @@ namespace PMG {
 
 	class GameObject {
 	public:
-		~GameObject();
+		virtual ~GameObject();
 
 		virtual void Update(double dt);
 		virtual void Render(Renderer* renderer);

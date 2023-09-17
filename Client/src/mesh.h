@@ -80,7 +80,7 @@ namespace PMG {
     class SkinnedTexturedMesh : public Mesh {
     public:
         SkinnedTexturedMesh() : Mesh(ShaderType::SKINNED_TEXTURED) {};
-        ~SkinnedTexturedMesh();
+        virtual ~SkinnedTexturedMesh() override;
 
         virtual void Update(double dt) override;
         virtual void PlayAnimation(std::string animation_name) override;

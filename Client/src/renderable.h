@@ -8,6 +8,8 @@ namespace PMG {
 
 	class IRenderable {
 	public:
+		virtual ~IRenderable() {};
+
 		virtual void Render(Renderer* renderer) = 0;
 		virtual void Update(double dt) = 0;
 		virtual void PlayAnimation(std::string animation) = 0;

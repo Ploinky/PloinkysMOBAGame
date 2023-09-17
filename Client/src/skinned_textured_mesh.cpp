@@ -180,11 +180,6 @@ namespace PMG {
             m_texture = nullptr;
         }
 
-        if (initialized) {
-            vertexBuffer->Release();
-            indexBuffer->Release();
-        }
-
         for (auto it : animations) {
             delete it.second;
         }

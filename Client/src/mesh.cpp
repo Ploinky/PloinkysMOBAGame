@@ -8,8 +8,11 @@
 
 namespace PMG {
     Mesh::~Mesh() {
-        if (initialized) {
+        if (vertexBuffer) {
             vertexBuffer->Release();
+        }
+
+        if (indexBuffer) {
             indexBuffer->Release();
         }
     }

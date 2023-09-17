@@ -10,7 +10,7 @@ namespace PMG {
 	class ParticleSystem : public GameObject {
 	public:
 		ParticleSystem(std::string texture_name);
-		~ParticleSystem();
+		virtual ~ParticleSystem() override;
 		std::vector<Particle> particles;
 
 		void Render(Renderer* renderer);
