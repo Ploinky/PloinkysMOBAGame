@@ -3,6 +3,7 @@
 #include <string>
 #include <list>
 #include "networking.h"
+#include "pmg_networking.h"
 
 namespace PMG {
     class ClientNetworkManager;
@@ -19,9 +20,8 @@ namespace PMG {
 
         void OnClientConnected(unsigned long id);
         void OnClientDisconnected(unsigned long id);
-        void OnMessageReceived(unsigned long clientId, packet_t* packet);
-        void BroadcastMessage(std::vector<packet_t> packet);
-        void SendMessageToClient(unsigned long clientId, packet_t* packet);
-        void SendMessageToAllClients(packet_t* packet);
+        void OnMessageReceived(unsigned long clientId, std::vector<uint8_t>* packet);
+        void SendMessageToClient(unsigned long clientId, std::vector<uint8_t>* packet);
+        void SendMessageToAllClients(std::vector<uint8_t>* packet);
     };
 }

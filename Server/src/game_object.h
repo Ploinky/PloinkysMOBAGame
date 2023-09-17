@@ -11,6 +11,7 @@ namespace PMG {
 	class Spell;
 	class SpellTargetInfo;
 	class GameObject;
+	enum class EAnimation;
 
 	enum class GameObjectActionType {
 		STOP,
@@ -134,11 +135,15 @@ namespace PMG {
 		nav_agent_t nav_agent;
 		std::vector<Buff*> buffs;
 
+		std::string current_animation;
+
 		virtual void Update(float dt, Game* game);
 		virtual void Think(float dt, Game* game);
 		virtual bool IsTargetable() { return target_type != TargetType::UNTARGETABLE; };
 		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
 		void MoveToward(double x, double z, Game* game, double move_speed);
+		void PlayAnimation(Game* game, std::string animation);
+
 
 		void TakeDamage(Game* game, double damage, GameObject* source);
 

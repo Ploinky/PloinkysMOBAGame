@@ -39,6 +39,12 @@ namespace PMG {
 
             //Creates an index buffer
             ID3D11Buffer* CreateIndexBuffer(unsigned int* indices, int indexCount);
+            
+            // Creates an instance buffer
+            ID3D11Buffer* CreateInstanceBuffer(void* instances, int instance_count, size_t size);
+
+            void EnableAlphaBlending();
+            void DisableAlphaBlending();
 
             ID3D11Device* device;
             ID3D11DeviceContext* context;
@@ -46,6 +52,8 @@ namespace PMG {
             ID3D11RenderTargetView* renderTargetView;
             ID2D1RenderTarget* renderTarget2D;
             ID3D11DepthStencilView* depthView;
+            ID3D11BlendState* alpha_blend_state;
+            ID3D11BlendState* alpha_blend_disabled_state;
             IDWriteTextFormat* format;
             IDWriteFactory* dWriteFactory;
             IDXGISwapChain1* swapChain;
@@ -63,6 +71,8 @@ namespace PMG {
             bool CreateDepthBuffer();
             // Creates 2D rendering surface
             bool Create2DSurface();
+            bool CreateAlphaBlendState();
+
             bool InitializeDirectWrite();
             // Bind render target and depth buffer view to output merger stage
             void BindViews();

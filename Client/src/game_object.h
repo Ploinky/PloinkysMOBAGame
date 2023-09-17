@@ -2,12 +2,20 @@
 
 #include "pmg_physics.h"
 #include "pmg_types.h"
+#include "renderable.h"
+
 #include <string>
 
 namespace PMG {
+	class Mesh;
+	class Renderer;
+
 	class GameObject {
 	public:
-		~GameObject();
+		virtual ~GameObject();
+
+		virtual void Update(double dt);
+		virtual void Render(Renderer* renderer);
 
 		UnitId unit_id;
 		unsigned int health;
@@ -22,6 +30,8 @@ namespace PMG {
 
 		Team team;
 
-		std::string mesh;
+		IRenderable* renderable = nullptr;
+
+		bool destroy = false;
 	};
 }

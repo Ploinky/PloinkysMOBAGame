@@ -13,9 +13,9 @@ namespace PMG
 				constexpr float c = 1.001f + std::numeric_limits<float>::epsilon();
 				float d = 2.001f;
 
-				Assert::IsTrue(CompareDouble(a, b), L"Equal floats not equal");
-				Assert::IsTrue(CompareDouble(a, c), L"Floats with <= epsilon difference not equal");
-				Assert::IsFalse(CompareDouble(a, d), L"Different floats not unequal");
+				Assert::IsTrue(Physics::CompareFloat(a, b), L"Equal floats not equal");
+				Assert::IsTrue(Physics::CompareFloat(a, c), L"Floats with <= epsilon difference not equal");
+				Assert::IsFalse(Physics::CompareFloat(a, d), L"Different floats not unequal");
 			}
 
 			TEST_METHOD(TestSphereCollision) {

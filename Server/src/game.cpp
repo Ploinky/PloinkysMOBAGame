@@ -8,6 +8,9 @@
 #include "building.h"
 #include "football_person.h"
 
+#include "minion_spawner.h"
+#include "pmg_networking.h"
+
 namespace PMG {
     unsigned long g_unitId = 0;
 
@@ -21,10 +24,16 @@ namespace PMG {
             on_sendToClient(netId, &tick);
         }
 
+        packet_manager = new Networking::NetworkHandlerManager<Networking::PacketType>();
+
         entity_id id = current_entity_id_++;
 
-        packet_t packet = CreatePacket<pck_client_unit_id>(PacketType::PCK_CLIENT_UNIT_ID, { id });
-        on_sendToClient(netId, &packet);
+
+        Networking::UnitIdPacket packet = Networking::UnitIdPacket();
+        packet.unit_id = id;
+        std::vector<uint8_t> data;
+        packet.Write(&data);
+        on_sendToClient(netId, &data);
 
         FootballPerson* game_object = new FootballPerson();
         game_object->current_action = nullptr;
@@ -44,12 +53,26 @@ namespace PMG {
         player.unitId = id;
         players_.emplace(netId, player);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { game_object->unit_id, UnitPrefab::FOOTBALL_PERSON, game_object->team, 0, 0 });
-        SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { id, 100, 100 });
+        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+        spawn->unit = game_object->unit_id;
+        spawn->unit_type = UnitPrefab::FOOTBALL_PERSON;
+        spawn->team = game_object->team;
+        spawn->x = 0;
+        spawn->y = 0;
+        SendPacket(spawn);
+
+        Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+        stats->unit = id;
+        stats->health = 100;
+        stats->max_health = 100;
+
+        SendPacket(stats);
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
-        SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { players_.find(netId)->second.unitId });
+        Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
+        despawn->unit = players_.find(netId)->second.unitId;
+        SendPacket(despawn);
 
         GameObject* go = game_objects_.find(players_.find(netId)->second.unitId)->second;
         game_objects_.erase(go->unit_id);
@@ -73,7 +96,14 @@ namespace PMG {
         missile->unit_id = current_entity_id_++;
         game_objects_.emplace(missile->unit_id, missile);
 
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, UnitPrefab::THROW_FOOTBALL, missile->team, missile->position.x, missile->position.y });
+
+        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+        spawn->unit = missile->unit_id;
+        spawn->unit_type = UnitPrefab::THROW_FOOTBALL;
+        spawn->team = missile->team;
+        spawn->x = missile->position.x;
+        spawn->y = missile->position.y;
+        SendPacket(spawn);
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
@@ -109,14 +139,30 @@ namespace PMG {
         tower->position = { 10, 0, 0 };
         tower->team = Team::TEAM_2;
         AddGameObject(tower);
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower->unit_id, UnitPrefab::TOWER, tower->team, tower->position.x, tower->position.y });
 
+        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+        spawn->unit = tower->unit_id;
+        spawn->unit_type = UnitPrefab::TOWER;
+        spawn->team = tower->team;
+        spawn->x = tower->position.x;
+        spawn->y = tower->position.y;
+        SendPacket(spawn);
 
         Building* tower2 = new Building();
         tower2->position = { -10, 0, 0 };
         tower2->team = Team::TEAM_1;
         AddGameObject(tower2);
-        SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { tower2->unit_id, UnitPrefab::TOWER, tower2->team, tower2->position.x, tower2->position.y });
+
+        spawn = new Networking::SpawnPacket();
+        spawn->unit = tower2->unit_id;
+        spawn->unit_type = UnitPrefab::TOWER;
+        spawn->team = tower2->team;
+        spawn->x = tower2->position.x;
+        spawn->y = tower2->position.y;
+        SendPacket(spawn);
+
+        MinionSpawner* minion_spawner = new MinionSpawner();
+        igame_objects_.emplace(0, minion_spawner);
     }
 
     void Game::ApplyDamage(GameObject* target, double damage) {
@@ -128,13 +174,13 @@ namespace PMG {
 
         if (target->stats.health < 0) {
             target->stats.health = 0;
-            // do something?
+            // TODO do something?
         }
 
     }
 
     void Game::Heal(GameObject* target, double heal) {
-        if (!target->IsTargetable()) {
+        if (target == nullptr || !target->IsTargetable()) {
             return;
         }
 
@@ -145,11 +191,17 @@ namespace PMG {
             // do something?
         }
 
-        SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+        Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+        stats->unit = target->unit_id;
+        stats->health = target->stats.health;
+        stats->max_health = target->stats.max_health;
+        SendPacket(stats);
     }
 
     void Game::DestroyGameObject(GameObject* to_destroy) {
-        SendPacket<pck_unit_despawn_t>(PacketType::UNITDESPAWN, { to_destroy->unit_id });
+        Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
+        despawn->unit = to_destroy->unit_id;
+        SendPacket(despawn);
         to_destroy->is_destroyed = true;
     }
 
@@ -194,6 +246,11 @@ namespace PMG {
             go->Update(dt, this);
         }
 
+        for (auto go_it : igame_objects_) {
+            IGameObject* go = go_it.second;
+            go->Update(this, dt);
+        }
+
         // now let them cook?
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
@@ -206,20 +263,51 @@ namespace PMG {
             go->Think(dt, this);
         }
 
-        packet_t packet{};
-        packet.header.type = PacketType::GAME_TICK;
+        Networking::packet_header_t header{};
+        header.type = Networking::PacketType::GAME_TICK;
 
-        for (packet_t pack : tick_packets) {
-            packet << pack;
+        std::vector<uint8_t> data;
+        data.resize(sizeof(header));
+
+        header.size = data.size();
+
+        for (Networking::BasePacket* base : tick_packets_) {
+            std::vector<uint8_t> appendage;
+            base->Write(&appendage);
+            
+            data.resize(data.size() + appendage.size());
+
+            // TODO pls fixerino
+            if (header.size == 0) {
+                std::memcpy(data.data(), appendage.data(), appendage.size());
+            }
+            else {
+                std::memcpy(data.data() + header.size, appendage.data(), appendage.size());
+            }
+            header.size = data.size();
         }
 
-        packet << gameTick++;
-        all_ticks.push_back(packet);
 
-        on_sendToAllClients(&packet);
+        data.resize(data.size() + sizeof(gameTick));
+        std::memcpy(data.data(), &gameTick, sizeof(gameTick));
+        gameTick++;
+        header.size += sizeof(gameTick);
+        std::memcpy(data.data(), &header, sizeof(header));
 
-        tick_packets.clear();
+        all_ticks.push_back(data);
 
-        std::erase_if(game_objects_, [](auto& kv) { return kv.second->is_destroyed; });
+        on_sendToAllClients(&data);
+
+        tick_packets_.clear();
+
+        // TODO why is this stupid
+        std::erase_if(game_objects_, [](auto& kv) {
+            if (kv.second->is_destroyed) {
+                delete kv.second;
+                return true;
+            }
+
+            return false;
+        });
     }
 }

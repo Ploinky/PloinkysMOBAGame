@@ -38,14 +38,16 @@ namespace PMG {
     class Client {
         typedef struct {
             unsigned long long received;
-            packet_t packet;
+            std::vector<uint8_t> data;
         } game_tick_t;
 
         public:
-            Client(std::string ip_address, std::string port);
+            Client();
             ~Client();
-            void Run();
+            void Run(std::string ip_address, std::string port);
 
+            void HandleUnitIdPacket(std::vector<uint8_t> data);
+            void HandleGameTickPacket(std::vector<uint8_t> data);
         private:
             // Indicates whether the Client is running and should continue running
             bool isRunning;
@@ -79,7 +81,6 @@ namespace PMG {
 
             void Update(float dt);
 
-            void HandleNetworkMessage(packet_t* packet);
             void SimulateTick(game_tick_t& tick, double diff);
             void HandleTicks(float dt);
 
@@ -112,6 +113,7 @@ namespace PMG {
             int m_mouseClicked[3] = { 0, 0, 0 };
             int m_camDir[2] = { 0, 0 };
             float m_camPos[3] = { 0, 15.0f, -8.0f };
+            double last_move = 0;
 
             int fps;
 

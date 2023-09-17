@@ -1,12 +1,15 @@
 #include "client_network_manager.h"
 #include "logger.h"
+#include "pmg_networking.h"
+
+#include "client.h"
 
 namespace PMG {
 	bool ClientNetworkManager::IsConnected() {
 		return connection_.isConnected;
 	}
 
-	bool ClientNetworkManager::Initialize() {
+	bool ClientNetworkManager::Initialize(Networking::NetworkHandlerManager<Networking::PacketType>* manager) {
 		WSADATA wsaData = {};
 
 		int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -14,6 +17,8 @@ namespace PMG {
 		if (wsaStartupResult != 0) {
 			return false;
 		}
+
+		this->packet_manager = manager;
 
 		return true;
 	}
@@ -94,56 +99,89 @@ namespace PMG {
 		return true;
 	}
 
-	bool ClientNetworkManager::SendPacket(packet_t* packet) {
-		size_t sendBufLen = packet->size();
-		char* sendBuf = (char*)std::malloc(sendBufLen);
+	bool ClientNetworkManager::SendPacket(Networking::BasePacket* packet) {
+		std::vector<uint8_t> data;
+		packet->Write(&data);
 
-		if (sendBuf == 0) {
-			return false;
-		}
-
-		std::memcpy(sendBuf, &packet->header, sizeof(packet_header_t));
-		std::memcpy(&sendBuf[sizeof(packet_header_t)], packet->data.data(), packet->size() - sizeof(packet_header_t));
-		int error = send(connection_.socket, sendBuf, sendBufLen, 0);
+		int error = send(connection_.socket, (char*)data.data(), data.size(), 0);
 
 		if (error < 1) {
-			printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
-				packet->header.type,
-				packet->size(),
+			printf("failed sending <%d> with <%u> bytes to <%I64u>: %d\r\n",
+				packet->type,
+				data.size(),
 				connection_.socket,
 				WSAGetLastError()
 			);
-			free(sendBuf);
 			Close();
 			return false;
 		}
 
-		free(sendBuf);
-
 		return true;
 	}
 
-	bool ClientNetworkManager::ReceivePacket(packet_t* packet) {
-		int error = recv(connection_.socket, (char*)&packet->header, sizeof(packet_header_t), 0);
+	bool ClientNetworkManager::ReceivePacket() {
+		Networking::packet_header_t header{};
+
+		std::vector<uint8_t> data;
+		int error = recv(connection_.socket, (char*)&header, sizeof(header), 0);
 
 		if (error < 1) {
 			return false;
 		}
 
-		packet->data.resize(packet->header.size - sizeof(packet_header_t));
+		data.resize(header.size);
+		std::memcpy(data.data(), &header, sizeof(header));
 
-		if (packet->header.size > 8) {
-			error = recv(connection_.socket, (char*)packet->data.data(), packet->header.size - sizeof(packet_header_t), 0);
+		if (header.size > 8) {
+			error = recv(connection_.socket, (char*)data.data() + sizeof(header), header.size - sizeof(header), 0);
 
 			if (error < 1) {
-				printf("failed receiving <%d> with <%I64u> bytes from <%I64u>: %d\r\n",
-					packet->header.type,
-					packet->size(),
+				printf("failed receiving <%d> with <%u> bytes from <%I64u>: %d\r\n",
+					header.type,
+					data.size(),
 					connection_.socket,
 					WSAGetLastError()
 				);
 				return false;
 			}
+		}
+
+		/*
+		if (header.type == Networking::PacketType::GAME_TICK) {
+			int data_index = sizeof(header);
+
+			std::vector<uint8_t> tick_data;
+			// read all packets
+			while (data_index < data.size() - 4) {
+				Networking::packet_header_t tick_packet_header{};
+				std::memcpy(&tick_packet_header, data.data() + data_index, sizeof(tick_packet_header));
+				data_index += sizeof(tick_packet_header);
+
+				tick_data.resize(tick_packet_header.size);
+				std::memcpy(tick_data.data(), &tick_packet_header, sizeof(tick_packet_header));
+				if (tick_packet_header.size > sizeof(tick_packet_header)) {
+					std::memcpy(tick_data.data() + sizeof(tick_packet_header), data.data(), tick_packet_header.size - sizeof(tick_packet_header));
+					data_index += tick_packet_header.size - sizeof(tick_packet_header);
+				}
+
+				std::function fun = packet_manager->GetHandler(tick_packet_header.type);
+
+				if (fun != nullptr) {
+					fun(tick_data);
+				}
+			}
+
+			// read game tick
+			unsigned long game_tick;
+			std::memcpy(&game_tick, data.data() + data_index, sizeof(unsigned long));
+			data_index += sizeof(unsigned long);
+		}
+		*/
+
+		std::function fun = packet_manager->GetHandler(header.type);
+
+		if(fun != nullptr) {
+			fun(data);
 		}
 
 		return true;

@@ -16,7 +16,7 @@ namespace PMG::Physics {
         bool operator==(const mat& other) const {
             for (int x = 0; x < 4; x++) {
                 for (int y = 0; y < 4; y++) {
-                    if (!CompareDouble(m[x][y], other.m[x][y])) {
+                    if (!CompareFloat(m[x][y], other.m[x][y])) {
                         return false;
                     }
                 }

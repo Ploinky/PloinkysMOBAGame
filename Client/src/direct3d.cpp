@@ -22,6 +22,9 @@ namespace PMG {
 
         context->ClearState();
 
+        alpha_blend_state->Release();
+        alpha_blend_disabled_state->Release();
+
         dWriteFactory->Release();
         renderTargetView->Release();
         renderTarget2D->Release();
@@ -57,6 +60,11 @@ namespace PMG {
 
         // Create swap chain
         if (!CreateSwapChain(full_screen)) {
+            return false;
+        }
+
+        // Create depth buffer and depth stencil view
+        if (!CreateAlphaBlendState()) {
             return false;
         }
 
@@ -356,6 +364,49 @@ namespace PMG {
         return true;
     }
 
+    bool Direct3D::CreateAlphaBlendState() {
+        D3D11_BLEND_DESC blend_desc{};
+        blend_desc.IndependentBlendEnable = false;
+        blend_desc.AlphaToCoverageEnable = false;
+        blend_desc.RenderTarget[0].BlendEnable = TRUE;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+        
+        HRESULT hr = device->CreateBlendState(&blend_desc, &alpha_blend_state);
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to create alpha blend state");
+            return false;
+        }
+
+        hr = device->CreateBlendState(&blend_desc, &alpha_blend_disabled_state);
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to create alpha blend disabled state");
+            return false;
+        }
+
+        float input[4] = { 0,0,0,0 };
+
+        context->OMSetBlendState(alpha_blend_disabled_state, input, 1);
+    }
+
+    void Direct3D::EnableAlphaBlending() {
+        float input[4] = { 0,0,0,0 };
+        context->OMSetBlendState(alpha_blend_state, 0, 0xffffffffff);
+    }
+
+    void Direct3D::DisableAlphaBlending() {
+        float input[4] = { 0,0,0,0 };
+        context->OMSetBlendState(alpha_blend_disabled_state, input, 1);
+    }
+
     bool Direct3D::InitializeDirectWrite() {
         HRESULT hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
             reinterpret_cast<IUnknown**>(&dWriteFactory));
@@ -496,6 +547,34 @@ namespace PMG {
             Logger::WErr(os.str());
             return nullptr;
         } else {
+            return buffer;
+        }
+    }
+
+    ID3D11Buffer* Direct3D::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
+        ID3D11Buffer* buffer;
+
+        D3D11_BUFFER_DESC bufferDesc;
+        bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+        bufferDesc.ByteWidth = size * instance_count;
+        bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        bufferDesc.MiscFlags = 0;
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = instances;
+        data.SysMemPitch = 0;
+        data.SysMemSlicePitch = 0;
+
+        HRESULT hr = device->CreateBuffer(&bufferDesc, &data, &buffer);
+
+        if (FAILED(hr)) {
+            std::wostringstream os;
+            os << L"Error creating D3D instance Buffer. <" << hr << ">: " << _com_error(hr).ErrorMessage();
+            Logger::WErr(os.str());
+            return nullptr;
+        }
+        else {
             return buffer;
         }
     }

@@ -76,7 +76,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Networking;$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PrecompiledHeaderFile />
@@ -95,7 +95,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Networking;$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PrecompiledHeaderFile />
@@ -114,7 +114,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Networking;$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PrecompiledHeaderFile />
@@ -133,7 +133,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Networking;$(ProjectDir)include;$(SolutionDir)\Physics;$(SolutionDir)\Shared\src;$(SolutionDir)\Scripting</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PrecompiledHeaderFile />
@@ -154,6 +154,7 @@
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\game_object.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\minion_spawner.cpp" />
     <ClCompile Include="src\missile.cpp" />
     <ClCompile Include="src\missile_spell.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
@@ -169,7 +170,10 @@
     <ClInclude Include="src\football_person.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\game_object.h" />
+    <ClInclude Include="src\igame_object.h" />
     <ClInclude Include="src\main.h" />
+    <ClInclude Include="src\minion.h" />
+    <ClInclude Include="src\minion_spawner.h" />
     <ClInclude Include="src\missile.h" />
     <ClInclude Include="src\missile_spell.h" />
     <ClInclude Include="src\network_manager.h" />
@@ -184,8 +188,8 @@
     <ProjectReference Include="..\Shared\Shared.vcxproj">
       <Project>{7ace48e0-c601-4094-bfe2-6932f0f5210a}</Project>
     </ProjectReference>
-    <ProjectReference Include="C:\projects\PloinkysMOBAGame\Scripting\Scripting.vcxproj">
-      <Project>{53a90e98-79db-4218-bfcf-89c9aaae12bf}</Project>
+    <ProjectReference Include="C:\projects\PloinkysMOBAGame\Networking\Networking.vcxproj">
+      <Project>{63bf9ae4-3487-4bf3-a476-f5b44190f630}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

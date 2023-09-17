@@ -37,6 +37,12 @@
     <Filter Include="Source Files\game_object\spell">
       <UniqueIdentifier>{007e28ea-4757-47f1-862b-cb07675ea020}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\game_object\minions">
+      <UniqueIdentifier>{a04e1342-1437-4722-9c98-a87878cfb9c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game_object\minions">
+      <UniqueIdentifier>{095de8eb-053f-4f6f-a4b7-4024a8415d42}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\game.cpp">
@@ -77,6 +83,9 @@
     </ClCompile>
     <ClCompile Include="src\missile.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\minion_spawner.cpp">
+      <Filter>Source Files\game_object\minions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -121,6 +130,15 @@
     </ClInclude>
     <ClInclude Include="src\missile.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\minion.h">
+      <Filter>Header Files\game_object\minions</Filter>
+    </ClInclude>
+    <ClInclude Include="src\minion_spawner.h">
+      <Filter>Header Files\game_object\minions</Filter>
+    </ClInclude>
+    <ClInclude Include="src\igame_object.h">
+      <Filter>Header Files\game_object</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -10,7 +10,7 @@ namespace PMG::Physics {
 		this->z = 0;
 	}
 
-	Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z) {
+	Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z) {
 
 	}
 
@@ -26,17 +26,17 @@ namespace PMG::Physics {
 		return x * other.x + y * other.y + z * other.z;
 	}
 	bool Vector3::operator==(const Vector3& other) const {
-		return CompareDouble(x, other.x)
-			&& CompareDouble(y, other.y)
-			&& CompareDouble(z, other.z);
+		return CompareFloat(x, other.x)
+			&& CompareFloat(y, other.y)
+			&& CompareFloat(z, other.z);
 	}
 
-	Vector3 Vector3::operator*(double scale) const {
+	Vector3 Vector3::operator*(float scale) const {
 		return { x * scale, y * scale, z * scale };
 	}
 
 	float Vector3::Length() const {
-		return sqrt(x * x + y * y + z * z);
+		return sqrtf(x * x + y * y + z * z);
 	}
 
 	Vector3 Vector3::Normalize() const {
@@ -49,7 +49,7 @@ namespace PMG::Physics {
 		return { x / l, y / l, z / l };
 	}
 
-	Vector3 Vector3::ScaleToLength(double length) const {
+	Vector3 Vector3::ScaleToLength(float length) const {
 		Vector3 scaled = Normalize();
 
 		return scaled * length;

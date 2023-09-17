@@ -15,9 +15,11 @@
 #include "settings.h"
 #include "audio_system.h"
 #include "mesh.h"
+#include "pmg_networking.h"
+#include "particle_system.h"
 
 namespace PMG {
-    Client::Client(std::string ip_address, std::string port) {
+    Client::Client() {
         isRunning = false;
         lastFrame = 0;
 
@@ -29,14 +31,7 @@ namespace PMG {
         m_map->Load("map1");
 
         fps = 0;
-
         net_manager_ = ClientNetworkManager();
-        net_manager_.Initialize();
-
-        // TODO: this does not actually work, you know?
-        Logger::Msg(std::string("Connecting to server at <").append(ip_address).append(":").append(port).append(">"));
-
-        net_manager_.ConnectToServer(ip_address, port);
     }
 
     Client::~Client() {
@@ -70,10 +65,21 @@ namespace PMG {
         }
     }
 
-    void Client::Run() {
+    void Client::Run(std::string ip_address, std::string port) {
         Logger::Msg("Starting Ploinky's MOBA Game client...");
 
         std::vector<PMGSystem*> systems;
+
+        Networking::NetworkHandlerManager<Networking::PacketType> packet_manager = Networking::NetworkHandlerManager<Networking::PacketType>();
+        // Register network packets, the fuck...
+        packet_manager.RegisterHandler(Networking::PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
+        packet_manager.RegisterHandler(Networking::PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });
+        net_manager_.Initialize(&packet_manager);
+
+        // TODO: this does not actually work, you know?
+        Logger::Msg(std::string("Connecting to server at <").append(ip_address).append(":").append(port).append(">"));
+
+        net_manager_.ConnectToServer(ip_address, port);
 
         Logger::Msg("Loading settings...");
 
@@ -120,6 +126,8 @@ namespace PMG {
         renderer = new Renderer();
         renderer->Initialize(direct3D, window->width, window->height);
 
+        m_map->Initialize(direct3D);
+
         if (!audio_system_.Initialize()) {
             Logger::Msg("Failed to initialize audio system");
             return;
@@ -150,12 +158,12 @@ namespace PMG {
             window->HandleEvents();
 
             Update(dt);
-
             // Render scene
             BeginRender();
             // Render 3D world
             Render();
             RenderGameUI();
+
             // Render 2D graphics
             // Render UI
             // Render Menu/Chat/...
@@ -222,8 +230,6 @@ namespace PMG {
         m_mousePos[1] = screenY;
     }
 
-    static bool animate;
-
     void Client::Update(float dt) {
         if (!net_manager_.IsConnected()) {
             net_manager_.CheckConnected();
@@ -262,34 +268,35 @@ namespace PMG {
             m_camPos[2] += m_camDir[1] * dt / 20;
         }
 
+        if (m_mouseButtons[2]) {
+            m_mouseClicked[0] = m_mousePos[0];
+            m_mouseClicked[1] = m_mousePos[1];
+            m_mouseClicked[2] = 1;
+        }
+
         if (m_keys['s']) {
-            packet_t packet = {};
-            packet.header.type = PacketType::CMD_STOP;
+            Networking::StopCommandPacket stop = Networking::StopCommandPacket();
 
-            net_manager_.SendPacket(&packet);
-        }
-
-        if (m_keys['c']) {
-            animate = true;
-        }
-
-        if (animate) {
-            ((SkinnedTexturedMesh*)renderer->meshes_.find("chess_person")->second)->PlayAnimation("run", dt);
+            net_manager_.SendPacket(&stop);
         }
 
         if (m_keys['q']) {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
 
-            packet_t packet{};
-            packet.header.type = PacketType::CMD_CAST;
-            cmd_cast_t cast{};
+            Networking::CastCommandPacket cast = Networking::CastCommandPacket();
             cast.spell_slot = 0;
             cast.x = x;
             cast.y = 0;
             cast.z = y;
-            packet << cast;
-            net_manager_.SendPacket(&packet);
+            net_manager_.SendPacket(&cast);
+        }
+
+        if (m_keys['c']) {
+            if (unit_id_received_) {
+                // GetGameObject(my_unit_id_)->renderable->PlayAnimation("run");
+            }
+            m_keys['c'] = false;
         }
 
         if (m_keys['w']) {
@@ -308,13 +315,10 @@ namespace PMG {
                 GameObject* go = go_it.second;
                 Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
                 if (Physics::TestCollision(ray, sphere)) {
-                    packet_t packet{};
-                    packet.header.type = PacketType::CMD_CAST_TARGET;
-                    cmd_cast_target_t cast{};
-                    cast.spell_slot = 1;
-                    cast.target = go->unit_id;
-                    packet << cast;
-                    net_manager_.SendPacket(&packet);
+                    Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
+                    cmd.spell_slot = 1;
+                    cmd.target = go->unit_id;
+                    net_manager_.SendPacket(&cmd);
                 }
             }
         }
@@ -323,15 +327,12 @@ namespace PMG {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
 
-            packet_t packet{};
-            packet.header.type = PacketType::CMD_CAST;
-            cmd_cast_t cast{};
+            Networking::CastCommandPacket cast = Networking::CastCommandPacket();
             cast.spell_slot = 2;
             cast.x = x;
             cast.y = 0;
             cast.z = y;
-            packet << cast;
-            net_manager_.SendPacket(&packet);
+            net_manager_.SendPacket(&cast);
         }
 
         if (m_keys['r']) {
@@ -350,14 +351,70 @@ namespace PMG {
                 GameObject* go = go_it.second;
                 Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
                 if (Physics::TestCollision(ray, sphere)) {
-                    packet_t packet{};
-                    packet.header.type = PacketType::CMD_CAST_TARGET;
-                    cmd_cast_target_t cast{};
-                    cast.spell_slot = 3;
-                    cast.target = go->unit_id;
-                    packet << cast;
-                    net_manager_.SendPacket(&packet);
+                    Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
+                    cmd.spell_slot = 3;
+                    cmd.target = go->unit_id;
+                    net_manager_.SendPacket(&cmd);
                 }
+            }
+        }
+
+        last_move = max(0, last_move - dt);
+        
+        if (last_move == 0 && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
+
+
+            float hp = static_cast<float>(M_PI / 180.0);
+            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
+                { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
+                { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
+                (float)m_sceneWidth / (float)m_sceneHeight,
+                renderer->camera->fov * hp,
+                renderer->camera->nearClip,
+                renderer->camera->farClip,
+                m_sceneWidth,
+                m_sceneHeight);
+
+            bool pointing_at_unit = FALSE;
+            for (auto& go_it : game_objects_) {
+                GameObject* go = go_it.second;
+                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
+                if (Physics::TestCollision(ray, sphere) && go->has_healthbar) {
+                    SetCursor(LoadCursor(NULL, IDC_HAND));
+                    pointing_at_unit = true;
+                    last_move = 50;
+
+                    if (m_mouseButtons[2]) {
+                        Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
+                        atk_pk.target_unit = go->unit_id;
+
+                        net_manager_.SendPacket(&atk_pk);
+                    }
+                }
+            }
+
+            if (!pointing_at_unit) {
+                float x, y;
+                TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
+
+                Networking::MoveCommandPacket mv = Networking::MoveCommandPacket();
+                mv.x = x;
+                mv.y = y;
+                net_manager_.SendPacket(&mv);
+
+
+                ParticleSystem* particle_system = new ParticleSystem("models/move_to.dds");
+                particle_system->particle_velocity.x = 0;
+                particle_system->particle_velocity.y = 2;
+                particle_system->particle_velocity.z = 0;
+                particle_system->particle_count = 1;
+                particle_system->system_lifetime = 300;
+                particle_system->Initialize(direct3D);
+                particle_system->position = { x, 0, y };
+
+                game_objects_.emplace(Util::GetSystemTime(), particle_system);
+
+                last_move = 50;
             }
         }
 
@@ -365,19 +422,24 @@ namespace PMG {
             isRunning = false;
         }
 
-        if (m_mouseButtons[2]) {
-            m_mouseClicked[0] = m_mousePos[0];
-            m_mouseClicked[1] = m_mousePos[1];
-            m_mouseClicked[2] = 1;
-        }
-
         // Network handling
-        packet_t packet = {};
-        while (net_manager_.ReceivePacket(&packet)) {
-            HandleNetworkMessage(&packet);
+        while (net_manager_.ReceivePacket()) {
         }
 
         HandleTicks(dt);
+
+        for (auto go_it : game_objects_) {
+            go_it.second->Update(dt);
+        }
+
+        std::erase_if(game_objects_, [](auto kv) {
+            if (kv.second->destroy) {
+                delete kv.second;
+                return true;
+            }
+
+            return false;
+        });
 
         fps = (int)(1000.0f / dt);
     }
@@ -394,57 +456,16 @@ namespace PMG {
         renderer->camera->position.y = m_camPos[1];
         renderer->camera->position.z = m_camPos[2];
 
-        float hp = static_cast<float>(M_PI / 180.0);
-        Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
-            { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
-            { renderer->camera->rotation.x, renderer->camera->rotation.y, renderer->camera->rotation.z },
-            (float)m_sceneWidth / (float)m_sceneHeight,
-            renderer->camera->fov* hp,
-            renderer->camera->nearClip,
-            renderer->camera->farClip,
-            m_sceneWidth,
-            m_sceneHeight);
-        
-        bool pointing_at_unit = FALSE;
-        for (auto &go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
-            if (Physics::TestCollision(ray, sphere)) {
-                SetCursor(LoadCursor(NULL, IDC_HAND));
-                pointing_at_unit = true;
-
-                if (m_mouseButtons[2]) {
-                    packet_t packet = {};
-                    packet.header.type = PacketType::CMD_ATTACK;
-                    packet << cmd_attack_t{ go->unit_id };
-
-                    net_manager_.SendPacket(&packet);
-                }
-            }
-        }
-
-        if (!pointing_at_unit && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
-            renderer->FillRect(m_mouseClicked[0] - 1, m_mouseClicked[1] - 1, 3, 3, new float[3] {1.0f, 1.0f, 0.0f});
-
-            m_mouseClicked[2] = 0;
-
-            float x, y;
-            TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
-
-
-            packet_t packet = {};
-            packet.header.type = PacketType::UNITMOVE;
-            packet << cmd_move_t{ x, y };
-
-            net_manager_.SendPacket(&packet);
-        }
-
         std::list<Mesh*> mapMeshes = m_map->GetMeshes();
         std::vector<Mesh*> mapMeshVector(mapMeshes.begin(), mapMeshes.end());
-        renderer->RenderMeshes(mapMeshVector);
+        for (auto mesh : mapMeshVector) {
+            mesh->Render(renderer);
+        }
 
-        for (auto go : game_objects_) {
-            renderer->Render(go.second);
+        for (auto go_it : game_objects_) {
+            GameObject* go = go_it.second;
+
+            go->Render(renderer);
         }
     }
 
@@ -567,70 +588,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[0] != -1) {
-            double cd_remaining = (double) cooldowns[0] / (double) total_cooldowns[0];
+            float cd_remaining = (float) cooldowns[0] / (float) total_cooldowns[0];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
             else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.625);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
-            else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.375f) {
+                float dx = 0.25 - (cd_remaining - 0.375);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
-            else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.125f) {
+                float dx = 0.25f - (cd_remaining - 0.125f);
+                float fx = 49 * (dx / 0.25f);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125f - cd_remaining;
+                float fx = 24.0f * (dx / 0.125f);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -641,70 +662,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[1] != -1) {
-            double cd_remaining = (double)cooldowns[1] / (double)total_cooldowns[1];
+            float cd_remaining = (float)cooldowns[1] / (float)total_cooldowns[1];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
-            else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.625f) {
+                float dx = 0.25f - (cd_remaining - 0.625f);
+                float fx = 49 * (dx / 0.25f);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
-            else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.375f) {
+                float dx = 0.25f - (cd_remaining - 0.375f);
+                float fx = 49 * (dx / 0.25f);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
             else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.125);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125f - cd_remaining;
+                float fx = 24.0f * (dx / 0.125f);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -715,70 +736,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[2] != -1) {
-            double cd_remaining = (double)cooldowns[2] / (double)total_cooldowns[2];
+            float cd_remaining = (float)cooldowns[2] / (float)total_cooldowns[2];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
             else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.625);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
             else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.375);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
             else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.125);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125 - cd_remaining;
+                float fx = 24.0 * (dx / 0.125);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -789,70 +810,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[3] != -1) {
-            double cd_remaining = (double)cooldowns[3] / (double)total_cooldowns[3];
+            float cd_remaining = (float)cooldowns[3] / (float)total_cooldowns[3];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
             else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.625);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
             else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.375);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
             else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.125);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125 - cd_remaining;
+                float fx = 24.0 * (dx / 0.125);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -911,13 +932,17 @@ namespace PMG {
     }
 
     void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos) {
+        if (game_objects_.find(unitId) != game_objects_.end()) {
+            // already spawned!
+            return;
+        }
         // Hacky missile hack
         if (unit_type == UnitPrefab::THROW_FOOTBALL) {
             GameObject* go = new GameObject();
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "missile";
+            go->renderable = TextureMesh::Load("models/missile", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
@@ -931,7 +956,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "chess_person";
+            go->renderable = SkinnedTexturedMesh::Load("models/chess_person", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->team = team;
@@ -944,7 +969,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "tower";
+            go->renderable = TextureMesh::Load("models/tower", direct3D);
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
@@ -959,7 +984,6 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->mesh = "";
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
@@ -971,13 +995,13 @@ namespace PMG {
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
-        auto test = game_objects_.find(unitId);
-        if (test == game_objects_.end()) {
+        GameObject* go = GetGameObject(unitId);
+
+        if (go == nullptr) {
             return;
         }
-        GameObject* go = test->second;
-        game_objects_.erase(unitId);
-        delete go;
+
+        go->destroy = true;
     }
 
     void Client::HandleTicks(float dt) {
@@ -1014,15 +1038,15 @@ namespace PMG {
         int current_tick_index = ticks.size() - 1;
         game_tick_t current_tick = ticks[current_tick_index];
 
-        double frame_dt = (1000.0 / 60.0) + 20 - (frameTime - current_tick.received);
+        float frame_dt = (1000.0 / 60.0) + 20 - (frameTime - current_tick.received);
         
         while (frame_dt > (1000.0 / 60.0)) {
             frame_dt -= (1000.0 / 60.0);
             current_tick_index--;
         }
 
-        double remaining = (1000.0 / 60.0)  - ((1000.0 / 60.0) - frame_dt);
-        double diff = dt / (double)remaining;
+        float remaining = (1000.0 / 60.0)  - ((1000.0 / 60.0) - frame_dt);
+        float diff = dt / (double)remaining;
         if (diff > 1) {
             // this we can do better?!
             diff = 1;
@@ -1035,29 +1059,31 @@ namespace PMG {
     }
 
     void Client::SimulateTick(game_tick_t& tick, double diff) {
-        packet_t packet_copy = tick.packet;
-        packet_t* packet = &packet_copy;
+        std::vector<uint8_t> new_data;
 
-        unsigned long tick_index;
-        *packet >> tick_index;
-        current_tick_ = tick_index;
+        // ignore tick packet header pls
+        int offset = sizeof(Networking::packet_header_t);
 
-        while (packet->data.size() > 0) {
-            packet_t tickData{};
-            *packet >> tickData;
+        while (offset < tick.data.size() - sizeof(current_tick_)) {
+            Networking::packet_header_t header{};
+            std::memcpy(&header, tick.data.data() + offset, sizeof(header));
 
-            switch (tickData.header.type) {
-            case PacketType::UNITSPAWN: {
-                pck_unit_spawn_t spawn{};
-                tickData >> spawn;
+            new_data.resize(header.size);
+            std::memcpy(new_data.data(), tick.data.data() + offset, header.size);
+            offset += header.size;
+
+            switch (header.type) {
+            case Networking::PacketType::UNITSPAWN: {
+                Networking::SpawnPacket spawn = Networking::SpawnPacket();
+                spawn.Read(&new_data);
 
                 SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
                 break;
             }
-            case PacketType::UNITMOVE:
-            case PacketType::UNITIDLE: {
-                pck_unit_move_t move{};
-                tickData >> move;
+            case Networking::PacketType::UNITMOVE:
+            case Networking::PacketType::UNITIDLE: {
+                Networking::UnitMovePacket move = Networking::UnitMovePacket();
+                move.Read(&new_data);
 
                 GameObject* go = GetGameObject(move.unit);
 
@@ -1073,15 +1099,15 @@ namespace PMG {
 
                 break;
             }
-            case PacketType::UNITDESPAWN: {
-                UnitId id;
-                tickData >> id;
-                DespawnUnit(id);
+            case Networking::PacketType::UNITDESPAWN: {
+                Networking::DespawnPacket despawn = Networking::DespawnPacket();
+                despawn.Read(&new_data);
+                DespawnUnit(despawn.unit);
                 break;
             }
-            case PacketType::PCK_STATS: {
-                pck_unit_stats_t stats{};
-                tickData >> stats;
+            case Networking::PacketType::PCK_STATS: {
+                Networking::UnitStatsPacket stats = Networking::UnitStatsPacket();
+                stats.Read(&new_data);
 
                 GameObject* go = GetGameObject(stats.unit);
 
@@ -1094,77 +1120,54 @@ namespace PMG {
                 go->max_health = stats.max_health;
                 break;
             }
-            case PacketType::PCK_SPELL_COOLDOWN: {
-                pck_spell_cooldown_t cooldown{};
-                tickData >> cooldown;
-                if (cooldown.unit != my_unit_id_) {
+            case Networking::PacketType::PCK_SPELL_COOLDOWN: {
+                Networking::CooldownPacket cd = Networking::CooldownPacket();
+                cd.Read(&new_data);
+
+                if (cd.unit != my_unit_id_) {
                     break;
                 }
-                cooldowns[cooldown.spell_slot] = cooldown.cooldown;
-                total_cooldowns[cooldown.spell_slot] = cooldown.total_cooldown;
+
+                cooldowns[cd.spell_slot] = cd.cooldown;
+                total_cooldowns[cd.spell_slot] = cd.total_cooldown;
                 break;
             }
+            case Networking::PacketType::PCK_START_ANIMATION: {
+                Networking::AnimationPacket anim = Networking::AnimationPacket();
+                anim.Read(&new_data);
+
+                GameObject* gp = GetGameObject(anim.unit_id);
+
+                if (gp != nullptr) {
+                    GetGameObject(anim.unit_id)->renderable->PlayAnimation(anim.animation_name);
+                }
+                break;
             }
-        }
-    }
+            case Networking::PacketType::PCK_PLAY_PARTICLE: {
+                Networking::PlayParticlePacket part = Networking::PlayParticlePacket();
+                part.Read(&new_data);
 
-    void Client::HandleNetworkMessage(packet_t* packet) {
-        if (packet->header.type == PacketType::GAME_TICK) {
-            game_tick_t newTick{};
-            newTick.packet = *packet;
-            newTick.received = Util::GetSystemTime();
-            ticks.push_back(newTick);
-        }
-        else if (packet->header.type == PacketType::UNITSPAWN) {
-            Logger::Msg("UNITSPAWN");
+                GameObject* go = GetGameObject(part.unit);
 
-            pck_unit_spawn_t spawn{};
-            *packet >> spawn;
+                if (game_objects_.find(current_tick_) == game_objects_.end()) {
 
-            SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
-        }
-        else if (packet->header.type == PacketType::UNITDESPAWN) {
-            Logger::Msg("UNITDESPAWN");
-            pck_unit_despawn_t pck{};
-            *packet >> pck;
-            DespawnUnit(pck.unit);
-        }
-        else if (packet->header.type == PacketType::PCK_CLIENT_UNIT_ID) {
-            Logger::Msg("CLIENT_UNIT_ID");
+                    ParticleSystem* particle_system = new ParticleSystem("models/particle.dds");
+                    particle_system->particle_velocity = { 0, 0, 0 };
+                    particle_system->particle_velocity_range = { 3, 3, 3 };
+                    particle_system->particle_count = 100;
+                    particle_system->system_lifetime = 400;
+                    particle_system->Initialize(direct3D);
+                    particle_system->Attach(go);
 
-            pck_client_unit_id_t unit_id{};
-            *packet >> unit_id;
+                    game_objects_.emplace(current_tick_, particle_system);
+                }
 
-            my_unit_id_ = unit_id.unit;
-            unit_id_received_ = TRUE;
-        } else if (packet->header.type == PacketType::UNITMOVE || packet->header.type == PacketType::UNITIDLE) {
-            pck_unit_move_t move{};
-            *packet >> move;
-
-            GameObject* go = GetGameObject(move.unit);
-
-            if (go == nullptr) {
-                Logger::Msg("WARNING: received move/idle message for unknown object");
-                return;
+                break;
             }
-            go->position.x = move.x;
-            go->position.z = move.y;
-            go->rotation.y = move.r;
-            go->position_received = Util::GetSystemTime();;
-        }
-        else if (packet->header.type == PacketType::PCK_STATS) {
-            pck_unit_stats_t stats{};
-            *packet >> stats;
-
-            GameObject* go = GetGameObject(stats.unit);
-
-            if (go == nullptr) {
-                Logger::Msg("WARNING: received stats message for unknown object");
-                return;
+            default:
+                Logger::Err("Received unknown packet type");
+                break;
             }
-            
-            go->health = stats.health;
-            go->max_health = stats.max_health;
         }
     }
 
@@ -1176,5 +1179,26 @@ namespace PMG {
         }
 
         return it->second;
+    }
+    
+    void Client::HandleUnitIdPacket(std::vector<uint8_t> data) {
+        Networking::UnitIdPacket pck = Networking::UnitIdPacket();
+        pck.Read(&data);
+
+        my_unit_id_ = pck.unit_id;
+        unit_id_received_ = true;
+    }
+
+    void Client::HandleGameTickPacket(std::vector<uint8_t> data) {
+        game_tick_t new_tick{};
+        new_tick.received = Util::GetSystemTime();
+        Networking::packet_header_t header{};
+
+        std::memcpy(&header, data.data(), sizeof(header));
+        new_tick.data.resize(header.size);
+
+        std::memcpy(new_tick.data.data(), data.data(), header.size);
+
+        ticks.push_back(new_tick);
     }
 }

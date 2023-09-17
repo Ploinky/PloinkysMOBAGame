@@ -7,12 +7,14 @@
 
 namespace PMG {
     class Mesh;
+    class Direct3D;
 
     class Map {
     public:
         ~Map();
 
         void Load(std::string mapName);
+        void Initialize(Direct3D* direct3D);
         std::list<Mesh*> GetMeshes();
     private:
         std::list<Mesh*> m_meshes;

@@ -1,5 +1,5 @@
 #pragma once
 
 namespace PMG::Physics {
-	bool CompareDouble(double a, double b);
+	bool CompareFloat(float a, float b);
 }

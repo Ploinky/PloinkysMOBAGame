@@ -112,14 +112,19 @@ def export_p3d(context, filepath):
             f.write(struct.pack('f', v[4][1]))
             f.write(struct.pack('f', v[4][2]))
             f.write(struct.pack('f', v[4][3]))
-            print(v[3])
-            print(v[4])
 
         
         f.write(struct.pack('i', len(indices)))
         
         for i in indices:
             f.write(struct.pack('i', i))
+        
+        f.write(struct.pack('i', len(my_animations)))
+
+        for a in my_animations:
+            f.write(struct.pack('i', len(a.name)))
+            f.write(a.name.encode())
+        
                 
     with open(filepath + "_skn", 'wb') as f:
         f.write("p3d".encode())
@@ -173,7 +178,6 @@ def export_p3d(context, filepath):
                     
                     if bone.parent:
                         mat = bone.parent.matrix.inverted() @ mat
-                    print(mat.to_quaternion())
 
                     translation = mat.to_translation()
                     rotation = mat.to_quaternion()

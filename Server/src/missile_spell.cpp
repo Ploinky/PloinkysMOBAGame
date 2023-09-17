@@ -32,6 +32,11 @@ namespace PMG {
 		}
 
 		TargetHit(game, owner, target);
+
+		// TODO this does not work
+		if (spell_data.max_targets_hit == 1) {
+			game->DestroyGameObject(this);
+		}
 	}
 
 	void MissileSpell::Update(float dt, Game* game) {
@@ -55,7 +60,14 @@ namespace PMG {
         position = position + scaled;
 
         double rotationY = -atan2(target_current_position.z - position.z, target_current_position.x - position.x) * 180.0f / M_PI;
-        game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotationY });
+
+		Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+		move->unit = unit_id;
+		move->x = position.x;
+		move->y = position.y;
+		move->z = position.z;
+		move->r = rotationY;
+        game->SendPacket(move);
         return;
 	}
 }

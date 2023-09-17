@@ -4,7 +4,7 @@
 #include <cmath>
 
 namespace PMG::Physics {
-	bool CompareDouble(double a, double b) {
-		return abs(a - b) <= std::numeric_limits<double>::epsilon();
+	bool CompareFloat(float a, float b) {
+		return abs(a - b) <= std::numeric_limits<float>::epsilon();
 	}
 }

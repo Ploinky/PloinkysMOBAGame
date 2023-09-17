@@ -8,8 +8,11 @@
 
 namespace PMG {
     Mesh::~Mesh() {
-        if (initialized) {
+        if (vertexBuffer) {
             vertexBuffer->Release();
+        }
+
+        if (indexBuffer) {
             indexBuffer->Release();
         }
     }
@@ -38,85 +41,39 @@ namespace PMG {
         return initialized;
     }
 
-    Mesh* Mesh::LoadSkinnedTexturedMesh(std::string file_name, std::string texture_file_name) {
-        std::ifstream file(file_name, std::ios_base::binary | std::ios_base::in);
+    void Mesh::Render(Renderer* renderer) {
+        renderer->BindShader(ShaderType::COLOR);
+        
+        color_shader_frame_const_t frame_const{};
+        frame_const.cameraMatrix = renderer->cameraMatrix;
+        frame_const.projMatrix = renderer->m_projMatrix;
 
-        if (!file.is_open()) {
-            Logger::Err("Could not open map file.");
-            return nullptr;
-        }
+        renderer->UpdateShaderConst(frame_const);
 
-        SkinnedTexturedMesh* mesh = new SkinnedTexturedMesh();
-        int currIndex = 0;
-        int currVertex = 0;
 
-        std::string correct_magic = "p3d";
-        char magic[4]{ 0, 0, 0, 0 };
-        file.read(magic, sizeof(char) * 3);
-        std::string magic_string(magic);
-        if (magic_string.compare(correct_magic) != 0) {
-            Logger::Err("Bad magic string!");
-            return nullptr;
-        }
+        color_shader_model_const_t model_const{};
 
-        int version;
-        file.read((char*)&version, sizeof(int));
+        // Do some stuff to update the model specific constants that this specific shader uses
+        // Update model constant buffer
+        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(rotation.x),
+            DirectX::XMConvertToRadians(rotation.y),
+            DirectX::XMConvertToRadians(rotation.z));
+        DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+        DirectX::XMStoreFloat4x4(&model_const.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
 
-        if (version != 1) {
-            Logger::Err("Bad version!");
-            return nullptr;
-        }
+        renderer->UpdateShaderConst(model_const);
 
-        int vertex_count;
-        file.read((char*)&vertex_count, sizeof(int));
-        mesh->vertexCount = vertex_count;
-
-        mesh->vertices = new skinned_textured_shader_vertex_t[mesh->vertexCount];
-
-        for (int i = 0; i < mesh->vertexCount; i++) {
-            file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].texCoord[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].texCoord[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[3], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[3], sizeof(float));
-        }
-
-        int index_count;
-        file.read((char*)&index_count, sizeof(int));
-        mesh->indexCount = index_count;
-
-        mesh->indices = new unsigned int[mesh->indexCount];
-
-        for (int i = 0; i < mesh->indexCount; i++) {
-            file.read((char*)&mesh->indices[i], sizeof(int));
-        }
-
-        mesh->m_textureFileName = texture_file_name;
-
-        // try to load armature?
-        Armature* armature = Armature::LoadArmature(file_name.append("_skn"));
-
-        if (armature != nullptr) {
-            armature->ComputeGlobalInverseBindPoses();
-            mesh->armature = armature;
-        }
-
-        return mesh;
+        // Render this specific model
+        UINT stride = sizeof(color_shader_vertex_t);
+        UINT offset = 0;
+        renderer->SetVertexBuffer(vertexBuffer, stride, offset);
+        renderer->SetIndexBuffer(indexBuffer);
+        renderer->DrawIndexed(indexCount);
     }
 
-    Mesh* Mesh::LoadMesh(std::string file_name, std::string texture_file_name) {
-        std::ifstream file(file_name, std::ios_base::binary | std::ios_base::in);
+
+    TextureMesh* TextureMesh::Load(std::string mesh_name, Direct3D* direct3D) {
+        std::ifstream file(std::string().append(mesh_name).append(".p3d"), std::ios_base::binary | std::ios_base::in);
 
         if (!file.is_open()) {
             Logger::Err("Could not open map file.");
@@ -150,7 +107,7 @@ namespace PMG {
 
         mesh->vertices = new texture_shader_vertex_t[mesh->vertexCount];
 
-        for (int i = 0; i < mesh->vertexCount; i++) {
+        for (unsigned int i = 0; i < mesh->vertexCount; i++) {
             file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
@@ -168,7 +125,9 @@ namespace PMG {
             file.read((char*)&mesh->indices[i], sizeof(int));
         }
 
-        mesh->m_textureFileName = texture_file_name;
+        mesh->m_textureFileName = std::string().append(mesh_name).append(".dds");
+
+        mesh->Initialize(direct3D);
 
         return mesh;
     }
@@ -199,64 +158,11 @@ namespace PMG {
             initialized = true;
             return true;
         }
-        /*
-        char* data = new char[1024 * 1024 * 4]{};
 
-        for (UINT row = 0; row < 1024; row++)
-        {
-            UINT rowStart = row * 1024;
-            for (UINT col = 0; col < 1024; col++)
-            {
-                UINT colStart = col * 4;
-                data[rowStart + colStart + 0] = 255; // Red
-                data[rowStart + colStart + 1] = 0; // Green
-                data[rowStart + colStart + 2] = 0;  // Blue
-                data[rowStart + colStart + 3] = 255;  // Alpha
-            }
-        }
-
-        for (int i = 0; i < 1024 * 1024 * 4; i += 4) {
-            data[i] = 255;
-            data[i + 1] = 0; // Green
-            data[i + 2] = 0;  // Blue
-            data[i + 3] = 255;  // Alpha
-        }
-        D3D11_SUBRESOURCE_DATA subresource_data{};
-        subresource_data.pSysMem = data;
-        subresource_data.SysMemPitch = 1024 * sizeof(char) * 4;
-        subresource_data.SysMemSlicePitch= 0;
-
-
-        D3D11_TEXTURE2D_DESC descs[1];
-        D3D11_TEXTURE2D_DESC desc{};
-        desc.Width = 1024;
-        desc.Height = 1024;
-        desc.MipLevels = 1;
-        desc.ArraySize = 1;
-        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        desc.SampleDesc.Count = 1;
-        desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        descs[0] = desc;
-
-        ID3D11Texture2D* pTexture = NULL;
-        HRESULT hr = direct3D->device->CreateTexture2D(descs, &subresource_data, &pTexture);
-        if (FAILED(hr)) {
-            printf("Could not create texture from dds file");
-            return false;
-        }
-        hr = direct3D->device->CreateShaderResourceView(pTexture, nullptr, &m_texture);
-        if (FAILED(hr)) {
-            printf("Could not create texture from dds file");
-            return false;
-        }
-        */
-        
         HRESULT hr = DirectX::CreateDDSTextureFromFile(direct3D->device, std::wstring(m_textureFileName.begin(), m_textureFileName.end()).c_str(), NULL, &m_texture, 0, NULL);
 
         if (FAILED(hr)) {
-            printf("Could not create texture from dds file");
+            Logger::Err("Could not create texture from dds file");
             return false;
         }
 
@@ -265,133 +171,34 @@ namespace PMG {
         return initialized;
     }
 
+    void TextureMesh::Render(Renderer* renderer) {
+        renderer->BindShader(ShaderType::TEXTURE);
 
-    SkinnedTexturedMesh::~SkinnedTexturedMesh() {
-        if (m_texture != nullptr) {
-            m_texture->Release();
-            m_texture = nullptr;
-        }
-    }
+        texture_shader_frame_const_t frame_const{};
+        frame_const.cameraMatrix = renderer->cameraMatrix;
+        frame_const.projMatrix = renderer->m_projMatrix;
 
-    bool SkinnedTexturedMesh::Initialize(Direct3D* direct3D) {
-        vertexBuffer = direct3D->CreateVertexBuffer(vertices, vertexCount, sizeof(skinned_textured_shader_vertex_t) * vertexCount);
+        renderer->UpdateShaderConst< texture_shader_frame_const_t>(frame_const);
 
-        if (vertexBuffer == nullptr) {
-            initialized = false;
-            return false;
-        }
+        texture_shader_model_const_t model_const{};
 
-        indexBuffer = direct3D->CreateIndexBuffer(indices, indexCount);
+        // Do some stuff to update the model specific constants that this specific shader uses
+        // Update model constant buffer
+        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(rotation.x),
+            DirectX::XMConvertToRadians(rotation.y),
+            DirectX::XMConvertToRadians(rotation.z));
+        DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+        DirectX::XMStoreFloat4x4(&model_const.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
 
-        if (indexBuffer == nullptr) {
-            initialized = false;
-            return false;
-        }
-
-        if (m_textureFileName.length() == 0) {
-            initialized = true;
-            return true;
-        }
-        /*
-        char* data = new char[1024 * 1024 * 4]{};
-
-        for (UINT row = 0; row < 1024; row++)
-        {
-            UINT rowStart = row * 1024;
-            for (UINT col = 0; col < 1024; col++)
-            {
-                UINT colStart = col * 4;
-                data[rowStart + colStart + 0] = 255; // Red
-                data[rowStart + colStart + 1] = 0; // Green
-                data[rowStart + colStart + 2] = 0;  // Blue
-                data[rowStart + colStart + 3] = 255;  // Alpha
-            }
-        }
-
-        for (int i = 0; i < 1024 * 1024 * 4; i += 4) {
-            data[i] = 255;
-            data[i + 1] = 0; // Green
-            data[i + 2] = 0;  // Blue
-            data[i + 3] = 255;  // Alpha
-        }
-        D3D11_SUBRESOURCE_DATA subresource_data{};
-        subresource_data.pSysMem = data;
-        subresource_data.SysMemPitch = 1024 * sizeof(char) * 4;
-        subresource_data.SysMemSlicePitch= 0;
+        renderer->UpdateShaderConst<texture_shader_model_const_t>(model_const);
 
 
-        D3D11_TEXTURE2D_DESC descs[1];
-        D3D11_TEXTURE2D_DESC desc{};
-        desc.Width = 1024;
-        desc.Height = 1024;
-        desc.MipLevels = 1;
-        desc.ArraySize = 1;
-        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        desc.SampleDesc.Count = 1;
-        desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        descs[0] = desc;
-
-        ID3D11Texture2D* pTexture = NULL;
-        HRESULT hr = direct3D->device->CreateTexture2D(descs, &subresource_data, &pTexture);
-        if (FAILED(hr)) {
-            printf("Could not create texture from dds file");
-            return false;
-        }
-        hr = direct3D->device->CreateShaderResourceView(pTexture, nullptr, &m_texture);
-        if (FAILED(hr)) {
-            printf("Could not create texture from dds file");
-            return false;
-        }
-        */
-
-        HRESULT hr = DirectX::CreateDDSTextureFromFile(direct3D->device, std::wstring(m_textureFileName.begin(), m_textureFileName.end()).c_str(), NULL, &m_texture, 0, NULL);
-
-        if (FAILED(hr)) {
-            printf("Could not create texture from dds file");
-            return false;
-        }
-
-        initialized = true;
-
-        return initialized;
-    }
-
-    void SkinnedTexturedMesh::CalculateMatrixPalette() {
-        std::vector<DirectX::XMMATRIX> current_poses;
-
-        if (current_animation == nullptr) {
-            current_poses.resize(armature->bones.size());
-
-            current_poses[0] = armature->bones[0].bind_pose.ToMatrix();
-
-            for (int bone = 1; bone < armature->bones.size(); bone++) {
-                Physics::mat_t mat = Physics::mat_t::Identity();
-
-                current_poses[bone] = armature->bones[bone].bind_pose.ToMatrix() * current_poses[armature->bones[bone].parent_index];
-            }
-        }
-        else {
-            current_animation->GetGlobalPoseAtTime(current_poses, armature, current_animation_time);
-        }
-
-        for (int i = 0; i < armature->bones.size(); i++) {
-            animation_palette[i] = armature->global_inverse_bind_poses[i] * current_poses[i];
-        }
-    }
-
-    double SkinnedTexturedMesh::PlayAnimation(std::string animation_name, double time) {
-        current_animation = animations.find(animation_name)->second;
-        current_animation_time += time;
-
-
-        if (current_animation_time > current_animation->duration * 1000) {
-            current_animation_time = 0;
-        }
-
-        CalculateMatrixPalette();
-
-        return current_animation->duration;
+        // Render this specific model
+        UINT stride = sizeof(texture_shader_vertex_t);
+        UINT offset = 0;
+        renderer->SetVertexBuffer(vertexBuffer, stride, offset);
+        renderer->SetIndexBuffer(indexBuffer);
+        renderer->SetShaderResource(0, 1, m_texture);
+        renderer->DrawIndexed(indexCount);
     }
 }

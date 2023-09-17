@@ -8,7 +8,14 @@ namespace PMG {
 		missile->owner = spell_owner;
 		missile->position = spell_owner->position;
 		game->AddGameObject(missile);
-		game->SendPacket<pck_unit_spawn_t>(PacketType::UNITSPAWN, { missile->unit_id, UnitPrefab::THROW_FOOTBALL, missile->team, missile->position.x, missile->position.y });
+
+		Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
+		spawn->unit = missile->unit_id;
+		spawn->unit_type = UnitPrefab::THROW_FOOTBALL;
+		spawn->team = missile->team;
+		spawn->x = missile->position.x;
+		spawn->y = missile->position.y;
+		game->SendPacket(spawn);
 	}
 	
 	void ThrowFootballMissile::TargetHit(Game* game, GameObject* owner, GameObject* target) {
@@ -35,7 +42,16 @@ namespace PMG {
 	}
 
 	void HealPerson::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+		if (target_info->target == nullptr) {
+			// TODO this seems bad
+			return;
+		}
 		game->Heal(target_info->target, 50);
+
+		Networking::PlayParticlePacket* pck = new Networking::PlayParticlePacket();
+		pck->unit = target_info->target->unit_id;
+		pck->particle = "test";
+		game->SendPacket(pck);
 	}
 
 	DoBlastArea::DoBlastArea() {

@@ -20,7 +20,6 @@ namespace PMG {
         }
 
         m_game = new Game();
-        m_game->on_batchSendToAllClients = std::bind(&Server::BroadcastMessage, this, std::placeholders::_1);
         m_game->on_sendToClient = std::bind(&Server::SendMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
         m_game->on_sendToAllClients = std::bind(&Server::SendMessageToAllClients, this, std::placeholders::_1);
         m_game->Start();
@@ -60,59 +59,59 @@ namespace PMG {
         m_game->RemovePlayerForNetworkId(id);
     }
 
-    void Server::OnMessageReceived(unsigned long clientId, packet_t* packet) {
-        switch (packet->header.type) {
-            case PacketType::UNITMOVE: {
-                cmd_move_t move{};
-                *packet >> move;
+    void Server::OnMessageReceived(unsigned long clientId, std::vector<uint8_t>* data) {
+        Networking::packet_header_t header{};
+        std::memcpy(&header, data->data(), sizeof(header));
 
-                m_game->PlayerMoveCommand(clientId, move.nx, move.ny);
+        switch (header.type) {
+            case Networking::PacketType::UNITMOVE: {
+                Networking::MoveCommandPacket move_command = Networking::MoveCommandPacket();
+                move_command.Read(data);
+
+                m_game->PlayerMoveCommand(clientId, move_command.x, move_command.y);
                 break;
             }
-            case PacketType::CMD_STOP: {
-                cmd_stop_t stop{};
+            case Networking::PacketType::CMD_STOP: {
+                Networking::StopCommandPacket move_command = Networking::StopCommandPacket();
+                move_command.Read(data);
 
                 m_game->PlayerStopCommand(clientId);
                 break;
             }
-            case PacketType::CMD_ATTACK: {
-                cmd_attack_t attack{};
-                *packet >> attack;
-                m_game->PlayerAttackCommand(clientId, attack.target_unit);
+            case Networking::PacketType::CMD_ATTACK: {
+                Networking::AttackCommandPacket atk_command = Networking::AttackCommandPacket();
+                atk_command.Read(data);
+
+                m_game->PlayerAttackCommand(clientId, atk_command.target_unit);
                 break;
             }
-            case PacketType::CMD_CAST: {
-                cmd_cast_t cast{};
-                *packet >> cast;
+            case Networking::PacketType::CMD_CAST: {
+                Networking::CastCommandPacket cast = Networking::CastCommandPacket();
+                cast.Read(data);
+
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
                 target_info->target_point = { cast.x, cast.y, cast.z };
                 m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, target_info);
                 break;
             }
-            case PacketType::CMD_CAST_TARGET: {
-                cmd_cast_target_t cast{};
-                *packet >> cast;
+            case Networking::PacketType::CMD_CAST_TARGET: {
+                Networking::CastTargetCommandPacket cast_command = Networking::CastTargetCommandPacket();
+                cast_command.Read(data);
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
-                target_info->target = m_game->GetGameObjectById(cast.target);
-                m_game->PlayerCastSpellCommand(clientId, cast.spell_slot, target_info);
+                target_info->target = m_game->GetGameObjectById(cast_command.target);
+                m_game->PlayerCastSpellCommand(clientId, cast_command.spell_slot, target_info);
                 break;
             }
         }
     }
 
-    void Server::BroadcastMessage(std::vector<packet_t> packet) {
-        for(auto p : packet) {
-            m_networkManager->SendToAllClients(&p);
-        }
-    }
-
-    void Server::SendMessageToClient(unsigned long clientId, packet_t* packet) {
+    void Server::SendMessageToClient(unsigned long clientId, std::vector<uint8_t>* packet) {
         m_networkManager->SendToClient(clientId, packet);
     }
 
-    void Server::SendMessageToAllClients(packet_t* packet) {
+    void Server::SendMessageToAllClients(std::vector<uint8_t>* packet) {
         m_networkManager->SendToAllClients(packet);
     }
 }

@@ -38,13 +38,30 @@ namespace PMG {
 
                 // maybe not necessary to update on every tick? seems like a lot of work, but the accuracy does not need to be quite as high
                 // maybe only update once cooldown is ready again?
-                game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, i, s->remaining_cooldown, s->cooldown });
+
+                Networking::CooldownPacket* pck = new Networking::CooldownPacket();
+                pck->unit = unit_id;
+                pck->spell_slot = i;
+                pck->cooldown = s->remaining_cooldown;
+                pck->total_cooldown = s->cooldown;
+                game->SendPacket(pck);
             }
+        }
+
+        // update animation?!
+        if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
+            PlayAnimation(game, "stunned");
+        }
+        else if (current_action != nullptr && current_action->type == GameObjectActionType::MOVE) {
+            PlayAnimation(game, "run");
+        }
+        else {
+            PlayAnimation(game, "idle");
         }
     }
     
     void GameObject::Think(float dt, Game* game) {
-        if (current_status & STATUS_STUNNED == STATUS_STUNNED) {
+        if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
             return;
         }
 
@@ -67,8 +84,14 @@ namespace PMG {
 
                 if (stats.can_move) {
                     // we always rotate, no matter what happens!
-                    double rotationY = -atan2(target->position.z - position.z, target->position.x - position.x) * 180.0f / M_PI;
-                    game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotationY });
+                    double rotationY = atan2(target->position.x - position.x, target->position.z - position.z) * 180.0f / M_PI;
+                    Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+                    move->unit = unit_id;
+                    move->x = position.x;
+                    move->y = position.y;
+                    move->z = position.z;
+                    move->r = rotationY;
+                    game->SendPacket(move);
                 }
 
                 if (target->team == team) {
@@ -129,7 +152,11 @@ namespace PMG {
                         target->stats.health = 0;
                     }
 
-                    game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { target->unit_id, target->stats.health, target->stats.max_health });
+                    Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+                    stats->unit = target->unit_id;
+                    stats->health = target->stats.health;
+                    stats->max_health = target->stats.max_health;
+                    game->SendPacket(stats);
                 }
                 else {
                     Missile* basic_attack_missile = new Missile();
@@ -189,7 +216,13 @@ namespace PMG {
 
                     spell->remaining_cooldown = spell->cooldown;
                     current_action = new GameObjectActionStop();
-                    game->SendPacket<pck_spell_cooldown_t>(PacketType::PCK_SPELL_COOLDOWN, { this->unit_id, action->spell_index, spell->remaining_cooldown, spell->cooldown });
+
+                    Networking::CooldownPacket* pck = new Networking::CooldownPacket();
+                    pck->unit = unit_id;
+                    pck->spell_slot = action->spell_index;
+                    pck->cooldown = spell->remaining_cooldown;
+                    pck->total_cooldown = spell->cooldown;
+                    game->SendPacket(pck);
                     break;
                 }
             }
@@ -201,12 +234,14 @@ namespace PMG {
         navAgent.target.x = x;
         navAgent.target.z = z;
 
-        if (navAgent.target.x == position.x && navAgent.target.z == position.y) {
+        if (Physics::CompareFloat(navAgent.target.x, position.x) && Physics::CompareFloat(navAgent.target.z, position.z)) {
+            current_action = new GameObjectActionStop();
             // Already at target
             return;
         }
 
         if (navAgent.path.empty()) {
+
             // No path to follow, we need a new path!
             navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.z) }, navAgent.target);
 
@@ -232,7 +267,7 @@ namespace PMG {
         float tx = intermediateTarget.x;
         float ty = intermediateTarget.z;
 
-        if (Physics::CompareDouble(position.x, tx) && Physics::CompareDouble(position.z, ty)) {
+        if (Physics::CompareFloat(position.x, tx) && Physics::CompareFloat(position.z, ty)) {
             return;
         }
 
@@ -254,11 +289,38 @@ namespace PMG {
             rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
         }
 
-        game->SendPacket<pck_unit_move_t>(PacketType::UNITMOVE, { unit_id, position.x, position.y, position.z, rotation.y });
+        Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+        move->unit = unit_id;
+        move->x = position.x;
+        move->y = position.y;
+        move->z = position.z;
+        move->r = rotation.y;
+        game->SendPacket(move);
     }
 
     void GameObject::TakeDamage(Game* game, double damage, GameObject* source) {
         stats.health = max(0.0, stats.health - damage);
-        game->SendPacket<pck_unit_stats_t>(PacketType::PCK_STATS, { unit_id, stats.health, stats.max_health });
+
+        Networking::UnitStatsPacket* pck = new Networking::UnitStatsPacket();
+        pck->unit = unit_id;
+        pck->health = stats.health;
+        pck->max_health = stats.max_health;
+
+        game->SendPacket(pck);
+    }
+
+    void GameObject::PlayAnimation(Game* game, std::string animation) {
+        if (current_animation == animation) {
+            // already playing animation
+            return;
+        }
+
+        current_animation = animation;
+
+        Networking::AnimationPacket* pck = new Networking::AnimationPacket();
+        pck->unit_id = unit_id;
+        pck->animation_name = animation;
+
+        game->SendPacket(pck);
     }
 }
