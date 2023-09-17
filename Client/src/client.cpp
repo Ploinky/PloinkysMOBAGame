@@ -932,6 +932,10 @@ namespace PMG {
     }
 
     void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos) {
+        if (game_objects_.find(unitId) != game_objects_.end()) {
+            // already spawned!
+            return;
+        }
         // Hacky missile hack
         if (unit_type == UnitPrefab::THROW_FOOTBALL) {
             GameObject* go = new GameObject();
@@ -1145,15 +1149,19 @@ namespace PMG {
 
                 GameObject* go = GetGameObject(part.unit);
 
-                ParticleSystem* particle_system = new ParticleSystem("models/particle.dds");
-                particle_system->particle_velocity = { 0, 0, 0 };
-                particle_system->particle_velocity_range = { 3, 3, 3 };
-                particle_system->particle_count = 100;
-                particle_system->system_lifetime = 400;
-                particle_system->Initialize(direct3D);
-                particle_system->Attach(go);
+                if (game_objects_.find(current_tick_) == game_objects_.end()) {
 
-                game_objects_.emplace(current_tick_, particle_system);
+                    ParticleSystem* particle_system = new ParticleSystem("models/particle.dds");
+                    particle_system->particle_velocity = { 0, 0, 0 };
+                    particle_system->particle_velocity_range = { 3, 3, 3 };
+                    particle_system->particle_count = 100;
+                    particle_system->system_lifetime = 400;
+                    particle_system->Initialize(direct3D);
+                    particle_system->Attach(go);
+
+                    game_objects_.emplace(current_tick_, particle_system);
+                }
+
                 break;
             }
             default:

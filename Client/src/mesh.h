@@ -55,7 +55,7 @@ namespace PMG {
     class TextureMesh : public Mesh {
     public:
         TextureMesh() : Mesh(ShaderType::TEXTURE) {};
-        ~TextureMesh();
+        virtual ~TextureMesh();
 
         static TextureMesh* Load(std::string mesh_name, Direct3D* direct3D);
 
