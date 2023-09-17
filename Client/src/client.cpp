@@ -360,10 +360,12 @@ namespace PMG {
         }
 
         last_move = max(0, last_move - dt);
+
+        if (!m_mouseButtons[2]) {
+            last_move = 0;
+        }
         
         if (last_move == 0 && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
-
-
             float hp = static_cast<float>(M_PI / 180.0);
             Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
                 { renderer->camera->position.x, renderer->camera->position.y, renderer->camera->position.z },
@@ -382,7 +384,7 @@ namespace PMG {
                 if (Physics::TestCollision(ray, sphere) && go->has_healthbar) {
                     SetCursor(LoadCursor(NULL, IDC_HAND));
                     pointing_at_unit = true;
-                    last_move = 50;
+                    last_move = 150;
 
                     if (m_mouseButtons[2]) {
                         Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
@@ -414,7 +416,7 @@ namespace PMG {
 
                 game_objects_.emplace(Util::GetSystemTime(), particle_system);
 
-                last_move = 50;
+                last_move = 150;
             }
         }
 

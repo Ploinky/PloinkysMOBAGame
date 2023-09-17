@@ -13,18 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\packets">
-      <UniqueIdentifier>{53560e4c-2f9b-4091-a19d-7dc2c02c7af9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\packets">
       <UniqueIdentifier>{9ff904cb-8654-4eb4-9cdd-54ac9a255640}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pmg_networking.h">
+    <ClInclude Include="new_packets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="new_packets.h">
+    <ClInclude Include="pmg_networking.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
