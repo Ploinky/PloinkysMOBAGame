@@ -588,70 +588,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[0] != -1) {
-            double cd_remaining = (double) cooldowns[0] / (double) total_cooldowns[0];
+            float cd_remaining = (float) cooldowns[0] / (float) total_cooldowns[0];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
             else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.625);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
-            else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.375f) {
+                float dx = 0.25 - (cd_remaining - 0.375);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
-            else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.125f) {
+                float dx = 0.25f - (cd_remaining - 0.125f);
+                float fx = 49 * (dx / 0.25f);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125f - cd_remaining;
+                float fx = 24.0f * (dx / 0.125f);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -662,70 +662,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[1] != -1) {
-            double cd_remaining = (double)cooldowns[1] / (double)total_cooldowns[1];
+            float cd_remaining = (float)cooldowns[1] / (float)total_cooldowns[1];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
-            else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.625f) {
+                float dx = 0.25f - (cd_remaining - 0.625f);
+                float fx = 49 * (dx / 0.25f);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
-            else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+            else if (cd_remaining > 0.375f) {
+                float dx = 0.25f - (cd_remaining - 0.375f);
+                float fx = 49 * (dx / 0.25f);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
             else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.125);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125f - cd_remaining;
+                float fx = 24.0f * (dx / 0.125f);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -736,70 +736,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[2] != -1) {
-            double cd_remaining = (double)cooldowns[2] / (double)total_cooldowns[2];
+            float cd_remaining = (float)cooldowns[2] / (float)total_cooldowns[2];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
             else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.625);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
             else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.375);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
             else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.125);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125 - cd_remaining;
+                float fx = 24.0 * (dx / 0.125);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -810,70 +810,70 @@ namespace PMG {
         renderer->DrawRect(x, y, 50, 50, black);
         renderer->FillRect(x + 1, y + 1, 48, 48, gray);
         if (cooldowns[3] != -1) {
-            double cd_remaining = (double)cooldowns[3] / (double)total_cooldowns[3];
+            float cd_remaining = (float)cooldowns[3] / (float)total_cooldowns[3];
 
             if (cd_remaining > 0.875) {
-                double dx = 0.125 - (cd_remaining - 0.875);
-                double fx = 24 * (dx / 0.125);
+                float dx = 0.125 - (cd_remaining - 0.875);
+                float fx = 24 * (dx / 0.125);
 
                 Physics::Vector2 points[7]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 25.0 + fx, y + 1.0 },
-                    { x + 49.0, y + 1.0 },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 25.0f + fx, y + 1.0f },
+                    { x + 49.0f, y + 1.0f },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 7, black);
             }
             else if (cd_remaining > 0.625) {
-                double dx = 0.25 - (cd_remaining - 0.625);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.625);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[6]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0, y + 1.0 + fx },
-                    { x + 49.0, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f, y + 1.0f + fx },
+                    { x + 49.0f, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 6, black);
             }
             else if (cd_remaining > 0.375) {
-                double dx = 0.25 - (cd_remaining - 0.375);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.375);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[5]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 49.0 - fx, y + 49.0 },
-                    { x + 1.0, y + 49.0 },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 49.0f - fx, y + 49.0f },
+                    { x + 1.0f, y + 49.0f },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 5, black);
             }
             else if (cd_remaining > 0.125) {
-                double dx = 0.25 - (cd_remaining - 0.125);
-                double fx = 49 * (dx / 0.25);
+                float dx = 0.25 - (cd_remaining - 0.125);
+                float fx = 49 * (dx / 0.25);
 
                 Physics::Vector2 points[4]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0, y + 49.0 - fx },
-                    { x + 1.0, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f, y + 49.0f - fx },
+                    { x + 1.0f, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 4, black);
             }
             else if (cd_remaining > 0) {
-                double dx = 0.125 - cd_remaining;
-                double fx = 24.0 * (dx / 0.125);
+                float dx = 0.125 - cd_remaining;
+                float fx = 24.0 * (dx / 0.125);
 
                 Physics::Vector2 points[3]{
-                    { x + 25.0, y + 25.0 },
-                    { x + 1.0 + fx, y + 1.0 },
-                    { x + 25.0, y + 1.0 },
+                    { x + 25.0f, y + 25.0f },
+                    { x + 1.0f + fx, y + 1.0f },
+                    { x + 25.0f, y + 1.0f },
                 };
                 renderer->FillShape(points, 3, black);
             }
@@ -1034,15 +1034,15 @@ namespace PMG {
         int current_tick_index = ticks.size() - 1;
         game_tick_t current_tick = ticks[current_tick_index];
 
-        double frame_dt = (1000.0 / 60.0) + 20 - (frameTime - current_tick.received);
+        float frame_dt = (1000.0 / 60.0) + 20 - (frameTime - current_tick.received);
         
         while (frame_dt > (1000.0 / 60.0)) {
             frame_dt -= (1000.0 / 60.0);
             current_tick_index--;
         }
 
-        double remaining = (1000.0 / 60.0)  - ((1000.0 / 60.0) - frame_dt);
-        double diff = dt / (double)remaining;
+        float remaining = (1000.0 / 60.0)  - ((1000.0 / 60.0) - frame_dt);
+        float diff = dt / (double)remaining;
         if (diff > 1) {
             // this we can do better?!
             diff = 1;

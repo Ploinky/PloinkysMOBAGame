@@ -6,12 +6,12 @@ namespace PMG::Physics {
 	class Vector4 {
 	public:
 		Vector4();
-		Vector4(double x, double y, double z, double w);
+		Vector4(float x, float y, float z, float w);
 
-		double x;
-		double y;
-		double z;
-		double w;
+		float x;
+		float y;
+		float z;
+		float w;
 
 		Vector4 operator+(const Vector4& other) const {
 			return { x + other.x, y + other.y, z + other.z, w + other.w };
@@ -22,10 +22,10 @@ namespace PMG::Physics {
 		}
 
 		bool operator==(const Vector4& other) const {
-			return CompareDouble(x, other.x)
-				&& CompareDouble(y, other.y)
-				&& CompareDouble(z, other.z)
-				&& CompareDouble(w, other.w);
+			return CompareFloat(x, other.x)
+				&& CompareFloat(y, other.y)
+				&& CompareFloat(z, other.z)
+				&& CompareFloat(w, other.w);
 		}
 	};
 }

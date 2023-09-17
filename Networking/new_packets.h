@@ -95,8 +95,8 @@ namespace PMG::Networking {
         virtual void Read(std::vector<uint8_t>* data) override;
         virtual void Write(std::vector<uint8_t>* data) override;
 
-        double x;
-        double y;
+        float x;
+        float y;
     };
 
     class StopCommandPacket : public BasePacket {
@@ -133,9 +133,9 @@ namespace PMG::Networking {
         virtual void Write(std::vector<uint8_t>* data) override;
 
         int spell_slot;
-        double x;
-        double y;
-        double z;
+        float x;
+        float y;
+        float z;
     };
 
     class CooldownPacket : public BasePacket {
@@ -179,8 +179,8 @@ namespace PMG::Networking {
         unsigned long unit;
         unsigned long unit_type;
         Team team;
-        double x;
-        double y;
+        float x;
+        float y;
     };
 
     class UnitMovePacket : public BasePacket {
@@ -190,10 +190,10 @@ namespace PMG::Networking {
         virtual void Write(std::vector<uint8_t>* data) override;
 
         unsigned int unit;
-        double x;
-        double y;
-        double z;
-        double r;
+        float x;
+        float y;
+        float z;
+        float r;
     };
 
     class PlayParticlePacket : public BasePacket {

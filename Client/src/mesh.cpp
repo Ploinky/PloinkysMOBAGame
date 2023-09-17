@@ -104,7 +104,7 @@ namespace PMG {
 
         mesh->vertices = new texture_shader_vertex_t[mesh->vertexCount];
 
-        for (int i = 0; i < mesh->vertexCount; i++) {
+        for (unsigned int i = 0; i < mesh->vertexCount; i++) {
             file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[2], sizeof(float));

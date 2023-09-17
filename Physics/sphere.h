@@ -6,9 +6,9 @@ namespace PMG::Physics {
 	class Sphere {
 	public:
 		Sphere();
-		Sphere(Vector3 origin, double radius);
+		Sphere(Vector3 origin, float radius);
 
 		Vector3 origin;
-		double radius;
+		float radius;
 	};
 }

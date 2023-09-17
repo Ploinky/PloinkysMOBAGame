@@ -2,11 +2,11 @@
 
 namespace PMG::Physics {
 	Sphere::Sphere() {
-		this->origin = Vector3(0.0, 0.0, 0.0);
-		this->radius = 1.0;
+		this->origin = Vector3(0.0f, 0.0f, 0.0f);
+		this->radius = 1.0f;
 	}
 
-	Sphere::Sphere(Vector3 origin, double radius) : origin(origin), radius(radius) {
+	Sphere::Sphere(Vector3 origin, float radius) : origin(origin), radius(radius) {
 
 	}
 }

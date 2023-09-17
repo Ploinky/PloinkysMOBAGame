@@ -4,10 +4,10 @@ namespace PMG::Physics {
 	class Vector2 {
 	public:
 		Vector2();
-		Vector2(double x, double y);
+		Vector2(float x, float y);
 
-		double x;
-		double y;
+		float x;
+		float y;
 
 		Vector2 operator+(const Vector2& other) const;
 
@@ -15,6 +15,6 @@ namespace PMG::Physics {
 
 		bool operator==(const Vector2& other) const;
 
-		double Length();
+		float Length();
 	};
 }

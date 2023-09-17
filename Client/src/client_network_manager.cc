@@ -106,7 +106,7 @@ namespace PMG {
 		int error = send(connection_.socket, (char*)data.data(), data.size(), 0);
 
 		if (error < 1) {
-			printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
+			printf("failed sending <%d> with <%u> bytes to <%I64u>: %d\r\n",
 				packet->type,
 				data.size(),
 				connection_.socket,
@@ -136,7 +136,7 @@ namespace PMG {
 			error = recv(connection_.socket, (char*)data.data() + sizeof(header), header.size - sizeof(header), 0);
 
 			if (error < 1) {
-				printf("failed receiving <%d> with <%I64u> bytes from <%I64u>: %d\r\n",
+				printf("failed receiving <%d> with <%u> bytes from <%I64u>: %d\r\n",
 					header.type,
 					data.size(),
 					connection_.socket,

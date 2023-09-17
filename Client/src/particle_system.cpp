@@ -40,19 +40,19 @@ namespace PMG {
 
 		test += dt;
 		if (life < system_lifetime && test > 0.2 && particles.size() < particle_count) {
-			double velX = particle_velocity.x;
+			float velX = particle_velocity.x;
 			
 			if (particle_velocity_range.x != 0) {
 				velX += ((rand() % (int)(particle_velocity_range.x * 100.0f)) / 100.0f) - particle_velocity_range.x / 2;
 
 			}
-			double velY = particle_velocity.y;
+			float velY = particle_velocity.y;
 
 			if (particle_velocity_range.y != 0) {
 				velY += ((rand() % (int)(particle_velocity_range.y * 100.0f)) / 100.0f) - particle_velocity_range.y / 2;
 
 			}
-			double velZ = particle_velocity.z;
+			float velZ = particle_velocity.z;
 
 			if (particle_velocity_range.z != 0) {
 				velZ += ((rand() % (int)(particle_velocity_range.z * 100.0f)) / 100.0f) - particle_velocity_range.z / 2;
@@ -75,9 +75,9 @@ namespace PMG {
 	void ParticleSystem::Render(Renderer* renderer) {
 		renderer->BindShader(ShaderType::PARTICLE);
 
-		double rotY = atan2(position.x - renderer->camera->position.x, position.z - renderer->camera->position.z);
-		double rotX = -atan2(position.y - renderer->camera->position.y, position.z - renderer->camera->position.z);
-		double rotZ = 0; // no camera roll
+		float rotY = atan2(position.x - renderer->camera->position.x, position.z - renderer->camera->position.z);
+		float rotX = -atan2(position.y - renderer->camera->position.y, position.z - renderer->camera->position.z);
+		float rotZ = 0; // no camera roll
 		
 		particle_shader_frame_const_t data{};
 		data.cameraMatrix = renderer->cameraMatrix;

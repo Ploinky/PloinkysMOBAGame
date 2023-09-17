@@ -49,7 +49,7 @@ namespace PMG {
         }
 
         // update animation?!
-        if (current_status & STATUS_STUNNED == STATUS_STUNNED) {
+        if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
             PlayAnimation(game, "stunned");
         }
         else if (current_action != nullptr && current_action->type == GameObjectActionType::MOVE) {
@@ -61,7 +61,7 @@ namespace PMG {
     }
     
     void GameObject::Think(float dt, Game* game) {
-        if (current_status & STATUS_STUNNED == STATUS_STUNNED) {
+        if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
             return;
         }
 
@@ -234,7 +234,7 @@ namespace PMG {
         navAgent.target.x = x;
         navAgent.target.z = z;
 
-        if (Physics::CompareDouble(navAgent.target.x, position.x) && Physics::CompareDouble(navAgent.target.z, position.z)) {
+        if (Physics::CompareFloat(navAgent.target.x, position.x) && Physics::CompareFloat(navAgent.target.z, position.z)) {
             current_action = new GameObjectActionStop();
             // Already at target
             return;
@@ -267,7 +267,7 @@ namespace PMG {
         float tx = intermediateTarget.x;
         float ty = intermediateTarget.z;
 
-        if (Physics::CompareDouble(position.x, tx) && Physics::CompareDouble(position.z, ty)) {
+        if (Physics::CompareFloat(position.x, tx) && Physics::CompareFloat(position.z, ty)) {
             return;
         }
 

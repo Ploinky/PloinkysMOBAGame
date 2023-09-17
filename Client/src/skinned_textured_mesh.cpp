@@ -40,7 +40,7 @@ namespace PMG {
 
         mesh->vertices = new skinned_textured_shader_vertex_t[mesh->vertexCount];
 
-        for (int i = 0; i < mesh->vertexCount; i++) {
+        for (unsigned int i = 0; i < mesh->vertexCount; i++) {
             file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
@@ -65,7 +65,7 @@ namespace PMG {
 
         mesh->indices = new unsigned int[mesh->indexCount];
 
-        for (int i = 0; i < mesh->indexCount; i++) {
+        for (unsigned int i = 0; i < mesh->indexCount; i++) {
             file.read((char*)&mesh->indices[i], sizeof(int));
         }
 
