@@ -2,6 +2,7 @@
 
 #include "game_object.h"
 #include <set>
+#include "attackable.h"
 
 namespace PMG {
 	class AreaSpellData {
@@ -22,19 +23,20 @@ namespace PMG {
 		bool can_hit_buildings;
 	};
 
-	class AreaSpell : public GameObject {
+	class AreaSpell : public IGameObject {
 	public:
 		AreaSpell(AreaSpellData data, SpellTargetInfo* target);
 
 		SpellTargetInfo* target_info = nullptr;
-		GameObject* owner = nullptr;
+		Attackable* owner = nullptr;
 
+		Physics::Vector3 position;
 		AreaSpellData spell_data;
-		std::set<GameObject*> objects_to_hit;
+		std::set<Attackable*> objects_to_hit;
 
-		virtual void OnCollision(Game* game, GameObject* other);
-		virtual void TargetHit(Game* game, GameObject* owner, GameObject* target) = 0;
-		virtual void Update(float dt, Game* game);
+		virtual void OnCollision(Game* game, IGameObject* other);
+		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) = 0;
+		virtual void Update(Game* game, float dt);
 
 	private:
 		double time_since_tick_ = 0;

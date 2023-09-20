@@ -5,12 +5,12 @@
 #include "game_object.h"
 
 namespace PMG {
-	class GameObject;
+	class Attackable;
 	class Game;
 
 	class SpellTargetInfo {
 	public:
-		GameObject* target = nullptr;
+		Attackable* target = nullptr;
 		Physics::Vector3 target_point;
 	};
 
@@ -21,9 +21,9 @@ namespace PMG {
 		int cooldown = 5000;
 		int remaining_cooldown = -1;
 		
-		void CastStart(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
+		void CastStart(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 
-		void Cast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
-		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) = 0;
+		void Cast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) = 0;
 	};
 }

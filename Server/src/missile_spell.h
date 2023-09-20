@@ -1,6 +1,7 @@
 #pragma once
 
-#include "game_object.h"
+#include "attackable.h"
+#include "spell.h"
 
 namespace PMG {
 	class MissileSpellData {
@@ -27,20 +28,24 @@ namespace PMG {
 		int max_targets_hit = 1;
 	};
 
-	class MissileSpell : public GameObject {
+	class MissileSpell : public IGameObject {
 	public:
-		MissileSpell(MissileSpellData data, GameObject* owner, SpellTargetInfo* target_info);
+		MissileSpell(MissileSpellData data, Attackable* owner, SpellTargetInfo* target_info);
+
+		float collision_radius;
+		Physics::Vector3 position;
 
 		Physics::Vector3 origin;
 		SpellTargetInfo* target_info;
-		GameObject* owner = nullptr;
-		GameObject* target = nullptr;
+		Attackable* owner = nullptr;
+		Attackable* target = nullptr;
 
+		Team team;
 		MissileSpellData spell_data;
 
-		virtual void OnCollision(Game* game, GameObject* other);
-		virtual void TargetHit(Game* game, GameObject* owner, GameObject* target) = 0;
-		virtual void Update(float dt, Game* game);
+		virtual void OnCollision(Game* game, IGameObject* other) override;
+		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) = 0;
+		virtual void Update(Game* game, float dt) override;
 
 	private:
 		double time_since_tick_ = 0;

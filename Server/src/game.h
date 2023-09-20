@@ -78,25 +78,22 @@ namespace PMG {
             tick_packets_.push_back(packet);
         }
 
-        GameObject* GetGameObjectById(unsigned int id) {
-            auto it = this->game_objects_.find(id);
+        IGameObject* GetGameObjectById(unsigned int id) {
+            auto it = this->igame_objects_.find(id);
             
-            if (it == game_objects_.end()) {
+            if (it == igame_objects_.end()) {
                 return nullptr;
             }
 
             return it->second;
         }
 
-        void AddGameObject(GameObject* game_object);
+        void AddGameObject(IGameObject* game_object);
         void SpawnMissile(Missile* missile);
 
-        void ApplyDamage(GameObject* target, double damage);
-        void Heal(GameObject* target, double heal);
+        void DestroyGameObject(IGameObject* to_destroy);
 
-        void DestroyGameObject(GameObject* to_destroy);
-
-        void CheckCollision(GameObject* collider);
+        void CheckCollision(IGameObject* collider);
 
         void Update(float dt);
         NavMesh* m_navMesh;
@@ -105,7 +102,6 @@ namespace PMG {
 
         std::vector<Networking::BasePacket*> tick_packets_;
         std::vector<std::vector<uint8_t>> all_ticks;
-        std::map<unsigned int, GameObject*> game_objects_;
         std::map<unsigned int, IGameObject*> igame_objects_;
     private:
 

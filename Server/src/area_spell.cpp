@@ -4,10 +4,11 @@
 namespace PMG {
 	AreaSpell::AreaSpell(AreaSpellData data, SpellTargetInfo* target_info) : spell_data(data), target_info(target_info) {
 		collision_radius = spell_data.radius;
-		target_type = TargetType::UNTARGETABLE;
 	}
 
-	void AreaSpell::OnCollision(Game* game, GameObject* target) {
+	void AreaSpell::OnCollision(Game* game, IGameObject* t) {
+		Attackable* target = dynamic_cast<Attackable*>(target);
+
 		if (!spell_data.can_hit_allies && target->team == owner->team) {
 			return;
 		}
@@ -19,7 +20,7 @@ namespace PMG {
 		objects_to_hit.insert(target);
 	}
 
-	void AreaSpell::Update(float dt, Game* game) {
+	void AreaSpell::Update(Game* game, float dt) {
 		double ms = 1000.0 * dt;
 
 		time_since_tick_ += ms;
@@ -27,7 +28,7 @@ namespace PMG {
 
 		if (time_since_tick_ >= (1000.0 / spell_data.tickrate)) {
 			// now we hit!
-			for (GameObject* go : objects_to_hit) {
+			for (Attackable* go : objects_to_hit) {
 				TargetHit(game, owner, go);
 			}
 			time_since_tick_ -= (1000.0 / spell_data.tickrate);

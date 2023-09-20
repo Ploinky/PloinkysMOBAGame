@@ -3,7 +3,7 @@
 #include "game.h"
 
 namespace PMG {
-	void ThrowFootball::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+	void ThrowFootball::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		ThrowFootballMissile* missile = new ThrowFootballMissile(target_info, spell_owner);
 		missile->owner = spell_owner;
 		missile->position = spell_owner->position;
@@ -18,8 +18,8 @@ namespace PMG {
 		game->SendPacket(spawn);
 	}
 	
-	void ThrowFootballMissile::TargetHit(Game* game, GameObject* owner, GameObject* target) {
-		target->TakeDamage(game, 10, owner);
+	void ThrowFootballMissile::TargetHit(Game* game, Attackable* owner, Attackable* target) {
+		target->TakeDamage(10, owner);
 	}
 
 	ThrowFootball::ThrowFootball() {
@@ -41,12 +41,12 @@ namespace PMG {
 		*status_enable |= STATUS_STUNNED;
 	}
 
-	void HealPerson::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+	void HealPerson::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		if (target_info->target == nullptr) {
 			// TODO this seems bad
 			return;
 		}
-		game->Heal(target_info->target, 50);
+		target_info->target->Heal(50, spell_owner);
 
 		Networking::PlayParticlePacket* pck = new Networking::PlayParticlePacket();
 		pck->unit = target_info->target->unit_id;
@@ -57,7 +57,7 @@ namespace PMG {
 	DoBlastArea::DoBlastArea() {
 	}
 
-	void DoBlastArea::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+	void DoBlastArea::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		BlastArea* blast_area = new BlastArea(target_info);
 		blast_area->position = target_info->target_point;
 		blast_area->owner = spell_owner;
@@ -65,15 +65,15 @@ namespace PMG {
 		game->AddGameObject(blast_area);
 	}
 
-	void BlastArea::TargetHit(Game* game, GameObject* owner, GameObject* target) {
-		target->TakeDamage(game, 10, owner);
+	void BlastArea::TargetHit(Game* game, Attackable* owner, Attackable* target) {
+		target->TakeDamage(10, owner);
 		target->buffs.push_back(new KnockedOutCold());
 	}
 
 	MakeRunFast::MakeRunFast() {
 	}
 
-	void MakeRunFast::OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+	void MakeRunFast::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		target_info->target->buffs.push_back(new RunFast());
 	}
 
@@ -86,7 +86,7 @@ namespace PMG {
 		stats->base_speed *= 2;
 	}
 
-	FootballPerson::FootballPerson() {
+	FootballPerson::FootballPerson() : Person() {
 		target_type = TargetType::CHARACTER;
 
 		// Q

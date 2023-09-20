@@ -524,7 +524,7 @@ namespace PMG {
             }
             */
 
-            renderer->FillRect(x - 50, y - 10, go->health, health_bar_height, color);
+            renderer->FillRect(x - 50, y - 10, ((float)go->health / (float)go->max_health) * 100.0f, health_bar_height, color);
             renderer->DrawRect(x - 51, y - 11, 102, health_bar_height+2, new float[3] { 0.0f, 0.0f, 0 });
         }
 

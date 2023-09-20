@@ -2,15 +2,17 @@
 
 #include "game_object.h"
 #include "pmg_types.h"
-#include "game_object.h"
+#include "attackable.h"
 #include "game.h"
 namespace PMG {
-	class Missile : public GameObject {
+	class Missile : public IGameObject {
 	public:
-		virtual void Think(float dt, Game* game);
+		virtual void Update(Game* game, float dt) {};
+		virtual void Act(Game* game, float dt);
+		virtual void OnCollision(Game* game, IGameObject* other) {};
 		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 0.1); }
-		GameObject* owner;
-		GameObject* target;
+		Attackable* owner;
+		Attackable* target;
 		Physics::Vector3 target_point;
 		Team team;
 

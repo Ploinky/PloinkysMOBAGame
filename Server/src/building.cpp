@@ -1,51 +1,117 @@
 #include "building.h"
 #include "game.h"
+#include "missile.h"
 
 namespace PMG {
-	void TowerGameObjectController::Think(Game* game, GameObject* go) {
-		if (go->current_action != nullptr && go->current_action->type == GameObjectActionType::ATTACK_UNIT) {
-			GameObjectActionAttackUnit* attack = (GameObjectActionAttackUnit*)go->current_action;
-			GameObject* target = game->GetGameObjectById(attack->target_net_id);
+	void Building::Act(Game* game, float dt) {
+		if (current_action_ != nullptr && current_action_->type == GameObjectActionType::ATTACK_UNIT) {
+            GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action_;
+            Attackable* target = (Attackable*)game->GetGameObjectById(action->target_net_id);
 
-			if (go == nullptr || attack == nullptr || target == nullptr) {
-				return;
-			}
+            if (target == nullptr || target->unit_id == unit_id) {
+                // nothing to attack?
+                this->current_action_ = new GameObjectActionStop();
+                return;
+            }
 
-			double dist = (target->position - go->position).Length();
 
-			if (dist > 5) {
-				delete go->current_action;
-				go->current_action = new GameObjectActionStop();
-			}
+            if ((target->position - position).Length() > basic_attack_info.range) {
+                this->current_action_ = new GameObjectActionStop();
+                return;
+            }
 
-			return;
+            // we're in range, check if we can attack
+            unsigned long long ticks_since = game->gameTick - basic_attack_info.last_attack;
+
+            // how many ms do we wait after 1 attack
+            double ms_per_attack = 1000.0 / basic_attack_info.attack_speed;
+
+            if (ticks_since * TICKRATE < ms_per_attack) {
+                // cannot attack again yet
+                return;
+            }
+
+            // we can attack, wtf to do now?!
+            // consider forward- and backswing as well, yikes
+            if (!basic_attack_info.attack_started) {
+                basic_attack_info.attack_started_at = game->gameTick;
+                basic_attack_info.attack_started = TRUE;
+                // ok we start... do we also need to let someone know? :O
+                return;
+            }
+
+            ticks_since = game->gameTick - basic_attack_info.attack_started_at;
+            double ms_until_hit = ms_per_attack * basic_attack_info.hit_point;
+
+            if (ticks_since * TICKRATE < ms_until_hit) {
+                // still swinging!
+                return;
+            }
+
+            // attack triggered!
+            if (basic_attack_info.type == MELEE) {
+                target->stats.health -= basic_attack_info.damage;
+
+                if (target->stats.health < 0) {
+                    target->stats.health = 0;
+                }
+
+                Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
+                stats->unit = target->unit_id;
+                stats->health = target->stats.health;
+                stats->max_health = target->stats.max_health;
+                game->SendPacket(stats);
+            }
+            else {
+                Missile* basic_attack_missile = new Missile();
+                basic_attack_missile->unit_id = game->current_entity_id_++;
+                basic_attack_missile->owner = this;
+                basic_attack_missile->target = target;
+                basic_attack_missile->position = position;
+                basic_attack_missile->missile_speed = 60;
+                basic_attack_missile->damage = basic_attack_info.damage;
+                basic_attack_missile->team = team;
+                game->SpawnMissile(basic_attack_missile);
+            }
+
+            basic_attack_info.last_attack = game->gameTick;
+            basic_attack_info.attack_started = FALSE;
+            return;
 		}
 
 		// try to find unit to attack
-		for (auto go_it : game->game_objects_) {
-			GameObject* other_go = go_it.second;
+		for (auto go_it : game->igame_objects_) {
+			IGameObject* other_go = go_it.second;
 
-			if (other_go == nullptr || other_go->unit_id == go->unit_id) {
+			if (other_go == nullptr || other_go->unit_id == unit_id) {
 				continue;
 			}
 
-			if (!other_go->IsTargetable() || other_go->target_type == TargetType::UNTARGETABLE) {
-				continue;
-			}
+            if (Attackable* other = dynamic_cast<Attackable*>(other_go)) {
+                if (other->target_type == TargetType::UNTARGETABLE) {
+                    continue;
+                }
 
-			double dist = (other_go->position - go->position).Length();
+                double dist = (other->position - position).Length();
 
-			if (dist <= 5) {
-				go->current_action = new GameObjectActionAttackUnit(other_go->unit_id);
-			}
+                if (dist <= 5) {
+                    current_action_ = new GameObjectActionAttackUnit(other_go->unit_id);
+                }
+            }
 		}
 	}
 
-	Building::Building() {
-		target_type = TargetType::BUILDING;
-		controller = new TowerGameObjectController();
+	const AttackableStats tower_stats = {
+		500, // health
+		500, // max_health
+		0, // experience
+		0, // level
+		0, // health regen
+	};
 
-		stats.can_move = false;
-		stats.base_speed = 0;
+	Building::Building(Team team) : Attackable(tower_stats) {
+		prefab = UnitPrefab::TOWER;
+		this->team = team;
+        target_type = TargetType::BUILDING;
 	}
 }

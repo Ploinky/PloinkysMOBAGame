@@ -79,12 +79,6 @@ namespace PMG {
 		int base_speed;
 	} stats_t;
 
-	enum class TargetType {
-		CHARACTER,
-		BUILDING,
-		UNTARGETABLE
-	};
-
 	class GameObjectController {
 	public:
 		virtual void Think(Game* game, GameObject* go) {};
@@ -92,6 +86,7 @@ namespace PMG {
 
 	extern int STATUS_STUNNED;
 
+	/*
 	class GameObject {
 	public:
 		UnitId unit_id;
@@ -130,7 +125,6 @@ namespace PMG {
 		Physics::Vector3 position;
 		Physics::Vector3 rotation;
 		double collision_radius = 0;
-		TargetType target_type;
 		Team team;
 		nav_agent_t nav_agent;
 		std::vector<Buff*> buffs;
@@ -148,5 +142,9 @@ namespace PMG {
 		void TakeDamage(Game* game, double damage, GameObject* source);
 
 		virtual void OnCollision(Game* game, GameObject* other) {};
+
+
+		virtual void Sync(std::vector<uint8_t>* data) {};
 	};
+	*/
 }

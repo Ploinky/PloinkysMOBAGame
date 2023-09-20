@@ -10,6 +10,7 @@
 
 #include "minion_spawner.h"
 #include "pmg_networking.h"
+#include "person.h"
 
 namespace PMG {
     unsigned long g_unitId = 0;
@@ -36,7 +37,7 @@ namespace PMG {
         on_sendToClient(netId, &data);
 
         FootballPerson* game_object = new FootballPerson();
-        game_object->current_action = nullptr;
+        game_object->current_action_ = nullptr;
         game_object->unit_id = id;
 
         if (players_.size() % 2 == 0) {
@@ -46,7 +47,7 @@ namespace PMG {
             game_object->team = Team::TEAM_2;
         }
 
-        game_objects_.emplace(id, game_object);
+        igame_objects_.emplace(id, game_object);
 
         player_t player{};
         player.networkId = netId;
@@ -74,14 +75,14 @@ namespace PMG {
         despawn->unit = players_.find(netId)->second.unitId;
         SendPacket(despawn);
 
-        GameObject* go = game_objects_.find(players_.find(netId)->second.unitId)->second;
-        game_objects_.erase(go->unit_id);
+        IGameObject* go = igame_objects_.find(players_.find(netId)->second.unitId)->second;
+        igame_objects_.erase(go->unit_id);
         delete go;
     }
 
-    void Game::AddGameObject(GameObject* game_object) {
+    void Game::AddGameObject(IGameObject* game_object) {
         game_object->unit_id = current_entity_id_++;
-        game_objects_.emplace(game_object->unit_id, game_object);
+        igame_objects_.emplace(game_object->unit_id, game_object);
     }
 
     void Game::SpawnMissile(Missile* missile) {
@@ -94,7 +95,7 @@ namespace PMG {
         missile->target_point = missile->position + dir;
 
         missile->unit_id = current_entity_id_++;
-        game_objects_.emplace(missile->unit_id, missile);
+        igame_objects_.emplace(missile->unit_id, missile);
 
 
         Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
@@ -107,117 +108,70 @@ namespace PMG {
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
-        game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionMove({ nx, ny, 0 });
+        ((Person*)igame_objects_.find(players_.find(netId)->second.unitId)->second)->current_action_ = new GameObjectActionMove({ nx, ny, 0 });
     }
 
     void Game::PlayerStopCommand(unsigned long netId) {
 
-        game_objects_.find(players_.find(netId)->second.unitId)->second->current_action = new GameObjectActionStop();
+        ((Person*)igame_objects_.find(players_.find(netId)->second.unitId)->second)->current_action_ = new GameObjectActionStop();
     }
 
     void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
-        GameObject* actor = game_objects_.find(players_.find(netId)->second.unitId)->second;
-        GameObject* target = GetGameObjectById(target_id);
-        actor->current_action = new GameObjectActionAttackUnit(target_id);
+        IGameObject* actor = igame_objects_.find(players_.find(netId)->second.unitId)->second;
+        IGameObject* target = GetGameObjectById(target_id);
+        ((Attackable*)actor)->current_action_ = new GameObjectActionAttackUnit(target_id);
     }
 
     void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info) {
-        GameObject* actor = GetGameObjectById(players_.find(netId)->second.unitId);
+        IGameObject* actor = GetGameObjectById(players_.find(netId)->second.unitId);
 
-        if (actor->spells[spell_slot]->remaining_cooldown != -1) {
+        if (((Person*)actor)->spells[spell_slot]->remaining_cooldown != -1) {
             // nope!
             return;
         }
 
         GameObjectActionCastSpell* new_action = new GameObjectActionCastSpell(spell_slot);
         new_action->target_info = target_info;
-        actor->current_action = new_action;
+        ((Person*)actor)->current_action_ = new_action;
     }
 
     void Game::Start() {
-        Building* tower = new Building();
+        Building* tower = new Building(Team::TEAM_2);
         tower->position = { 10, 0, 0 };
-        tower->team = Team::TEAM_2;
         AddGameObject(tower);
 
-        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
-        spawn->unit = tower->unit_id;
-        spawn->unit_type = UnitPrefab::TOWER;
-        spawn->team = tower->team;
-        spawn->x = tower->position.x;
-        spawn->y = tower->position.y;
-        SendPacket(spawn);
-
-        Building* tower2 = new Building();
+        Building* tower2 = new Building(Team::TEAM_1);
         tower2->position = { -10, 0, 0 };
-        tower2->team = Team::TEAM_1;
         AddGameObject(tower2);
-
-        spawn = new Networking::SpawnPacket();
-        spawn->unit = tower2->unit_id;
-        spawn->unit_type = UnitPrefab::TOWER;
-        spawn->team = tower2->team;
-        spawn->x = tower2->position.x;
-        spawn->y = tower2->position.y;
-        SendPacket(spawn);
 
         MinionSpawner* minion_spawner = new MinionSpawner();
         igame_objects_.emplace(0, minion_spawner);
     }
 
-    void Game::ApplyDamage(GameObject* target, double damage) {
-        if (!target->IsTargetable()) {
-            return;
-        }
-
-        target->stats.health -= damage;
-
-        if (target->stats.health < 0) {
-            target->stats.health = 0;
-            // TODO do something?
-        }
-
-    }
-
-    void Game::Heal(GameObject* target, double heal) {
-        if (target == nullptr || !target->IsTargetable()) {
-            return;
-        }
-
-        target->stats.health += heal;
-
-        if (target->stats.health > target->stats.max_health) {
-            target->stats.health = target->stats.max_health;
-            // do something?
-        }
-
-        Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
-        stats->unit = target->unit_id;
-        stats->health = target->stats.health;
-        stats->max_health = target->stats.max_health;
-        SendPacket(stats);
-    }
-
-    void Game::DestroyGameObject(GameObject* to_destroy) {
+    void Game::DestroyGameObject(IGameObject* to_destroy) {
         Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
         despawn->unit = to_destroy->unit_id;
         SendPacket(despawn);
         to_destroy->is_destroyed = true;
     }
 
-    void Game::CheckCollision(GameObject* collider) {
-        for (auto go_it : game_objects_) {
-            GameObject* go = go_it.second;
+    void Game::CheckCollision(IGameObject* collider) {
+        if (Attackable* coll = dynamic_cast<Attackable*>(collider)) {
+            for (auto go_it : igame_objects_) {
+                IGameObject* go = go_it.second;
 
-            if (go->unit_id == collider->unit_id) {
-                continue;
-            }
+                if (go->unit_id == collider->unit_id) {
+                    continue;
+                }
 
-            if (Physics::TestCollision(
-                Physics::Circle({ go->position.x, go->position.z }, go->collision_radius),
-                Physics::Circle({ collider->position.x, collider->position.z }, collider->collision_radius))
-                ) {
-                collider->OnCollision(this, go);
+                if (Attackable* oth = dynamic_cast<Attackable*>(go)) {
+                    if (Physics::TestCollision(
+                        Physics::Circle({ oth->position.x, oth->position.z }, go->collision_radius),
+                        Physics::Circle({ coll->position.x, coll->position.z }, collider->collision_radius))
+                        ) {
+                        collider->OnCollision(this, go);
+                    }
+                }
             }
         }
     }
@@ -233,34 +187,17 @@ namespace PMG {
         // Next gametick -> wrap to zero at start. Yikes...
         lastTick -= TICKRATE / 1000.0f;
 
-        // collide
-        for (auto go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            CheckCollision(go);
-        }
-
         // make sure we figure out all the buffs and such first
         // also passive regen and whatnot
-        for (auto go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            go->Update(dt, this);
-        }
-
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
             go->Update(this, dt);
         }
 
-        // now let them cook?
-        for (auto go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            go->controller->Think(this, go);
-        }
-
         // ok, action
-        for (auto go_it : game_objects_) {
-            GameObject* go = go_it.second;
-            go->Think(dt, this);
+        for (auto go_it : igame_objects_) {
+            IGameObject* go = go_it.second;
+            go->Act(this, dt);
         }
 
         Networking::packet_header_t header{};
@@ -287,6 +224,26 @@ namespace PMG {
             header.size = data.size();
         }
 
+        for (auto go_it : igame_objects_) {
+            IGameObject* go = go_it.second;
+
+            std::vector<uint8_t> pck_data;
+            go->Sync(&pck_data);
+            
+            if (pck_data.size() == 0) {
+                // nothing to sync?
+                continue;
+            }
+            data.resize(data.size() + pck_data.size());
+
+            if (header.size == 0) {
+                std::memcpy(data.data(), pck_data.data(), pck_data.size());
+            }
+            else {
+                std::memcpy(data.data() + header.size, pck_data.data(), pck_data.size());
+            }
+            header.size = data.size();
+        }
 
         data.resize(data.size() + sizeof(gameTick));
         std::memcpy(data.data(), &gameTick, sizeof(gameTick));
@@ -301,7 +258,7 @@ namespace PMG {
         tick_packets_.clear();
 
         // TODO why is this stupid
-        std::erase_if(game_objects_, [](auto& kv) {
+        std::erase_if(igame_objects_, [](auto& kv) {
             if (kv.second->is_destroyed) {
                 delete kv.second;
                 return true;

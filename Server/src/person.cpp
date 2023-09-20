@@ -1,111 +1,47 @@
-#include "game_object.h"
+#include "person.h"
 #include "game.h"
 #include "missile.h"
 #include "logger.h"
-#include "buff.h"
-#include "spell.h"
 
 namespace PMG {
-    int STATUS_STUNNED = 0b1;
-
-    /*
-
-    void GameObject::Update(float dt, Game* game) {
-        frame_stats = stats;
-        int status_enable = 0;
-        int status_disable = 0;
-
-        // checking for buffs should be the first thing we do maybe?
-        // could affect cooldowns, spells, actions, damage...
-        for (Buff* buff : buffs) {
-            buff->Update(dt);
-            buff->Apply(&frame_stats, &status_enable, &status_disable);
-        }
-
-        current_status = status_enable;
-        current_status &= (~status_disable);
-
-        // now remove buffs that have run out
-        std::erase_if(buffs, [](auto& kv) { return kv->should_remove; });
-
-        // update cooldowns
-        for (int i = 0; i < spells.size(); i++) {
-            Spell* s = spells[i];
-            if (s->remaining_cooldown != -1) {
-                s->remaining_cooldown -= dt * 1000;
-
-                if (s->remaining_cooldown <= 0) {
-                    s->remaining_cooldown = -1;
-                }
-
-                // maybe not necessary to update on every tick? seems like a lot of work, but the accuracy does not need to be quite as high
-                // maybe only update once cooldown is ready again?
-
-                Networking::CooldownPacket* pck = new Networking::CooldownPacket();
-                pck->unit = unit_id;
-                pck->spell_slot = i;
-                pck->cooldown = s->remaining_cooldown;
-                pck->total_cooldown = s->cooldown;
-                game->SendPacket(pck);
-            }
-        }
-
-        // update animation?!
-        if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
-            PlayAnimation(game, "stunned");
-        }
-        else if (current_action != nullptr && current_action->type == GameObjectActionType::MOVE) {
-            PlayAnimation(game, "run");
-        }
-        else {
-            PlayAnimation(game, "idle");
-        }
-    }
-    
-    void GameObject::Think(float dt, Game* game) {
+	void Person::Act(Game* game, float dt) {
         if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
             return;
         }
 
-        if (current_action != nullptr) {
-            switch (current_action->type) {
+        if (current_action_ != nullptr) {
+            switch (current_action_->type) {
             case GameObjectActionType::STOP: {
                 basic_attack_info.attack_started = false;
                 spell_cast_info.current_spell = -1;
                 break;
             }
             case GameObjectActionType::ATTACK_UNIT: {
-                GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action;
-                GameObject* target = game->GetGameObjectById(action->target_net_id);
+                GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action_;
+                Attackable* target = dynamic_cast<Attackable*>(game->GetGameObjectById(action->target_net_id));
 
                 if (target == nullptr || target->unit_id == unit_id) {
                     // nothing to attack?
-                    this->current_action = new GameObjectActionStop();
+                    this->current_action_ = new GameObjectActionStop();
                     break;
                 }
 
-                if (stats.can_move) {
-                    // we always rotate, no matter what happens!
-                    double rotationY = atan2(target->position.x - position.x, target->position.z - position.z) * 180.0f / M_PI;
-                    Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
-                    move->unit = unit_id;
-                    move->x = position.x;
-                    move->y = position.y;
-                    move->z = position.z;
-                    move->r = rotationY;
-                    game->SendPacket(move);
-                }
+                // we always rotate, no matter what happens!
+                double rotationY = atan2(target->position.x - position.x, target->position.z - position.z) * 180.0f / M_PI;
+                Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+                move->unit = unit_id;
+                move->x = position.x;
+                move->y = position.y;
+                move->z = position.z;
+                move->r = rotationY;
+                game->SendPacket(move);
 
                 if (target->team == team) {
-                    if (!stats.can_move) {
-                        // nope, not moving
-                        break;
-                    }
                     // our teammate! do not attack! follow instead!
                     if (nav_agent.target.x != target->position.x || nav_agent.target.z != target->position.z) {
                         // start pathing!
                     }
-                    MoveToward(target->position.x, target->position.z, game, frame_stats.base_speed);
+                    MoveToward(target->position.x, target->position.z, game, 3);
                     break;
                 }
 
@@ -114,7 +50,7 @@ namespace PMG {
                         // start pathing!
                     }
                     // move towards target?
-                    MoveToward(target->position.x, target->position.z, game, frame_stats.base_speed);
+                    MoveToward(target->position.x, target->position.z, game, 3);
                     break;
                 }
 
@@ -163,7 +99,7 @@ namespace PMG {
                 else {
                     Missile* basic_attack_missile = new Missile();
                     basic_attack_missile->unit_id = game->current_entity_id_++;
-                    basic_attack_missile->owner = this;
+                    // basic_attack_missile->owner = this;
                     basic_attack_missile->target = target;
                     basic_attack_missile->position = position;
                     basic_attack_missile->missile_speed = 60;
@@ -179,17 +115,17 @@ namespace PMG {
             case GameObjectActionType::MOVE: {
                 basic_attack_info.attack_started = false;
                 spell_cast_info.current_spell = -1;
-                GameObjectActionMove* action = (GameObjectActionMove*)current_action;
-                MoveToward(action->target_point.x, action->target_point.y, game, frame_stats.base_speed);
+                GameObjectActionMove* action = (GameObjectActionMove*)current_action_;
+                MoveToward(action->target_point.x, action->target_point.y, game, 3);
                 break;
             }
             case GameObjectActionType::CAST_SPELL: {
-                GameObjectActionCastSpell* action = (GameObjectActionCastSpell*)current_action;
+                GameObjectActionCastSpell* action = (GameObjectActionCastSpell*)current_action_;
 
                 if (action->spell_index < 0 || action->spell_index >= spells.size()) {
                     // cannot cast spell that does not exist
                     Logger::Err("Error: Attempt to cast spell that does not exist.");
-                    current_action = new GameObjectActionStop();
+                    current_action_ = new GameObjectActionStop();
                     break;
                 }
 
@@ -217,7 +153,7 @@ namespace PMG {
                     spell->Cast(game, this, action->target_info);
 
                     spell->remaining_cooldown = spell->cooldown;
-                    current_action = new GameObjectActionStop();
+                    current_action_ = new GameObjectActionStop();
 
                     Networking::CooldownPacket* pck = new Networking::CooldownPacket();
                     pck->unit = unit_id;
@@ -230,14 +166,16 @@ namespace PMG {
             }
             }
         }
-    }
-    void GameObject::MoveToward(double x, double z, Game* game, double move_speed) {
+	};
+
+
+    void Person::MoveToward(double x, double z, Game* game, double move_speed) {
         nav_agent_t navAgent = nav_agent;
         navAgent.target.x = x;
         navAgent.target.z = z;
 
         if (Physics::CompareFloat(navAgent.target.x, position.x) && Physics::CompareFloat(navAgent.target.z, position.z)) {
-            current_action = new GameObjectActionStop();
+            current_action_ = new GameObjectActionStop();
             // Already at target
             return;
         }
@@ -299,31 +237,4 @@ namespace PMG {
         move->r = rotation.y;
         game->SendPacket(move);
     }
-
-    void GameObject::TakeDamage(Game* game, double damage, GameObject* source) {
-        stats.health = max(0.0, stats.health - damage);
-
-        Networking::UnitStatsPacket* pck = new Networking::UnitStatsPacket();
-        pck->unit = unit_id;
-        pck->health = stats.health;
-        pck->max_health = stats.max_health;
-
-        game->SendPacket(pck);
-    }
-
-    void GameObject::PlayAnimation(Game* game, std::string animation) {
-        if (current_animation == animation) {
-            // already playing animation
-            return;
-        }
-
-        current_animation = animation;
-
-        Networking::AnimationPacket* pck = new Networking::AnimationPacket();
-        pck->unit_id = unit_id;
-        pck->animation_name = animation;
-
-        game->SendPacket(pck);
-    }
-    */
 }

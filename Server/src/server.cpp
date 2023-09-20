@@ -6,7 +6,7 @@
 #include "util.h"
 #include "logger.h"
 #include "spell.h"
-
+#include "attackable.h"
 namespace PMG {
     void Server::Start() {
         m_networkManager = new ClientNetworkManager();
@@ -100,7 +100,7 @@ namespace PMG {
                 cast_command.Read(data);
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
-                target_info->target = m_game->GetGameObjectById(cast_command.target);
+                target_info->target = dynamic_cast<Attackable*>(m_game->GetGameObjectById(cast_command.target));
                 m_game->PlayerCastSpellCommand(clientId, cast_command.spell_slot, target_info);
                 break;
             }

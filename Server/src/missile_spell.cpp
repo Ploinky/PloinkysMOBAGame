@@ -1,23 +1,26 @@
 #include "missile_spell.h"
 #include "game.h"
 #include "spell.h"
+#include "attackable.h"
 
 namespace PMG {
-	MissileSpell::MissileSpell(MissileSpellData data, GameObject* owner, SpellTargetInfo* target_info) : spell_data(data), target_info(target_info) {
+	MissileSpell::MissileSpell(MissileSpellData data, Attackable* owner, SpellTargetInfo* target_info) : spell_data(data), target_info(target_info) {
 		collision_radius = data.radius;
 		position = owner->position;
 		origin = owner->position;
-		target_type = TargetType::UNTARGETABLE;
 
 		if (spell_data.distance != -1) {
 			target_info->target_point = position + ((target_info->target_point - position).Normalize() * spell_data.distance);
 		}
 	}
 	
-	void MissileSpell::OnCollision(Game* game, GameObject* target) {
+	void MissileSpell::OnCollision(Game* game, IGameObject* t) {
+		Attackable* target = dynamic_cast<Attackable*>(target);
+
 		if (target_info->target != nullptr && target_info->target->unit_id != target->unit_id) {
 			return;
 		}
+
 
 		if (!spell_data.can_hit_self && target->unit_id == owner->unit_id) {
 			return;
@@ -39,7 +42,7 @@ namespace PMG {
 		}
 	}
 
-	void MissileSpell::Update(float dt, Game* game) {
+	void MissileSpell::Update(Game* game, float dt) {
         Physics::Vector3 current_position = position;
 
         Physics::Vector3 target_current_position = target_info->target_point;

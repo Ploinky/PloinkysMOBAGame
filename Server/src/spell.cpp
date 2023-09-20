@@ -2,9 +2,10 @@
 #include "spell.h"
 #include "game.h"
 #include "missile.h"
+#include "attackable.h"
 
 namespace PMG {
-	void Spell::CastStart(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+	void Spell::CastStart(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		Physics::Vector3 target_point;
 		if (target_info->target != nullptr) {
 			target_point = target_info->target->position;
@@ -24,7 +25,7 @@ namespace PMG {
 		game->SendPacket(move);
 	}
 
-	void Spell::Cast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) {
+	void Spell::Cast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		OnCast(game, spell_owner, target_info);
 	}
 }

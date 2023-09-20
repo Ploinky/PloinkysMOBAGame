@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game_object.h"
+#include "person.h"
 #include "spell.h"
 #include "area_spell.h"
 #include "game.h"
@@ -8,7 +8,7 @@
 #include "buff.h"
 
 namespace PMG {
-	class FootballPerson : public GameObject {
+	class FootballPerson : public Person {
 	public:
 		FootballPerson();
 	};
@@ -16,7 +16,7 @@ namespace PMG {
 	class ThrowFootball : public Spell {
 	public:
 		ThrowFootball();
-		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) override;
 	};
 
 	class ThrowFootballMissileData : public MissileSpellData {
@@ -32,8 +32,8 @@ namespace PMG {
 
 	class ThrowFootballMissile : public MissileSpell {
 	public:
-		ThrowFootballMissile(SpellTargetInfo* target_info, GameObject* owner) : MissileSpell(ThrowFootballMissileData(), owner, target_info) {};
-		virtual void TargetHit(Game* game, GameObject* owner, GameObject* target);
+		ThrowFootballMissile(SpellTargetInfo* target_info, Attackable* owner) : MissileSpell(ThrowFootballMissileData(), owner, target_info) {};
+		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) override;
 	};
 
 	class KnockedOutCold : public Buff {
@@ -45,13 +45,13 @@ namespace PMG {
 	class HealPerson : public Spell {
 	public:
 		HealPerson();
-		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 	};
 
 	class DoBlastArea : public Spell {
 	public:
 		DoBlastArea();
-		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 	};
 
 	class BlastAreaData : public AreaSpellData {
@@ -68,13 +68,13 @@ namespace PMG {
 	class BlastArea : public AreaSpell {
 	public:
 		BlastArea(SpellTargetInfo* target_info) : AreaSpell(BlastAreaData(), target_info) {};
-		virtual void TargetHit(Game* game, GameObject* owner, GameObject* target);
+		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target);
 	};
 
 	class MakeRunFast : public Spell {
 	public:
 		MakeRunFast();
-		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 	};
 
 	class RunFast : public Buff {
