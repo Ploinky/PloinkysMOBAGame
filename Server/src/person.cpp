@@ -4,16 +4,36 @@
 #include "logger.h"
 
 namespace PMG {
-	void Person::Act(Game* game, float dt) {
+    void Person::Update(Game* game, float dt) {
+        Attackable::Update(game, dt);
+
+        // update cooldowns
+        for (int i = 0; i < spells.size(); i++) {
+            Spell* s = spells[i];
+            if (s->remaining_cooldown != -1) {
+                s->remaining_cooldown -= dt * 1000;
+
+                if (s->remaining_cooldown <= 0) {
+                    s->remaining_cooldown = -1;
+                }
+            }
+        }
+    }
+
+    void Person::Act(Game* game, float dt) {
         if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
+            // we're stunned, we cannot do anything
+            new_animation = "idle";
             return;
         }
 
+        // ok, we get to actually decide what we want to do
         if (current_action_ != nullptr) {
             switch (current_action_->type) {
             case GameObjectActionType::STOP: {
                 basic_attack_info.attack_started = false;
                 spell_cast_info.current_spell = -1;
+                new_animation = "idle";
                 break;
             }
             case GameObjectActionType::ATTACK_UNIT: {
@@ -28,13 +48,7 @@ namespace PMG {
 
                 // we always rotate, no matter what happens!
                 double rotationY = atan2(target->position.x - position.x, target->position.z - position.z) * 180.0f / M_PI;
-                Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
-                move->unit = unit_id;
-                move->x = position.x;
-                move->y = position.y;
-                move->z = position.z;
-                move->r = rotationY;
-                game->SendPacket(move);
+                rotation.y = rotationY;
 
                 if (target->team == team) {
                     // our teammate! do not attack! follow instead!
@@ -42,6 +56,7 @@ namespace PMG {
                         // start pathing!
                     }
                     MoveToward(target->position.x, target->position.z, game, 3);
+                    new_animation = "run";
                     break;
                 }
 
@@ -51,6 +66,8 @@ namespace PMG {
                     }
                     // move towards target?
                     MoveToward(target->position.x, target->position.z, game, 3);
+
+                    new_animation = "run";
                     break;
                 }
 
@@ -84,22 +101,11 @@ namespace PMG {
 
                 // attack triggered!
                 if (basic_attack_info.type == MELEE) {
-                    target->stats.health -= basic_attack_info.damage;
-
-                    if (target->stats.health < 0) {
-                        target->stats.health = 0;
-                    }
-
-                    Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
-                    stats->unit = target->unit_id;
-                    stats->health = target->stats.health;
-                    stats->max_health = target->stats.max_health;
-                    game->SendPacket(stats);
+                    target->TakeDamage(basic_attack_info.damage, this);
                 }
                 else {
                     Missile* basic_attack_missile = new Missile();
-                    basic_attack_missile->unit_id = game->current_entity_id_++;
-                    // basic_attack_missile->owner = this;
+                    basic_attack_missile->owner = this;
                     basic_attack_missile->target = target;
                     basic_attack_missile->position = position;
                     basic_attack_missile->missile_speed = 60;
@@ -110,6 +116,9 @@ namespace PMG {
 
                 basic_attack_info.last_attack = game->gameTick;
                 basic_attack_info.attack_started = FALSE;
+
+
+                new_animation = "idle";
                 break;
             }
             case GameObjectActionType::MOVE: {
@@ -117,9 +126,13 @@ namespace PMG {
                 spell_cast_info.current_spell = -1;
                 GameObjectActionMove* action = (GameObjectActionMove*)current_action_;
                 MoveToward(action->target_point.x, action->target_point.y, game, 3);
+
+                new_animation = "run";
                 break;
             }
             case GameObjectActionType::CAST_SPELL: {
+
+                new_animation = "idle";
                 GameObjectActionCastSpell* action = (GameObjectActionCastSpell*)current_action_;
 
                 if (action->spell_index < 0 || action->spell_index >= spells.size()) {
@@ -141,6 +154,9 @@ namespace PMG {
                     spell_cast_info.cast_time = game->gameTick;
                     // TODO send packet to let clients know what's happening?
 
+                    if (spell->cast_animation.length() > 0) {
+                        new_animation = spell->cast_animation;
+                    }
                     spell->CastStart(game, this, action->target_info);
                 }
 
@@ -154,19 +170,12 @@ namespace PMG {
 
                     spell->remaining_cooldown = spell->cooldown;
                     current_action_ = new GameObjectActionStop();
-
-                    Networking::CooldownPacket* pck = new Networking::CooldownPacket();
-                    pck->unit = unit_id;
-                    pck->spell_slot = action->spell_index;
-                    pck->cooldown = spell->remaining_cooldown;
-                    pck->total_cooldown = spell->cooldown;
-                    game->SendPacket(pck);
                     break;
                 }
             }
             }
         }
-	};
+    };
 
 
     void Person::MoveToward(double x, double z, Game* game, double move_speed) {
@@ -228,13 +237,20 @@ namespace PMG {
         if (position.x != tx || position.z != ty) {
             rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
         }
+    }
 
-        Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
-        move->unit = unit_id;
-        move->x = position.x;
-        move->y = position.y;
-        move->z = position.z;
-        move->r = rotation.y;
-        game->SendPacket(move);
+    void Person::Sync(std::vector<uint8_t>* data) {
+        Attackable::Sync(data);
+
+        // maybe not necessary to update on every tick? seems like a lot of work, but the accuracy does not need to be quite as high
+        // maybe only update once cooldown is ready again?
+        for (int i = 0; i < 4; i++) {
+            Networking::CooldownPacket* pck = new Networking::CooldownPacket();
+            pck->unit = unit_id;
+            pck->spell_slot = i;
+            pck->cooldown = spells[i]->remaining_cooldown;
+            pck->total_cooldown = spells[i]->cooldown;
+            pck->Write(data);
+        }
     }
 }

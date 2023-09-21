@@ -62,4 +62,34 @@ namespace PMG {
         game->SendPacket(move);
         return;
     }
+
+    void Missile::Sync(std::vector<uint8_t>* data) {
+        if (!is_destroyed && !spawn_synced) {
+            Networking::SpawnPacket pck = Networking::SpawnPacket();
+            pck.unit = unit_id;
+            pck.team = team;
+            pck.unit_type = UnitPrefab::THROW_FOOTBALL;
+            pck.x = position.x;
+            pck.y = position.y;
+
+            pck.Write(data);
+            spawn_synced = true;
+        }
+
+        if (is_destroyed && spawn_synced) {
+            Networking::DespawnPacket pck = Networking::DespawnPacket();
+            pck.unit = unit_id;
+
+            pck.Write(data);
+            spawn_synced = false;
+        }
+
+        Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+        move->unit = unit_id;
+        move->x = position.x;
+        move->y = position.y;
+        move->z = position.z;
+        move->r = rotation.y;
+        move->Write(data);
+    };
 }

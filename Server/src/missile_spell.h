@@ -34,6 +34,7 @@ namespace PMG {
 
 		float collision_radius;
 		Physics::Vector3 position;
+		Physics::Vector3 rotation;
 
 		Physics::Vector3 origin;
 		SpellTargetInfo* target_info;
@@ -46,8 +47,10 @@ namespace PMG {
 		virtual void OnCollision(Game* game, IGameObject* other) override;
 		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) = 0;
 		virtual void Update(Game* game, float dt) override;
+		virtual void Sync(std::vector<uint8_t>* data) override;
 
 	private:
+		bool spawn_synced = false;
 		double time_since_tick_ = 0;
 		double time_since_cast_ = 0;
 	};

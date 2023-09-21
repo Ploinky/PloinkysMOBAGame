@@ -44,6 +44,8 @@ namespace PMG {
 
 		GameObjectAction* current_action_ = nullptr;
 
+		std::string new_animation;
+
 		AttackableStats stats;
 		TargetType target_type;
 
@@ -55,12 +57,12 @@ namespace PMG {
 		Team team;
 
 		basic_attack_info_t basic_attack_info = {
-			BasicAttackType::RANGED,
-			5,
-			5,
-			1,
-			0.5,
-			0
+			BasicAttackType::MELEE, // type
+			1, // range
+			5, // damage
+			1, // attack speed
+			0.5, // hit point
+			0 // last attack
 		};
 		std::vector<Buff*> buffs;
 
@@ -69,6 +71,6 @@ namespace PMG {
 		bool spawn_synced = false;
 
 		// true -> stats need to be synced
-		bool stats_updated = false;
+		bool stats_updated = true;
 	};
 }

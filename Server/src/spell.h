@@ -20,6 +20,8 @@ namespace PMG {
 		int cast_point = 100;
 		int cooldown = 5000;
 		int remaining_cooldown = -1;
+
+		std::string cast_animation;
 		
 		void CastStart(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 

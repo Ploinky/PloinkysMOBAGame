@@ -94,17 +94,7 @@ namespace PMG {
 
         missile->target_point = missile->position + dir;
 
-        missile->unit_id = current_entity_id_++;
-        igame_objects_.emplace(missile->unit_id, missile);
-
-
-        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
-        spawn->unit = missile->unit_id;
-        spawn->unit_type = UnitPrefab::THROW_FOOTBALL;
-        spawn->team = missile->team;
-        spawn->x = missile->position.x;
-        spawn->y = missile->position.y;
-        SendPacket(spawn);
+        AddGameObject(missile);
     }
 
     void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
@@ -206,47 +196,20 @@ namespace PMG {
         std::vector<uint8_t> data;
         data.resize(sizeof(header));
 
-        header.size = data.size();
-
         for (Networking::BasePacket* base : tick_packets_) {
-            std::vector<uint8_t> appendage;
-            base->Write(&appendage);
-            
-            data.resize(data.size() + appendage.size());
-
-            // TODO pls fixerino
-            if (header.size == 0) {
-                std::memcpy(data.data(), appendage.data(), appendage.size());
-            }
-            else {
-                std::memcpy(data.data() + header.size, appendage.data(), appendage.size());
-            }
-            header.size = data.size();
+            //base->Write(&data);
+            //header.size = data.size();
         }
 
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
-
-            std::vector<uint8_t> pck_data;
-            go->Sync(&pck_data);
-            
-            if (pck_data.size() == 0) {
-                // nothing to sync?
-                continue;
-            }
-            data.resize(data.size() + pck_data.size());
-
-            if (header.size == 0) {
-                std::memcpy(data.data(), pck_data.data(), pck_data.size());
-            }
-            else {
-                std::memcpy(data.data() + header.size, pck_data.data(), pck_data.size());
-            }
-            header.size = data.size();
+            go->Sync(&data);
         }
 
+        header.size = data.size();
+
         data.resize(data.size() + sizeof(gameTick));
-        std::memcpy(data.data(), &gameTick, sizeof(gameTick));
+        std::memcpy(data.data() + header.size, &gameTick, sizeof(gameTick));
         gameTick++;
         header.size += sizeof(gameTick);
         std::memcpy(data.data(), &header, sizeof(header));

@@ -9,7 +9,9 @@ namespace PMG::Networking {
         packet_header_t header;
         header.type = PacketType::CMD_STOP;
         header.size = sizeof(packet_header_t);
-        data->resize(header.size);
-        std::memcpy(data->data(), &header, sizeof(packet_header_t));
+
+        int offset = data->size();
+        data->resize(data->size() + header.size);
+        std::memcpy(data->data() + offset, &header, sizeof(packet_header_t));
     }
 }

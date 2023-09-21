@@ -3,7 +3,15 @@
 
 namespace PMG {
 	void Attackable::Update(float dt) {
+		if (stats.health == stats.max_health) {
+			return;
+		}
+		
 		stats.health += stats.health_regen * (dt / (1000.0f / 60.0f));
+
+		if (stats.health > stats.max_health) {
+			stats.health = stats.max_health;
+		}
 
 		stats_updated = true;
 	}
@@ -15,7 +23,15 @@ namespace PMG {
 	}
 
 	void Attackable::Heal(float heal, IGameObject* source) {
+		if (stats.health = stats.max_health) {
+			return;
+		}
+
 		stats.health += heal;
+
+		if (stats.health > stats.max_health) {
+			stats.health = stats.max_health;
+		}
 
 		stats_updated = true;
 	}
@@ -31,7 +47,6 @@ namespace PMG {
 
 			pck.Write(data);
 			spawn_synced = true;
-			return; // TODO nope
 		}
 
 		if (stats_updated) {
@@ -44,5 +59,33 @@ namespace PMG {
 
 			stats_updated = false;
 		}
+
+		if (stats_updated) {
+			Networking::UnitStatsPacket pck = Networking::UnitStatsPacket();
+			pck.unit = unit_id;
+			pck.health = stats.health;
+			pck.max_health = stats.max_health;
+
+			pck.Write(data);
+
+			stats_updated = false;
+		}
+
+		if (new_animation.length() > 0) {
+			Networking::AnimationPacket* pck = new Networking::AnimationPacket();
+			pck->unit_id = unit_id;
+			pck->animation_name = new_animation;
+			pck->Write(data);
+
+			new_animation = "";
+		}
+
+		Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+		move->unit = unit_id;
+		move->x = position.x;
+		move->y = position.y;
+		move->z = position.z;
+		move->r = rotation.y;
+		move->Write(data);
 	}
 }

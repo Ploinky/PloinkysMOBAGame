@@ -11,10 +11,11 @@ namespace PMG::Networking {
 		header.type = type;
 		header.size = sizeof(packet_header_t) + sizeof(spell_slot) + sizeof(target);
 
-		data->resize(header.size);
+		int offset = data->size();
+		data->resize(data->size() + header.size);
 
-		std::memcpy(data->data(), &header, sizeof(packet_header_t));
-		std::memcpy(data->data() + sizeof(packet_header_t), &spell_slot, sizeof(spell_slot));
-		std::memcpy(data->data() + sizeof(packet_header_t) + sizeof(spell_slot), &target, sizeof(target));
+		std::memcpy(data->data() + offset, &header, sizeof(packet_header_t));
+		std::memcpy(data->data() + offset + sizeof(packet_header_t), &spell_slot, sizeof(spell_slot));
+		std::memcpy(data->data() + offset + sizeof(packet_header_t) + sizeof(spell_slot), &target, sizeof(target));
 	}
 }

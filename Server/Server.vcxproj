@@ -159,6 +159,7 @@
     <ClCompile Include="src\missile.cpp" />
     <ClCompile Include="src\missile_spell.cpp" />
     <ClCompile Include="src\network_manager.cpp" />
+    <ClCompile Include="src\particle_spawner.cpp" />
     <ClCompile Include="src\person.cpp" />
     <ClCompile Include="src\server.cpp" />
     <ClCompile Include="src\spell.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="src\missile.h" />
     <ClInclude Include="src\missile_spell.h" />
     <ClInclude Include="src\network_manager.h" />
+    <ClInclude Include="src\particle_spawner.h" />
     <ClInclude Include="src\person.h" />
     <ClInclude Include="src\server.h" />
     <ClInclude Include="src\spell.h" />

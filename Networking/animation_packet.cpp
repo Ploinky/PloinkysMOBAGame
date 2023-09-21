@@ -14,11 +14,11 @@ namespace PMG::Networking {
 		header.type = type;
 		header.size = sizeof(packet_header_t) + sizeof(unit_id) + animation_name.length();
 
-		data->resize(header.size);
+		int offset = data->size();
+		data->resize(data->size() + header.size);
 
-		int mem_index = 0;
-		std::memcpy(data->data(), &header, sizeof(packet_header_t));
-		std::memcpy(data->data() + sizeof(packet_header_t), &unit_id, sizeof(unit_id));
-		std::memcpy(data->data() + sizeof(packet_header_t) + sizeof(unit_id), animation_name.data(), animation_name.length());
+		std::memcpy(data->data() + offset, &header, sizeof(packet_header_t));
+		std::memcpy(data->data() + offset + sizeof(packet_header_t), &unit_id, sizeof(unit_id));
+		std::memcpy(data->data() + offset + sizeof(packet_header_t) + sizeof(unit_id), animation_name.data(), animation_name.length());
 	}
 }

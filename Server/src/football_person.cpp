@@ -1,6 +1,7 @@
 #include "football_person.h"
 #include "missile_spell.h"
 #include "game.h"
+#include "particle_spawner.h"
 
 namespace PMG {
 	void ThrowFootball::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
@@ -30,6 +31,7 @@ namespace PMG {
 	HealPerson::HealPerson() {
 		cast_point = 300;
 		cooldown = 3000;
+		cast_animation = "idle";
 	}
 
 	KnockedOutCold::KnockedOutCold() {
@@ -48,10 +50,10 @@ namespace PMG {
 		}
 		target_info->target->Heal(50, spell_owner);
 
-		Networking::PlayParticlePacket* pck = new Networking::PlayParticlePacket();
-		pck->unit = target_info->target->unit_id;
-		pck->particle = "test";
-		game->SendPacket(pck);
+		ParticleSpawner* part = new ParticleSpawner();
+		part->attached_to = target_info->target;
+		part->particle_name = "test";
+		game->AddGameObject(part);
 	}
 
 	DoBlastArea::DoBlastArea() {
@@ -88,6 +90,7 @@ namespace PMG {
 
 	FootballPerson::FootballPerson() : Person() {
 		target_type = TargetType::CHARACTER;
+		prefab = UnitPrefab::FOOTBALL_PERSON;
 
 		// Q
 		spells.push_back(new ThrowFootball());

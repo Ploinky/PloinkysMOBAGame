@@ -64,7 +64,6 @@ namespace PMG {
 		unsigned long long last_attack;
 		bool attack_started;
 		unsigned long long attack_started_at;
-
 	} basic_attack_info_t;
 
 	typedef struct {

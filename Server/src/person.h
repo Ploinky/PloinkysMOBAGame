@@ -6,8 +6,13 @@
 namespace PMG {
 	class Person : public Attackable {
 	public:
-		Person() : Attackable({}) {};
+		Person() : Attackable({
+			100, 100
+		}) {};
+
+		virtual void Update(Game* game, float dt) override;
 		virtual void Act(Game* game, float dt) override;
+		virtual void Sync(std::vector<uint8_t>* data) override;
 
 
 		spell_cast_info_t spell_cast_info = {
