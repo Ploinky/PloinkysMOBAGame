@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "pmg_types.h"
+#include "pmg_physics.h"
 
 namespace PMG {
 	class Game;
@@ -21,7 +22,11 @@ namespace PMG {
 		virtual void OnCollision(Game* game, IGameObject* other) = 0;
 
 		UnitId unit_id;
-		double collision_radius = 0;
+		double collision_radius = 1;
+
+		Physics::Vector3 position;
+		Physics::Vector3 rotation;
+
 		bool is_destroyed = false;
 	};
 }

@@ -33,8 +33,6 @@ namespace PMG {
 		MissileSpell(MissileSpellData data, Attackable* owner, SpellTargetInfo* target_info);
 
 		float collision_radius;
-		Physics::Vector3 position;
-		Physics::Vector3 rotation;
 
 		Physics::Vector3 origin;
 		SpellTargetInfo* target_info;

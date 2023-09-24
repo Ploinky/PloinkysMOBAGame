@@ -59,5 +59,7 @@ namespace PMG {
         private:
             int m_width;
             int m_height;
+
+            std::map<std::string, Mesh*> meshes_;
     };
 }

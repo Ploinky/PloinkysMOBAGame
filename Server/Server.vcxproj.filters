@@ -81,9 +81,6 @@
     <ClCompile Include="src\missile_spell.cpp">
       <Filter>Source Files\game_object\spell</Filter>
     </ClCompile>
-    <ClCompile Include="src\missile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\minion_spawner.cpp">
       <Filter>Source Files\game_object\minions</Filter>
     </ClCompile>
@@ -95,6 +92,12 @@
     </ClCompile>
     <ClCompile Include="src\particle_spawner.cpp">
       <Filter>Source Files\game_object</Filter>
+    </ClCompile>
+    <ClCompile Include="src\missile.cpp">
+      <Filter>Source Files\game_object</Filter>
+    </ClCompile>
+    <ClCompile Include="src\minion.cpp">
+      <Filter>Source Files\game_object\minions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -137,9 +140,6 @@
     <ClInclude Include="src\missile_spell.h">
       <Filter>Header Files\game_object\spell</Filter>
     </ClInclude>
-    <ClInclude Include="src\missile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\minion.h">
       <Filter>Header Files\game_object\minions</Filter>
     </ClInclude>
@@ -156,6 +156,9 @@
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
     <ClInclude Include="src\particle_spawner.h">
+      <Filter>Header Files\game_object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\missile.h">
       <Filter>Header Files\game_object</Filter>
     </ClInclude>
   </ItemGroup>

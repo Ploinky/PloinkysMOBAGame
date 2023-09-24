@@ -113,5 +113,13 @@ namespace PMG {
 		prefab = UnitPrefab::TOWER;
 		this->team = team;
         target_type = TargetType::BUILDING;
+        basic_attack_info = {
+            BasicAttackType::RANGED, // type
+            5, // range
+            5, // damage
+            1, // attack speed
+            0.25, // hit point
+            0 // last attack
+        };
 	}
 }

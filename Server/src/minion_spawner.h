@@ -8,11 +8,13 @@ namespace PMG {
 
 	class MinionSpawner : public IGameObject {
 	public:
+		MinionSpawner(std::vector<Physics::Vector3> waypoints) : waypoints_(waypoints) {};
 		virtual void Update(Game* game, float dt) override;
 		virtual void OnCollision(Game* game, IGameObject* other) override;
 
-	private:
 		Team team;
-		double last_spawn_tick = -2000;
+	private:
+		double last_spawn_tick = 0;
+		std::vector<Physics::Vector3> waypoints_;
 	};
 }

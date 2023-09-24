@@ -71,6 +71,7 @@ namespace PMG {
             bool CreateDepthBuffer();
             // Creates 2D rendering surface
             bool Create2DSurface();
+            // Creates alpha blend state
             bool CreateAlphaBlendState();
 
             bool InitializeDirectWrite();

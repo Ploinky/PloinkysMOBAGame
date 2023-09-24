@@ -38,6 +38,7 @@ namespace PMG {
 		void Update(float dt);
 		virtual void OnCollision(Game* game, IGameObject* other) {};
 		virtual void Sync(std::vector<uint8_t>* data) override;
+		void MoveToward(double x, double z, Game* game, double move_speed);
 
 		void TakeDamage(float damage, IGameObject* source);
 		void Heal(float heal, IGameObject* source);
@@ -49,9 +50,6 @@ namespace PMG {
 		AttackableStats stats;
 		TargetType target_type;
 
-		Physics::Vector3 position;
-		Physics::Vector3 rotation;
-
 		unsigned long prefab = UnitPrefab::GENERIC_EMPTY;
 
 		Team team;
@@ -59,12 +57,13 @@ namespace PMG {
 		basic_attack_info_t basic_attack_info = {
 			BasicAttackType::MELEE, // type
 			1, // range
-			5, // damage
+			1, // damage
 			1, // attack speed
-			0.5, // hit point
+			0.25, // hit point
 			0 // last attack
 		};
 		std::vector<Buff*> buffs;
+		nav_agent_t nav_agent;
 
 	protected:
 		// true -> initial spawn has been synced

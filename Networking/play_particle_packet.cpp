@@ -6,6 +6,8 @@ namespace PMG::Networking {
 
 		std::memcpy(&header, data->data(), sizeof(packet_header_t));
 		std::memcpy(&unit, data->data() + sizeof(packet_header_t), sizeof(unit));
+
+		particle.resize(header.size - sizeof(unit) - sizeof(packet_header_t));
 		std::memcpy(particle.data(), data->data() + sizeof(packet_header_t) + sizeof(unit), header.size - sizeof(unit) - sizeof(packet_header_t));
 	}
 

@@ -134,8 +134,15 @@ namespace PMG {
         tower2->position = { -10, 0, 0 };
         AddGameObject(tower2);
 
-        MinionSpawner* minion_spawner = new MinionSpawner();
-        igame_objects_.emplace(0, minion_spawner);
+        MinionSpawner* minion_spawner = new MinionSpawner({ {10, 0, 0} });
+        minion_spawner->position = { -5, 0, 0 };
+        minion_spawner->team = Team::TEAM_1;
+        AddGameObject(minion_spawner);
+
+        MinionSpawner* minion_spawner2 = new MinionSpawner({ {-10, 0, 0} });
+        minion_spawner2->position = { 5, 0, 0 };
+        minion_spawner2->team = Team::TEAM_2;
+        AddGameObject(minion_spawner2);
     }
 
     void Game::DestroyGameObject(IGameObject* to_destroy) {
@@ -146,22 +153,18 @@ namespace PMG {
     }
 
     void Game::CheckCollision(IGameObject* collider) {
-        if (Attackable* coll = dynamic_cast<Attackable*>(collider)) {
-            for (auto go_it : igame_objects_) {
-                IGameObject* go = go_it.second;
+        for (auto go_it : igame_objects_) {
+            IGameObject* go = go_it.second;
 
-                if (go->unit_id == collider->unit_id) {
-                    continue;
-                }
+            if (go->unit_id == collider->unit_id) {
+                continue;
+            }
 
-                if (Attackable* oth = dynamic_cast<Attackable*>(go)) {
-                    if (Physics::TestCollision(
-                        Physics::Circle({ oth->position.x, oth->position.z }, go->collision_radius),
-                        Physics::Circle({ coll->position.x, coll->position.z }, collider->collision_radius))
-                        ) {
-                        collider->OnCollision(this, go);
-                    }
-                }
+            if (Physics::TestCollision(
+                Physics::Circle({ collider->position.x, collider->position.z }, collider->collision_radius),
+                Physics::Circle({ go->position.x, go->position.z }, 0))
+                ) {
+                collider->OnCollision(this, go);
             }
         }
     }
@@ -182,6 +185,11 @@ namespace PMG {
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
             go->Update(this, dt);
+        }
+
+        for (auto go_it : igame_objects_) {
+            IGameObject* go = go_it.second;
+            CheckCollision(go);
         }
 
         // ok, action

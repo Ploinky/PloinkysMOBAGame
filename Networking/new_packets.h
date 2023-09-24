@@ -78,6 +78,7 @@ namespace PMG::Networking {
 
         UnitId unit_id;
         std::string animation_name;
+        bool loop;
     };
 
     class GameTickPacket : public BasePacket {

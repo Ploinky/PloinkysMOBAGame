@@ -9,14 +9,6 @@ namespace PMG {
 		missile->owner = spell_owner;
 		missile->position = spell_owner->position;
 		game->AddGameObject(missile);
-
-		Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
-		spawn->unit = missile->unit_id;
-		spawn->unit_type = UnitPrefab::THROW_FOOTBALL;
-		spawn->team = missile->team;
-		spawn->x = missile->position.x;
-		spawn->y = missile->position.y;
-		game->SendPacket(spawn);
 	}
 	
 	void ThrowFootballMissile::TargetHit(Game* game, Attackable* owner, Attackable* target) {
@@ -52,7 +44,7 @@ namespace PMG {
 
 		ParticleSpawner* part = new ParticleSpawner();
 		part->attached_to = target_info->target;
-		part->particle_name = "test";
+		part->particle_name = "models/particle.dds";
 		game->AddGameObject(part);
 	}
 
@@ -63,8 +55,13 @@ namespace PMG {
 		BlastArea* blast_area = new BlastArea(target_info);
 		blast_area->position = target_info->target_point;
 		blast_area->owner = spell_owner;
-
 		game->AddGameObject(blast_area);
+
+
+		ParticleSpawner* part = new ParticleSpawner();
+		part->attached_to = blast_area;
+		part->particle_name = "models/blast_area.dds";
+		game->AddGameObject(part);
 	}
 
 	void BlastArea::TargetHit(Game* game, Attackable* owner, Attackable* target) {

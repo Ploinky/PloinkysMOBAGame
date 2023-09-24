@@ -155,6 +155,7 @@
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\game_object.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\minion.cpp" />
     <ClCompile Include="src\minion_spawner.cpp" />
     <ClCompile Include="src\missile.cpp" />
     <ClCompile Include="src\missile_spell.cpp" />

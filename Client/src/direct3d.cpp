@@ -377,10 +377,11 @@ namespace PMG {
         blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
+        alpha_blend_state = nullptr;
         
         HRESULT hr = device->CreateBlendState(&blend_desc, &alpha_blend_state);
 
-        if (FAILED(hr)) {
+        if (FAILED(hr) || !alpha_blend_state) {
             Logger::Err("Failed to create alpha blend state");
             return false;
         }
@@ -395,6 +396,8 @@ namespace PMG {
         float input[4] = { 0,0,0,0 };
 
         context->OMSetBlendState(alpha_blend_disabled_state, input, 1);
+
+        return true;
     }
 
     void Direct3D::EnableAlphaBlending() {

@@ -2,10 +2,27 @@
 #include "game.h"
 #include "missile.h"
 #include "logger.h"
+#include "buff.h"
 
 namespace PMG {
     void Person::Update(Game* game, float dt) {
         Attackable::Update(game, dt);
+
+        stats_t frame_stats;
+        int status_enable = 0;
+        int status_disable = 0;
+        current_status = 0;
+
+        for (Buff* buff : buffs) {
+            buff->Update(dt);
+            buff->Apply(&frame_stats, &status_enable, &status_disable);
+        }
+
+        // now remove buffs that have run out
+        std::erase_if(buffs, [](auto& kv) { return kv->should_remove; });
+
+        current_status = status_enable;
+        current_status &= (~status_disable);
 
         // update cooldowns
         for (int i = 0; i < spells.size(); i++) {
@@ -23,7 +40,7 @@ namespace PMG {
     void Person::Act(Game* game, float dt) {
         if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
             // we're stunned, we cannot do anything
-            new_animation = "idle";
+            new_animation = "stunned";
             return;
         }
 
@@ -88,6 +105,8 @@ namespace PMG {
                     basic_attack_info.attack_started_at = game->gameTick;
                     basic_attack_info.attack_started = TRUE;
                     // ok we start... do we also need to let someone know? :O
+
+                    new_animation = "attack1";
                     break;
                 }
 
@@ -117,8 +136,6 @@ namespace PMG {
                 basic_attack_info.last_attack = game->gameTick;
                 basic_attack_info.attack_started = FALSE;
 
-
-                new_animation = "idle";
                 break;
             }
             case GameObjectActionType::MOVE: {
@@ -176,68 +193,6 @@ namespace PMG {
             }
         }
     };
-
-
-    void Person::MoveToward(double x, double z, Game* game, double move_speed) {
-        nav_agent_t navAgent = nav_agent;
-        navAgent.target.x = x;
-        navAgent.target.z = z;
-
-        if (Physics::CompareFloat(navAgent.target.x, position.x) && Physics::CompareFloat(navAgent.target.z, position.z)) {
-            current_action_ = new GameObjectActionStop();
-            // Already at target
-            return;
-        }
-
-        if (navAgent.path.empty()) {
-
-            // No path to follow, we need a new path!
-            navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.z) }, navAgent.target);
-
-            // New path is empty, we are requesting an invalid path
-            if (navAgent.path.empty()) {
-                return;
-            }
-            // First is our start point? yikes.
-            navAgent.path.pop_front();
-        }
-
-        vertex_t intermediateTarget = navAgent.path.front();
-
-        if (abs(position.x - intermediateTarget.x) < 0.001 && abs(position.z - intermediateTarget.z) < 0.001) {
-            // Next frame we follow next?!
-            navAgent.path.pop_front();
-
-            if (!navAgent.path.empty()) {
-                intermediateTarget = navAgent.path.front();
-            }
-        }
-
-        float tx = intermediateTarget.x;
-        float ty = intermediateTarget.z;
-
-        if (Physics::CompareFloat(position.x, tx) && Physics::CompareFloat(position.z, ty)) {
-            return;
-        }
-
-        float dx = tx - position.x;
-        float dy = ty - position.z;
-        float length = sqrt(dx * dx + dy * dy);
-
-
-        dx /= length;
-        dy /= length;
-
-        float newX = position.x + move_speed * dx * TICKRATE / 1000.0f;
-        float newY = position.z + move_speed * dy * TICKRATE / 1000.0f;
-
-        position.x = (position.x < tx && newX >= tx) || (position.x > tx && newX <= tx) ? tx : newX;
-        position.z = (position.z < ty && newY >= ty) || (position.z > ty && newY <= ty) ? ty : newY;
-
-        if (position.x != tx || position.z != ty) {
-            rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
-        }
-    }
 
     void Person::Sync(std::vector<uint8_t>* data) {
         Attackable::Sync(data);

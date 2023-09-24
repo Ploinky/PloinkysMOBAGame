@@ -15,12 +15,15 @@ namespace PMG {
 	}
 	
 	void MissileSpell::OnCollision(Game* game, IGameObject* t) {
-		Attackable* target = dynamic_cast<Attackable*>(target);
+		Attackable* target = dynamic_cast<Attackable*>(t);
+
+		if (target == nullptr) {
+			return;
+		}
 
 		if (target_info->target != nullptr && target_info->target->unit_id != target->unit_id) {
 			return;
 		}
-
 
 		if (!spell_data.can_hit_self && target->unit_id == owner->unit_id) {
 			return;
@@ -73,7 +76,7 @@ namespace PMG {
 			pck.team = team;
 			pck.unit_type = UnitPrefab::THROW_FOOTBALL;
 			pck.x = position.x;
-			pck.y = position.y;
+			pck.y = position.z;
 
 			pck.Write(data);
 			spawn_synced = true;

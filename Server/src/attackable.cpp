@@ -1,5 +1,6 @@
 #include "attackable.h"
 #include "pmg_networking.h"
+#include "game.h"
 
 namespace PMG {
 	void Attackable::Update(float dt) {
@@ -19,6 +20,11 @@ namespace PMG {
 	void Attackable::TakeDamage(float damage, IGameObject* source) {
 		stats.health -= damage;
 
+		if (stats.health <= 0) {
+			// TODO die?
+			stats.health = 0;
+		}
+
 		stats_updated = true;
 	}
 
@@ -36,8 +42,70 @@ namespace PMG {
 		stats_updated = true;
 	}
 
+	void Attackable::MoveToward(double x, double z, Game* game, double move_speed) {
+		nav_agent_t navAgent = nav_agent;
+		navAgent.target.x = x;
+		navAgent.target.z = z;
+
+		if (Physics::CompareFloat(navAgent.target.x, position.x) && Physics::CompareFloat(navAgent.target.z, position.z)) {
+			current_action_ = new GameObjectActionStop();
+			// Already at target
+			return;
+		}
+
+		if (navAgent.path.empty()) {
+
+			// No path to follow, we need a new path!
+			navAgent.path = game->m_navMesh->PlanPath({ static_cast<float>(position.x), 0, static_cast<float>(position.z) }, navAgent.target);
+
+			// New path is empty, we are requesting an invalid path
+			if (navAgent.path.empty()) {
+				return;
+			}
+			// First is our start point? yikes.
+			navAgent.path.pop_front();
+		}
+
+		vertex_t intermediateTarget = navAgent.path.front();
+
+		if (abs(position.x - intermediateTarget.x) < 0.001 && abs(position.z - intermediateTarget.z) < 0.001) {
+			// Next frame we follow next?!
+			navAgent.path.pop_front();
+
+			if (!navAgent.path.empty()) {
+				intermediateTarget = navAgent.path.front();
+			}
+		}
+
+		float tx = intermediateTarget.x;
+		float ty = intermediateTarget.z;
+
+		if (Physics::CompareFloat(position.x, tx) && Physics::CompareFloat(position.z, ty)) {
+			return;
+		}
+
+		float dx = tx - position.x;
+		float dy = ty - position.z;
+		float length = sqrt(dx * dx + dy * dy);
+
+
+		dx /= length;
+		dy /= length;
+
+		float newX = position.x + move_speed * dx * TICKRATE / 1000.0f;
+		float newY = position.z + move_speed * dy * TICKRATE / 1000.0f;
+
+		position.x = (position.x < tx && newX >= tx) || (position.x > tx && newX <= tx) ? tx : newX;
+		position.z = (position.z < ty && newY >= ty) || (position.z > ty && newY <= ty) ? ty : newY;
+
+		if (position.x != tx || position.z != ty) {
+			rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
+		}
+	}
+
+
 	void Attackable::Sync(std::vector<uint8_t>* data) {
-		if (!spawn_synced) {
+		if (!spawn_synced && !is_destroyed) {
 			Networking::SpawnPacket pck = Networking::SpawnPacket();
 			pck.unit = unit_id;
 			pck.team = team;
@@ -47,6 +115,14 @@ namespace PMG {
 
 			pck.Write(data);
 			spawn_synced = true;
+		}
+
+		if (spawn_synced && is_destroyed) {
+			Networking::DespawnPacket pck = Networking::DespawnPacket();
+			pck.unit = unit_id;
+
+			pck.Write(data);
+			spawn_synced = false;
 		}
 
 		if (stats_updated) {
@@ -75,6 +151,7 @@ namespace PMG {
 			Networking::AnimationPacket* pck = new Networking::AnimationPacket();
 			pck->unit_id = unit_id;
 			pck->animation_name = new_animation;
+			pck->loop = new_animation.compare("idle") == 0;
 			pck->Write(data);
 
 			new_animation = "";

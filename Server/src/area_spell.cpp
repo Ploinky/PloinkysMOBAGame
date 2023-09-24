@@ -7,7 +7,11 @@ namespace PMG {
 	}
 
 	void AreaSpell::OnCollision(Game* game, IGameObject* t) {
-		Attackable* target = dynamic_cast<Attackable*>(target);
+		Attackable* target = dynamic_cast<Attackable*>(t);
+
+		if (target == nullptr) {
+			return;
+		}
 
 		if (!spell_data.can_hit_allies && target->team == owner->team) {
 			return;
@@ -42,5 +46,35 @@ namespace PMG {
 
 		// do not forget to clear so we do not hit objects that are no longer colliding!
 		objects_to_hit.clear();
+	}
+
+	void AreaSpell::Sync(std::vector<uint8_t>* data) {
+		if (!spawn_synced && !is_destroyed) {
+			Networking::SpawnPacket pck = Networking::SpawnPacket();
+			pck.unit = unit_id;
+			pck.team = owner->team;
+			pck.unit_type = UnitPrefab::GENERIC_EMPTY;
+			pck.x = position.x;
+			pck.y = position.y;
+
+			pck.Write(data);
+			spawn_synced = true;
+		}
+
+		if (spawn_synced && is_destroyed) {
+			Networking::DespawnPacket pck = Networking::DespawnPacket();
+			pck.unit = unit_id;
+
+			pck.Write(data);
+			spawn_synced = false;
+		}
+
+		Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
+		move->unit = unit_id;
+		move->x = position.x;
+		move->y = position.y;
+		move->z = position.z;
+		move->r = rotation.y;
+		move->Write(data);
 	}
 }

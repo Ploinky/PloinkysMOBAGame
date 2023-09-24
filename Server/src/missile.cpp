@@ -70,7 +70,7 @@ namespace PMG {
             pck.team = team;
             pck.unit_type = UnitPrefab::THROW_FOOTBALL;
             pck.x = position.x;
-            pck.y = position.y;
+            pck.y = position.z;
 
             pck.Write(data);
             spawn_synced = true;

@@ -950,6 +950,9 @@ namespace PMG {
             go->has_healthbar = false;
             go->team = team;
             game_objects_.emplace(unitId, go);
+
+            go->renderable->position = go->position;
+            go->renderable->rotation = go->rotation;
             return;
         }
 
@@ -988,12 +991,30 @@ namespace PMG {
             go->max_health = 100;
             go->position = { pos.x, 0, pos.y };
             go->rotation = { 0, 0, 0 };
-            go->has_healthbar = true;
+            go->has_healthbar = false;
             go->has_title = false;
             go->team = team;
             game_objects_.emplace(unitId, go);
             return;
         }
+
+        if (unit_type == UnitPrefab::MINION) {
+            GameObject* go = new GameObject();
+            go->unit_id = unitId;
+            go->health = 10;
+            go->max_health = 10;
+            go->position = { pos.x, 0, pos.y };
+            go->rotation = { 0, 0, 0 };
+            go->has_healthbar = true;
+            go->has_title = false;
+            go->team = team;
+            go->renderable = TextureMesh::Load("models/cube_minion", direct3D);
+            go->renderable->position = go->position;
+            game_objects_.emplace(unitId, go);
+            return;
+        }
+
+        Logger::Err("Received spawn message for prefab that does not exist");
     }
 
     void Client::DespawnUnit(unsigned long unitId) {
@@ -1097,7 +1118,8 @@ namespace PMG {
                 go->position.x = go->position.x + (move.x - go->position.x) * diff;
                 go->position.y = go->position.y + (move.y - go->position.y) * diff;
                 go->position.z = go->position.z + (move.z - go->position.z) * diff;
-                go->rotation.y = go->rotation.y + (move.r - go->rotation.y) * diff;
+                // go->rotation.y = go->rotation.y + (move.r - go->rotation.y) * diff;
+                go->rotation.y = move.r; // this actually looks less fucked for now :O
 
                 break;
             }
@@ -1141,7 +1163,7 @@ namespace PMG {
                 GameObject* gp = GetGameObject(anim.unit_id);
 
                 if (gp != nullptr) {
-                    GetGameObject(anim.unit_id)->renderable->PlayAnimation(anim.animation_name);
+                    GetGameObject(anim.unit_id)->renderable->PlayAnimation(anim.animation_name, anim.loop);
                 }
                 break;
             }
@@ -1152,8 +1174,7 @@ namespace PMG {
                 GameObject* go = GetGameObject(part.unit);
 
                 if (game_objects_.find(current_tick_) == game_objects_.end()) {
-
-                    ParticleSystem* particle_system = new ParticleSystem("models/particle.dds");
+                    ParticleSystem* particle_system = new ParticleSystem(part.particle);
                     particle_system->particle_velocity = { 0, 0, 0 };
                     particle_system->particle_velocity_range = { 3, 3, 3 };
                     particle_system->particle_count = 100;

@@ -7,6 +7,7 @@ namespace PMG {
         static const unsigned long TOWER = 1;
         static const unsigned long FOOTBALL_PERSON = 2;
         static const unsigned long THROW_FOOTBALL = 3;
+        static const unsigned long MINION = 4;
     };
 
     enum class Team {

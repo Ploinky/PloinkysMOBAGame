@@ -24,7 +24,7 @@ namespace PMG {
         virtual ~Mesh();
 
         virtual void Update(double dt) {};
-        virtual void PlayAnimation(std::string animation_name) {
+        virtual void PlayAnimation(std::string animation_name, bool loop) {
             Logger::Err("Attempting to animate mesh that has no animations");
         };
         virtual void StopAnimation() {
@@ -60,7 +60,7 @@ namespace PMG {
         static TextureMesh* Load(std::string mesh_name, Direct3D* direct3D);
 
         virtual void Update(double dt) override {};
-        virtual void PlayAnimation(std::string animation_name) override {
+        virtual void PlayAnimation(std::string animation_name, bool loop) override {
             Logger::Err("Attempting to animate mesh that has no animations");
         };
         virtual void StopAnimation() override {
@@ -83,7 +83,7 @@ namespace PMG {
         virtual ~SkinnedTexturedMesh() override;
 
         virtual void Update(double dt) override;
-        virtual void PlayAnimation(std::string animation_name) override;
+        virtual void PlayAnimation(std::string animation_name, bool loop) override;
         virtual void StopAnimation() override;
         virtual void Render(Renderer* renderer) override;
 
@@ -99,6 +99,7 @@ namespace PMG {
         DirectX::XMMATRIX animation_palette[256];
         Animation* current_animation = nullptr;
         double current_animation_time = 0;
+        bool loop_animation;
         void CalculateMatrixPalette();
     };
 }

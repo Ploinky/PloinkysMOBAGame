@@ -113,13 +113,21 @@ namespace PMG {
 
 
         if (current_animation_time > current_animation->duration * 1000) {
-            current_animation_time = 0;
+            if (loop_animation) {
+                current_animation_time = 0;
+            }
+            else {
+                PlayAnimation("idle", true);
+                return;
+            }
         }
 
         CalculateMatrixPalette();
     }
 
-    void SkinnedTexturedMesh::PlayAnimation(std::string animation_name) {
+    void SkinnedTexturedMesh::PlayAnimation(std::string animation_name, bool loop) {
+        loop_animation = loop;
+
         auto it = animations.find(animation_name.c_str());
 
         if (it == animations.end() || it->second == nullptr) {

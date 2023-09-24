@@ -12,7 +12,7 @@ namespace PMG {
 
 		virtual void Render(Renderer* renderer) = 0;
 		virtual void Update(double dt) = 0;
-		virtual void PlayAnimation(std::string animation) = 0;
+		virtual void PlayAnimation(std::string animation, bool loop) = 0;
 
 		Physics::Vector3 position;
 		Physics::Vector3 rotation;

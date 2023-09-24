@@ -24,8 +24,6 @@ namespace PMG {
 		ThrowFootballMissileData() {
 			radius = 3;
 			speed = 30;
-			can_hit_allies = true;
-			can_hit_buildings = false;
 			distance = 10;
 		};
 	};
@@ -67,7 +65,9 @@ namespace PMG {
 
 	class BlastArea : public AreaSpell {
 	public:
-		BlastArea(SpellTargetInfo* target_info) : AreaSpell(BlastAreaData(), target_info) {};
+		BlastArea(SpellTargetInfo* target_info) : AreaSpell(BlastAreaData(), target_info) {
+			collision_radius = 3;
+		};
 		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target);
 	};
 

@@ -8,7 +8,10 @@ namespace PMG {
 	public:
 		Person() : Attackable({
 			100, 100
-		}) {};
+		}) {
+
+			collision_radius = 1;
+		};
 
 		virtual void Update(Game* game, float dt) override;
 		virtual void Act(Game* game, float dt) override;
@@ -20,11 +23,7 @@ namespace PMG {
 			-1,
 		};
 		AttackableStats frame_stats;
-		nav_agent_t nav_agent;
 		std::vector<Spell*> spells = {};
 		int current_status = 0;
-
-	private:
-		void MoveToward(double x, double z, Game* game, double move_speed);
 	};
 }

@@ -30,16 +30,21 @@ namespace PMG {
 		SpellTargetInfo* target_info = nullptr;
 		Attackable* owner = nullptr;
 
-		Physics::Vector3 position;
 		AreaSpellData spell_data;
 		std::set<Attackable*> objects_to_hit;
 
-		virtual void OnCollision(Game* game, IGameObject* other);
+		virtual void OnCollision(Game* game, IGameObject* other) override;
 		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) = 0;
-		virtual void Update(Game* game, float dt);
+		virtual void Update(Game* game, float dt) override;
+		virtual void Sync(std::vector<uint8_t>* data) override;
 
 	private:
 		double time_since_tick_ = 0;
 		double time_since_cast_ = 0;
+		// true -> initial spawn has been synced
+		bool spawn_synced = false;
+
+		// true -> stats need to be synced
+		bool stats_updated = true;
 	};
 }
