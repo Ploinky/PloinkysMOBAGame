@@ -17,11 +17,11 @@ namespace PMG {
 
         if (target != nullptr && scaled.Length() >= direction_vector.Length()) {
             target->TakeDamage(damage, owner);
-            game->DestroyGameObject(this);
+            is_destroyed = true;
             return;
         }
         else if(scaled.Length() >= direction_vector.Length()) {
-            game->DestroyGameObject(this);
+            is_destroyed = true;
             return;
         }
 
@@ -43,7 +43,7 @@ namespace PMG {
 
                     if (Physics::TestCollision(GetHitbox(), other_hitbox)) {
                         other->TakeDamage(damage, this);
-                        game->DestroyGameObject(this);
+                        is_destroyed = true;
                         return;
                     }
                 }
@@ -52,15 +52,7 @@ namespace PMG {
 
         position = position + scaled;
 
-        double rotationY = -atan2(target_current_position.z - position.z, target_current_position.x - position.x) * 180.0f / M_PI;
-        Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
-        move->unit = unit_id;
-        move->x = position.x;
-        move->y = position.y;
-        move->z = position.z;
-        move->r = rotationY;
-        game->SendPacket(move);
-        return;
+        rotation.y = -atan2(target_current_position.z - position.z, target_current_position.x - position.x) * 180.0f / M_PI;
     }
 
     void Missile::Sync(std::vector<uint8_t>* data) {

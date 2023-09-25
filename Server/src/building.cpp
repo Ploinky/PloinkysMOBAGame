@@ -50,17 +50,7 @@ namespace PMG {
 
             // attack triggered!
             if (basic_attack_info.type == MELEE) {
-                target->stats.health -= basic_attack_info.damage;
-
-                if (target->stats.health < 0) {
-                    target->stats.health = 0;
-                }
-
-                Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
-                stats->unit = target->unit_id;
-                stats->health = target->stats.health;
-                stats->max_health = target->stats.max_health;
-                game->SendPacket(stats);
+                target->TakeDamage(basic_attack_info.damage, this);
             }
             else {
                 Missile* basic_attack_missile = new Missile();
@@ -87,8 +77,13 @@ namespace PMG {
 				continue;
 			}
 
+
             if (Attackable* other = dynamic_cast<Attackable*>(other_go)) {
                 if (other->target_type == TargetType::UNTARGETABLE) {
+                    continue;
+                }
+
+                if (other->team == team) {
                     continue;
                 }
 
@@ -102,8 +97,8 @@ namespace PMG {
 	}
 
 	const AttackableStats tower_stats = {
-		500, // health
-		500, // max_health
+		1, // health
+		100, // max_health
 		0, // experience
 		0, // level
 		0, // health regen

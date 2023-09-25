@@ -58,8 +58,9 @@ namespace PMG {
 			radius = 3;
 			tickrate = 2;
 			duration = 1000;
-			can_hit_allies = true;
+			can_hit_allies = false;
 			can_hit_buildings = false;
+			can_hit_self = false;
 		};
 	};
 

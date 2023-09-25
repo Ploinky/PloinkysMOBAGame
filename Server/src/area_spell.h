@@ -17,10 +17,13 @@ namespace PMG {
 		double duration;
 
 		// can it?
-		bool can_hit_allies;
+		bool can_hit_self = false;
 
 		// can it?
-		bool can_hit_buildings;
+		bool can_hit_allies = false;
+
+		// can it?
+		bool can_hit_buildings = false;
 	};
 
 	class AreaSpell : public IGameObject {

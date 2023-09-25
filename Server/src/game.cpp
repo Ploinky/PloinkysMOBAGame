@@ -53,28 +53,9 @@ namespace PMG {
         player.networkId = netId;
         player.unitId = id;
         players_.emplace(netId, player);
-
-        Networking::SpawnPacket* spawn = new Networking::SpawnPacket();
-        spawn->unit = game_object->unit_id;
-        spawn->unit_type = UnitPrefab::FOOTBALL_PERSON;
-        spawn->team = game_object->team;
-        spawn->x = 0;
-        spawn->y = 0;
-        SendPacket(spawn);
-
-        Networking::UnitStatsPacket* stats = new Networking::UnitStatsPacket();
-        stats->unit = id;
-        stats->health = 100;
-        stats->max_health = 100;
-
-        SendPacket(stats);
     }
 
     void Game::RemovePlayerForNetworkId(unsigned long netId) {
-        Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
-        despawn->unit = players_.find(netId)->second.unitId;
-        SendPacket(despawn);
-
         IGameObject* go = igame_objects_.find(players_.find(netId)->second.unitId)->second;
         igame_objects_.erase(go->unit_id);
         delete go;
@@ -126,30 +107,31 @@ namespace PMG {
     }
 
     void Game::Start() {
-        Building* tower = new Building(Team::TEAM_2);
-        tower->position = { 10, 0, 0 };
+        Building* tower = new Building(Team::TEAM_1);
+        tower->position = { -20, 0, 2 };
         AddGameObject(tower);
 
         Building* tower2 = new Building(Team::TEAM_1);
-        tower2->position = { -10, 0, 0 };
+        tower2->position = { -10, 0, 2 };
         AddGameObject(tower2);
 
-        MinionSpawner* minion_spawner = new MinionSpawner({ {10, 0, 0} });
-        minion_spawner->position = { -5, 0, 0 };
+        Building* tower3 = new Building(Team::TEAM_2);
+        tower3->position = { 10, 0, 2 };
+        AddGameObject(tower3);
+
+        Building* tower4 = new Building(Team::TEAM_2);
+        tower4->position = { 20, 0, 2 };
+        AddGameObject(tower4);
+
+        MinionSpawner* minion_spawner = new MinionSpawner({ {30, 0, 0} });
+        minion_spawner->position = { -25, 0, 0 };
         minion_spawner->team = Team::TEAM_1;
         AddGameObject(minion_spawner);
 
-        MinionSpawner* minion_spawner2 = new MinionSpawner({ {-10, 0, 0} });
-        minion_spawner2->position = { 5, 0, 0 };
+        MinionSpawner* minion_spawner2 = new MinionSpawner({ {-30, 0, 0} });
+        minion_spawner2->position = { 25, 0, 0 };
         minion_spawner2->team = Team::TEAM_2;
         AddGameObject(minion_spawner2);
-    }
-
-    void Game::DestroyGameObject(IGameObject* to_destroy) {
-        Networking::DespawnPacket* despawn = new Networking::DespawnPacket();
-        despawn->unit = to_destroy->unit_id;
-        SendPacket(despawn);
-        to_destroy->is_destroyed = true;
     }
 
     void Game::CheckCollision(IGameObject* collider) {
@@ -204,11 +186,6 @@ namespace PMG {
         std::vector<uint8_t> data;
         data.resize(sizeof(header));
 
-        for (Networking::BasePacket* base : tick_packets_) {
-            //base->Write(&data);
-            //header.size = data.size();
-        }
-
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
             go->Sync(&data);
@@ -225,8 +202,6 @@ namespace PMG {
         all_ticks.push_back(data);
 
         on_sendToAllClients(&data);
-
-        tick_packets_.clear();
 
         // TODO why is this stupid
         std::erase_if(igame_objects_, [](auto& kv) {

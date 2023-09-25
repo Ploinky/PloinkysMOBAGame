@@ -13,6 +13,10 @@ namespace PMG {
 			return;
 		}
 
+		if (!spell_data.can_hit_self && target->unit_id == owner->unit_id) {
+			return;
+		}
+
 		if (!spell_data.can_hit_allies && target->team == owner->team) {
 			return;
 		}
@@ -40,7 +44,7 @@ namespace PMG {
 
 		// check if we need to stop
 		if (time_since_cast_ >= spell_data.duration) {
-			game->DestroyGameObject(this);
+			is_destroyed = true;
 			return;
 		}
 

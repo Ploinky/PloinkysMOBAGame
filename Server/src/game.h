@@ -73,11 +73,6 @@ namespace PMG {
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
         void PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info);
 
-
-        void SendPacket(Networking::BasePacket* packet) {
-            tick_packets_.push_back(packet);
-        }
-
         IGameObject* GetGameObjectById(unsigned int id) {
             auto it = this->igame_objects_.find(id);
             
@@ -91,8 +86,6 @@ namespace PMG {
         void AddGameObject(IGameObject* game_object);
         void SpawnMissile(Missile* missile);
 
-        void DestroyGameObject(IGameObject* to_destroy);
-
         void CheckCollision(IGameObject* collider);
 
         void Update(float dt);
@@ -100,7 +93,6 @@ namespace PMG {
         unsigned long gameTick = 0;
         unsigned long current_entity_id_ = 0;
 
-        std::vector<Networking::BasePacket*> tick_packets_;
         std::vector<std::vector<uint8_t>> all_ticks;
         std::map<unsigned int, IGameObject*> igame_objects_;
     private:

@@ -41,7 +41,7 @@ namespace PMG {
 
 		// TODO this does not work
 		if (spell_data.max_targets_hit == 1) {
-			game->DestroyGameObject(this);
+			is_destroyed = true;
 		}
 	}
 
@@ -55,7 +55,7 @@ namespace PMG {
         }
 
 		if (spell_data.distance != -1 && (position -origin).Length() >= spell_data.distance) {
-			game->DestroyGameObject(this);
+			is_destroyed = true;
 			return;
         }
 
