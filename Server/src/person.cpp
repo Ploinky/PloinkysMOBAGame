@@ -208,4 +208,10 @@ namespace PMG {
             pck->Write(data);
         }
     }
+
+    void Person::Die() {
+        // we do not die!!!
+        position = { 0, 0, 0 };
+        stats.health = stats.max_health;
+    }
 }

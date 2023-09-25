@@ -43,6 +43,8 @@ namespace PMG {
 		void TakeDamage(float damage, IGameObject* source);
 		void Heal(float heal, IGameObject* source);
 
+		virtual void Die();
+
 		GameObjectAction* current_action_ = nullptr;
 
 		std::string new_animation;

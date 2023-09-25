@@ -23,6 +23,7 @@ namespace PMG {
 		if (stats.health <= 0) {
 			// TODO die?
 			stats.health = 0;
+			Die();
 		}
 
 		stats_updated = true;
@@ -103,6 +104,9 @@ namespace PMG {
 		}
 	}
 
+	void Attackable::Die() {
+		is_destroyed = true;
+	}
 
 	void Attackable::Sync(std::vector<uint8_t>* data) {
 		if (!spawn_synced && !is_destroyed) {

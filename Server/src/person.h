@@ -17,6 +17,8 @@ namespace PMG {
 		virtual void Act(Game* game, float dt) override;
 		virtual void Sync(std::vector<uint8_t>* data) override;
 
+		virtual void Die() override;
+
 
 		spell_cast_info_t spell_cast_info = {
 			0,
