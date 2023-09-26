@@ -44,7 +44,7 @@ namespace PMG {
 
 		ParticleSpawner* part = new ParticleSpawner();
 		part->attached_to = target_info->target;
-		part->particle_name = "models/particle.dds";
+		part->particle_name = "models/heal_person.pts";
 		game->AddGameObject(part);
 	}
 
@@ -60,7 +60,7 @@ namespace PMG {
 
 		ParticleSpawner* part = new ParticleSpawner();
 		part->attached_to = blast_area;
-		part->particle_name = "models/blast_area.dds";
+		part->particle_name = "models/blast_area.pts";
 		game->AddGameObject(part);
 	}
 

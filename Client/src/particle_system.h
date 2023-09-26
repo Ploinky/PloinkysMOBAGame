@@ -5,13 +5,15 @@
 #include <vector>
 #include "renderer.h"
 #include "game_object.h"
+#include "particle_emitter.h"
 
 namespace PMG {
 	class ParticleSystem : public GameObject {
 	public:
-		ParticleSystem(std::string texture_name);
+		ParticleSystem();
 		virtual ~ParticleSystem() override;
-		std::vector<Particle> particles;
+
+		static ParticleSystem* Load(std::string file_name);
 
 		void Render(Renderer* renderer);
 		bool Initialize(Direct3D* direct3D);
@@ -19,21 +21,10 @@ namespace PMG {
 
 		void Attach(GameObject* other);
 
-		// TODO privatize
-		Physics::Vector3 particle_velocity;
-		Physics::Vector3 particle_velocity_range;
-		int particle_count;
-		int system_lifetime;
+		void AddEmitter(ParticleEmitter* emitter);
+
 	private:
-		ID3D11Buffer* vertex_buffer_;
-		ID3D11Buffer* instance_buffer_;
-		ID3D11ShaderResourceView* texture_;
-		bool initialized;
-		std::string texture_name_;
-
-
 		GameObject* attached_to_ = nullptr;
-
-		double life;
+		std::vector<ParticleEmitter*> emitters_;
 	};
 }

@@ -404,13 +404,7 @@ namespace PMG {
                 mv.y = y;
                 net_manager_.SendPacket(&mv);
 
-
-                ParticleSystem* particle_system = new ParticleSystem("models/move_to.dds");
-                particle_system->particle_velocity.x = 0;
-                particle_system->particle_velocity.y = 2;
-                particle_system->particle_velocity.z = 0;
-                particle_system->particle_count = 1;
-                particle_system->system_lifetime = 300;
+                ParticleSystem* particle_system = ParticleSystem::Load("models/move_to.pts");
                 particle_system->Initialize(direct3D);
                 particle_system->position = { x, 0, y };
 
@@ -1174,11 +1168,9 @@ namespace PMG {
                 GameObject* go = GetGameObject(part.unit);
 
                 if (game_objects_.find(current_tick_) == game_objects_.end()) {
-                    ParticleSystem* particle_system = new ParticleSystem(part.particle);
-                    particle_system->particle_velocity = { 0, 0, 0 };
-                    particle_system->particle_velocity_range = { 3, 3, 3 };
-                    particle_system->particle_count = 100;
-                    particle_system->system_lifetime = 400;
+
+
+                    ParticleSystem* particle_system = ParticleSystem::Load(part.particle);
                     particle_system->Initialize(direct3D);
                     particle_system->Attach(go);
 

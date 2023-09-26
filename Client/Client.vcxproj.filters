@@ -144,6 +144,9 @@
     <ClCompile Include="src\particle_shader.cpp">
       <Filter>Source Files\graphics\shaders</Filter>
     </ClCompile>
+    <ClCompile Include="src\particle_emitter.cpp">
+      <Filter>Source Files\graphics\particles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DDSTextureLoader11.h">
@@ -217,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="src\renderable.h">
       <Filter>Header Files\game_object</Filter>
+    </ClInclude>
+    <ClInclude Include="src\particle_emitter.h">
+      <Filter>Header Files\graphics\particles</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
