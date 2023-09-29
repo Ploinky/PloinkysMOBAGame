@@ -63,8 +63,13 @@ namespace PMG {
             return false;
         }
 
-        // Create depth buffer and depth stencil view
+        // Create alpha blend state
         if (!CreateAlphaBlendState()) {
+            return false;
+        }
+
+        // Create depth stencil state
+        if (!CreateDepthStencilState()) {
             return false;
         }
 
@@ -375,7 +380,7 @@ namespace PMG {
         blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
         blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
         blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = 0x0f;//D3D11_COLOR_WRITE_ENABLE_ALL;
 
         alpha_blend_state = nullptr;
         
@@ -386,6 +391,7 @@ namespace PMG {
             return false;
         }
 
+        blend_desc.RenderTarget[0].BlendEnable = false;
         hr = device->CreateBlendState(&blend_desc, &alpha_blend_disabled_state);
 
         if (FAILED(hr)) {
@@ -400,6 +406,17 @@ namespace PMG {
         return true;
     }
 
+    bool Direct3D::CreateDepthStencilState() {
+        D3D11_DEPTH_STENCIL_DESC depth_write_enabled_desc{};
+        depth_write_enabled_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        depth_write_enabled_desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+        depth_write_enabled_desc.DepthEnable = true;
+
+
+        HRESULT hr = device->CreateDepthStencilState(&depth_write_enabled_desc, &depthState);
+        return !FAILED(hr);
+    }
+
     void Direct3D::EnableAlphaBlending() {
         float input[4] = { 0,0,0,0 };
         context->OMSetBlendState(alpha_blend_state, 0, 0xffffffffff);
@@ -408,6 +425,16 @@ namespace PMG {
     void Direct3D::DisableAlphaBlending() {
         float input[4] = { 0,0,0,0 };
         context->OMSetBlendState(alpha_blend_disabled_state, input, 1);
+        context->OMSetDepthStencilState(nullptr, 0);
+    }
+
+
+    void Direct3D::EnableDepthStencilState() {
+        context->OMSetDepthStencilState(depthState, 0);
+    }
+
+    void Direct3D::DisableDepthStencilState() {
+        context->OMSetDepthStencilState(nullptr, 0);
     }
 
     bool Direct3D::InitializeDirectWrite() {

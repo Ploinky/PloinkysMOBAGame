@@ -37,7 +37,7 @@ namespace PMG {
 	class KnockedOutCold : public Buff {
 	public:
 		KnockedOutCold();
-		virtual void Apply(stats_t* stats, int* status_enable, int* status_disable);
+		virtual void Apply(AttackableStats* stats, int* status_enable, int* status_disable);
 	};
 
 	class HealPerson : public Spell {
@@ -81,6 +81,6 @@ namespace PMG {
 	class RunFast : public Buff {
 	public:
 		RunFast();
-		virtual void Apply(stats_t* stats, int* status_enable, int* status_disable);
+		virtual void Apply(AttackableStats* stats, int* status_enable, int* status_disable);
 	};
 }

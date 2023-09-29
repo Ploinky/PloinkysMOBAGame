@@ -90,7 +90,7 @@ namespace PMG {
             void TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y);
 
             void SpawnUnit(UnitId id);
-            void SpawnUnit(UnitId unitId, unsigned long unit_type, Team team, Physics::Vector2 pos);
+            void SpawnUnit(UnitId unitId, unsigned long unit_type, Team team, Physics::Vector3 pos);
             void DespawnUnit(UnitId id);
 
             GameObject* GetGameObject(UnitId unit_id);

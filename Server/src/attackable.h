@@ -9,6 +9,8 @@ namespace PMG {
 
 	class AttackableStats {
 	public:
+		int move_speed;
+
 		int health;
 		int max_health;
 
@@ -36,9 +38,9 @@ namespace PMG {
 			Update(dt);
 		};
 		void Update(float dt);
-		virtual void OnCollision(Game* game, IGameObject* other) {};
+		virtual void OnCollision(Game* game, IGameObject* other) override;
 		virtual void Sync(std::vector<uint8_t>* data) override;
-		void MoveToward(double x, double z, Game* game, double move_speed);
+		void MoveToward(double x, double z, Game* game);
 
 		void TakeDamage(float damage, IGameObject* source);
 		void Heal(float heal, IGameObject* source);
@@ -50,6 +52,8 @@ namespace PMG {
 		std::string new_animation;
 
 		AttackableStats stats;
+		AttackableStats modifiers;
+
 		TargetType target_type;
 
 		unsigned long prefab = UnitPrefab::GENERIC_EMPTY;

@@ -8,14 +8,14 @@ namespace PMG {
     void Person::Update(Game* game, float dt) {
         Attackable::Update(game, dt);
 
-        stats_t frame_stats;
         int status_enable = 0;
         int status_disable = 0;
         current_status = 0;
 
+        modifiers = stats;
         for (Buff* buff : buffs) {
             buff->Update(dt);
-            buff->Apply(&frame_stats, &status_enable, &status_disable);
+            buff->Apply(&modifiers, &status_enable, &status_disable);
         }
 
         // now remove buffs that have run out
@@ -72,7 +72,7 @@ namespace PMG {
                     if (nav_agent.target.x != target->position.x || nav_agent.target.z != target->position.z) {
                         // start pathing!
                     }
-                    MoveToward(target->position.x, target->position.z, game, 3);
+                    MoveToward(target->position.x, target->position.z, game);
                     new_animation = "run";
                     break;
                 }
@@ -82,7 +82,7 @@ namespace PMG {
                         // start pathing!
                     }
                     // move towards target?
-                    MoveToward(target->position.x, target->position.z, game, 3);
+                    MoveToward(target->position.x, target->position.z, game);
 
                     new_animation = "run";
                     break;
@@ -142,7 +142,7 @@ namespace PMG {
                 basic_attack_info.attack_started = false;
                 spell_cast_info.current_spell = -1;
                 GameObjectActionMove* action = (GameObjectActionMove*)current_action_;
-                MoveToward(action->target_point.x, action->target_point.y, game, 3);
+                MoveToward(action->target_point.x, action->target_point.y, game);
 
                 new_animation = "run";
                 break;

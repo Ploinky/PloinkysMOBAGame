@@ -46,11 +46,15 @@ namespace PMG {
             void EnableAlphaBlending();
             void DisableAlphaBlending();
 
+            void EnableDepthStencilState();
+            void DisableDepthStencilState();
+
             ID3D11Device* device;
             ID3D11DeviceContext* context;
 
             ID3D11RenderTargetView* renderTargetView;
             ID2D1RenderTarget* renderTarget2D;
+            ID3D11DepthStencilState* depthState;
             ID3D11DepthStencilView* depthView;
             ID3D11BlendState* alpha_blend_state;
             ID3D11BlendState* alpha_blend_disabled_state;
@@ -73,6 +77,8 @@ namespace PMG {
             bool Create2DSurface();
             // Creates alpha blend state
             bool CreateAlphaBlendState();
+            // Creates depth stencil state
+            bool CreateDepthStencilState();
 
             bool InitializeDirectWrite();
             // Bind render target and depth buffer view to output merger stage

@@ -34,8 +34,6 @@ namespace PMG {
 	void ParticleSystem::Update(double dt) {
 		if (attached_to_ != nullptr) {
 			position = attached_to_->position;
-			position.y += 1;
-			// rotation = attached_to_->rotation;
 		}
 
 		bool done = false;
@@ -59,6 +57,11 @@ namespace PMG {
 
 	void ParticleSystem::Attach(GameObject* other) {
 		attached_to_ = other;
+
+		position = other->position;
+		for (ParticleEmitter* emitter : emitters_) {
+			emitter->position = position;
+		}
 	}
 
 	void ParticleSystem::AddEmitter(ParticleEmitter* emitter) {

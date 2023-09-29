@@ -464,9 +464,11 @@ namespace PMG {
 
     void Renderer::EnableAlphaBlending() {
         direct3D->EnableAlphaBlending();
+        direct3D->EnableDepthStencilState();
     }
 
     void Renderer::DisableAlphaBlending() {
-        direct3D->EnableAlphaBlending();
+        direct3D->DisableAlphaBlending();
+        direct3D->DisableDepthStencilState();
     }
 }

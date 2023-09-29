@@ -97,6 +97,7 @@ namespace PMG {
 	}
 
 	const AttackableStats tower_stats = {
+        0, // move_speed
 		1, // health
 		100, // max_health
 		0, // experience

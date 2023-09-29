@@ -71,13 +71,6 @@ namespace PMG {
 		int current_spell;
 	} spell_cast_info_t;
 
-	typedef struct {
-		bool can_move;
-		int health;
-		int max_health;
-		int base_speed;
-	} stats_t;
-
 	class GameObjectController {
 	public:
 		virtual void Think(Game* game, GameObject* go) {};

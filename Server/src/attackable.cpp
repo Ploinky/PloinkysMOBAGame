@@ -4,6 +4,8 @@
 
 namespace PMG {
 	void Attackable::Update(float dt) {
+		modifiers = stats;
+
 		if (stats.health == stats.max_health) {
 			return;
 		}
@@ -43,7 +45,7 @@ namespace PMG {
 		stats_updated = true;
 	}
 
-	void Attackable::MoveToward(double x, double z, Game* game, double move_speed) {
+	void Attackable::MoveToward(double x, double z, Game* game) {
 		nav_agent_t navAgent = nav_agent;
 		navAgent.target.x = x;
 		navAgent.target.z = z;
@@ -93,8 +95,8 @@ namespace PMG {
 		dx /= length;
 		dy /= length;
 
-		float newX = position.x + move_speed * dx * TICKRATE / 1000.0f;
-		float newY = position.z + move_speed * dy * TICKRATE / 1000.0f;
+		float newX = position.x + modifiers.move_speed * dx * TICKRATE / 1000.0f;
+		float newY = position.z + modifiers.move_speed * dy * TICKRATE / 1000.0f;
 
 		position.x = (position.x < tx && newX >= tx) || (position.x > tx && newX <= tx) ? tx : newX;
 		position.z = (position.z < ty && newY >= ty) || (position.z > ty && newY <= ty) ? ty : newY;
@@ -108,6 +110,26 @@ namespace PMG {
 		is_destroyed = true;
 	}
 
+	void Attackable::OnCollision(Game* game, IGameObject* o) {
+		Attackable* other = dynamic_cast<Attackable*>(o);
+
+		if (other == nullptr || target_type == TargetType::BUILDING || (current_action_ != nullptr && current_action_->type != GameObjectActionType::MOVE)) {
+			// only collide with other attackables
+			return;
+		}
+
+		// find direction in which to push
+		Physics::Vector3 dir = position - o->position;
+		float dist = dir.Length();
+		dir = dir.Normalize();
+		
+		// find distance to push
+		dir = dir.ScaleToLength(o->collision_radius - dist);
+
+		// push
+		position = position + dir;
+	}
+
 	void Attackable::Sync(std::vector<uint8_t>* data) {
 		if (!spawn_synced && !is_destroyed) {
 			Networking::SpawnPacket pck = Networking::SpawnPacket();
@@ -116,6 +138,7 @@ namespace PMG {
 			pck.unit_type = prefab;
 			pck.x = position.x;
 			pck.y = position.y;
+			pck.z = position.z;
 
 			pck.Write(data);
 			spawn_synced = true;
@@ -127,17 +150,6 @@ namespace PMG {
 
 			pck.Write(data);
 			spawn_synced = false;
-		}
-
-		if (stats_updated) {
-			Networking::UnitStatsPacket pck = Networking::UnitStatsPacket();
-			pck.unit = unit_id;
-			pck.health = stats.health;
-			pck.max_health = stats.max_health;
-
-			pck.Write(data);
-
-			stats_updated = false;
 		}
 
 		if (stats_updated) {

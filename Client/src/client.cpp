@@ -457,7 +457,7 @@ namespace PMG {
         for (auto mesh : mapMeshVector) {
             mesh->Render(renderer);
         }
-
+        
         for (auto go_it : game_objects_) {
             GameObject* go = go_it.second;
 
@@ -924,10 +924,10 @@ namespace PMG {
     }
 
     void Client::SpawnUnit(unsigned long unitId) {
-        SpawnUnit(unitId, 0, Team::TEAM_1, Physics::Vector2( 0, 0 ));
+        SpawnUnit(unitId, 0, Team::TEAM_1, Physics::Vector3( 0, 0, 0 ));
     }
 
-    void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector2 pos) {
+    void Client::SpawnUnit(unsigned long unitId, unsigned long unit_type, Team team, Physics::Vector3 pos) {
         if (game_objects_.find(unitId) != game_objects_.end()) {
             // already spawned!
             return;
@@ -939,7 +939,7 @@ namespace PMG {
             go->health = 50;
             go->max_health = 100;
             go->renderable = TextureMesh::Load("models/missile", direct3D);
-            go->position = { pos.x, 0, pos.y };
+            go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
             go->team = team;
@@ -956,7 +956,7 @@ namespace PMG {
             go->health = 50;
             go->max_health = 100;
             go->renderable = SkinnedTexturedMesh::Load("models/chess_person", direct3D);
-            go->position = { pos.x, 0, pos.y };
+            go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->team = team;
             game_objects_.emplace(unitId, go);
@@ -969,7 +969,7 @@ namespace PMG {
             go->health = 50;
             go->max_health = 100;
             go->renderable = TextureMesh::Load("models/tower", direct3D);
-            go->position = { pos.x, 0, pos.y };
+            go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
             go->has_title = false;
@@ -983,7 +983,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->position = { pos.x, 0, pos.y };
+            go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
             go->has_title = false;
@@ -997,7 +997,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 10;
             go->max_health = 10;
-            go->position = { pos.x, 0, pos.y };
+            go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
             go->has_title = false;
@@ -1094,7 +1094,7 @@ namespace PMG {
                 Networking::SpawnPacket spawn = Networking::SpawnPacket();
                 spawn.Read(&new_data);
 
-                SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector2{ spawn.x, spawn.y });
+                SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Physics::Vector3{ spawn.x, spawn.y, spawn.z });
                 break;
             }
             case Networking::PacketType::UNITMOVE:

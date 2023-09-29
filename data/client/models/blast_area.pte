@@ -12,4 +12,5 @@ static_angle_x=90
 static_angle_y=0
 static_angle_z=0
 particle_count=1
-emitter_lifetime=400
+emitter_lifetime=1000
+particle_lifetime=1000

@@ -182,6 +182,7 @@ namespace PMG::Networking {
         Team team;
         float x;
         float y;
+        float z;
     };
 
     class UnitMovePacket : public BasePacket {

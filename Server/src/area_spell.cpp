@@ -59,7 +59,8 @@ namespace PMG {
 			pck.team = owner->team;
 			pck.unit_type = UnitPrefab::GENERIC_EMPTY;
 			pck.x = position.x;
-			pck.y = position.y;
+			pck.y = 0.1f;
+			pck.z = position.z;
 
 			pck.Write(data);
 			spawn_synced = true;
@@ -76,7 +77,7 @@ namespace PMG {
 		Networking::UnitMovePacket* move = new Networking::UnitMovePacket();
 		move->unit = unit_id;
 		move->x = position.x;
-		move->y = position.y;
+		move->y = 0.1f;
 		move->z = position.z;
 		move->r = rotation.y;
 		move->Write(data);

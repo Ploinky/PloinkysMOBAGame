@@ -31,7 +31,7 @@ namespace PMG {
 		total_duration = 1000;
 	}
 
-	void KnockedOutCold::Apply(stats_t* stats, int* status_enable, int* status_disable) {
+	void KnockedOutCold::Apply(AttackableStats* stats, int* status_enable, int* status_disable) {
 		*status_enable |= STATUS_STUNNED;
 	}
 
@@ -81,8 +81,8 @@ namespace PMG {
 		total_duration = 5000;
 	}
 
-	void RunFast::Apply(stats_t* stats, int* status_enable, int* status_disable) {
-		stats->base_speed *= 2;
+	void RunFast::Apply(AttackableStats* stats, int* status_enable, int* status_disable) {
+		stats->move_speed *= 2;
 	}
 
 	FootballPerson::FootballPerson() : Person() {

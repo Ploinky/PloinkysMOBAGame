@@ -25,6 +25,9 @@ namespace PMG {
 
 		Physics::Vector3 particle_velocity;
 		Physics::Vector3 particle_velocity_range;
+
+		Physics::Vector3 particle_offset;
+		Physics::Vector3 particle_offset_range;
 		int particle_count;
 		int emitter_lifetime;
 		std::vector<Particle> particles;

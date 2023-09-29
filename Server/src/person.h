@@ -7,7 +7,7 @@ namespace PMG {
 	class Person : public Attackable {
 	public:
 		Person() : Attackable({
-			100, 100
+			3, 100, 100
 		}) {
 
 			collision_radius = 1;
@@ -24,7 +24,7 @@ namespace PMG {
 			0,
 			-1,
 		};
-		AttackableStats frame_stats;
+		
 		std::vector<Spell*> spells = {};
 		int current_status = 0;
 	};

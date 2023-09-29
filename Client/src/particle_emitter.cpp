@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "DDSTextureLoader11.h"
 #include "util.h"
+#include <algorithm>
 
 namespace PMG {
 	ParticleEmitter::ParticleEmitter(std::string texture_name) : texture_name_(texture_name) {
@@ -38,6 +39,24 @@ namespace PMG {
 			}
 			else if (token.compare("particle_velocity_range_z") == 0) {
 				particle_emitter->particle_velocity_range.z = std::stof(line.substr(line.find("=") + 1));
+			}
+			else if (token.compare("particle_offset_x") == 0) {
+				particle_emitter->particle_offset.x = std::stof(line.substr(line.find("=") + 1));
+			}
+			else if (token.compare("particle_offset_y") == 0) {
+				particle_emitter->particle_offset.y = std::stof(line.substr(line.find("=") + 1));
+			}
+			else if (token.compare("particle_offset_z") == 0) {
+				particle_emitter->particle_offset.z = std::stof(line.substr(line.find("=") + 1));
+			}
+			else if (token.compare("particle_offset_range_x") == 0) {
+				particle_emitter->particle_offset_range.x = std::stof(line.substr(line.find("=") + 1));
+			}
+			else if (token.compare("particle_offset_range_y") == 0) {
+				particle_emitter->particle_offset_range.y = std::stof(line.substr(line.find("=") + 1));
+			}
+			else if (token.compare("particle_offset_range_z") == 0) {
+				particle_emitter->particle_offset_range.z = std::stof(line.substr(line.find("=") + 1));
 			}
 			else if (token.compare("particle_scale_x") == 0) {
 				particle_emitter->particle_scale.x = std::stof(line.substr(line.find("=") + 1));
@@ -124,7 +143,26 @@ namespace PMG {
 				velZ += ((rand() % (int)(particle_velocity_range.z * 100.0f)) / 100.0f) - particle_velocity_range.z / 2;
 
 			}
-			particles.push_back({ {0, 0, 0}, {1, 0, 0, 1}, { velX,velY, velZ } });
+
+			float posX = particle_offset.x;
+
+			if (particle_offset_range.x != 0) {
+				posX += ((rand() % (int)(particle_offset_range.x * 100.0f)) / 100.0f) - particle_offset_range.x / 2;
+
+			}
+			float posY = particle_offset.y;
+
+			if (particle_offset_range.y != 0) {
+				posY += ((rand() % (int)(particle_offset_range.y * 100.0f)) / 100.0f) - particle_offset_range.y / 2;
+
+			}
+			float posZ = particle_offset.z;
+
+			if (particle_offset_range.z != 0) {
+				posZ += ((rand() % (int)(particle_offset_range.z * 100.0f)) / 100.0f) - particle_offset_range.z / 2;
+
+			}
+			particles.push_back({ {posX, posY, posZ}, {1, 0, 0, 1}, { velX,velY, velZ } });
 			//particles.push_back({ {0, 0, 0}, {1, 0, 0, 1}, { 0, (rand() % 100) / 10.0, 0 }, 0 });
 			test = 0;
 		}
@@ -165,6 +203,14 @@ namespace PMG {
 		renderer->UpdateShaderConst<particle_shader_model_const_t>(model_data);
 
 		std::vector<particle_instance_data_t> instances;
+
+		std::sort(particles.begin(), particles.end(), [renderer, this](Particle& a, Particle& b) {
+			Physics::Vector3 aVec = a.position + position;
+			aVec.y = 0;
+			Physics::Vector3 bVec = b.position + position;
+			bVec.y = 0;
+			return (renderer->camera->position - a.position).Length() > (renderer->camera->position - b.position).Length();
+		});
 
 		for (const Particle& particle : particles) {
 			particle_instance_data_t p;

@@ -4,6 +4,7 @@
 
 namespace PMG {
 	AttackableStats minion_attackable_stats = {
+        3, // move_speed
 		10,
 		10,
 		0,
@@ -12,6 +13,8 @@ namespace PMG {
 	};
 
 	void Minion::Update(Game* game, float dt) {
+        Attackable::Update(game, dt);
+
         if (current_action_ != nullptr && current_action_->type == GameObjectActionType::ATTACK_UNIT) {
             GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action_;
             Attackable* target = (Attackable*)game->GetGameObjectById(action->target_net_id);
@@ -24,7 +27,7 @@ namespace PMG {
 
 
             if ((target->position - position).Length() > basic_attack_info.range) {
-                MoveToward(target->position.x, target->position.z, game, 3);
+                MoveToward(target->position.x, target->position.z, game);
                 return;
             }
 
@@ -103,6 +106,6 @@ namespace PMG {
             }
         }
 
-        MoveToward(waypoints_[0].x, waypoints_[0].z, game, 3);
+        MoveToward(waypoints_[0].x, waypoints_[0].z, game);
 	};
 }
