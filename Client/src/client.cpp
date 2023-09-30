@@ -1,22 +1,22 @@
-#include "client.h"
+#include "Client.h"
 #include <iostream>
-#include "window.h"
-#include "vertex.h"
+#include "Window.h"
+#include "Vertex.h"
 #include "logger.h"
-#include "direct3d.h"
-#include "renderer.h"
+#include "Direct3D.h"
+#include "Renderer.h"
 #include <directxmath.h>
-#include "camera.h"
-#include "map.h"
+#include "Camera.h"
+#include "Map.h"
 #include <sstream>
 #include "util.h"
 #include "navigation.h"
 #include <locale>
-#include "settings.h"
-#include "audio_system.h"
-#include "mesh.h"
+#include "Settings.h"
+#include "AudioSystem.h"
+#include "Mesh.h"
 #include "pmg_networking.h"
-#include "particle_system.h"
+#include "ParticleSystem.h"
 
 namespace PMG {
     Client::Client() {

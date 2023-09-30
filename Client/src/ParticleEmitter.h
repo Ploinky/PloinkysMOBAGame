@@ -1,8 +1,8 @@
 #pragma once
 
 #include "pmg_physics.h"
-#include "particle.h"
-#include "renderer.h"
+#include "Particle.h"
+#include "Renderer.h"
 
 namespace PMG {
 	class ParticleEmitter {

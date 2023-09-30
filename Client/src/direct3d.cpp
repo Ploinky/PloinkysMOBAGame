@@ -1,14 +1,14 @@
-#include "direct3d.h"
-#include "mesh.h"
+#include "Direct3D.h"
+#include "Mesh.h"
 #include "logger.h"
-#include "vertex.h"
+#include "Vertex.h"
 #include <comdef.h>
 #include <sstream>
 #include <vector>
 #include <type_traits>
 #include "util.h"
 #include <DirectXMath.h>
-#include "settings.h"
+#include "Settings.h"
 
 namespace PMG {
     Direct3D::~Direct3D() {

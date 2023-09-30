@@ -1,4 +1,4 @@
-#include "armature.h"
+#include "Armature.h"
 #include <fstream>
 #include "logger.h"
 

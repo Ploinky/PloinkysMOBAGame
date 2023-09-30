@@ -1,12 +1,12 @@
-#include "window.h"
+#include "Window.h"
 #include <windowsx.h>
 #include <iostream>
 #include <string>
-#include "direct3d.h"
-#include "mesh.h"
+#include "Direct3D.h"
+#include "Mesh.h"
 #include "logger.h"
-#include "resource.h"
-#include "settings.h"
+#include "Resource.h"
+#include "Settings.h"
 
 LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     PMG::Window* window = (PMG::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);

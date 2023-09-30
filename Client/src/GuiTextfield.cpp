@@ -1,5 +1,5 @@
-#include "gui.h"
-#include "renderer.h"
+#include "Gui.h"
+#include "Renderer.h"
 
 namespace PMG {
 	void GuiTextfield::Render(Renderer* renderer) {

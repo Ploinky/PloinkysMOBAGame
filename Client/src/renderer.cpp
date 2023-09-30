@@ -1,14 +1,14 @@
-#include "renderer.h"
-#include "mesh.h"
+#include "Renderer.h"
+#include "Mesh.h"
 #include "logger.h"
-#include "vertex.h"
-#include "direct3d.h"
+#include "Vertex.h"
+#include "Direct3D.h"
 #include "util.h"
-#include "camera.h"
-#include "shader.h"
+#include "Camera.h"
+#include "Shader.h"
 #include <DirectXMath.h>
-#include "animation.h"
-#include "particle_shader.h"
+#include "Animation.h"
+#include "ParticleShader.h"
 
 namespace PMG {
     Renderer::~Renderer() {

@@ -1,8 +1,8 @@
-#include "client_network_manager.h"
+#include "ClientNetworkManager.h"
 #include "logger.h"
 #include "pmg_networking.h"
 
-#include "client.h"
+#include "Client.h"
 
 namespace PMG {
 	bool ClientNetworkManager::IsConnected() {

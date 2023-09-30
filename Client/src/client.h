@@ -4,11 +4,11 @@
 #include <list>
 #include <string>
 #include <map>
-#include "client_network_manager.h"
-#include "audio_system.h"
-#include "settings.h"
+#include "ClientNetworkManager.h"
+#include "AudioSystem.h"
+#include "Settings.h"
 #include "pmg_physics.h"
-#include "game_object.h"
+#include "GameObject.h"
 
 // Main game application
 namespace PMG {

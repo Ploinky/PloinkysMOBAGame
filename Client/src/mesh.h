@@ -3,13 +3,13 @@
 #include "d3d11.h"
 #include <stdint.h>
 #include <DirectXMath.h>
-#include "shader.h"
+#include "Shader.h"
 #include <string>
 #include "pmg_physics.h"
-#include "armature.h"
+#include "Armature.h"
 #include <map>
-#include "animation.h"
-#include "renderer.h"
+#include "Animation.h"
+#include "Renderer.h"
 #include "logger.h"
 
 namespace PMG {

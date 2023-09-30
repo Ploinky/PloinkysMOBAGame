@@ -1,8 +1,8 @@
-#include "audio_system.h"
+#include "AudioSystem.h"
 
 #include <combaseapi.h>
 #include <string>
-#include "settings.h"
+#include "Settings.h"
 #include "logger.h"
 
 

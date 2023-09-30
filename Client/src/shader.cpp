@@ -1,5 +1,5 @@
-#include "shader.h"
-#include "direct3D.h"
+#include "Shader.h"
+#include "Direct3D.h"
 #include "util.h"
 
 namespace PMG {

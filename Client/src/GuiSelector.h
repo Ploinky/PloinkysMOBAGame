@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gui.h"
-#include "renderer.h"
+#include "Gui.h"
+#include "Renderer.h"
 #include <string>
 
 namespace PMG {

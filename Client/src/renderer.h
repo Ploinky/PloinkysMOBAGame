@@ -6,8 +6,8 @@
 #include <string>
 #include "pmg_physics.h"
 #include <map>
-#include "game_object.h"
-#include "shader.h"
+#include "GameObject.h"
+#include "Shader.h"
 
 namespace PMG {
     class Mesh;

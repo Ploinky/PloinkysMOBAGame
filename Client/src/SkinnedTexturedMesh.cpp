@@ -1,8 +1,8 @@
 #include "logger.h"
 #include <fstream>
 #include "DDSTextureLoader11.h"
-#include "mesh.h"
-#include "direct3d.h"
+#include "Mesh.h"
+#include "Direct3D.h"
 
 namespace PMG {
     SkinnedTexturedMesh* SkinnedTexturedMesh::Load(std::string mesh_name, Direct3D* direct3D) {

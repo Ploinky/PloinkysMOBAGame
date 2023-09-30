@@ -1,11 +1,11 @@
-#include "map.h"
-#include "mesh.h"
+#include "Map.h"
+#include "Mesh.h"
 #include "util.h"
 #include "logger.h"
 #include <fstream>
-#include "vertex.h"
+#include "Vertex.h"
 #include <map>
-#include "direct3d.h"
+#include "Direct3D.h"
 
 namespace PMG {
     Map::~Map() {

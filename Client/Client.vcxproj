@@ -83,6 +83,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -102,6 +103,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,6 +119,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,62 +139,63 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>user32.lib;d3d11.lib;d2d1.lib;dwrite.lib;kernel32.lib;ws2_32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\animation.cpp" />
-    <ClCompile Include="src\armature.cpp" />
-    <ClCompile Include="src\audio_system.cc" />
-    <ClCompile Include="src\camera.cpp" />
-    <ClCompile Include="src\client.cpp" />
+    <ClCompile Include="src\Animation.cpp" />
+    <ClCompile Include="src\Armature.cpp" />
+    <ClCompile Include="src\AudioSystem.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Client.cpp" />
     <ClCompile Include="src\DDSTextureLoader11.cpp" />
-    <ClCompile Include="src\direct3d.cpp" />
-    <ClCompile Include="src\game_object.cc" />
-    <ClCompile Include="src\gui_button.cpp" />
-    <ClCompile Include="src\gui_selector.cc" />
-    <ClCompile Include="src\gui_simple_pane.cpp" />
-    <ClCompile Include="src\gui_textfield.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\map.cpp" />
-    <ClCompile Include="src\mesh.cpp" />
-    <ClCompile Include="src\client_network_manager.cc" />
-    <ClCompile Include="src\particle_emitter.cpp" />
-    <ClCompile Include="src\particle_shader.cpp" />
-    <ClCompile Include="src\particle_system.cpp" />
-    <ClCompile Include="src\skinned_textured_mesh.cpp" />
-    <ClCompile Include="src\renderer.cpp" />
-    <ClCompile Include="src\settings.cc" />
+    <ClCompile Include="src\Direct3d.cpp" />
+    <ClCompile Include="src\GameObject.cpp" />
+    <ClCompile Include="src\GuiButton.cpp" />
+    <ClCompile Include="src\GuiSelector.cpp" />
+    <ClCompile Include="src\GuiSimplePane.cpp" />
+    <ClCompile Include="src\GuiTextfield.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Map.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\ClientNetworkManager.cpp" />
+    <ClCompile Include="src\ParticleEmitter.cpp" />
+    <ClCompile Include="src\ParticleShader.cpp" />
+    <ClCompile Include="src\ParticleSystem.cpp" />
+    <ClCompile Include="src\SkinnedTexturedMesh.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Settings.cpp" />
     <ClCompile Include="src\shader.cpp" />
-    <ClCompile Include="src\vertex.cpp" />
-    <ClCompile Include="src\v_box.cpp" />
-    <ClCompile Include="src\window.cpp" />
+    <ClCompile Include="src\Vertex.cpp" />
+    <ClCompile Include="src\VBox.cpp" />
+    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\animation.h" />
-    <ClInclude Include="src\armature.h" />
-    <ClInclude Include="src\game_object.h" />
-    <ClInclude Include="resources\resource.h" />
-    <ClInclude Include="src\audio_system.h" />
-    <ClInclude Include="src\camera.h" />
-    <ClInclude Include="src\client.h" />
+    <ClInclude Include="src\Animation.h" />
+    <ClInclude Include="src\Armature.h" />
+    <ClInclude Include="src\GameObject.h" />
+    <ClInclude Include="resources\Resource.h" />
+    <ClInclude Include="src\AudioSystem.h" />
+    <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\Client.h" />
     <ClInclude Include="src\DDSTextureLoader11.h" />
-    <ClInclude Include="src\direct3d.h" />
-    <ClInclude Include="src\gui.h" />
-    <ClInclude Include="src\gui_selector.h" />
-    <ClInclude Include="src\map.h" />
-    <ClInclude Include="src\mesh.h" />
-    <ClInclude Include="src\client_network_manager.h" />
-    <ClInclude Include="src\particle.h" />
-    <ClInclude Include="src\particle_emitter.h" />
-    <ClInclude Include="src\particle_shader.h" />
-    <ClInclude Include="src\particle_system.h" />
-    <ClInclude Include="src\renderable.h" />
-    <ClInclude Include="src\renderer.h" />
-    <ClInclude Include="src\settings.h" />
-    <ClInclude Include="src\shader.h" />
-    <ClInclude Include="src\systems.h" />
-    <ClInclude Include="src\vertex.h" />
-    <ClInclude Include="src\window.h" />
+    <ClInclude Include="src\Direct3d.h" />
+    <ClInclude Include="src\Gui.h" />
+    <ClInclude Include="src\GuiSelector.h" />
+    <ClInclude Include="src\Map.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\ClientNetworkManager.h" />
+    <ClInclude Include="src\Particle.h" />
+    <ClInclude Include="src\ParticleEmitter.h" />
+    <ClInclude Include="src\ParticleShader.h" />
+    <ClInclude Include="src\ParticleSystem.h" />
+    <ClInclude Include="src\Renderable.h" />
+    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\Settings.h" />
+    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\Systems.h" />
+    <ClInclude Include="src\Vertex.h" />
+    <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\particle_vs.hlsl">

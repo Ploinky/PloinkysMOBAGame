@@ -1,6 +1,6 @@
-#include "mesh.h"
-#include "vertex.h"
-#include "direct3d.h"
+#include "Mesh.h"
+#include "Vertex.h"
+#include "Direct3D.h"
 #include "DDSTextureLoader11.h"
 #include <fstream>
 #include "logger.h"

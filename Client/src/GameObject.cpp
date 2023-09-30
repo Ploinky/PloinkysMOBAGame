@@ -1,6 +1,6 @@
-#include "game_object.h"
-#include "mesh.h"
-#include "renderer.h"
+#include "GameObject.h"
+#include "Mesh.h"
+#include "Renderer.h"
 
 namespace PMG {
 	GameObject::~GameObject() {

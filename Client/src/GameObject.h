@@ -2,7 +2,7 @@
 
 #include "pmg_physics.h"
 #include "pmg_types.h"
-#include "renderable.h"
+#include "Renderable.h"
 
 #include <string>
 

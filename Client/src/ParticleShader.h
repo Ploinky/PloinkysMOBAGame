@@ -1,8 +1,8 @@
 #pragma once
 
 #include <DirectXMath.h>
-#include "shader.h"
-#include "direct3d.h"
+#include "Shader.h"
+#include "Direct3D.h"
 
 namespace PMG {
 	typedef struct {

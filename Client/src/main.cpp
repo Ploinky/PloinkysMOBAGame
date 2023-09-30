@@ -1,7 +1,7 @@
 // Main entry point for Windows systems
 
 #include <stdio.h>
-#include "client.h"
+#include "Client.h"
 #include "logger.h"
 #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
@@ -17,14 +17,14 @@ std::string GetDir() {
 	return std::string(buffer).substr(0, pos);
 }
 
-#include "window.h"
-#include "direct3d.h"
-#include "renderer.h"
-#include "game_object.h"
-#include "camera.h"
-#include "mesh.h"
-#include "particle.h"
-#include "particle_system.h"
+#include "Window.h"
+#include "Direct3D.h"
+#include "Renderer.h"
+#include "GameObject.h"
+#include "Camera.h"
+#include "Mesh.h"
+#include "Particle.h"
+#include "ParticleSystem.h"
 
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
     /*

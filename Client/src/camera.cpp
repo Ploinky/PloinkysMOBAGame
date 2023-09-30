@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "Camera.h"
 #include "pmg_physics.h"
 
 namespace PMG {

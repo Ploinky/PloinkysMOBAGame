@@ -6,7 +6,7 @@
 #endif
 #include <functional>
 #include <vector>
-#include "settings.h"
+#include "Settings.h"
 
 namespace PMG {
     // Forward declarations to avoid too many headers

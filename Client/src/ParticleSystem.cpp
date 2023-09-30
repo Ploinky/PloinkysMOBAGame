@@ -1,8 +1,8 @@
-#include "particle_system.h"
-#include "direct3d.h"
-#include "particle_shader.h"
+#include "ParticleSystem.h"
+#include "Direct3D.h"
+#include "ParticleShader.h"
 #include <math.h>
-#include "camera.h"
+#include "Camera.h"
 #include "DDSTextureLoader11.h"
 #include "util.h"
 

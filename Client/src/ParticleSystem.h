@@ -1,11 +1,11 @@
 #pragma once
 
 #include "pmg_physics.h"
-#include "particle.h"
+#include "Particle.h"
 #include <vector>
-#include "renderer.h"
-#include "game_object.h"
-#include "particle_emitter.h"
+#include "Renderer.h"
+#include "GameObject.h"
+#include "ParticleEmitter.h"
 
 namespace PMG {
 	class ParticleSystem : public GameObject {

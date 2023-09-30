@@ -3,7 +3,7 @@
 #include <DirectXMath.h>
 #include <string>
 #include <vector>
-#include "armature.h"
+#include "Armature.h"
 
 namespace PMG {
 	class Animation {

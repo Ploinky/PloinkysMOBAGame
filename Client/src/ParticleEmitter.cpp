@@ -1,7 +1,7 @@
-#include "particle_emitter.h"
-#include "particle_shader.h"
-#include "direct3d.h"
-#include "camera.h"
+#include "ParticleEmitter.h"
+#include "ParticleShader.h"
+#include "Direct3D.h"
+#include "Camera.h"
 #include "DDSTextureLoader11.h"
 #include "util.h"
 #include <algorithm>

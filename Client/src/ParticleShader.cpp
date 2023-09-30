@@ -1,4 +1,4 @@
-#include "particle_shader.h"
+#include "ParticleShader.h"
 
 namespace PMG {
 	ParticleShader::~ParticleShader() {
