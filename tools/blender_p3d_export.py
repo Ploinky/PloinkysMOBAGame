@@ -23,15 +23,15 @@ def export_p3d(context, filepath):
 
                 pos = me.vertices[vert_index].co
                 # normals
-                # norm = me.loops[loop_index].normal
+                norm = me.loops[loop_index].normal
                 uv = uvmap.data[loop_index].uv
                 
                 foundOne = False
                 vertI = 0
                 while vertI < len(verts):
                     # normals
-                    # if verts[vertI] == (pos, norm, uv):
-                    if verts[vertI] == (pos, uv):
+                    if verts[vertI] == (pos, norm, uv):
+                    # if verts[vertI] == (pos, uv):
                         foundOne = True
                         indices.append(vertI)
                         break
@@ -39,8 +39,8 @@ def export_p3d(context, filepath):
                 
                 if foundOne == False:
                     # normals
-                    # verts.append((pos, norm, uv))
-                    verts.append((pos, uv))
+                    verts.append((pos, norm, uv))
+                    # verts.append((pos, uv))
                     indices.append(len(verts) - 1)
 
                 
@@ -54,8 +54,11 @@ def export_p3d(context, filepath):
             f.write(struct.pack('f', -v[0][1]))
             f.write(struct.pack('f', v[0][2]))
             f.write(struct.pack('f', v[0][0]))
+            f.write(struct.pack('f', -v[1][1]))
+            f.write(struct.pack('f', v[1][2]))
             f.write(struct.pack('f', v[1][0]))
-            f.write(struct.pack('f', 1 - v[1][1]))
+            f.write(struct.pack('f', v[2][0]))
+            f.write(struct.pack('f', 1 - v[2][1]))
         
         f.write(struct.pack('i', len(indices)))
         
