@@ -25,7 +25,7 @@ float4 main(PixelInputType input) : SV_TARGET {
 
     // direction of our diffuse light source
     // TODO this should not be hardcoded
-    float3 lightDir = float3(1, 0, 0);
+    float3 lightDir = float3(1, -1, 0);
     
     // we need to invert the light direction for our calculation
     lightDir *= -1;
