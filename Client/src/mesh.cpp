@@ -111,6 +111,9 @@ namespace PMG {
             file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
             file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
+            file.read((char*)&mesh->vertices[i].normal[0], sizeof(float));
+            file.read((char*)&mesh->vertices[i].normal[1], sizeof(float));
+            file.read((char*)&mesh->vertices[i].normal[2], sizeof(float));
             file.read((char*)&mesh->vertices[i].texCoord[0], sizeof(float));
             file.read((char*)&mesh->vertices[i].texCoord[1], sizeof(float));
         }

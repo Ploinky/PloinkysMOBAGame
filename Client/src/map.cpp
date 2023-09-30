@@ -92,6 +92,10 @@ namespace PMG {
                 mesh->vertices[currVertex].texCoord[1] = std::stof(tokens.front());
                 tokens.pop_front();
 
+                mesh->vertices[currVertex].normal[0] = 0;
+                mesh->vertices[currVertex].normal[1] = 1;
+                mesh->vertices[currVertex].normal[2] = 0;
+
                 // FFS DO NOT FORGET THIS YOU FUCK
                 currVertex++;
             }

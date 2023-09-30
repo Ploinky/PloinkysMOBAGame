@@ -10,11 +10,13 @@ cbuffer perObjectBuffer {
 struct VertexInputType {
 	float4 position : POSITION;
 	float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
 };
 
 struct PixelInputType {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
 };
 
 PixelInputType main(VertexInputType input) {
@@ -27,6 +29,8 @@ PixelInputType main(VertexInputType input) {
 	output.position = mul(output.position, projMatrix);
 
 	output.tex = input.tex;
+	
+    output.normal = normalize(mul(input.normal, (float3x3) modelMatrix));
 
 	return output;
 }

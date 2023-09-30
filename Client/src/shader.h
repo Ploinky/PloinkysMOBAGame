@@ -57,6 +57,7 @@ namespace PMG {
 	typedef struct {
 		float position[3];
 		float texCoord[2];
+		float normal[3];
 	} texture_shader_vertex_t;
 
 	typedef struct {
