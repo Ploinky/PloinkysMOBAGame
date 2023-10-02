@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Pak">
+      <UniqueIdentifier>{0e315eca-5c77-46c1-8aa4-be309ded3973}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\logger.cpp">
@@ -28,6 +31,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\component_registry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PakFileTableEntry.h">
+      <Filter>Source Files\Pak</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PakFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,6 +57,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\component_registry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PakHeader.h">
+      <Filter>Source Files\Pak</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PakUtil.h">
+      <Filter>Source Files\Pak</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PakFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

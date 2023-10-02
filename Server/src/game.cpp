@@ -11,6 +11,7 @@
 #include "minion_spawner.h"
 #include "pmg_networking.h"
 #include "person.h"
+#include "minion.h"
 
 namespace PMG {
     unsigned long g_unitId = 0;

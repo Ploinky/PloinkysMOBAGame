@@ -955,7 +955,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->renderable = SkinnedTexturedMesh::Load("models/chess_person", direct3D);
+            go->renderable = SkinnedTexturedMesh::Load("models\\chess_person", direct3D);
             go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->team = team;
@@ -1118,6 +1118,10 @@ namespace PMG {
                 break;
             }
             case Networking::PacketType::UNITDESPAWN: {
+                if (diff < 1) {
+                    // not interpolated
+                    continue;
+                }
                 Networking::DespawnPacket despawn = Networking::DespawnPacket();
                 despawn.Read(&new_data);
                 DespawnUnit(despawn.unit);
@@ -1206,7 +1210,8 @@ namespace PMG {
 
     void Client::HandleGameTickPacket(std::vector<uint8_t> data) {
         game_tick_t new_tick{};
-        new_tick.received = Util::GetSystemTime();
+        //new_tick.received = Util::GetSystemTime();
+        new_tick.received = 0;
         Networking::packet_header_t header{};
 
         std::memcpy(&header, data.data(), sizeof(header));

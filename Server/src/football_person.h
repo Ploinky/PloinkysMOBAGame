@@ -22,7 +22,7 @@ namespace PMG {
 	class ThrowFootballMissileData : public MissileSpellData {
 	public:
 		ThrowFootballMissileData() {
-			radius = 3;
+			radius = 0.6f;
 			speed = 30;
 			distance = 10;
 		};

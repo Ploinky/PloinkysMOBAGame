@@ -8,7 +8,6 @@
 #include "util.h"
 #include <fstream>
 
-
 namespace PMG {
 	bool operator==(const vertex_t& lhs, const vertex_t& rhs) {
 		return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
@@ -207,15 +206,15 @@ namespace PMG {
 		auto rightFrom = portals.begin();
 
 		auto from = portals.begin();
-		//std::cout << "========================================================" << std::endl;
+		// std::cout << "========================================================" << std::endl;
 		while (!(currVert == to)) {
-			//std::cout << "Apex: " << currVert.x << ", " << currVert.y << std::endl;
+			// std::cout << "Apex: " << currVert.x << ", " << currVert.y << std::endl;
 
 			vertex_t tunnelLeft = from->left;
 			vertex_t tunnelRight = from->right;
 
 			for (auto portal = from; portal != portals.end(); portal++) {
-				//std::cout << "Portal: " << portal->from->id << " -> " << portal->to->id << std::endl;
+				// std::cout << "Portal: " << portal->from->id << " -> " << portal->to->id << std::endl;
 				vertex_t rightTo = portal->right;
 				vertex_t leftTo = portal->left;
 
@@ -229,14 +228,14 @@ namespace PMG {
 					tunnelRight = from->right;
 					from = leftFrom;
 					movePath.push_back(currVert);
-					//std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
+					// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
 					break;
 				}
 				else if (rightNext <= 0) {
 					// Right is new funnel right!
 					tunnelRight = rightTo;
 					rightFrom = portal;
-					//std::cout << "\tRight: " << tunnelRight.x << ", " << tunnelRight.y << std::endl;
+					// std::cout << "\tRight: " << tunnelRight.x << ", " << tunnelRight.y << std::endl;
 				}
 				// if tunnel does not tighten, we have a new apex!
 				// if we're gonna cross over, do not advance!
@@ -250,14 +249,14 @@ namespace PMG {
 					tunnelRight = from->right;
 					from = rightFrom;
 					movePath.push_back(currVert);
-					//std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
+					// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
 					break;
 				}
 				else if (leftNext >= 0) {
 					// Left is new funnel left!
 					tunnelLeft = leftTo;
 					leftFrom = portal;
-					//std::cout << "\tLeft: " << tunnelLeft.x << ", " << tunnelLeft.y << std::endl;
+					// std::cout << "\tLeft: " << tunnelLeft.x << ", " << tunnelLeft.y << std::endl;
 				}
 
 				if (std::next(portal) == portals.end()) {
@@ -272,20 +271,20 @@ namespace PMG {
 						currVert = tunnelLeft;
 						from = leftFrom;
 						movePath.push_back(currVert);
-						//std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
+						// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
 						break;
 					}
 					else if (rightCross == 0) {
 						currVert = to;
 						movePath.push_back(currVert);
-						//std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
+						// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
 						break;
 					}
 					else if (rightNext <= 0) {
 						// Right is new funnel right!
 						tunnelRight = rightTo;
 						rightFrom = portal;
-						//std::cout << "\tRight: " << tunnelRight.x << ", " << tunnelRight.y << std::endl;
+						// std::cout << "\tRight: " << tunnelRight.x << ", " << tunnelRight.y << std::endl;
 					}
 
 					// if tunnel does not tighten, we have a new apex!
@@ -298,13 +297,13 @@ namespace PMG {
 						currVert = tunnelRight;
 						from = rightFrom;
 						movePath.push_back(currVert);
-						//std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
+						// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
 						break;
 					}
 					else if (leftCross == 0) {
 						currVert = to;
 						movePath.push_back(currVert);
-						//std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
+						// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
 						break;
 
 					}
@@ -312,7 +311,7 @@ namespace PMG {
 						// Left is new funnel left!
 						tunnelLeft = leftTo;
 						leftFrom = portal;
-						//std::cout << "\tLeft: " << tunnelLeft.x << ", " << tunnelLeft.y << std::endl;
+						// std::cout << "\tLeft: " << tunnelLeft.x << ", " << tunnelLeft.y << std::endl;
 					}
 				}
 			}

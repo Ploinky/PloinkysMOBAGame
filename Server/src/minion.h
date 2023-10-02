@@ -10,7 +10,9 @@ namespace PMG {
 
 	class Minion : public Attackable {
 	public:
-		Minion(std::vector<Physics::Vector3> waypoints) : waypoints_(waypoints), Attackable(minion_attackable_stats) {};
+		Minion(std::vector<Physics::Vector3> waypoints) : waypoints_(waypoints), Attackable(minion_attackable_stats) {
+			collision_radius = 0.0f;
+		};
 
 		virtual void Update(Game* game, float dt) override;
 	

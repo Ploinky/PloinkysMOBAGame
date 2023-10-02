@@ -3,15 +3,23 @@
 #include "DDSTextureLoader11.h"
 #include "Mesh.h"
 #include "Direct3D.h"
+#include "PakFile.h"
 
 namespace PMG {
     SkinnedTexturedMesh* SkinnedTexturedMesh::Load(std::string mesh_name, Direct3D* direct3D) {
-        std::ifstream file(std::string().append(mesh_name).append(".p3d"), std::ios_base::binary | std::ios_base::in);
-
-        if (!file.is_open()) {
-            Logger::Err("Could not open map file.");
-            return nullptr;
+        PakFile* pakFile = PakFile::Load("client.pak");
+        if (pakFile->HasFile(std::string().append(mesh_name).append(".p3d"))){
+            printf("yep!");
         }
+
+        std::vector<uint8_t> fileData = pakFile->GetFileData(std::string().append(mesh_name).append(".p3d"));
+
+        // std::ifstream file(std::string().append(mesh_name).append(".p3d"), std::ios_base::binary | std::ios_base::in);
+
+        // if (!file.is_open()) {
+        //     Logger::Err("Could not open map file.");
+        //     return nullptr;
+        // }
 
         SkinnedTexturedMesh* mesh = new SkinnedTexturedMesh();
         int currIndex = 0;
@@ -19,7 +27,10 @@ namespace PMG {
 
         std::string correct_magic = "p3d";
         char magic[4]{ 0, 0, 0, 0 };
-        file.read(magic, sizeof(char) * 3);
+        int offset = 0;
+        std::memcpy(&magic, fileData.data(), sizeof(char) * 3);
+        offset += sizeof(char) * 3;
+
         std::string magic_string(magic);
         if (magic_string.compare(correct_magic) != 0) {
             Logger::Err("Bad magic string!");
@@ -27,7 +38,8 @@ namespace PMG {
         }
 
         int version;
-        file.read((char*)&version, sizeof(int));
+        std::memcpy(&version, fileData.data() + offset, sizeof(int));
+        offset += sizeof(int);
 
         if (version != 1) {
             Logger::Err("Bad version!");
@@ -35,50 +47,72 @@ namespace PMG {
         }
 
         int vertex_count;
-        file.read((char*)&vertex_count, sizeof(int));
+        std::memcpy(&vertex_count, fileData.data() + offset, sizeof(int));
+        offset += sizeof(int);
         mesh->vertexCount = vertex_count;
 
         mesh->vertices = new skinned_textured_shader_vertex_t[mesh->vertexCount];
 
         for (unsigned int i = 0; i < mesh->vertexCount; i++) {
-            file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].texCoord[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].texCoord[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_indices[3], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].bone_weights[3], sizeof(float));
+            std::memcpy(&mesh->vertices[i].position[0], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].position[1], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].position[2], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].normal[0], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].normal[1], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].normal[2], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].texCoord[0], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].texCoord[1], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_indices[0], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_indices[1], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_indices[2], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_indices[3], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_weights[0], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_weights[1], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_weights[2], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].bone_weights[3], fileData.data() + offset, sizeof(float));
+            offset += sizeof(float);
         }
 
         int index_count;
-        file.read((char*)&index_count, sizeof(int));
+        std::memcpy(&index_count, fileData.data() + offset, sizeof(int));
+        offset += sizeof(int);
         mesh->indexCount = index_count;
 
         mesh->indices = new unsigned int[mesh->indexCount];
 
         for (unsigned int i = 0; i < mesh->indexCount; i++) {
-            file.read((char*)&mesh->indices[i], sizeof(int));
+            std::memcpy(&mesh->indices[i], fileData.data() + offset, sizeof(int));
+            offset += sizeof(int);
         }
 
         int animation_count;
-        file.read((char*)&animation_count, sizeof(int));
+        std::memcpy(&animation_count, fileData.data() + offset, sizeof(int));
+        offset += sizeof(int);
 
         for (int i = 0; i < animation_count; i++) {
             int buf_len;
-            file.read((char*)&buf_len, sizeof(int));
+            std::memcpy(&buf_len, fileData.data() + offset, sizeof(int));
+            offset += sizeof(int);
 
             char* name = new char[buf_len + 1] {0};
 
-            file.read(name, buf_len);
+            std::memcpy(name, fileData.data() + offset, buf_len);
+            offset += buf_len;
 
             std::string anim_file_name = std::string().append(mesh_name).append("_").append(name).append(".p3d_anim");
 

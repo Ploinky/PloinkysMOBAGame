@@ -62,9 +62,6 @@
     <ClCompile Include="src\Direct3d.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\Map.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -119,6 +116,9 @@
     <ClCompile Include="src\ParticleEmitter.cpp">
       <Filter>Source Files\Graphics\Particles</Filter>
     </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Source Files\Graphics\Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AudioSystem.h">
@@ -166,9 +166,6 @@
     <ClInclude Include="src\Map.h">
       <Filter>Source Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.h">
-      <Filter>Source Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\Renderer.h">
       <Filter>Source Files\Graphics</Filter>
     </ClInclude>
@@ -195,6 +192,9 @@
     </ClInclude>
     <ClInclude Include="src\DDSTextureLoader11.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Source Files\Graphics\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

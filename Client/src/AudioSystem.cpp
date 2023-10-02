@@ -172,7 +172,7 @@ namespace PMG {
                 XAUDIO2_SEND_DESCRIPTOR send{ 0, music_submix_voice_ };
                 XAUDIO2_VOICE_SENDS sendList{ 1, &send };
                 const XAUDIO2_VOICE_SENDS* sl = &sendList;
-                if (FAILED(pXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)&wfx), 0, XAUDIO2_DEFAULT_FREQ_RATIO, 0, sl, NULL)) {
+                if (FAILED(pXAudio2->CreateSourceVoice(&pSourceVoice, ((WAVEFORMATEX*)&wfx), 0, XAUDIO2_DEFAULT_FREQ_RATIO, 0, sl, NULL))) {
                     Logger::Err("Failed to play sound");
                     continue;
                 }

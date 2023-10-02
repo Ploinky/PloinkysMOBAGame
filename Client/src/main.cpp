@@ -67,7 +67,6 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     }
 
     //SetCurrentDirectoryA(GetDir().c_str());
-    
     PMG::Logger::Msg("Starting Ploinky's MOBA Game...");
 
     PMG::Client* client = new PMG::Client();
