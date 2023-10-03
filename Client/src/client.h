@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include "pmg_physics.h"
 #include "GameObject.h"
+#include "AssetManager.h"
 
 // Main game application
 namespace PMG {
@@ -71,6 +72,7 @@ namespace PMG {
 
             Settings settings_;
             AudioSystem audio_system_;
+            AssetManager assetManager_;
 
             void CharTyped(uint32_t ch);
             void KeyPressed(uint32_t key);

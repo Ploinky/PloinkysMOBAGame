@@ -57,17 +57,17 @@ namespace PMG {
         m_shaders.push_back(particle_shader);
 
         // ------------ NEW ------------
-        SkinnedTexturedMesh* chess_person = SkinnedTexturedMesh::Load("models\\chess_person", direct3D);
-        meshes_.emplace("chess_person", chess_person);
-
-        TextureMesh* tower = TextureMesh::Load("models/tower", direct3D);
-        meshes_.emplace("tower", tower);
-
-        TextureMesh* missile = TextureMesh::Load("models/missile", direct3D);
-        meshes_.emplace("missile", missile);
-
-        TextureMesh* minion = TextureMesh::Load("models\\cube_minion", direct3D);
-        meshes_.emplace("minion", minion);
+        // SkinnedTexturedMesh* chess_person = SkinnedTexturedMesh::Load("models\\chess_person", direct3D);
+        // meshes_.emplace("chess_person", chess_person);
+        // 
+        // TextureMesh* tower = TextureMesh::Load("models/tower", direct3D);
+        // meshes_.emplace("tower", tower);
+        // 
+        // TextureMesh* missile = TextureMesh::Load("models/missile", direct3D);
+        // meshes_.emplace("missile", missile);
+        // 
+        // TextureMesh* minion = TextureMesh::Load("models\\cube_minion", direct3D);
+        // meshes_.emplace("minion", minion);
     }
 
     void Renderer::SetDimensions(int width, int height) {

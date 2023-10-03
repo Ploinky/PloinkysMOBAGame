@@ -57,7 +57,7 @@ namespace PMG {
         TextureMesh() : Mesh(ShaderType::TEXTURE) {};
         virtual ~TextureMesh();
 
-        static TextureMesh* Load(std::string mesh_name, Direct3D* direct3D);
+        static TextureMesh* Load(std::vector<uint8_t> data, std::string mesh_name, Direct3D* direct3D);
 
         virtual void Update(double dt) override {};
         virtual void PlayAnimation(std::string animation_name, bool loop) override {
@@ -90,6 +90,7 @@ namespace PMG {
         bool Initialize(Direct3D* direct3D);
 
         static SkinnedTexturedMesh* Load(std::string mesh_name, Direct3D* direct3D);
+        static SkinnedTexturedMesh* Load(std::vector<uint8_t> fileData, std::string mesh_name, Direct3D* direct3D);
     private:
         std::string m_textureFileName = "";
         ID3D11ShaderResourceView* m_texture = 0;

@@ -6,21 +6,7 @@
 #include "PakFile.h"
 
 namespace PMG {
-    SkinnedTexturedMesh* SkinnedTexturedMesh::Load(std::string mesh_name, Direct3D* direct3D) {
-        PakFile* pakFile = PakFile::Load("client.pak");
-        if (pakFile->HasFile(std::string().append(mesh_name).append(".p3d"))){
-            printf("yep!");
-        }
-
-        std::vector<uint8_t> fileData = pakFile->GetFileData(std::string().append(mesh_name).append(".p3d"));
-
-        // std::ifstream file(std::string().append(mesh_name).append(".p3d"), std::ios_base::binary | std::ios_base::in);
-
-        // if (!file.is_open()) {
-        //     Logger::Err("Could not open map file.");
-        //     return nullptr;
-        // }
-
+    SkinnedTexturedMesh* SkinnedTexturedMesh::Load(std::vector<uint8_t> fileData, std::string mesh_name, Direct3D* direct3D) {
         SkinnedTexturedMesh* mesh = new SkinnedTexturedMesh();
         int currIndex = 0;
         int currVertex = 0;

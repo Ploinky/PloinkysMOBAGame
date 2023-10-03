@@ -72,21 +72,19 @@ namespace PMG {
     }
 
 
-    TextureMesh* TextureMesh::Load(std::string mesh_name, Direct3D* direct3D) {
-        std::ifstream file(std::string().append(mesh_name).append(".p3d"), std::ios_base::binary | std::ios_base::in);
-
-        if (!file.is_open()) {
-            Logger::Err("Could not open map file.");
-            return nullptr;
-        }
-
+    TextureMesh* TextureMesh::Load(std::vector<uint8_t> data, std::string mesh_name, Direct3D* direct3D) {
         TextureMesh* mesh = new TextureMesh();
         int currIndex = 0;
         int currVertex = 0;
 
         std::string correct_magic = "p3d";
+
         char magic[4]{ 0, 0, 0, 0 };
-        file.read(magic, sizeof(char) * 3);
+
+        int offset = 0;
+        std::memcpy(&magic, data.data(), sizeof(char) * 3);
+        offset += sizeof(char) * 3;
+
         std::string magic_string(magic);
         if (magic_string.compare(correct_magic) != 0) {
             Logger::Err("Bad magic string!");
@@ -94,7 +92,8 @@ namespace PMG {
         }
 
         int version;
-        file.read((char*)&version, sizeof(int));
+        std::memcpy(&version, data.data() + offset, sizeof(int));
+        offset += sizeof(int);
 
         if (version != 1) {
             Logger::Err("Bad version!");
@@ -102,30 +101,41 @@ namespace PMG {
         }
 
         int vertex_count;
-        file.read((char*)&vertex_count, sizeof(int));
+        std::memcpy(&vertex_count, data.data() + offset, sizeof(int));
+        offset += sizeof(int);
         mesh->vertexCount = vertex_count;
 
         mesh->vertices = new texture_shader_vertex_t[mesh->vertexCount];
 
         for (unsigned int i = 0; i < mesh->vertexCount; i++) {
-            file.read((char*)&mesh->vertices[i].position[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].position[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].position[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[1], sizeof(float));
-            file.read((char*)&mesh->vertices[i].normal[2], sizeof(float));
-            file.read((char*)&mesh->vertices[i].texCoord[0], sizeof(float));
-            file.read((char*)&mesh->vertices[i].texCoord[1], sizeof(float));
+            std::memcpy(&mesh->vertices[i].position[0], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].position[1], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].position[2], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].normal[0], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].normal[1], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].normal[2], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].texCoord[0], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
+            std::memcpy(&mesh->vertices[i].texCoord[1], data.data() + offset, sizeof(float));
+            offset += sizeof(float);
         }
 
         int index_count;
-        file.read((char*)&index_count, sizeof(int));
+        std::memcpy(&index_count, data.data() + offset, sizeof(int));
+        offset += sizeof(int);
         mesh->indexCount = index_count;
 
         mesh->indices = new unsigned int[mesh->indexCount];
 
         for (int i = 0; i < mesh->indexCount; i++) {
-            file.read((char*)&mesh->indices[i], sizeof(int));
+            std::memcpy(&mesh->indices[i], data.data() + offset, sizeof(int));
+            offset += sizeof(int);
         }
 
         mesh->m_textureFileName = std::string().append(mesh_name).append(".dds");

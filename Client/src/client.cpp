@@ -68,6 +68,8 @@ namespace PMG {
     void Client::Run(std::string ip_address, std::string port) {
         Logger::Msg("Starting Ploinky's MOBA Game client...");
 
+        Logger::Msg("Loading assets...");
+
         std::vector<PMGSystem*> systems;
 
         Networking::NetworkHandlerManager<Networking::PacketType> packet_manager = Networking::NetworkHandlerManager<Networking::PacketType>();
@@ -938,7 +940,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->renderable = TextureMesh::Load("models/missile", direct3D);
+            go->renderable = TextureMesh::Load(assetManager_.LoadFile("models\\missile.p3d"), "models/missile", direct3D);
             go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = false;
@@ -955,7 +957,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->renderable = SkinnedTexturedMesh::Load("models\\chess_person", direct3D);
+            go->renderable = SkinnedTexturedMesh::Load(assetManager_.LoadFile("models\\chess_person.p3d"), "models\\chess_person", direct3D);
             go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->team = team;
@@ -968,7 +970,7 @@ namespace PMG {
             go->unit_id = unitId;
             go->health = 50;
             go->max_health = 100;
-            go->renderable = TextureMesh::Load("models/tower", direct3D);
+            go->renderable = TextureMesh::Load(assetManager_.LoadFile("models\\tower.p3d"), "models/tower", direct3D);
             go->position = pos;
             go->rotation = { 0, 0, 0 };
             go->has_healthbar = true;
@@ -1002,7 +1004,7 @@ namespace PMG {
             go->has_healthbar = true;
             go->has_title = false;
             go->team = team;
-            go->renderable = TextureMesh::Load("models/cube_minion", direct3D);
+            go->renderable = TextureMesh::Load(assetManager_.LoadFile("models\\cube_minion.p3d"), "models/cube_minion", direct3D);
             go->renderable->position = go->position;
             game_objects_.emplace(unitId, go);
             return;
