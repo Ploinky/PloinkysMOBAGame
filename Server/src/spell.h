@@ -6,7 +6,7 @@
 
 namespace PMG {
 	class Attackable;
-	class Game;
+	class Client;
 
 	class SpellTargetInfo {
 	public:
@@ -23,9 +23,9 @@ namespace PMG {
 
 		std::string cast_animation;
 		
-		void CastStart(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		void CastStart(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 
-		void Cast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
-		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) = 0;
+		void Cast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) = 0;
 	};
 }

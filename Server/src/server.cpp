@@ -7,9 +7,12 @@
 #include "logger.h"
 #include "spell.h"
 #include "attackable.h"
+#include "steam/steam_gameserver.h"
+#include "steam/steam_api.h"
+
 namespace PMG {
     void Server::Start() {
-        m_networkManager = new ClientNetworkManager();
+        m_networkManager = new ServerNetworkManager();
         m_networkManager->Initialize();
         m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
@@ -19,7 +22,7 @@ namespace PMG {
             return;
         }
 
-        m_game = new Game();
+        m_game = new Client();
         m_game->on_sendToClient = std::bind(&Server::SendMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
         m_game->on_sendToAllClients = std::bind(&Server::SendMessageToAllClients, this, std::placeholders::_1);
         m_game->Start();
@@ -38,6 +41,8 @@ namespace PMG {
             m_networkManager->Update();
 
             m_game->Update(dt);
+
+            SteamGameServer_RunCallbacks();
         }
 
         m_networkManager->Close();

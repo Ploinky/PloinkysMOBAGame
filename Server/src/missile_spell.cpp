@@ -14,7 +14,7 @@ namespace PMG {
 		}
 	}
 	
-	void MissileSpell::OnCollision(Game* game, IGameObject* t) {
+	void MissileSpell::OnCollision(Client* game, IGameObject* t) {
 		Attackable* target = dynamic_cast<Attackable*>(t);
 
 		if (target == nullptr) {
@@ -45,7 +45,7 @@ namespace PMG {
 		}
 	}
 
-	void MissileSpell::Update(Game* game, float dt) {
+	void MissileSpell::Update(Client* game, float dt) {
         Physics::Vector3 current_position = position;
 
         Physics::Vector3 target_current_position = target_info->target_point;

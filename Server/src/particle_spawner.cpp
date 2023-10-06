@@ -2,7 +2,7 @@
 #include "pmg_networking.h"
 
 namespace PMG {
-	void ParticleSpawner::Update(Game* game, float dt) {};
+	void ParticleSpawner::Update(Client* game, float dt) {};
 
 	void ParticleSpawner::Sync(std::vector<uint8_t>* data) {
 		Networking::PlayParticlePacket pck = Networking::PlayParticlePacket();
@@ -14,5 +14,5 @@ namespace PMG {
 		is_destroyed = true;
 	};
 
-	void ParticleSpawner::OnCollision(Game* game, IGameObject* other) {};
+	void ParticleSpawner::OnCollision(Client* game, IGameObject* other) {};
 }

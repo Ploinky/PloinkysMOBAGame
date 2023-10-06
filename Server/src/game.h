@@ -54,9 +54,9 @@ namespace PMG {
         unsigned long networkId;
     } player_t;
 
-    class Game {
+    class Client {
     public:
-        Game();
+        Client();
 
         std::function<void(unsigned long, std::vector<uint8_t>*)> on_sendToClient;
         std::function<void(std::vector<uint8_t>*)> on_sendToAllClients;

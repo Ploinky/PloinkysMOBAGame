@@ -14,7 +14,7 @@ namespace PMG {
 			collision_radius = 0.0f;
 		};
 
-		virtual void Update(Game* game, float dt) override;
+		virtual void Update(Client* game, float dt) override;
 	
 	private:
 		std::vector<Physics::Vector3> waypoints_;

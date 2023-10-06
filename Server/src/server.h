@@ -4,17 +4,18 @@
 #include <list>
 #include "networking.h"
 #include "pmg_networking.h"
+#include "steam/steam_gameserver.h"
 
 namespace PMG {
-    class ClientNetworkManager;
-    class Game;
+    class ServerNetworkManager;
+    class Client;
 
     class Server {
     public:
         void Start();
     private:
-        ClientNetworkManager* m_networkManager;
-        Game* m_game;
+        ServerNetworkManager* m_networkManager;
+        Client* m_game;
 
         long long GetSystemTime();
 

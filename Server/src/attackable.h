@@ -33,14 +33,14 @@ namespace PMG {
 		// Constructor initializes important stats
 		Attackable(AttackableStats stats) : stats(stats) {};
 
-		virtual void Update(Game* game, float dt) {
+		virtual void Update(Client* game, float dt) {
 			// TODO not so elegant
 			Update(dt);
 		};
 		void Update(float dt);
-		virtual void OnCollision(Game* game, IGameObject* other) override;
+		virtual void OnCollision(Client* game, IGameObject* other) override;
 		virtual void Sync(std::vector<uint8_t>* data) override;
-		void MoveToward(double x, double z, Game* game);
+		void MoveToward(double x, double z, Client* game);
 
 		void TakeDamage(float damage, IGameObject* source);
 		void Heal(float heal, IGameObject* source);

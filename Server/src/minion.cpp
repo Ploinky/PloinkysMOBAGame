@@ -12,7 +12,7 @@ namespace PMG {
 		0,
 	};
 
-	void Minion::Update(Game* game, float dt) {
+	void Minion::Update(Client* game, float dt) {
         Attackable::Update(game, dt);
 
         if (current_action_ != nullptr && current_action_->type == GameObjectActionType::ATTACK_UNIT) {
@@ -46,7 +46,7 @@ namespace PMG {
             // consider forward- and backswing as well, yikes
             if (!basic_attack_info.attack_started) {
                 basic_attack_info.attack_started_at = game->gameTick;
-                basic_attack_info.attack_started = TRUE;
+                basic_attack_info.attack_started = true;
                 // ok we start... do we also need to let someone know? :O
                 return;
             }
@@ -76,7 +76,7 @@ namespace PMG {
             }
 
             basic_attack_info.last_attack = game->gameTick;
-            basic_attack_info.attack_started = FALSE;
+            basic_attack_info.attack_started = false;
             return;
         }
 

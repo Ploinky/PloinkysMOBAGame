@@ -4,14 +4,14 @@
 #include "particle_spawner.h"
 
 namespace PMG {
-	void ThrowFootball::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
+	void ThrowFootball::OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		ThrowFootballMissile* missile = new ThrowFootballMissile(target_info, spell_owner);
 		missile->owner = spell_owner;
 		missile->position = spell_owner->position;
 		game->AddGameObject(missile);
 	}
 	
-	void ThrowFootballMissile::TargetHit(Game* game, Attackable* owner, Attackable* target) {
+	void ThrowFootballMissile::TargetHit(Client* game, Attackable* owner, Attackable* target) {
 		target->TakeDamage(10, owner);
 	}
 
@@ -35,7 +35,7 @@ namespace PMG {
 		*status_enable |= STATUS_STUNNED;
 	}
 
-	void HealPerson::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
+	void HealPerson::OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		if (target_info->target == nullptr) {
 			// TODO this seems bad
 			return;
@@ -51,7 +51,7 @@ namespace PMG {
 	DoBlastArea::DoBlastArea() {
 	}
 
-	void DoBlastArea::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
+	void DoBlastArea::OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		BlastArea* blast_area = new BlastArea(target_info);
 		blast_area->position = target_info->target_point;
 		blast_area->owner = spell_owner;
@@ -64,7 +64,7 @@ namespace PMG {
 		game->AddGameObject(part);
 	}
 
-	void BlastArea::TargetHit(Game* game, Attackable* owner, Attackable* target) {
+	void BlastArea::TargetHit(Client* game, Attackable* owner, Attackable* target) {
 		target->TakeDamage(10, owner);
 		target->buffs.push_back(new KnockedOutCold());
 	}
@@ -72,7 +72,7 @@ namespace PMG {
 	MakeRunFast::MakeRunFast() {
 	}
 
-	void MakeRunFast::OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
+	void MakeRunFast::OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) {
 		target_info->target->buffs.push_back(new RunFast());
 	}
 

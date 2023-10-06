@@ -16,12 +16,12 @@
 namespace PMG {
     unsigned long g_unitId = 0;
 
-    Game::Game() {
+    Client::Client() {
         m_navMesh = new NavMesh();
         m_navMesh->LoadFromFile("map1");
     }
 
-    void Game::AddPlayerForNetworkId(unsigned long netId) {
+    void Client::AddPlayerForNetworkId(unsigned long netId) {
         for (auto tick : all_ticks) {
             on_sendToClient(netId, &tick);
         }
@@ -56,18 +56,19 @@ namespace PMG {
         players_.emplace(netId, player);
     }
 
-    void Game::RemovePlayerForNetworkId(unsigned long netId) {
+    void Client::RemovePlayerForNetworkId(unsigned long netId) {
         IGameObject* go = igame_objects_.find(players_.find(netId)->second.unitId)->second;
         igame_objects_.erase(go->unit_id);
+        players_.erase(netId);
         delete go;
     }
 
-    void Game::AddGameObject(IGameObject* game_object) {
+    void Client::AddGameObject(IGameObject* game_object) {
         game_object->unit_id = current_entity_id_++;
         igame_objects_.emplace(game_object->unit_id, game_object);
     }
 
-    void Game::SpawnMissile(Missile* missile) {
+    void Client::SpawnMissile(Missile* missile) {
         // adjust target point here???
         Physics::Vector3 dir = missile->target_point - missile->position;
         dir = dir.Normalize();
@@ -79,22 +80,22 @@ namespace PMG {
         AddGameObject(missile);
     }
 
-    void Game::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
+    void Client::PlayerMoveCommand(unsigned long netId, float nx, float ny) {
         ((Person*)igame_objects_.find(players_.find(netId)->second.unitId)->second)->current_action_ = new GameObjectActionMove({ nx, ny, 0 });
     }
 
-    void Game::PlayerStopCommand(unsigned long netId) {
+    void Client::PlayerStopCommand(unsigned long netId) {
 
         ((Person*)igame_objects_.find(players_.find(netId)->second.unitId)->second)->current_action_ = new GameObjectActionStop();
     }
 
-    void Game::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
+    void Client::PlayerAttackCommand(unsigned long netId, unsigned long target_id) {
         IGameObject* actor = igame_objects_.find(players_.find(netId)->second.unitId)->second;
         IGameObject* target = GetGameObjectById(target_id);
         ((Attackable*)actor)->current_action_ = new GameObjectActionAttackUnit(target_id);
     }
 
-    void Game::PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info) {
+    void Client::PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info) {
         IGameObject* actor = GetGameObjectById(players_.find(netId)->second.unitId);
 
         if (((Person*)actor)->spells[spell_slot]->remaining_cooldown != -1) {
@@ -107,7 +108,7 @@ namespace PMG {
         ((Person*)actor)->current_action_ = new_action;
     }
 
-    void Game::Start() {
+    void Client::Start() {
         Building* tower = new Building(Team::TEAM_1);
         tower->position = { -20, 0, 2 };
         AddGameObject(tower);
@@ -135,7 +136,7 @@ namespace PMG {
         AddGameObject(minion_spawner2);
     }
 
-    void Game::CheckCollision(IGameObject* collider) {
+    void Client::CheckCollision(IGameObject* collider) {
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
 
@@ -152,7 +153,7 @@ namespace PMG {
         }
     }
 
-    void Game::Update(float dt) {
+    void Client::Update(float dt) {
         lastTick += dt;
 
         // ca. 16 ms per tick
@@ -167,7 +168,7 @@ namespace PMG {
         // also passive regen and whatnot
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
-            go->Update(this, dt);
+            go->Update(this, TICKRATE / 1000.0f);
         }
 
         for (auto go_it : igame_objects_) {
@@ -178,7 +179,7 @@ namespace PMG {
         // ok, action
         for (auto go_it : igame_objects_) {
             IGameObject* go = go_it.second;
-            go->Act(this, dt);
+            go->Act(this, TICKRATE / 1000.0f);
         }
 
         Networking::packet_header_t header{};

@@ -6,7 +6,7 @@
 #include "navigation.h"
 
 namespace PMG {
-	class Game;
+	class Client;
 	class Buff;
 	class Spell;
 	class SpellTargetInfo;
@@ -73,7 +73,7 @@ namespace PMG {
 
 	class GameObjectController {
 	public:
-		virtual void Think(Game* game, GameObject* go) {};
+		virtual void Think(Client* game, GameObject* go) {};
 	};
 
 	extern int STATUS_STUNNED;

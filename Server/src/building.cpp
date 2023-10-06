@@ -3,7 +3,7 @@
 #include "missile.h"
 
 namespace PMG {
-	void Building::Act(Game* game, float dt) {
+	void Building::Act(Client* game, float dt) {
 		if (current_action_ != nullptr && current_action_->type == GameObjectActionType::ATTACK_UNIT) {
             GameObjectActionAttackUnit* action = (GameObjectActionAttackUnit*)current_action_;
             Attackable* target = (Attackable*)game->GetGameObjectById(action->target_net_id);
@@ -35,7 +35,7 @@ namespace PMG {
             // consider forward- and backswing as well, yikes
             if (!basic_attack_info.attack_started) {
                 basic_attack_info.attack_started_at = game->gameTick;
-                basic_attack_info.attack_started = TRUE;
+                basic_attack_info.attack_started = true;
                 // ok we start... do we also need to let someone know? :O
                 return;
             }
@@ -65,7 +65,7 @@ namespace PMG {
             }
 
             basic_attack_info.last_attack = game->gameTick;
-            basic_attack_info.attack_started = FALSE;
+            basic_attack_info.attack_started = false;
             return;
 		}
 

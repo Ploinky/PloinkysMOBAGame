@@ -6,7 +6,7 @@ namespace PMG {
 		collision_radius = spell_data.radius;
 	}
 
-	void AreaSpell::OnCollision(Game* game, IGameObject* t) {
+	void AreaSpell::OnCollision(Client* game, IGameObject* t) {
 		Attackable* target = dynamic_cast<Attackable*>(t);
 
 		if (target == nullptr) {
@@ -28,7 +28,7 @@ namespace PMG {
 		objects_to_hit.insert(target);
 	}
 
-	void AreaSpell::Update(Game* game, float dt) {
+	void AreaSpell::Update(Client* game, float dt) {
 		double ms = 1000.0 * dt;
 
 		time_since_tick_ += ms;

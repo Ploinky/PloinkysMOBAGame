@@ -4,7 +4,7 @@
 #include "minion.h"
 
 namespace PMG {
-	void MinionSpawner::Update(Game* game, float dt) {
+	void MinionSpawner::Update(Client* game, float dt) {
 		int ticks_since = game->gameTick - last_spawn_tick;
 
 		// wait 30 seconds...
@@ -24,7 +24,7 @@ namespace PMG {
 		last_spawn_tick = game->gameTick;
 	}
 
-	void MinionSpawner::OnCollision(Game* game, IGameObject* other) {
+	void MinionSpawner::OnCollision(Client* game, IGameObject* other) {
 		// do nothing!
 	};
 }

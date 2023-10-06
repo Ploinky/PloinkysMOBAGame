@@ -5,7 +5,7 @@
 #include "buff.h"
 
 namespace PMG {
-    void Person::Update(Game* game, float dt) {
+    void Person::Update(Client* game, float dt) {
         Attackable::Update(game, dt);
 
         int status_enable = 0;
@@ -29,7 +29,7 @@ namespace PMG {
             Spell* s = spells[i];
             if (s->remaining_cooldown != -1) {
                 s->remaining_cooldown -= dt * 1000;
-
+                
                 if (s->remaining_cooldown <= 0) {
                     s->remaining_cooldown = -1;
                 }
@@ -37,7 +37,7 @@ namespace PMG {
         }
     }
 
-    void Person::Act(Game* game, float dt) {
+    void Person::Act(Client* game, float dt) {
         if ((current_status & STATUS_STUNNED) == STATUS_STUNNED) {
             // we're stunned, we cannot do anything
             new_animation = "stunned";
@@ -103,7 +103,7 @@ namespace PMG {
                 // consider forward- and backswing as well, yikes
                 if (!basic_attack_info.attack_started) {
                     basic_attack_info.attack_started_at = game->gameTick;
-                    basic_attack_info.attack_started = TRUE;
+                    basic_attack_info.attack_started = true;
                     // ok we start... do we also need to let someone know? :O
 
                     new_animation = "attack1";
@@ -134,7 +134,7 @@ namespace PMG {
                 }
 
                 basic_attack_info.last_attack = game->gameTick;
-                basic_attack_info.attack_started = FALSE;
+                basic_attack_info.attack_started = false;
 
                 break;
             }

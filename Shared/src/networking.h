@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-#include <WS2tcpip.h>
-#include <WinSock2.h>
 #include <vector>
 
 #define DEFAULT_PORT 23119

@@ -4,13 +4,13 @@
 #include "game_object.h"
 
 namespace PMG {
-	class Game;
+	class Client;
 
 	class MinionSpawner : public IGameObject {
 	public:
 		MinionSpawner(std::vector<Physics::Vector3> waypoints) : waypoints_(waypoints) {};
-		virtual void Update(Game* game, float dt) override;
-		virtual void OnCollision(Game* game, IGameObject* other) override;
+		virtual void Update(Client* game, float dt) override;
+		virtual void OnCollision(Client* game, IGameObject* other) override;
 
 		Team team;
 	private:

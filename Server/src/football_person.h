@@ -16,7 +16,7 @@ namespace PMG {
 	class ThrowFootball : public Spell {
 	public:
 		ThrowFootball();
-		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info) override;
+		virtual void OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) override;
 	};
 
 	class ThrowFootballMissileData : public MissileSpellData {
@@ -31,7 +31,7 @@ namespace PMG {
 	class ThrowFootballMissile : public MissileSpell {
 	public:
 		ThrowFootballMissile(SpellTargetInfo* target_info, Attackable* owner) : MissileSpell(ThrowFootballMissileData(), owner, target_info) {};
-		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) override;
+		virtual void TargetHit(Client* game, Attackable* owner, Attackable* target) override;
 	};
 
 	class KnockedOutCold : public Buff {
@@ -43,13 +43,13 @@ namespace PMG {
 	class HealPerson : public Spell {
 	public:
 		HealPerson();
-		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 	};
 
 	class DoBlastArea : public Spell {
 	public:
 		DoBlastArea();
-		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 	};
 
 	class BlastAreaData : public AreaSpellData {
@@ -69,13 +69,13 @@ namespace PMG {
 		BlastArea(SpellTargetInfo* target_info) : AreaSpell(BlastAreaData(), target_info) {
 			collision_radius = 3;
 		};
-		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target);
+		virtual void TargetHit(Client* game, Attackable* owner, Attackable* target);
 	};
 
 	class MakeRunFast : public Spell {
 	public:
 		MakeRunFast();
-		virtual void OnCast(Game* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
 	};
 
 	class RunFast : public Buff {

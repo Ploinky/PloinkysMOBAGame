@@ -2,7 +2,7 @@
 #include "attackable.h"
 
 namespace PMG {
-	void Missile::Act(Game* game, float dt) {
+	void Missile::Act(Client* game, float dt) {
         Physics::Vector3 current_position = position;
 
         Physics::Vector3 target_current_position = this->target_point;

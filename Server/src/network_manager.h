@@ -6,21 +6,20 @@
 #include "networking.h"
 #include "pmg_networking.h"
 
+#include "steam/isteamnetworkingsockets.h"
 namespace PMG {
 
-    class ClientNetworkManager {
+    class ServerNetworkManager {
     public:
-        ClientNetworkManager();
+        ServerNetworkManager();
 
         bool Initialize();
         bool CreateListenSocket(std::string port);
 
-        bool AcceptConnection(net_client_t* listenServer, net_client_t* client);
+        bool ReceivePacket(HSteamNetConnection conn, std::vector<uint8_t>* packet);
 
-        bool ReceivePacket(net_client_t* connection, std::vector<uint8_t>* packet);
-
-        void SendToClient(unsigned long clientId, std::vector<uint8_t>* data);
-        void SendToClient(unsigned long clientId, Networking::BasePacket* packet);
+        void SendToClient(HSteamNetConnection conn, std::vector<uint8_t>* data);
+        void SendToClient(HSteamNetConnection conn, Networking::BasePacket* packet);
         void SendToAllClients(std::vector<uint8_t>* packet);
 
         bool Close();
@@ -29,10 +28,16 @@ namespace PMG {
 
         std::function<void(unsigned long)> on_clientConnected;
         std::function<void(unsigned long)> on_clientDisconnected;
-        std::function<void(unsigned long, std::vector<uint8_t>*)> on_clientMessageReceived;
+        std::function<void(HSteamNetConnection, std::vector<uint8_t>*)> on_clientMessageReceived;
+
+
+        STEAM_GAMESERVER_CALLBACK(ServerNetworkManager, OnConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
 
     private:
-        std::list<net_client_t> clients_;
+        std::list<HSteamNetConnection> clients_;
         net_client_t listen_server_{};
+
+        HSteamListenSocket listenSocket_;
+
     };
 }

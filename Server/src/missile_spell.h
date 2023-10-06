@@ -40,9 +40,9 @@ namespace PMG {
 		Team team;
 		MissileSpellData spell_data;
 
-		virtual void OnCollision(Game* game, IGameObject* other) override;
-		virtual void TargetHit(Game* game, Attackable* owner, Attackable* target) = 0;
-		virtual void Update(Game* game, float dt) override;
+		virtual void OnCollision(Client* game, IGameObject* other) override;
+		virtual void TargetHit(Client* game, Attackable* owner, Attackable* target) = 0;
+		virtual void Update(Client* game, float dt) override;
 		virtual void Sync(std::vector<uint8_t>* data) override;
 
 	private:

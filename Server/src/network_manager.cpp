@@ -2,238 +2,126 @@
 #include "logger.h"
 
 namespace PMG {
-    ClientNetworkManager::ClientNetworkManager() {
+    ServerNetworkManager::ServerNetworkManager() {
+        // start out with invalid socket
+        listenSocket_ = k_HSteamListenSocket_Invalid;
     }
 
-    bool ClientNetworkManager::Initialize() {
-        WSADATA wsaData = {};
+    bool ServerNetworkManager::Initialize() {
+        // do we need to do anything here?
+        SteamGameServerNetworkingSockets()->InitAuthentication();
+        return true;
+    }
 
-        int wsaStartupResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    bool ServerNetworkManager::CreateListenSocket(std::string port) {
+        SteamNetworkingIPAddr addr{};
+        addr.Clear();
+        addr.m_port = 23119;
 
-        if (wsaStartupResult != 0) {
+        listenSocket_ = SteamGameServerNetworkingSockets()->CreateListenSocketIP(addr, 0, 0);
+
+        if (listenSocket_ == k_HSteamListenSocket_Invalid) {
+            // this must mean there was an error, surely?
             return false;
         }
 
         return true;
     }
 
-    bool ClientNetworkManager::CreateListenSocket(std::string port) {
-        ADDRINFOA hints = {};
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_STREAM;
-        hints.ai_protocol = IPPROTO_TCP;
-        hints.ai_flags = AI_PASSIVE;
+    void ServerNetworkManager::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* callback) {
+        if (callback->m_info.m_hListenSocket && callback->m_eOldState == k_ESteamNetworkingConnectionState_None
+            && callback->m_info.m_eState == k_ESteamNetworkingConnectionState_Connecting) {
+            // new client is connecting
+            EResult acceptResult = SteamGameServerNetworkingSockets()->AcceptConnection(callback->m_hConn);
+            if (acceptResult != k_EResultOK) {
+                throw new std::exception("Failed to accept new connection");
+            }
 
-        ADDRINFOA* addrResult = 0;
+            clients_.push_back(callback->m_hConn);
+            
+            Logger::Msg("New client connected");
 
-        int error = getaddrinfo(NULL, port.c_str(), &hints, &addrResult);
-
-        if (error != 0) {
-            return false;
+            if (on_clientConnected) {
+                on_clientConnected(callback->m_hConn);
+            }
         }
+        else if ((callback->m_eOldState == k_ESteamNetworkingConnectionState_Connecting || callback->m_eOldState == k_ESteamNetworkingConnectionState_Connected)
+            && (callback->m_info.m_eState == k_ESteamNetworkingConnectionState_ClosedByPeer || callback->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally)) {
+            Logger::Msg("Client disconnected");
 
-        SOCKET listenSocket = INVALID_SOCKET;
-
-        listenSocket = socket(addrResult->ai_family, addrResult->ai_socktype, addrResult->ai_protocol);
-
-        if (listenSocket == INVALID_SOCKET) {
-            return false;
+            clients_.remove(callback->m_hConn);
+            
+            if (on_clientDisconnected) {
+                on_clientDisconnected(callback->m_hConn);
+            }
         }
-
-        error = bind(listenSocket, addrResult->ai_addr, addrResult->ai_addrlen);
-
-        if (error == SOCKET_ERROR) {
-            closesocket(listenSocket);
-            return false;
+        else {
+            throw new std::exception("Unknown connection status change received");
         }
+    }
 
-        error = listen(listenSocket, SOMAXCONN);
-
-        if (error == SOCKET_ERROR) {
-            return false;
+    bool ServerNetworkManager::Close() {
+        // TODO
+        for (HSteamNetConnection conn : clients_) {
+            SteamNetworkingSockets()->CloseConnection(conn, 0, nullptr, false);
         }
-
-        freeaddrinfo(addrResult);
-
-        listen_server_.socket = listenSocket;
-        listen_server_.isConnected = true;
-
+        SteamGameServerNetworkingSockets()->CloseListenSocket(listenSocket_);
         return true;
     }
 
-    bool ClientNetworkManager::AcceptConnection(net_client_t* listenServer, net_client_t* client) {
-        TIMEVAL tv = {};
-        tv.tv_usec = 1;
+    bool ServerNetworkManager::ReceivePacket(HSteamNetConnection conn, std::vector<uint8_t>* packet) {
+        // TODO only receive 1 message every time?
+        std::vector<SteamNetworkingMessage_t*> messages;
+        messages.resize(1);
 
-        fd_set set = {};
-        set.fd_count = 1;
-        set.fd_array[0] = listenServer->socket;
+        if (SteamGameServerNetworkingSockets()->ReceiveMessagesOnConnection(conn, messages.data(), 1)) {
+            for (SteamNetworkingMessage_t* message : messages) {
 
-        int socketsReady = select(0, &set, nullptr, nullptr, &tv);
+                packet->resize(message->GetSize());
+                std::memcpy(packet->data(), message->GetData(), message->GetSize());
 
-        if (socketsReady == 0 || socketsReady == SOCKET_ERROR) {
-            return false;
-        }
+                // release when done!
+                message->Release();
 
-        SOCKET newClientSocket = INVALID_SOCKET;
-
-        newClientSocket = accept(listenServer->socket, NULL, NULL);
-
-        if (newClientSocket == INVALID_SOCKET) {
-            return false;
-        }
-
-        unsigned long mode = 1;
-
-        int result = ioctlsocket(newClientSocket, FIONBIO, &mode);
-
-        if (result == SOCKET_ERROR) {
-            return false;
-        }
-
-        client->socket = newClientSocket;
-        client->isConnected = true;
-
-        return true;
-    }
-
-    bool ClientNetworkManager::Close() {
-        int result = shutdown(listen_server_.socket, SD_BOTH);
-        listen_server_.isConnected = false;
-
-        if (result == SOCKET_ERROR) {
-            return false;
-        }
-
-        return true;
-    }
-
-    bool ClientNetworkManager::ReceivePacket(net_client_t* connection, std::vector<uint8_t>* packet) {
-        Networking::packet_header_t header{};
-        int error = recv(connection->socket, (char*)&header, sizeof(header), 0);
-
-        if (error == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK) {
-            connection->isConnected = false;
-            Logger::Msg(std::string("Failed to receive message  from <").append(std::to_string(connection->socket)).append(">, error <").append(std::to_string(WSAGetLastError())).append(">"));
-            return false;
-        } else if (error < 1) {
-            return false;
-        }
-
-        packet->resize(header.size);
-        std::memcpy(packet->data(), &header, sizeof(header));
-
-        if (header.size > 16) {
-            error = recv(connection->socket, (char*)packet->data() + sizeof(header), header.size - sizeof(header), 0);
-
-            if (error < 1) {
-                printf("failed receiving <%d> with <%I64u> bytes from <%I64u>: %d\r\n",
-                    header.type,
-                    packet->size(),
-                    connection->socket,
-                    WSAGetLastError()
-                );
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
-    void ClientNetworkManager::Update() {
-        // Currently allowing new connections at any time
-        if (listen_server_.isConnected) {
-            net_client_t newClient = {};
-
-            if (AcceptConnection(&listen_server_, &newClient)) {
-                clients_.push_back(newClient);
-                on_clientConnected(newClient.socket);
-            }
-        }
-
-        for (auto it = clients_.begin(); it != clients_.end(); ++it) {
-            if (!it->isConnected) {
-                on_clientDisconnected(it->socket);
-                it = clients_.erase(it);
-                if (it == clients_.end()) {
-                    break;
-                }
-            }
-        }
-
-        for (auto it = clients_.begin(); it != clients_.end(); ++it) {
+    void ServerNetworkManager::Update() {
+        for (HSteamNetConnection conn : clients_) {
             std::vector<uint8_t> packet = {};
 
-            while (ReceivePacket(&(*it), &packet)) {
-                on_clientMessageReceived(it->socket, &packet);
+            while (ReceivePacket(conn, &packet)) {
+                on_clientMessageReceived(conn, &packet);
             }
         }
     }
 
-    void ClientNetworkManager::SendToAllClients(std::vector<uint8_t>* data) {
-        for (auto it = clients_.begin(); it != clients_.end(); ++it) {
-            if(it != clients_.end() && it->isConnected) {
-                SendToClient(it->socket, data);
-            }
+    void ServerNetworkManager::SendToAllClients(std::vector<uint8_t>* data) {
+        for (HSteamNetConnection conn : clients_) {
+            SendToClient(conn, data);
         }
     }
 
-    void ClientNetworkManager::SendToClient(unsigned long id, Networking::BasePacket* packet) {
-        Logger::Msg("ATTEMPT TO SEND!!!");
+    void ServerNetworkManager::SendToClient(HSteamNetConnection conn, Networking::BasePacket* packet) {
         std::vector<uint8_t>* buf = new std::vector<uint8_t>();
         packet->Write(buf);
 
-        for (auto client : clients_) {
-            if (client.socket == id && client.isConnected) {
-                int error = send(client.socket, (char*)buf->data(), buf->size(), 0);
+        EResult result = SteamGameServerNetworkingSockets()->SendMessageToConnection(conn, buf->data(), buf->size(), 0, nullptr);
 
-                if (error < 1) {
-                    printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
-                        packet->type,
-                        buf->size(),
-                        client.socket,
-                        WSAGetLastError()
-                    );
-                }
-
-                if (error > 10000) {
-                    throw new std::exception();
-                }
-
-                return;
-            }
+        if (result != k_EResultOK) {
+            Logger::Err("Failed to send message to client");
         }
     }
 
-    void ClientNetworkManager::SendToClient(unsigned long id, std::vector<uint8_t>* data) {
-        for (auto it = clients_.begin(); it != clients_.end(); ++it) {
-            net_client_t client = *it;
+    void ServerNetworkManager::SendToClient(HSteamNetConnection conn, std::vector<uint8_t>* data) {
+        EResult result = SteamGameServerNetworkingSockets()->SendMessageToConnection(conn, data->data(), data->size(), 0, nullptr);
 
-            if (client.socket == id) {
-                if(client.isConnected) {
-                    int error = send(client.socket, (char*)data->data(), data->size(), 0);
-
-                    // TODO err msg?
-                    if (error < 1) {
-                        printf("failed sending <%d> with <%I64u> bytes to <%I64u>: %d\r\n",
-                            0,
-                            data->size(),
-                            client.socket,
-                            WSAGetLastError()
-                        );
-                        
-                        // TODO close connection to client?
-                        //  Close(&client);
-                        return; // false;
-                    }
-
-                    if (error > 10000) {
-                        throw new std::exception();
-                    }
-
-                    return; // true;
-                }
-            }
+        if (result != k_EResultOK) {
+            Logger::Err("Failed to send message to client");
         }
     }
 }

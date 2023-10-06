@@ -45,7 +45,7 @@ namespace PMG {
 		stats_updated = true;
 	}
 
-	void Attackable::MoveToward(double x, double z, Game* game) {
+	void Attackable::MoveToward(double x, double z, Client* game) {
 		nav_agent_t navAgent = nav_agent;
 		navAgent.target.x = x;
 		navAgent.target.z = z;
@@ -104,13 +104,14 @@ namespace PMG {
 		if (position.x != tx || position.z != ty) {
 			rotation.y = atan2(tx - position.x, ty - position.z) * 180.0f / M_PI;
 		}
+
 	}
 
 	void Attackable::Die() {
 		is_destroyed = true;
 	}
 
-	void Attackable::OnCollision(Game* game, IGameObject* o) {
+	void Attackable::OnCollision(Client* game, IGameObject* o) {
 		Attackable* other = dynamic_cast<Attackable*>(o);
 
 		if (other == nullptr || target_type == TargetType::BUILDING || (current_action_ != nullptr && current_action_->type != GameObjectActionType::MOVE)) {

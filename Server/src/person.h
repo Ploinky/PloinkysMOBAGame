@@ -13,8 +13,8 @@ namespace PMG {
 			collision_radius = 1;
 		};
 
-		virtual void Update(Game* game, float dt) override;
-		virtual void Act(Game* game, float dt) override;
+		virtual void Update(Client* game, float dt) override;
+		virtual void Act(Client* game, float dt) override;
 		virtual void Sync(std::vector<uint8_t>* data) override;
 
 		virtual void Die() override;
