@@ -74,11 +74,12 @@ namespace PMG {
 		}
 
 		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= 130 && mouseX_ <= 230
+		if (!videoModeExtended_ && mouseX_ >= 130 && mouseX_ <= 230
 			&& mouseY_ >= 30 && mouseY_ <= 60) {
-			videoModeExtended_ = !videoModeExtended_;
+			videoModeExtended_ = true;
 			return;
 		}
+
 
 		if (videoModeExtended_) {
 			int i = 1;
@@ -88,12 +89,14 @@ namespace PMG {
 				if (mouseX_ >= 130 && mouseX_ <= 230
 					&& mouseY_ >= 30 + i * 30 && mouseY_ <= 30 + i * 30 + 30) {
 					settings_->SetString(PMGSettings::VIDEO_MODE, mode.c_str());
-					videoModeExtended_ = !videoModeExtended_;
+					videoModeExtended_ = false;
 					return;
 				}
 				i++;
 			}
 		}
+
+		videoModeExtended_ = false;
 
 		// TODO i do not want to do this every time for every button yikes
 		if (mouseX_ >= guiSelector_.m_pos.x && mouseX_ <= guiSelector_.m_pos.x + guiSelector_.m_size.x
