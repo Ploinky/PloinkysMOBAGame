@@ -1,7 +1,7 @@
 #pragma once
 
 #include "component_registry.h"
-#include "game_object.h"
+#include "GameObject.h"
 #include "attackable.h"
 
 namespace PMG {

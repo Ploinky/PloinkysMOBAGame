@@ -1,7 +1,7 @@
 #pragma once
 
 #include "attackable.h"
-#include "game_object.h"
+#include "GameObject.h"
 
 namespace PMG {
 	class Client;

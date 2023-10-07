@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game_object.h"
+#include "GameObject.h"
 #include "pmg_types.h"
 #include "attackable.h"
 #include "game.h"

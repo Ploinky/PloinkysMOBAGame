@@ -33,8 +33,8 @@ namespace PMG {
             std::vector<Shader*> m_shaders;
 
             
-            void RenderText(int x, int y, int w, int h, float color[3], std::wstring text);
-            void RenderText(int x, int y, int w, int h, std::wstring text);
+            void RenderText(int x, int y, int w, int h, float color[3], std::string text);
+            void RenderText(int x, int y, int w, int h, std::string text);
             void DrawRect(int x, int y, int w, int h, float color[3]);
             void DrawShape(Physics::Vector2* points, int pointCount, float color[3]);
             void FillShape(Physics::Vector2* points, int pointCount, float color[3]);

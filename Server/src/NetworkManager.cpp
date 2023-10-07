@@ -1,10 +1,14 @@
-#include "network_manager.h"
+#include "NetworkManager.h"
 #include "logger.h"
 
 namespace PMG {
     ServerNetworkManager::ServerNetworkManager() {
         // start out with invalid socket
         listenSocket_ = k_HSteamListenSocket_Invalid;
+    }
+
+    ServerNetworkManager::~ServerNetworkManager() {
+        Close();
     }
 
     bool ServerNetworkManager::Initialize() {

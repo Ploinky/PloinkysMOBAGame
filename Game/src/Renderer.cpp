@@ -32,9 +32,6 @@ namespace PMG {
 
         DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(camera->fov), (float)m_width / (float)m_height, camera->nearClip, camera->farClip)));
 
-        // Where to set this?
-        direct3D->context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
         // Set initial constant matrix values
         DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
             camera->position.x, camera->position.y, camera->position.z))));
@@ -95,12 +92,12 @@ namespace PMG {
         direct3D->context->Unmap(buffer, 0);
     }
 
-    void Renderer::RenderText(int x, int y, int w, int h, std::wstring text) {
+    void Renderer::RenderText(int x, int y, int w, int h, std::string text) {
         float color[3] = { 1.0, 1.0, 1.0 };
          RenderText(x, y, w, h, color, text);
     }
 
-    void Renderer::RenderText(int x, int y, int w, int h, float color[3], std::wstring text) {
+    void Renderer::RenderText(int x, int y, int w, int h, float color[3], std::string text) {
         //Set the Font Color
         D2D1_COLOR_F FontColor = D2D1::ColorF(color[0], color[1], color[2], 1.0f);
 
@@ -117,10 +114,15 @@ namespace PMG {
         direct3D->format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
         
         IDWriteTextLayout* textLayout;
+        
+        std::wstring wstr;
+        int convertResult = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)strlen(text.c_str()), NULL, 0);
+        wstr.resize(convertResult);
+        convertResult = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)strlen(text.c_str()), &wstr[0], (int)wstr.size());
 
         hr = direct3D->dWriteFactory->CreateTextLayout(
-            text.c_str(),
-            static_cast<UINT32>(wcslen(text.c_str())),
+            wstr.c_str(),
+            wstr.length(),
             direct3D->format,
             static_cast<float>(w),
             static_cast<float>(h),

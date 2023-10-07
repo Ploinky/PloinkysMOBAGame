@@ -2,9 +2,9 @@
 
 #include "person.h"
 #include "spell.h"
-#include "area_spell.h"
+#include "AreaSpell.h"
 #include "game.h"
-#include "missile_spell.h"
+#include "MissileSpell.h"
 #include "buff.h"
 
 namespace PMG {

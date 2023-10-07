@@ -1,4 +1,4 @@
-#include "area_spell.h"
+#include "AreaSpell.h"
 #include "game.h"
 
 namespace PMG {

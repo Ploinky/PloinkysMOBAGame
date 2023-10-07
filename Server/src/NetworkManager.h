@@ -12,6 +12,7 @@ namespace PMG {
     class ServerNetworkManager {
     public:
         ServerNetworkManager();
+        ~ServerNetworkManager();
 
         bool Initialize();
         bool CreateListenSocket(std::string port);

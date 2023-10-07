@@ -1,7 +1,7 @@
-#include "football_person.h"
-#include "missile_spell.h"
+#include "FootballPerson.h"
+#include "MissileSpell.h"
 #include "game.h"
-#include "particle_spawner.h"
+#include "ParticleSpawner.h"
 
 namespace PMG {
 	void ThrowFootball::OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "igame_object.h"
+#include "IGameObject.h"
 #include <string>
 
 namespace PMG {

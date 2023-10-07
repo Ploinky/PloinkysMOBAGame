@@ -1,4 +1,4 @@
-#include "missile_spell.h"
+#include "MissileSpell.h"
 #include "game.h"
 #include "spell.h"
 #include "attackable.h"

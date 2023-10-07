@@ -1,7 +1,7 @@
 #pragma once
 
-#include "igame_object.h"
-#include "game_object.h"
+#include "IGameObject.h"
+#include "GameObject.h"
 
 namespace PMG {
 	class Client;

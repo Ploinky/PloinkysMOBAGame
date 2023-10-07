@@ -39,7 +39,7 @@ namespace PMG {
 		Settings() {};
 
 		std::vector<std::string> GetAllVideoModes();
-		std::map<std::string, DEVMODE> GetAllVideoModesAndValues();
+		std::map<std::string, DEVMODEA> GetAllVideoModesAndValues();
 
 		std::function<void(std::string)> OnSettingChanged = std::bind([] {});
 
@@ -47,7 +47,7 @@ namespace PMG {
 
 		std::map<const char*, std::string> settings_;
 
-		std::map<std::string, DEVMODE> deviceModes_;
+		std::map<std::string, DEVMODEA> deviceModes_;
 	};
 }
 

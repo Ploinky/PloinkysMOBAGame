@@ -7,8 +7,8 @@
 #include "networking.h"
 #include "pmg_networking.h"
 #include "components.h"
-#include "game_object.h"
-#include "igame_object.h"
+#include "GameObject.h"
+#include "IGameObject.h"
 
 namespace PMG {
     class Missile;

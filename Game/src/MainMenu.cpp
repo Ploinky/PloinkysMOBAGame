@@ -8,7 +8,7 @@
 namespace PMG {
 	MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 		// Server browser button
-		buttonServerBrowser_.m_text = L"Server Browser";
+		buttonServerBrowser_.m_text = "Server Browser";
 		buttonServerBrowser_.m_color[0] = 0.4f;
 		buttonServerBrowser_.m_color[1] = 0.4f;
 		buttonServerBrowser_.m_color[2] = 0.4f;
@@ -19,7 +19,7 @@ namespace PMG {
 		};
 
 		// Server browser button
-		buttonSettings_.m_text = L"Settings";
+		buttonSettings_.m_text = "Settings";
 		buttonSettings_.m_color[0] = 0.4f;
 		buttonSettings_.m_color[1] = 0.4f;
 		buttonSettings_.m_color[2] = 0.4f;
@@ -30,7 +30,7 @@ namespace PMG {
 		};
 
 		// Quit button
-		buttonBack_.m_text = L"Quit";
+		buttonBack_.m_text = "Quit";
 		buttonBack_.m_color[0] = 0.6f;
 		buttonBack_.m_color[1] = 0.2f;
 		buttonBack_.m_color[2] = 0.2f;
@@ -67,7 +67,7 @@ namespace PMG {
 			}
 		}
 
-		renderer->RenderText(50 + width_, 50, 200, 50, Util::string_to_wstring(myName_));
+		renderer->RenderText(50 + width_, 50, 200, 50, myName_);
 
 		buttonServerBrowser_.Render(renderer);
 		buttonSettings_.Render(renderer);

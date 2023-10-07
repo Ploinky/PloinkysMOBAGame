@@ -7,6 +7,11 @@
 #include "steam/isteammatchmaking.h"
 
 namespace PMG {
+	struct Server_t {
+		std::string name;
+		servernetadr_t addr;
+	};
+
 	class ServerBrowser : public IClientState, public ISteamMatchmakingServerListResponse {
 	public:
 		ServerBrowser(IClientStateHandler* handler, int width, int height);
@@ -23,7 +28,7 @@ namespace PMG {
 
 		HServerListRequest refreshRequest_ = nullptr;
 
-		std::vector<servernetadr_t> servers_;
+		std::vector<Server_t> servers_;
 
 		void CancelRefreshRequest();
 		void StartRefresh();

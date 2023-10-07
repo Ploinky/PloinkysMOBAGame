@@ -2,7 +2,7 @@
 
 #include "pmg_physics.h"
 #include <vector>
-#include "game_object.h"
+#include "GameObject.h"
 
 namespace PMG {
 	class Attackable;

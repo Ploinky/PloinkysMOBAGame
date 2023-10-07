@@ -4,7 +4,7 @@
 
 namespace PMG {
 	ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
-		buttonRefresh_.m_text = L"Refresh";
+		buttonRefresh_.m_text = "Refresh";
 		buttonRefresh_.m_color[0] = 0.4f;
 		buttonRefresh_.m_color[1] = 0.4f;
 		buttonRefresh_.m_color[2] = 0.4f;
@@ -17,7 +17,7 @@ namespace PMG {
 			StartRefresh();
 		};
 
-		buttonBack_.m_text = L"Back";
+		buttonBack_.m_text = "Back";
 		buttonBack_.m_color[0] = 0.4f;
 		buttonBack_.m_color[1] = 0.4f;
 		buttonBack_.m_color[2] = 0.4f;
@@ -44,12 +44,13 @@ namespace PMG {
 		float color[3]{ 1, 0, 0 };
 
 		for (int i = 0; i < servers_.size(); i++) {
-			renderer->RenderText(50, 200 + i * 50, 200, 30, color, Util::string_to_wstring(std::string(servers_[i].GetConnectionAddressString())));
+			renderer->RenderText(50, 200 + i * 50, 200, 30, color, std::string(servers_[i].name));
+			renderer->RenderText(250, 200 + i * 50, 200, 30, color, std::string(servers_[i].addr.GetConnectionAddressString()));
 		}
 
 		if (refreshRequest_) {
 			// we are refreshing!
-			renderer->RenderText(370, 80, 150, 50, L"Refreshing...");
+			renderer->RenderText(370, 80, 150, 50, "Refreshing...");
 		}
 
 		buttonBack_.Render(renderer);
@@ -62,10 +63,10 @@ namespace PMG {
 		}
 
 		int index = 0;
-		for (servernetadr_t addr : servers_) {
+		for (Server_t addr : servers_) {
 			if (mouseX_ >= 50 && mouseX_ <= 250
 				&& mouseY_ >= 200 + index * 50 && mouseY_ <= 200 + index * 50 + 30) {
-				handler_->JoinGame(addr);
+				handler_->JoinGame(addr.addr);
 			}
 		}
 
@@ -114,7 +115,10 @@ namespace PMG {
 			// Filter out servers that don't match our appid here (might get these in LAN calls since we can't put more filters on it)
 			if (pServer->m_nAppID == SteamUtils()->GetAppID())
 			{
-				servers_.push_back(pServer->m_NetAdr);
+				Server_t server{};
+				server.addr = pServer->m_NetAdr;
+				server.name = std::string(pServer->GetName());
+				servers_.push_back(server);
 			}
 		}
 	}

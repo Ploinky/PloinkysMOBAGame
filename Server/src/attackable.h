@@ -1,9 +1,9 @@
 #pragma once
 
 #include "pmg_types.h"
-#include "igame_object.h"
+#include "IGameObject.h"
 #include "pmg_physics.h"
-#include "game_object.h"
+#include "GameObject.h"
 
 namespace PMG {
 

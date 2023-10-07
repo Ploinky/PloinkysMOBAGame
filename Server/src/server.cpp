@@ -1,6 +1,6 @@
 #include <chrono>
 #include "server.h"
-#include "network_manager.h"
+#include "NetworkManager.h"
 #include "main.h"
 #include "game.h"
 #include "util.h"

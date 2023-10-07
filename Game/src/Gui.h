@@ -29,7 +29,7 @@ namespace PMG {
 
 	class GuiTextfield : public GuiElement {
 	public:
-		std::wstring m_text = L"";
+		std::string m_text = "";
 		std::function<void(void)> e_onSubmit = {};
 
 		void Render(Renderer* renderer);

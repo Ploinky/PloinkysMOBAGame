@@ -1,4 +1,4 @@
-#include "game_object.h"
+#include "GameObject.h"
 #include "game.h"
 #include "missile.h"
 #include "logger.h"

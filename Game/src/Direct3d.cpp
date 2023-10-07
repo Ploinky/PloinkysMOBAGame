@@ -473,6 +473,9 @@ namespace PMG {
 
     void Direct3D::BindViews() {
         context->OMSetRenderTargets(1, &renderTargetView, depthView);
+
+        // Where to set this?
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void Direct3D::SetViewport() {

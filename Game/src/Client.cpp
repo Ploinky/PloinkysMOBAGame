@@ -183,7 +183,7 @@ namespace PMG {
             direct3D->SetWindowDimensions(window->width_, window->height_);
         }
         else if (setting == PMGSettings::VIDEO_MODE) {
-            DEVMODE mode = settings_.GetAllVideoModesAndValues().find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
+            DEVMODEA mode = settings_.GetAllVideoModesAndValues().find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
             window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.dmPelsWidth, mode.dmPelsHeight);
             direct3D->SetFullScreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
             direct3D->SetWindowDimensions(window->width_, window->height_);

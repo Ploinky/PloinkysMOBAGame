@@ -91,30 +91,6 @@ namespace PMG {
         m_camDir[0] = keysX + mouseX;
         m_camDir[1] = keysZ + mouseZ;
 
-        if (m_keys[' ']) {
-            if (unit_id_received_) {
-                // Snap to player
-                GameObject* my_unit = GetGameObject(my_unit_id_);
-
-                if (my_unit != nullptr) {
-                    m_camDir[0] = 0;
-                    m_camDir[1] = 0;
-                    m_camPos[0] = my_unit->position.x;
-                    m_camPos[1] = 15;
-                    m_camPos[2] = my_unit->position.z - 8;
-                }
-            }
-            else {
-                m_camPos[0] = 0;
-                m_camPos[2] = -10;
-            }
-
-        }
-        else {
-            m_camPos[0] += m_camDir[0] * dt / 20;
-            m_camPos[2] += m_camDir[1] * dt / 20;
-        }
-
         if (m_mouseButtons[2]) {
             m_mouseClicked[0] = m_mousePos[0];
             m_mouseClicked[1] = m_mousePos[1];
@@ -284,12 +260,36 @@ namespace PMG {
 
             return false;
             });
+
+        if (m_keys[' ']) {
+            if (unit_id_received_) {
+                // Snap to player
+                GameObject* my_unit = GetGameObject(my_unit_id_);
+
+                if (my_unit != nullptr) {
+                    m_camDir[0] = 0;
+                    m_camDir[1] = 0;
+                    m_camPos[0] = my_unit->position.x;
+                    m_camPos[1] = 15;
+                    m_camPos[2] = my_unit->position.z - 8;
+                }
+            }
+            else {
+                m_camPos[0] = 0;
+                m_camPos[2] = -10;
+            }
+
+        }
+        else {
+            m_camPos[0] += m_camDir[0] * dt / 20;
+            m_camPos[2] += m_camDir[1] * dt / 20;
+        }
     }
 
     void Game::Render(Renderer* renderer) {
         // ===== Loading Screen =====
         if (!net_manager_.IsConnected()) {
-            renderer->RenderText(0, 0, 100, 100, L"Connecting");
+            renderer->RenderText(0, 0, 100, 100, "Connecting");
             return;
         }
 
@@ -337,9 +337,9 @@ namespace PMG {
             double health_bar_height = 5;
 
             if (go->has_title) {
-                renderer->RenderText(x - 50, y - 50, 100, 50, L"Ploinky");
+                renderer->RenderText(x - 50, y - 50, 100, 50, "Ploinky");
                 renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
-                renderer->RenderText(x - 71, y - 12, 20, 20, L"1");
+                renderer->RenderText(x - 71, y - 12, 20, 20, "1");
                 renderer->FillRect(x - 50, y - 10, 100, 15, new float[3] { 0.0f, 0, 0 });
                 health_bar_height = 15;
             }
@@ -371,8 +371,8 @@ namespace PMG {
         }
 
 #ifdef _DEBUG
-        std::wstring go_text(L"game_objects: ");
-        go_text.append(std::to_wstring(game_objects_.size()));
+        std::string go_text("game_objects: ");
+        go_text.append(std::to_string(game_objects_.size()));
         renderer->RenderText(0, 20, 150, 20, go_text);
 #endif
 
@@ -381,19 +381,19 @@ namespace PMG {
         int done_minutes = done_seconds / 60;
         done_seconds = done_seconds % 60;
 
-        std::wstring time = L"";
+        std::string time = "";
 
         if (done_minutes < 10) {
-            time.append(L"0");
+            time.append("0");
         }
 
-        time.append(std::to_wstring(done_minutes)).append(L":");
+        time.append(std::to_string(done_minutes)).append(":");
 
         if (done_seconds < 10) {
-            time.append(L"0");
+            time.append("0");
         }
 
-        time.append(std::to_wstring(done_seconds));
+        time.append(std::to_string(done_seconds));
 
         float black[3]{ 0, 0, 0 };
         renderer->FillRect(windowWidth_ / 2 - 50, 10, 100, 20, black);
@@ -419,7 +419,7 @@ namespace PMG {
         float green[3]{ 0, 0.5, 0 };
         renderer->FillRect(x, y, percentage_health, 25, green);
 
-        renderer->RenderText(x, y, 400, 25, std::to_wstring(my_go->health).append(L"/").append(std::to_wstring(my_go->max_health)).c_str());
+        renderer->RenderText(x, y, 400, 25, std::to_string(my_go->health).append("/").append(std::to_string(my_go->max_health)).c_str());
 
         float gray[3]{ 0.5, 0.5, 0.5 };
         // Ability icons ?!
@@ -497,7 +497,7 @@ namespace PMG {
                 renderer->FillShape(points, 3, black);
             }
         }
-        renderer->RenderText(x, y, 50, 50, L"Q");
+        renderer->RenderText(x, y, 50, 50, "Q");
 
         x = windowWidth_ / 2 - 55;
         renderer->DrawRect(x, y, 50, 50, black);
@@ -571,7 +571,7 @@ namespace PMG {
                 renderer->FillShape(points, 3, black);
             }
         }
-        renderer->RenderText(x, y, 50, 50, L"W");
+        renderer->RenderText(x, y, 50, 50, "W");
 
         x = windowWidth_ / 2 + 5;
         renderer->DrawRect(x, y, 50, 50, black);
@@ -645,7 +645,7 @@ namespace PMG {
                 renderer->FillShape(points, 3, black);
             }
         }
-        renderer->RenderText(x, y, 50, 50, L"E");
+        renderer->RenderText(x, y, 50, 50, "E");
 
         x = windowWidth_ / 2 + 65;
         renderer->DrawRect(x, y, 50, 50, black);
@@ -719,7 +719,7 @@ namespace PMG {
                 renderer->FillShape(points, 3, black);
             }
         }
-        renderer->RenderText(x, y, 50, 50, L"R");
+        renderer->RenderText(x, y, 50, 50, "R");
     }
 
     void Game::TestIntersect(Renderer* renderer, int mx, int my, float* x, float* y) {
@@ -944,6 +944,10 @@ namespace PMG {
             }
             case Networking::PacketType::UNITMOVE:
             case Networking::PacketType::UNITIDLE: {
+                if (diff < 1) {
+                    // not interpolated
+                    continue;
+                }
                 Networking::UnitMovePacket move = Networking::UnitMovePacket();
                 move.Read(&new_data);
 
@@ -991,6 +995,10 @@ namespace PMG {
                 break;
             }
             case Networking::PacketType::PCK_SPELL_COOLDOWN: {
+                if (diff < 1) {
+                    // not interpolated
+                    continue;
+                }
                 Networking::CooldownPacket cd = Networking::CooldownPacket();
                 cd.Read(&new_data);
 
@@ -1003,6 +1011,10 @@ namespace PMG {
                 break;
             }
             case Networking::PacketType::PCK_START_ANIMATION: {
+                if (diff < 1) {
+                    // not interpolated
+                    continue;
+                }
                 Networking::AnimationPacket anim = Networking::AnimationPacket();
                 anim.Read(&new_data);
 
@@ -1014,6 +1026,10 @@ namespace PMG {
                 break;
             }
             case Networking::PacketType::PCK_PLAY_PARTICLE: {
+                if (diff < 1) {
+                    // not interpolated
+                    continue;
+                }
                 Networking::PlayParticlePacket part = Networking::PlayParticlePacket();
                 part.Read(&new_data);
 
@@ -1057,8 +1073,7 @@ namespace PMG {
 
     void Game::HandleGameTickPacket(std::vector<uint8_t> data) {
         game_tick_t new_tick{};
-        //new_tick.received = Util::GetSystemTime();
-        new_tick.received = 0;
+        new_tick.received = Util::GetSystemTime();
         Networking::packet_header_t header{};
 
         std::memcpy(&header, data.data(), sizeof(header));

@@ -45,11 +45,10 @@ namespace PMG {
 		SetInt(PMGSettings::RESOLUTION_Y, 768);
 		SetInt(PMGSettings::WINDOW_MODE, (int) WindowMode::BORDERLESS);
 		SetInt(PMGSettings::MASTER_VOLUME, 1.0);
-
-
-		DEVMODE devMode{};
+		
+		DEVMODEA devMode{};
 		devMode.dmSize = sizeof(DEVMODE);
-		for (int i = 0; EnumDisplaySettings(NULL, i, &devMode) != 0; i++) {
+		for (int i = 0; EnumDisplaySettingsA(NULL, i, &devMode) != 0; i++) {
 			printf("%d-%d\n", devMode.dmPelsWidth, devMode.dmPelsHeight);
 
 			std::string newMode = std::to_string(devMode.dmPelsWidth).append("x").append(std::to_string(devMode.dmPelsHeight));
@@ -70,7 +69,6 @@ namespace PMG {
 		for (auto mode : deviceModes_) {
 			printf(std::string("mode: ").append(mode.first).append("\n").c_str());
 		}
-
 	}
 
 	void Settings::LoadFromFile(std::string fileName) {
@@ -107,7 +105,7 @@ namespace PMG {
 		Util::WriteLinesToFile(fileName, content);
 	}
 
-	std::map<std::string, DEVMODE> Settings::GetAllVideoModesAndValues() {
+	std::map<std::string, DEVMODEA> Settings::GetAllVideoModesAndValues() {
 		return deviceModes_;
 	}
 

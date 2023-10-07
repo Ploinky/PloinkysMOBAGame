@@ -7,7 +7,7 @@ namespace PMG {
 		mouseX_ = 0;
 		mouseY_ = 0;
 		// Quit button
-		buttonBack_.m_text = L"Back";
+		buttonBack_.m_text = "Back";
 		buttonBack_.m_color[0] = 0.4f;
 		buttonBack_.m_color[1] = 0.4f;
 		buttonBack_.m_color[2] = 0.4f;
@@ -22,8 +22,8 @@ namespace PMG {
 	}
 
 	void SettingsMenu::Render(Renderer* renderer) {
-		renderer->RenderText(30, 30, 100, 30, L"Windowmode:");
-		renderer->RenderText(130, 30, 100, 30, Util::string_to_wstring(settings_->GetString(PMGSettings::VIDEO_MODE)));
+		renderer->RenderText(30, 30, 100, 30, "Windowmode:");
+		renderer->RenderText(130, 30, 100, 30, settings_->GetString(PMGSettings::VIDEO_MODE));
 
 
 		if (videoModeExtended_) {
@@ -31,7 +31,7 @@ namespace PMG {
 			for (std::string mode : settings_->GetAllVideoModes()) {
 				float color[3] = { 0.4, 0.4, 0.4 };
 				renderer->FillRect(130, 30 + i * 30, 100, 30, color);
-				renderer->RenderText(130, 30 + i * 30, 100, 30, Util::string_to_wstring(mode.c_str()));
+				renderer->RenderText(130, 30 + i * 30, 100, 30, mode.c_str());
 
 				i++;
 			}

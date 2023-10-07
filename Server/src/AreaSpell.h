@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game_object.h"
+#include "GameObject.h"
 #include <set>
 #include "attackable.h"
 

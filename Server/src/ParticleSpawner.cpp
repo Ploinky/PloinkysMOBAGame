@@ -1,4 +1,4 @@
-#include "particle_spawner.h"
+#include "ParticleSpawner.h"
 #include "pmg_networking.h"
 
 namespace PMG {
