@@ -18,7 +18,7 @@ namespace PMG {
 		};
 
 		guiSelector_.m_pos = { 140, 60 };
-		guiSelector_.m_size = { 300, 60 };
+		guiSelector_.m_size = { 200, 30 };
 		guiSelector_.OptionToString = [](WindowMode val) {
 			switch (val) {
 			case WindowMode::WINDOWED:
@@ -37,13 +37,16 @@ namespace PMG {
 		guiSelector_.m_color[0] = 1;
 		guiSelector_.m_color[1] = 1;
 		guiSelector_.m_color[2] = 1;
-		
+		guiSelector_.SelectOption((WindowMode) settings_->GetInt(PMGSettings::WINDOW_MODE));
 	}
 
 	SettingsMenu::~SettingsMenu() {
 	}
 
 	void SettingsMenu::Render(Renderer* renderer) {
+		renderer->RenderText(30, 60, 100, 30, "Windowmode:");
+		guiSelector_.Render(renderer);
+
 		renderer->RenderText(30, 30, 100, 30, "Resolution:");
 		renderer->RenderText(130, 30, 100, 30, settings_->GetString(PMGSettings::VIDEO_MODE));
 
@@ -58,9 +61,6 @@ namespace PMG {
 				i++;
 			}
 		}
-
-		renderer->RenderText(30, 60, 100, 30, "Window mode:");
-		guiSelector_.Render(renderer);
 
 		buttonBack_.Render(renderer);
 	}
@@ -77,6 +77,7 @@ namespace PMG {
 		if (mouseX_ >= 130 && mouseX_ <= 230
 			&& mouseY_ >= 30 && mouseY_ <= 60) {
 			videoModeExtended_ = !videoModeExtended_;
+			return;
 		}
 
 		if (videoModeExtended_) {
@@ -95,15 +96,16 @@ namespace PMG {
 		}
 
 		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= buttonBack_.m_pos.x && mouseX_ <= buttonBack_.m_pos.x + buttonBack_.m_size.x
-			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
-			buttonBack_.MousePressed(mouseX_, mouseY_);
-		}
-
-		// TODO i do not want to do this every time for every button yikes
 		if (mouseX_ >= guiSelector_.m_pos.x && mouseX_ <= guiSelector_.m_pos.x + guiSelector_.m_size.x
 			&& mouseY_ >= guiSelector_.m_pos.y && mouseY_ <= guiSelector_.m_pos.y + guiSelector_.m_size.y) {
 			guiSelector_.MousePressed(mouseX_, mouseY_);
+			return;
+		}
+
+		// TODO i do not want to do this every time for every button yikes
+		if (mouseX_ >= buttonBack_.m_pos.x && mouseX_ <= buttonBack_.m_pos.x + buttonBack_.m_size.x
+			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
+			buttonBack_.MousePressed(mouseX_, mouseY_);
 		}
 	}
 

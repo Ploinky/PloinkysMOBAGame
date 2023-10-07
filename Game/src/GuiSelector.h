@@ -79,6 +79,21 @@ namespace PMG {
 
 		std::function<std::string(T val)> OptionToString;
 
+		std::vector<T> GetOptions() {
+			return values_;
+		}
+
+		void AddOption(T option) {
+			values_.push_back(option);
+		}
+
+		void RemoveOption(T option) {
+			values_.erase(option);
+		}
+
+		void SelectOption(T option) {
+			current_value_ = option;
+		}
 	private:
 		float m_bgColor[3] = { 1.0, 1.0, 1.0 };
 		std::vector<T> values_;

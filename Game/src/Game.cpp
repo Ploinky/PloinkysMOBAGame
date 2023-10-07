@@ -1052,7 +1052,6 @@ namespace PMG {
         }
     }
 
-
     GameObject* Game::GetGameObject(UnitId unit_id) {
         auto it = game_objects_.find(unit_id);
 
@@ -1083,5 +1082,4 @@ namespace PMG {
 
         ticks.push_back(new_tick);
     }
-
 }

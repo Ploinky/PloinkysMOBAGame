@@ -63,10 +63,20 @@ namespace PMG {
             HandleSettingChanged(setting);
         };
 
+        auto devModeIt = settings_.GetAllVideoModesAndValues()->find(settings_.GetString(PMGSettings::VIDEO_MODE));
+        
+        int width = 1024;
+        int height = 768;
+        
+        if (devModeIt != settings_.GetAllVideoModesAndValues()->end()) {
+
+            width = devModeIt->second.dmPelsWidth;
+            height = devModeIt->second.dmPelsHeight;
+        }
         // Create and show window
         window = new Window(
-            settings_.GetInt(PMGSettings::RESOLUTION_X),
-            settings_.GetInt(PMGSettings::RESOLUTION_Y),
+            width,
+            height,
             (WindowMode)settings_.GetInt(PMGSettings::WINDOW_MODE)
         );
         window->Show();
@@ -173,17 +183,13 @@ namespace PMG {
             audio_system_.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
         }
         else if (setting == PMGSettings::WINDOW_MODE) {
-            window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), settings_.GetInt(PMGSettings::RESOLUTION_X), settings_.GetInt(PMGSettings::RESOLUTION_Y));
-            direct3D->SetFullScreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
-            direct3D->SetWindowDimensions(window->width_, window->height_);
-        }
-        else if (setting == PMGSettings::RESOLUTION_X || setting == PMGSettings::RESOLUTION_Y) {
-            window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), settings_.GetInt(PMGSettings::RESOLUTION_X), settings_.GetInt(PMGSettings::RESOLUTION_Y));
+            DEVMODEA mode = settings_.GetAllVideoModesAndValues()->find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
+            window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.dmPelsWidth, mode.dmPelsHeight);
             direct3D->SetFullScreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
             direct3D->SetWindowDimensions(window->width_, window->height_);
         }
         else if (setting == PMGSettings::VIDEO_MODE) {
-            DEVMODEA mode = settings_.GetAllVideoModesAndValues().find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
+            DEVMODEA mode = settings_.GetAllVideoModesAndValues()->find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
             window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.dmPelsWidth, mode.dmPelsHeight);
             direct3D->SetFullScreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
             direct3D->SetWindowDimensions(window->width_, window->height_);

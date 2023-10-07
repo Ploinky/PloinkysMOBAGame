@@ -8,8 +8,6 @@
 namespace PMG {
 	class PMGSettings {
 	public:
-		static constexpr const char* RESOLUTION_X = "resolution_x";
-		static constexpr const char* RESOLUTION_Y = "resolution_y";
 		static constexpr const char* WINDOW_MODE = "window_mode";
 		static constexpr const char* MASTER_VOLUME = "master_volume";
 		static constexpr const char* VIDEO_MODE = "video_mode";
@@ -39,7 +37,7 @@ namespace PMG {
 		Settings() {};
 
 		std::vector<std::string> GetAllVideoModes();
-		std::map<std::string, DEVMODEA> GetAllVideoModesAndValues();
+		std::map<std::string, DEVMODEA>* GetAllVideoModesAndValues();
 
 		std::function<void(std::string)> OnSettingChanged = std::bind([] {});
 
