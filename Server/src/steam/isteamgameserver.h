@@ -261,8 +261,8 @@ public:
 // using them for.
 
 	STEAM_PRIVATE_API(
-		virtual void ForceMasterServerHeartbeat_DEPRECATED() = 0;
 		virtual void SetMasterServerHeartbeatInterval_DEPRECATED( int iHeartbeatInterval ) = 0;
+		virtual void ForceMasterServerHeartbeat_DEPRECATED() = 0;
 	)
 };
 

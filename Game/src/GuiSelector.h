@@ -77,7 +77,7 @@ namespace PMG {
 		};
 		float m_color[3] = { 0.0, 0.0, 0.0 };
 
-		std::function<std::wstring(T val)> OptionToString;
+		std::function<std::string(T val)> OptionToString;
 
 	private:
 		float m_bgColor[3] = { 1.0, 1.0, 1.0 };

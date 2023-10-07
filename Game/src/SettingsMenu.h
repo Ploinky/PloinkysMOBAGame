@@ -5,6 +5,8 @@
 #include "Settings.h"
 #include "Renderer.h"
 #include "GuiButton.h"
+#include "GuiSelector.h"
+
 namespace PMG {
 	class SettingsMenu : public IClientState {
 	public:
@@ -21,6 +23,9 @@ namespace PMG {
 		Settings* settings_;
 
 		GuiButton buttonBack_;
+		GuiSelector<WindowMode> guiSelector_ = GuiSelector<WindowMode>({
+			WindowMode::WINDOWED, WindowMode::BORDERLESS, WindowMode::FULLSCREEN
+			}, WindowMode::WINDOWED);
 
 		bool videoModeExtended_ = false;
 	};

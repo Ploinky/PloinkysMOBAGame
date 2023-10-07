@@ -16,13 +16,35 @@ namespace PMG {
 		buttonBack_.e_onButtonPressed = [this]() {
 			handler_->OpenMainMenu();
 		};
+
+		guiSelector_.m_pos = { 140, 60 };
+		guiSelector_.m_size = { 300, 60 };
+		guiSelector_.OptionToString = [](WindowMode val) {
+			switch (val) {
+			case WindowMode::WINDOWED:
+				return std::string("Windowed");
+			case WindowMode::BORDERLESS:
+				return std::string("Borderless");
+			case WindowMode::FULLSCREEN:
+				return std::string("Fullscreen");
+			default:
+				return std::string();
+			}
+		};
+		guiSelector_.OnChange = [this](WindowMode oldValue, WindowMode newValue) {
+			settings_->SetInt(PMGSettings::WINDOW_MODE, (int)newValue);
+		};
+		guiSelector_.m_color[0] = 1;
+		guiSelector_.m_color[1] = 1;
+		guiSelector_.m_color[2] = 1;
+		
 	}
 
 	SettingsMenu::~SettingsMenu() {
 	}
 
 	void SettingsMenu::Render(Renderer* renderer) {
-		renderer->RenderText(30, 30, 100, 30, "Windowmode:");
+		renderer->RenderText(30, 30, 100, 30, "Resolution:");
 		renderer->RenderText(130, 30, 100, 30, settings_->GetString(PMGSettings::VIDEO_MODE));
 
 
@@ -36,6 +58,9 @@ namespace PMG {
 				i++;
 			}
 		}
+
+		renderer->RenderText(30, 60, 100, 30, "Window mode:");
+		guiSelector_.Render(renderer);
 
 		buttonBack_.Render(renderer);
 	}
@@ -73,6 +98,12 @@ namespace PMG {
 		if (mouseX_ >= buttonBack_.m_pos.x && mouseX_ <= buttonBack_.m_pos.x + buttonBack_.m_size.x
 			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
 			buttonBack_.MousePressed(mouseX_, mouseY_);
+		}
+
+		// TODO i do not want to do this every time for every button yikes
+		if (mouseX_ >= guiSelector_.m_pos.x && mouseX_ <= guiSelector_.m_pos.x + guiSelector_.m_size.x
+			&& mouseY_ >= guiSelector_.m_pos.y && mouseY_ <= guiSelector_.m_pos.y + guiSelector_.m_size.y) {
+			guiSelector_.MousePressed(mouseX_, mouseY_);
 		}
 	}
 
