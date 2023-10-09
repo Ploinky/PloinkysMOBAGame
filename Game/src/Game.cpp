@@ -944,10 +944,6 @@ namespace PMG {
             }
             case Networking::PacketType::UNITMOVE:
             case Networking::PacketType::UNITIDLE: {
-                if (diff < 1) {
-                    // not interpolated
-                    continue;
-                }
                 Networking::UnitMovePacket move = Networking::UnitMovePacket();
                 move.Read(&new_data);
 

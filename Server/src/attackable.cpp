@@ -112,23 +112,6 @@ namespace PMG {
 	}
 
 	void Attackable::OnCollision(Client* game, IGameObject* o) {
-		Attackable* other = dynamic_cast<Attackable*>(o);
-
-		if (other == nullptr || target_type == TargetType::BUILDING || (current_action_ != nullptr && current_action_->type != GameObjectActionType::MOVE)) {
-			// only collide with other attackables
-			return;
-		}
-
-		// find direction in which to push
-		Physics::Vector3 dir = position - o->position;
-		float dist = dir.Length();
-		dir = dir.Normalize();
-		
-		// find distance to push
-		dir = dir.ScaleToLength(o->collision_radius - dist);
-
-		// push
-		position = position + dir;
 	}
 
 	void Attackable::Sync(std::vector<uint8_t>* data) {
