@@ -9,6 +9,11 @@
 
 namespace PMG::Networking {
     enum class PacketType {
+        // Lobby handling
+        LOBBY_PCK_SLOT,
+        LOBBY_CMD_SLOT,
+
+        // Gameplay
         UNITSPAWN,
         UNITMOVE,
         UNITIDLE,
@@ -206,5 +211,24 @@ namespace PMG::Networking {
 
         unsigned int unit;
         std::string particle;
+    };
+
+    class LobbySlotPacket : public BasePacket {
+    public:
+        LobbySlotPacket() : BasePacket(PacketType::LOBBY_PCK_SLOT) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        int slot;
+    };
+    
+    class LobbySlotCmd : public BasePacket {
+    public:
+        LobbySlotCmd() : BasePacket(PacketType::LOBBY_CMD_SLOT) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        int slot;
+
     };
 }

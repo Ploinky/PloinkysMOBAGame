@@ -10,8 +10,21 @@
 #include "steam/steam_gameserver.h"
 #include "steam/steam_api.h"
 
+#include "LobbyState.h"
+
 namespace PMG {
     void Server::Start() {
+        LobbyState state = LobbyState();
+
+
+        bool isRunning = true;
+
+        while (isRunning) {
+            state.Update(0);
+
+            SteamGameServer_RunCallbacks();
+        }
+
         m_networkManager = new ServerNetworkManager();
         m_networkManager->Initialize();
         m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
@@ -29,7 +42,8 @@ namespace PMG {
 
         long long lastFrame = GetSystemTime();
 
-        bool isRunning = true;
+        // TODO
+        // bool isRunning = true;
 
         Logger::Msg("Server started");
 

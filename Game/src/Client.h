@@ -38,6 +38,7 @@ namespace PMG {
 
         void NewState(IClientState* newState);
         virtual void JoinGame(servernetadr_t addr) override;
+        virtual void JoinLobby(servernetadr_t addr) override;
         virtual void OpenSettingsMenu() override;
         virtual void OpenMainMenu() override;
         virtual void OpenServerBrowser() override;

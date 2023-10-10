@@ -36,6 +36,8 @@
     <ClCompile Include="coodown_packet.cpp" />
     <ClCompile Include="despawn_packet.cpp" />
     <ClCompile Include="game_tick.cpp" />
+    <ClCompile Include="LobbySlotCommand.cpp" />
+    <ClCompile Include="LobbySlotPacket.cpp" />
     <ClCompile Include="move_command.cpp" />
     <ClCompile Include="play_particle_packet.cpp" />
     <ClCompile Include="spawn_packet.cpp" />

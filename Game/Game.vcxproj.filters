@@ -51,6 +51,9 @@
     <Filter Include="Source\Game\ServerBrowser">
       <UniqueIdentifier>{eb01ddf7-30f5-4bb6-8609-b288a91e84ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Game\Lobby">
+      <UniqueIdentifier>{f3bb599a-c1a0-400d-b683-e25a38c3551e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DDSTextureLoader11.cpp">
@@ -146,6 +149,9 @@
     <ClCompile Include="src\ServerBrowser.cpp">
       <Filter>Source\Game\ServerBrowser</Filter>
     </ClCompile>
+    <ClCompile Include="src\Lobby.cpp">
+      <Filter>Source\Game\Lobby</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AudioSystem.h">
@@ -223,9 +229,6 @@
     <ClInclude Include="src\AssetManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\MainMenu.h">
-      <Filter>Source\Game\MainMenu</Filter>
-    </ClInclude>
     <ClInclude Include="src\Game.h">
       <Filter>Source\Game\Game</Filter>
     </ClInclude>
@@ -249,6 +252,12 @@
     </ClInclude>
     <ClInclude Include="src\ServerBrowser.h">
       <Filter>Source\Game\ServerBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Lobby.h">
+      <Filter>Source\Game\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MainMenu.h">
+      <Filter>Source\Game\MainMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

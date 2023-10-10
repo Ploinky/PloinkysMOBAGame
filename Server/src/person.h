@@ -9,7 +9,8 @@ namespace PMG {
 		Person() : Attackable({
 			3, 100, 100
 		}) {
-
+			isDead_ = false;
+			respawnTimer_ = -1;
 			collision_radius = 1;
 		};
 
@@ -27,5 +28,10 @@ namespace PMG {
 		
 		std::vector<Spell*> spells = {};
 		int current_status = 0;
+
+	private:
+		bool isDead_;
+		// current respawn timer in milliseconds
+		int respawnTimer_;
 	};
 }

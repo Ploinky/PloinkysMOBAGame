@@ -156,6 +156,7 @@
     <ClCompile Include="src\FootballPerson.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
+    <ClCompile Include="src\LobbyState.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Minion.cpp" />
     <ClCompile Include="src\MinionSpawner.cpp" />
@@ -178,6 +179,8 @@
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\GameObject.h" />
     <ClInclude Include="src\IGameObject.h" />
+    <ClInclude Include="src\IServerState.h" />
+    <ClInclude Include="src\LobbyState.h" />
     <ClInclude Include="src\Main.h" />
     <ClInclude Include="src\Minion.h" />
     <ClInclude Include="src\MinionSpawner.h" />

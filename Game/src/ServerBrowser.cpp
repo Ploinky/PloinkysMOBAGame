@@ -66,7 +66,7 @@ namespace PMG {
 		for (Server_t addr : servers_) {
 			if (mouseX_ >= 50 && mouseX_ <= 250
 				&& mouseY_ >= 200 + index * 50 && mouseY_ <= 200 + index * 50 + 30) {
-				handler_->JoinGame(addr.addr);
+				handler_->JoinLobby(addr.addr);
 			}
 		}
 

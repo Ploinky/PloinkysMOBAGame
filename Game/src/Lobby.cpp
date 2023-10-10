@@ -1,0 +1,73 @@
+#include "Lobby.h"
+#include "pmg_networking.h"
+#include "Renderer.h"
+
+namespace PMG {
+	Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+		networkManager_ = ServerNetworkManager();
+
+        packetManager_ = Networking::NetworkHandlerManager<Networking::PacketType>();
+        // Register network packets, the fuck...
+        packetManager_.RegisterHandler(Networking::PacketType::LOBBY_PCK_SLOT, [this](std::vector<uint8_t> data) { HandleSlotPacket(data); });
+
+        networkManager_.Initialize(&packetManager_);
+
+        networkManager_.ConnectToServer(server);
+
+        mySlot_ = -1;
+	}
+
+    void Lobby::Update(float dt) {
+        networkManager_.ReceivePacket();
+    }
+
+    void Lobby::Render(Renderer* renderer) {
+        int slotWidth = (windowWidth_ - 150) / 2;
+        int slotHeight = (windowHeight_ - 440) / 5;
+
+        for (int i = 0; i < 10; i++) {
+            bool right = (i % 2) != 0;
+            int ySlot = (i / 2);
+
+            float color[3]{ 1, 1, 1 };
+            if (i == mySlot_) {
+                color[0] = 1;
+                color[1] = 0;
+                color[2] = 0;
+            }
+            renderer->FillRect(50 + (right ? slotWidth + 50 : 0), 50 + ySlot * slotHeight + ySlot * 10, slotWidth, slotHeight, color);
+        }
+    }
+
+    void Lobby::HandleSlotPacket(std::vector<uint8_t> data) {
+        Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
+        pck.Read(&data);
+
+        mySlot_ = pck.slot;
+    }
+
+    void Lobby::MouseButtonPressed(int button) {
+        if (button != 0) {
+            return;
+        }
+
+        int slotWidth = (windowWidth_ - 150) / 2;
+        int slotHeight = (windowHeight_ - 440) / 5;
+
+        for (int i = 0; i < 10; i++) {
+            bool right = (i % 2) != 0;
+            int ySlot = (i / 2);
+
+            int x = 50 + (right ? slotWidth + 50 : 0);
+            int y = 50 + ySlot * slotHeight + ySlot * 10;
+            if (mouseX_ > x && mouseX_ < x + slotWidth
+                && mouseY_ > y && mouseY_ < y + slotHeight) {
+                Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
+                pck.slot = i;
+
+                networkManager_.SendPacket(&pck);
+            }
+        }
+
+    }
+}

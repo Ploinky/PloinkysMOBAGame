@@ -165,6 +165,7 @@
     <ClCompile Include="src\GuiSelector.cpp" />
     <ClCompile Include="src\GuiSimplePane.cpp" />
     <ClCompile Include="src\GuiTextfield.cpp" />
+    <ClCompile Include="src\Lobby.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MainMenu.cpp" />
     <ClCompile Include="src\Map.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="src\GuiSelector.h" />
     <ClInclude Include="src\IClientState.h" />
     <ClInclude Include="src\IClientStateHandler.h" />
+    <ClInclude Include="src\Lobby.h" />
     <ClInclude Include="src\MainMenu.h" />
     <ClInclude Include="src\Map.h" />
     <ClInclude Include="src\Mesh.h" />

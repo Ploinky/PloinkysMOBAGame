@@ -8,6 +8,33 @@ namespace PMG {
     void Person::Update(Client* game, float dt) {
         Attackable::Update(game, dt);
 
+        // update cooldowns
+        for (int i = 0; i < spells.size(); i++) {
+            Spell* s = spells[i];
+            if (s->remaining_cooldown != -1) {
+                s->remaining_cooldown -= dt * 1000;
+
+                if (s->remaining_cooldown <= 0) {
+                    s->remaining_cooldown = -1;
+                }
+            }
+        }
+
+        if (isDead_) {
+            // currently waiting for respawn
+            respawnTimer_ -= dt * 1000.0f;
+
+            if (respawnTimer_ <= 0) {
+                // TODO revive correctly?
+                position = { 0, 0, 0 };
+                stats.health = stats.max_health;
+            }
+            else {
+                // TODO do we do nothing else?
+                return;
+            }
+        }
+
         int status_enable = 0;
         int status_disable = 0;
         current_status = 0;
@@ -23,18 +50,6 @@ namespace PMG {
 
         current_status = status_enable;
         current_status &= (~status_disable);
-
-        // update cooldowns
-        for (int i = 0; i < spells.size(); i++) {
-            Spell* s = spells[i];
-            if (s->remaining_cooldown != -1) {
-                s->remaining_cooldown -= dt * 1000;
-                
-                if (s->remaining_cooldown <= 0) {
-                    s->remaining_cooldown = -1;
-                }
-            }
-        }
     }
 
     void Person::Act(Client* game, float dt) {
@@ -210,8 +225,9 @@ namespace PMG {
     }
 
     void Person::Die() {
-        // we do not die!!!
-        position = { 0, 0, 0 };
-        stats.health = stats.max_health;
+        // we do not despawn
+        isDead_ = true;
+        // TODO should probably not be hardcoded
+        respawnTimer_ = 3000;
     }
 }

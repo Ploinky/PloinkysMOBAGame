@@ -21,8 +21,9 @@
 #include "MainMenu.h"
 #include "steam/steam_api.h"
 #include "Game.h"
-#include  "SettingsMenu.h"
+#include "SettingsMenu.h"
 #include "ServerBrowser.h"
+#include "Lobby.h"
 
 namespace PMG {
     enum class GameState {
@@ -211,6 +212,11 @@ namespace PMG {
         Game* game = new Game(addr.GetConnectionAddressString(), this, window->width_, window->height_, renderer, &assetManager_);
         NewState(game);
     };
+
+    void Client::JoinLobby(servernetadr_t addr) {
+        Lobby* lobby = new Lobby(addr.GetConnectionAddressString(), this, window->width_, window->height_);
+        NewState(lobby);
+    }
 
     void Client::OpenSettingsMenu() {
         SettingsMenu* menu = new SettingsMenu(this, window->width_, window->height_, &settings_);
