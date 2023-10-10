@@ -27,15 +27,27 @@ namespace PMG {
 
         for (int i = 0; i < 10; i++) {
             bool right = (i % 2) != 0;
+            
             int ySlot = (i / 2);
 
-            float color[3]{ 1, 1, 1 };
-            if (i == mySlot_) {
+            float color[3]{ 0.6, 0.6, 0.6 };
+            if (players_[i] != nullptr) {
                 color[0] = 1;
                 color[1] = 0;
                 color[2] = 0;
             }
-            renderer->FillRect(50 + (right ? slotWidth + 50 : 0), 50 + ySlot * slotHeight + ySlot * 10, slotWidth, slotHeight, color);
+
+            int x = 50 + (right ? slotWidth + 50 : 0);
+            int y = 50 + ySlot * slotHeight + ySlot * 10;
+
+            renderer->FillRect(x, y, slotWidth, slotHeight, color);
+
+            if (players_[i] == nullptr) {
+                renderer->RenderText(x, y, slotWidth, slotHeight, "Take slot");
+            }
+            else {
+                renderer->RenderText(x, y, slotWidth, slotHeight, players_[i]->name);
+            }
         }
     }
 
@@ -44,6 +56,17 @@ namespace PMG {
         pck.Read(&data);
 
         mySlot_ = pck.slot;
+
+        for (int i = 0; i < 10; i++) {
+            if (players_[i] != nullptr) {
+                delete players_[i];
+                players_[i] = nullptr;
+            }
+        }
+
+        Player* p = new Player();
+        p->name = "Player1";
+        players_[mySlot_] = p;
     }
 
     void Lobby::MouseButtonPressed(int button) {

@@ -43,8 +43,16 @@ namespace PMG {
 
             clients_.push_back(callback->m_hConn);
             
-            Logger::Msg("New client connected");
+            SteamNetConnectionInfo_t info{};
+            if (!SteamGameServerNetworkingSockets()->GetConnectionInfo(callback->m_hConn, &info)) {
+                Logger::Err("Failed to get connection info");
+                // TODO disconnect from client maybe?
+                return;
+            }
 
+            Logger::Msg(std::string("New client connected: ").append(std::to_string(info.m_identityRemote.GetSteamID64())));
+
+            // TODO include steam identity with client information, send to other clients...
             if (on_clientConnected) {
                 on_clientConnected(callback->m_hConn);
             }
