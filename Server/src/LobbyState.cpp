@@ -7,19 +7,16 @@ namespace PMG {
 		networkManager_.Initialize();
 		networkManager_.CreateListenSocket(std::to_string(DEFAULT_PORT));
 
-		networkManager_.on_clientConnected = [this](unsigned long newSocket) {
+		networkManager_.on_clientConnected = [this](LobbyPlayer* newPlayer) {
 			for (int i = 0; i < 10; i++) {
 				if (lobbySlots_[i] == nullptr) {
-					LobbyPlayer* newPlayer = new LobbyPlayer();
-					newPlayer->name = "";
-					newPlayer->socket = newSocket;
-
 					lobbySlots_[i] = newPlayer;
 
 					Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
 					pck.slot = i;
+					pck.steamId = newPlayer->steamId.ConvertToUint64();
 
-					networkManager_.SendToClient((HSteamNetConnection)newSocket, &pck);
+					networkManager_.SendToClient(newPlayer->socket, &pck);
 					printf("Player connected, now %d players\n", GetPlayerCount());
 					return;
 				}
@@ -28,7 +25,7 @@ namespace PMG {
 			printf("Player could not be connected, now %d players\n", GetPlayerCount());
 		};
 
-		networkManager_.on_clientDisconnected = [this](unsigned long oldSocket) {
+		networkManager_.on_clientDisconnected = [this](HSteamNetConnection oldSocket) {
 			for (int i = 0; i < 10; i++) {
 				if (lobbySlots_[i] != nullptr && lobbySlots_[i]->socket == oldSocket) {
 					delete lobbySlots_[i];
@@ -62,6 +59,7 @@ namespace PMG {
 
 					Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
 					pck.slot = cmd.slot;
+					pck.steamId = lobbySlots_[cmd.slot]->steamId.ConvertToUint64();
 
 					networkManager_.SendToClient(conn, &pck);
 				}

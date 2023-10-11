@@ -220,6 +220,7 @@ namespace PMG::Networking {
         virtual void Write(std::vector<uint8_t>* data) override;
 
         int slot;
+        uint64_t steamId;
     };
     
     class LobbySlotCmd : public BasePacket {

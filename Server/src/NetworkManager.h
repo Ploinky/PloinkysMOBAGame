@@ -7,6 +7,9 @@
 #include "pmg_networking.h"
 
 #include "steam/isteamnetworkingsockets.h"
+
+#include "LobbyPlayer.h"
+
 namespace PMG {
 
     class ServerNetworkManager {
@@ -27,7 +30,7 @@ namespace PMG {
 
         void Update();
 
-        std::function<void(unsigned long)> on_clientConnected;
+        std::function<void(LobbyPlayer* newPlayer)> on_clientConnected;
         std::function<void(unsigned long)> on_clientDisconnected;
         std::function<void(HSteamNetConnection, std::vector<uint8_t>*)> on_clientMessageReceived;
 

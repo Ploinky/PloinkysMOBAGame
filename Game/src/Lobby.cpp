@@ -64,8 +64,9 @@ namespace PMG {
             }
         }
 
+        CSteamID id = CSteamID(pck.steamId);
         Player* p = new Player();
-        p->name = "Player1";
+        p->name = std::string(SteamFriends()->GetFriendPersonaName(id));
         players_[mySlot_] = p;
     }
 

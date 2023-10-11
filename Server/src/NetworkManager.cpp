@@ -1,5 +1,6 @@
 #include "NetworkManager.h"
 #include "logger.h"
+#include "LobbyPlayer.h"
 
 namespace PMG {
     ServerNetworkManager::ServerNetworkManager() {
@@ -54,7 +55,10 @@ namespace PMG {
 
             // TODO include steam identity with client information, send to other clients...
             if (on_clientConnected) {
-                on_clientConnected(callback->m_hConn);
+                LobbyPlayer* newPlayer = new LobbyPlayer();
+                newPlayer->steamId = info.m_identityRemote.GetSteamID64();
+                newPlayer->socket = callback->m_hConn;
+                on_clientConnected(newPlayer);
             }
         }
         else if ((callback->m_eOldState == k_ESteamNetworkingConnectionState_Connecting || callback->m_eOldState == k_ESteamNetworkingConnectionState_Connected)

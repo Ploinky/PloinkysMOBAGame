@@ -27,7 +27,8 @@ namespace PMG {
 
         m_networkManager = new ServerNetworkManager();
         m_networkManager->Initialize();
-        m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
+        // TODO
+        // m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
         m_networkManager->on_clientMessageReceived = std::bind(&Server::OnMessageReceived, this, std::placeholders::_1, std::placeholders::_2);
         if (!m_networkManager->CreateListenSocket("23119")) {

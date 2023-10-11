@@ -157,5 +157,8 @@
     <ClInclude Include="src\LobbyState.h">
       <Filter>Source\ServerState\LobbyState</Filter>
     </ClInclude>
+    <ClInclude Include="src\LobbyPlayer.h">
+      <Filter>Source\ServerState\LobbyState</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

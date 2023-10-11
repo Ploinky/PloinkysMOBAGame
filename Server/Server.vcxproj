@@ -180,6 +180,7 @@
     <ClInclude Include="src\GameObject.h" />
     <ClInclude Include="src\IGameObject.h" />
     <ClInclude Include="src\IServerState.h" />
+    <ClInclude Include="src\LobbyPlayer.h" />
     <ClInclude Include="src\LobbyState.h" />
     <ClInclude Include="src\Main.h" />
     <ClInclude Include="src\Minion.h" />

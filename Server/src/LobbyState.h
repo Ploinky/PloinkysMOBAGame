@@ -2,14 +2,10 @@
 
 #include "IServerState.h"
 #include "NetworkManager.h"
+#include "steam/steam_api.h"
+#include "LobbyPlayer.h"
 
 namespace PMG {
-	class LobbyPlayer {
-	public:
-		unsigned long socket;
-		std::string name;
-	};
-
 	class LobbyState : public IServerState {
 	public:
 		LobbyState();
