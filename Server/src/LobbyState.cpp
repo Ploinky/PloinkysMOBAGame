@@ -16,7 +16,9 @@ namespace PMG {
 					pck.slot = i;
 					pck.steamId = newPlayer->steamId.ConvertToUint64();
 
-					networkManager_.SendToClient(newPlayer->socket, &pck);
+					std::vector<uint8_t> data;
+					pck.Write(&data);
+					networkManager_.SendToAllClients(&data);
 					printf("Player connected, now %d players\n", GetPlayerCount());
 					return;
 				}

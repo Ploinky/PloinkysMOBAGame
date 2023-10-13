@@ -11,6 +11,10 @@ namespace PMG {
 		buttonRefresh_.m_pos = { 50, 50 };
 		buttonRefresh_.m_size = { 300, 80 };
 		buttonRefresh_.e_onButtonPressed = [this]() {
+			if (refreshRequest_) {
+				return;
+			}
+
 			buttonRefresh_.m_color[0] = 0.2;
 			buttonRefresh_.m_color[1] = 0.2;
 			buttonRefresh_.m_color[2] = 0.2;
