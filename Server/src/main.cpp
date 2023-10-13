@@ -20,11 +20,8 @@ int main(int argc, char** argv) {
     SteamGameServer()->SetServerName("R U SERIOUS");
     SteamGameServer()->SetProduct("1756910");
     SteamGameServer()->SetGameDescription("A description of this game");
-    SteamGameServer()->SetGameData("Data");
-    SteamGameServer()->SetGameTags("Tag");
-    SteamGameServer()->SetMapName("Map");
     SteamGameServer()->SetModDir("1756910");
-    SteamGameServer()->SetRegion("255");
+    SteamGameServer()->SetRegion("");
     SteamGameServer()->SetAdvertiseServerActive(true);
     SteamGameServer()->SetDedicatedServer(true);
 

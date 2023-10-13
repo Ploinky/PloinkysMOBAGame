@@ -55,19 +55,24 @@ namespace PMG {
         Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
         pck.Read(&data);
 
-        mySlot_ = pck.slot;
+        if (pck.steamId == SteamUser()->GetSteamID().ConvertToUint64()) {
+            mySlot_ = pck.slot;
+        }
 
         for (int i = 0; i < 10; i++) {
-            if (players_[i] != nullptr) {
-                delete players_[i];
+            if (players_[i] != nullptr && players_[i]->steamId == pck.steamId) {
+                players_[pck.slot] = players_[i];
                 players_[i] = nullptr;
+                return;
             }
         }
 
+        // must be a new player
         CSteamID id = CSteamID(pck.steamId);
         Player* p = new Player();
         p->name = std::string(SteamFriends()->GetFriendPersonaName(id));
-        players_[mySlot_] = p;
+        p->steamId = pck.steamId;
+        players_[pck.slot] = p;
     }
 
     void Lobby::MouseButtonPressed(int button) {

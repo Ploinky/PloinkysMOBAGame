@@ -162,6 +162,7 @@
     <ClCompile Include="src\Direct3d.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\GuiButton.cpp" />
+    <ClCompile Include="src\GuiCheckbox.cpp" />
     <ClCompile Include="src\GuiSelector.cpp" />
     <ClCompile Include="src\GuiSimplePane.cpp" />
     <ClCompile Include="src\GuiTextfield.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="src\Direct3d.h" />
     <ClInclude Include="src\Gui.h" />
     <ClInclude Include="src\GuiButton.h" />
+    <ClInclude Include="src\GuiCheckbox.h" />
     <ClInclude Include="src\GuiElement.h" />
     <ClInclude Include="src\GuiSelector.h" />
     <ClInclude Include="src\IClientState.h" />

@@ -205,7 +205,7 @@ namespace PMG {
     void Client::GameServerChangeRequested(GameServerChangeRequested_t* callback) {
         printf("requested");
 
-        NewState(new Game(callback->m_rgchServer, this, window->width_, window->height_, renderer, &assetManager_));
+        NewState(new Lobby(callback->m_rgchServer, this, window->width_, window->height_));
     }
 
     void Client::JoinGame(servernetadr_t addr) {

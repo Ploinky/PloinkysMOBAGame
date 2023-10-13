@@ -152,6 +152,9 @@
     <ClCompile Include="src\Lobby.cpp">
       <Filter>Source\Game\Lobby</Filter>
     </ClCompile>
+    <ClCompile Include="src\GuiCheckbox.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AudioSystem.h">
@@ -258,6 +261,9 @@
     </ClInclude>
     <ClInclude Include="src\MainMenu.h">
       <Filter>Source\Game\MainMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiCheckbox.h">
+      <Filter>Source\Gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

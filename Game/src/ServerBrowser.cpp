@@ -26,6 +26,9 @@ namespace PMG {
 		buttonBack_.e_onButtonPressed = [this]() {
 			handler_->OpenMainMenu();
 		};
+		
+		checkboxLan_.m_pos = { 370, 50 };
+		checkboxLan_.m_size = { 20, 20 };
 	}
 
 	ServerBrowser::~ServerBrowser() {
@@ -53,6 +56,8 @@ namespace PMG {
 			renderer->RenderText(370, 80, 150, 50, "Refreshing...");
 		}
 
+		checkboxLan_.Render(renderer);
+		renderer->RenderText(checkboxLan_.m_pos.x + 30, checkboxLan_.m_pos.y, 100, 20, "Lan servers");
 		buttonBack_.Render(renderer);
 	}
 
@@ -75,13 +80,26 @@ namespace PMG {
 			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
 			buttonBack_.MousePressed(mouseX_, mouseY_);
 		}
+
+		// TODO i do not want to do this every time for every button yikes
+		if (mouseX_ >= checkboxLan_.m_pos.x && mouseX_ <= checkboxLan_.m_pos.x + checkboxLan_.m_size.x
+			&& mouseY_ >= checkboxLan_.m_pos.y && mouseY_ <= checkboxLan_.m_pos.y + checkboxLan_.m_size.y) {
+			checkboxLan_.MousePressed(mouseX_, mouseY_);
+		}
 	}
 
 	void ServerBrowser::StartRefresh() {
 		servers_.clear();
 
 		MatchMakingKeyValuePair_t* filter = new MatchMakingKeyValuePair_t[]{ {} };
-		refreshRequest_ = SteamMatchmakingServers()->RequestLANServerList(1756910, this);
+
+		if (checkboxLan_.IsSelected()) {
+			refreshRequest_ = SteamMatchmakingServers()->RequestLANServerList(1756910, this);
+		}
+		else {
+			// TODO check params
+			refreshRequest_ = SteamMatchmakingServers()->RequestInternetServerList(1756910, nullptr, 0, this);
+		}
 		delete[] filter;
 	}
 
@@ -96,6 +114,15 @@ namespace PMG {
 
 	void ServerBrowser::ServerFailedToRespond(HServerListRequest hRequest, int iServer) {
 		printf("ServerFailedToRespond\n");
+		gameserveritem_t* pServer = SteamMatchmakingServers()->GetServerDetails(hRequest, iServer);
+		if (pServer)
+		{
+			// Filter out servers that don't match our appid here (might get these in LAN calls since we can't put more filters on it)
+			if (pServer->m_nAppID == SteamUtils()->GetAppID())
+			{
+				SteamMatchmakingServers()->PingServer(pServer->m_NetAdr.GetIP(), 27016, this);
+			}
+		}
 	}
 
 	void ServerBrowser::CancelRefreshRequest() {

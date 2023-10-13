@@ -5,6 +5,7 @@
 #include <vector>
 #include "GuiButton.h"
 #include "steam/isteammatchmaking.h"
+#include "GuiCheckbox.h"
 
 namespace PMG {
 	struct Server_t {
@@ -12,7 +13,7 @@ namespace PMG {
 		servernetadr_t addr;
 	};
 
-	class ServerBrowser : public IClientState, public ISteamMatchmakingServerListResponse {
+	class ServerBrowser : public IClientState, public ISteamMatchmakingServerListResponse, ISteamMatchmakingPingResponse {
 	public:
 		ServerBrowser(IClientStateHandler* handler, int width, int height);
 		~ServerBrowser();
@@ -24,6 +25,7 @@ namespace PMG {
 	private:
 		GuiButton buttonRefresh_;
 		GuiButton buttonBack_;
+		GuiCheckbox checkboxLan_;
 
 
 		HServerListRequest refreshRequest_ = nullptr;
@@ -36,5 +38,16 @@ namespace PMG {
 		void RefreshComplete(HServerListRequest hRequest, EMatchMakingServerResponse response) override;
 		void ServerFailedToRespond(HServerListRequest hRequest, int iServer) override;
 		void ServerResponded(HServerListRequest hRequest, int iServer) override;
+
+
+		// Server has responded successfully and has updated data
+		void ServerResponded(gameserveritem_t& server) {
+			printf("response\n");
+		}
+
+		// Server failed to respond to the ping request
+		void ServerFailedToRespond() {
+			printf("no response\n");
+		}
 	};
 }

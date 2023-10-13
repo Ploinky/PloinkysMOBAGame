@@ -9,6 +9,7 @@ namespace PMG {
 	class Player {
 	public:
 		std::string name;
+		CSteamID steamId;
 	};
 
 	class Lobby : public IClientState {
