@@ -4,6 +4,9 @@
 namespace PMG {
 	SettingsMenu::SettingsMenu(IClientStateHandler* handler, int width, int height, Settings* settings)
 		: IClientState(handler, width, height), settings_(settings) {
+		rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
+		rootElement_.m_pos = { 0, 0 };
+
 		mouseX_ = 0;
 		mouseY_ = 0;
 		// Quit button
@@ -38,6 +41,9 @@ namespace PMG {
 		guiSelector_.m_color[1] = 1;
 		guiSelector_.m_color[2] = 1;
 		guiSelector_.SelectOption((WindowMode) settings_->GetInt(PMGSettings::WINDOW_MODE));
+
+		rootElement_.m_children.push_back(&buttonBack_);
+		rootElement_.m_children.push_back(&guiSelector_);
 	}
 
 	SettingsMenu::~SettingsMenu() {
@@ -45,7 +51,6 @@ namespace PMG {
 
 	void SettingsMenu::Render(Renderer* renderer) {
 		renderer->RenderText(30, 60, 100, 30, "Windowmode:");
-		guiSelector_.Render(renderer);
 
 		renderer->RenderText(30, 30, 100, 30, "Resolution:");
 		renderer->RenderText(130, 30, 100, 30, settings_->GetString(PMGSettings::VIDEO_MODE));
@@ -62,7 +67,7 @@ namespace PMG {
 			}
 		}
 
-		buttonBack_.Render(renderer);
+		rootElement_.Render(renderer);
 	}
 
 	void SettingsMenu::Update(float dt) {
@@ -98,18 +103,7 @@ namespace PMG {
 
 		videoModeExtended_ = false;
 
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= guiSelector_.m_pos.x && mouseX_ <= guiSelector_.m_pos.x + guiSelector_.m_size.x
-			&& mouseY_ >= guiSelector_.m_pos.y && mouseY_ <= guiSelector_.m_pos.y + guiSelector_.m_size.y) {
-			guiSelector_.MousePressed(mouseX_, mouseY_);
-			return;
-		}
-
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= buttonBack_.m_pos.x && mouseX_ <= buttonBack_.m_pos.x + buttonBack_.m_size.x
-			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
-			buttonBack_.MousePressed(mouseX_, mouseY_);
-		}
+		rootElement_.MousePressed(mouseX_, mouseY_);
 	}
 
 	void SettingsMenu::OnWindowResized() {

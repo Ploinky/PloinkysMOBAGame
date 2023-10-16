@@ -16,12 +16,18 @@ namespace PMG {
 		std::vector<GuiElement*> m_children;
 
 		virtual void LayoutChildren() {};
-		virtual void Render(Renderer* renderer) {};
+		virtual void Render(Renderer* renderer) {
+			for (GuiElement* el : m_children) {
+				el->Render(renderer);
+			}
+		};
+
 		virtual void MousePressed(int x, int y) {
 			for (GuiElement* el : m_children) {
 				if (el->m_pos.x <= x && el->m_pos.x + el->m_size.x >= x
 					&& el->m_pos.y <= y && el->m_pos.y + el->m_size.y >= y) {
 					el->MousePressed(x, y);
+					break;
 				}
 			}
 		};

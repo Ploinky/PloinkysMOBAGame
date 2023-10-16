@@ -4,6 +4,9 @@
 
 namespace PMG {
 	ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+		rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
+		rootElement_.m_pos = { 0, 0 };
+
 		buttonRefresh_.m_text = "Refresh";
 		buttonRefresh_.m_color[0] = 0.4f;
 		buttonRefresh_.m_color[1] = 0.4f;
@@ -33,6 +36,10 @@ namespace PMG {
 		
 		checkboxLan_.m_pos = { 370, 50 };
 		checkboxLan_.m_size = { 20, 20 };
+
+		rootElement_.m_children.push_back(&buttonRefresh_);
+		rootElement_.m_children.push_back(&buttonBack_);
+		rootElement_.m_children.push_back(&checkboxLan_);
 	}
 
 	ServerBrowser::~ServerBrowser() {
@@ -47,7 +54,6 @@ namespace PMG {
 	}
 
 	void ServerBrowser::Render(Renderer* renderer) {
-		buttonRefresh_.Render(renderer);
 		float color[3]{ 1, 0, 0 };
 
 		for (int i = 0; i < servers_.size(); i++) {
@@ -60,16 +66,13 @@ namespace PMG {
 			renderer->RenderText(370, 80, 150, 50, "Refreshing...");
 		}
 
-		checkboxLan_.Render(renderer);
 		renderer->RenderText(checkboxLan_.m_pos.x + 30, checkboxLan_.m_pos.y, 100, 20, "Lan servers");
-		buttonBack_.Render(renderer);
+
+		rootElement_.Render(renderer);
 	}
 
 	void ServerBrowser::MouseButtonPressed(int button) {
-		if (mouseX_ >= buttonRefresh_.m_pos.x && mouseX_ <= buttonRefresh_.m_pos.x + buttonRefresh_.m_size.x
-			&& mouseY_ >= buttonRefresh_.m_pos.y && mouseY_ <= buttonRefresh_.m_pos.y + buttonRefresh_.m_size.y) {
-			buttonRefresh_.MousePressed(mouseX_, mouseY_);
-		}
+		rootElement_.MousePressed(mouseX_, mouseY_);
 
 		int index = 0;
 		for (Server_t addr : servers_) {
@@ -77,18 +80,6 @@ namespace PMG {
 				&& mouseY_ >= 200 + index * 50 && mouseY_ <= 200 + index * 50 + 30) {
 				handler_->JoinLobby(addr.addr);
 			}
-		}
-
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= buttonBack_.m_pos.x && mouseX_ <= buttonBack_.m_pos.x + buttonBack_.m_size.x
-			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
-			buttonBack_.MousePressed(mouseX_, mouseY_);
-		}
-
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= checkboxLan_.m_pos.x && mouseX_ <= checkboxLan_.m_pos.x + checkboxLan_.m_size.x
-			&& mouseY_ >= checkboxLan_.m_pos.y && mouseY_ <= checkboxLan_.m_pos.y + checkboxLan_.m_size.y) {
-			checkboxLan_.MousePressed(mouseX_, mouseY_);
 		}
 	}
 

@@ -16,6 +16,7 @@ namespace PMG {
 		void MouseButtonPressed(int button) override;
 
 	private:
+		GuiElement rootElement_;
 		GuiButton buttonServerBrowser_;
 		GuiButton buttonSettings_;
 		GuiButton buttonBack_;

@@ -7,6 +7,9 @@
 
 namespace PMG {
 	MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+		rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
+		rootElement_.m_pos = { 0, 0 };
+
 		// Server browser button
 		buttonServerBrowser_.m_text = "Server Browser";
 		buttonServerBrowser_.m_color[0] = 0.4f;
@@ -40,6 +43,11 @@ namespace PMG {
 			NewState(nullptr);
 		};
 
+		rootElement_.m_children.push_back(&buttonServerBrowser_);
+		rootElement_.m_children.push_back(&buttonSettings_);
+		rootElement_.m_children.push_back(&buttonBack_);
+
+
 		int iconId = SteamFriends()->GetMediumFriendAvatar(SteamUser()->GetSteamID());
 
 		if (iconId != 0) {
@@ -69,9 +77,7 @@ namespace PMG {
 
 		renderer->RenderText(50 + width_, 50, 200, 50, myName_);
 
-		buttonServerBrowser_.Render(renderer);
-		buttonSettings_.Render(renderer);
-		buttonBack_.Render(renderer);
+		rootElement_.Render(renderer);
 	}
 
 	void MainMenu::Update(float dt) {
@@ -79,22 +85,6 @@ namespace PMG {
 	}
 
 	void MainMenu::MouseButtonPressed(int button) {
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= buttonBack_.m_pos.x && mouseX_ <= buttonBack_.m_pos.x + buttonBack_.m_size.x
-			&& mouseY_ >= buttonBack_.m_pos.y && mouseY_ <= buttonBack_.m_pos.y + buttonBack_.m_size.y) {
-			buttonBack_.MousePressed(mouseX_, mouseY_);
-		}
-
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= buttonServerBrowser_.m_pos.x && mouseX_ <= buttonServerBrowser_.m_pos.x + buttonServerBrowser_.m_size.x
-			&& mouseY_ >= buttonServerBrowser_.m_pos.y && mouseY_ <= buttonServerBrowser_.m_pos.y + buttonServerBrowser_.m_size.y) {
-			buttonServerBrowser_.MousePressed(mouseX_, mouseY_);
-		}
-
-		// TODO i do not want to do this every time for every button yikes
-		if (mouseX_ >= buttonSettings_.m_pos.x && mouseX_ <= buttonSettings_.m_pos.x + buttonSettings_.m_size.x
-			&& mouseY_ >= buttonSettings_.m_pos.y && mouseY_ <= buttonSettings_.m_pos.y + buttonSettings_.m_size.y) {
-			buttonSettings_.MousePressed(mouseX_, mouseY_);
-		}
+		rootElement_.MousePressed(mouseX_, mouseY_);
 	}
 }

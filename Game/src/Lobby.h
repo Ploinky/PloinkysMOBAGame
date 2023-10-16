@@ -4,6 +4,7 @@
 #include <string>
 #include "ClientNetworkManager.h"
 #include <string>
+#include "Gui.h"
 
 namespace PMG {
 	class Player {
@@ -15,6 +16,7 @@ namespace PMG {
 	class Lobby : public IClientState {
 	public:
 		Lobby(std::string server, IClientStateHandler* handler, int width, int height);
+		~Lobby();
 		virtual void Update(float dt) override;
 		virtual void Render(Renderer* renderer) override;
 		virtual void MouseButtonPressed(int button) override;
@@ -27,5 +29,7 @@ namespace PMG {
 
 		int mySlot_;
 		Player* players_[10]{ nullptr };
+
+		GuiElement rootElement_;
 	};
 }

@@ -23,6 +23,7 @@ namespace PMG {
 		virtual void MouseButtonPressed(int button) override;
 
 	private:
+		GuiElement rootElement_;
 		GuiButton buttonRefresh_;
 		GuiButton buttonBack_;
 		GuiCheckbox checkboxLan_;

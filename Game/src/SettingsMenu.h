@@ -22,6 +22,7 @@ namespace PMG {
 	private:
 		Settings* settings_;
 
+		GuiElement rootElement_;
 		GuiButton buttonBack_;
 		GuiSelector<WindowMode> guiSelector_ = GuiSelector<WindowMode>({
 			WindowMode::WINDOWED, WindowMode::BORDERLESS, WindowMode::FULLSCREEN

@@ -15,7 +15,30 @@ namespace PMG {
         networkManager_.ConnectToServer(server);
 
         mySlot_ = -1;
+
+        rootElement_ = GuiElement();
+        rootElement_.m_pos = { 0, 0 };
+        rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
+
+        GuiButton* btnBack = new GuiButton();
+        btnBack->m_pos = { windowWidth_ - 400.0f, windowHeight_ - 150.0f };
+        btnBack->m_size = { 300, 80 };
+        btnBack->m_text = "Leave";
+        btnBack->m_color[0] = 0.6f;
+        btnBack->m_color[1] = 0.2f;
+        btnBack->m_color[2] = 0.2f;
+        btnBack->e_onButtonPressed = [this]() {
+            handler_->OpenMainMenu();
+        };
+
+        rootElement_.m_children.push_back(btnBack);
 	}
+
+    Lobby::~Lobby() {
+        if (networkManager_.IsConnected()) {
+            networkManager_.Close();
+        }
+    }
 
     void Lobby::Update(float dt) {
         networkManager_.ReceivePacket();
@@ -49,6 +72,8 @@ namespace PMG {
                 renderer->RenderText(x, y, slotWidth, slotHeight, players_[i]->name);
             }
         }
+
+        rootElement_.Render(renderer);
     }
 
     void Lobby::HandleSlotPacket(std::vector<uint8_t> data) {
@@ -98,5 +123,6 @@ namespace PMG {
             }
         }
 
+        rootElement_.MousePressed(mouseX_, mouseY_);
     }
 }
