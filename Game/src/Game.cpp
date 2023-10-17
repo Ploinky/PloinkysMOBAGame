@@ -19,7 +19,7 @@ namespace PMG {
         m_map->Load("map1");
         net_manager_ = ServerNetworkManager();
 
-        packet_manager = Networking::NetworkHandlerManager<Networking::PacketType>();
+        packet_manager = Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>>();
         // Register network packets, the fuck...
         packet_manager.RegisterHandler(Networking::PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
         packet_manager.RegisterHandler(Networking::PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });

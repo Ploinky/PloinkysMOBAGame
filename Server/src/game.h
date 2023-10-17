@@ -61,7 +61,7 @@ namespace PMG {
         std::function<void(unsigned long, std::vector<uint8_t>*)> on_sendToClient;
         std::function<void(std::vector<uint8_t>*)> on_sendToAllClients;
 
-        Networking::NetworkHandlerManager<Networking::PacketType>* packet_manager;
+        Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>>* packet_manager;
 
         void Start();
 

@@ -26,7 +26,7 @@ namespace PMG {
             on_sendToClient(netId, &tick);
         }
 
-        packet_manager = new Networking::NetworkHandlerManager<Networking::PacketType>();
+        packet_manager = new Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>>();
 
         entity_id id = current_entity_id_++;
 

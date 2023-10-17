@@ -67,7 +67,7 @@ namespace PMG {
         NavMesh* m_navMesh;
 
         std::vector<game_tick_t> ticks;
-        Networking::NetworkHandlerManager<Networking::PacketType> packet_manager;
+        Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>> packet_manager;
 
         UnitId my_unit_id_;
         bool unit_id_received_ = FALSE;

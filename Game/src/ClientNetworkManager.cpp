@@ -11,7 +11,7 @@ namespace PMG {
 		return serverConnection_ != k_HSteamNetConnection_Invalid;
 	}
 
-	bool ServerNetworkManager::Initialize(Networking::NetworkHandlerManager<Networking::PacketType>* manager) {
+	bool ServerNetworkManager::Initialize(Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
 		this->packet_manager = manager;
 		return true;
 	}

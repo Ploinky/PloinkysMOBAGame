@@ -12,6 +12,8 @@ namespace PMG::Networking {
         // Lobby handling
         LOBBY_PCK_SLOT,
         LOBBY_CMD_SLOT,
+        LOBBY_PCK_READY,
+        LOBBY_CMD_READY,
 
         // Gameplay
         UNITSPAWN,
@@ -38,15 +40,15 @@ namespace PMG::Networking {
         size_t size;
     } packet_header_t;
 
-    template<typename PACKET_TYPE>
+    template<typename PACKET_TYPE, typename HANDLER>
     class NetworkHandlerManager {
     public:
-        std::unordered_map<PACKET_TYPE, std::function<void(std::vector<uint8_t>)>> packet_factory = {};
+        std::unordered_map<PACKET_TYPE, HANDLER> packet_factory = {};
 
-        void RegisterHandler(PACKET_TYPE type, std::function<void(std::vector<uint8_t>)> fn) {
+        void RegisterHandler(PACKET_TYPE type, HANDLER fn) {
             packet_factory.emplace(type, fn);
         }
-        std::function<void(std::vector<uint8_t>)> GetHandler(PACKET_TYPE type) {
+        HANDLER GetHandler(PACKET_TYPE type) {
             if (packet_factory.find(type) != packet_factory.end()) {
                 auto packet = packet_factory[type];
                 return packet;
@@ -230,6 +232,21 @@ namespace PMG::Networking {
         virtual void Write(std::vector<uint8_t>* data) override;
 
         int slot;
+    };
 
+    class LobbyReadyPck : public BasePacket {
+    public:
+        LobbyReadyPck() : BasePacket(PacketType::LOBBY_PCK_READY) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
+
+        uint64_t steamId;
+    };
+
+    class LobbyReadyCmd : public BasePacket {
+    public:
+        LobbyReadyCmd() : BasePacket(PacketType::LOBBY_CMD_READY) {};
+        virtual void Read(std::vector<uint8_t>* data) override;
+        virtual void Write(std::vector<uint8_t>* data) override;
     };
 }

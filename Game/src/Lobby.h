@@ -11,6 +11,7 @@ namespace PMG {
 	public:
 		std::string name;
 		CSteamID steamId;
+		bool ready;
 	};
 
 	class Lobby : public IClientState {
@@ -22,10 +23,11 @@ namespace PMG {
 		virtual void MouseButtonPressed(int button) override;
 
 	private:
-		Networking::NetworkHandlerManager<Networking::PacketType> packetManager_;
+		Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>> packetManager_;
 		ServerNetworkManager networkManager_;
 
 		void HandleSlotPacket(std::vector<uint8_t> data);
+		void HandleReadyPacket(std::vector<uint8_t> data);
 
 		int mySlot_;
 		Player* players_[10]{ nullptr };

@@ -7,5 +7,6 @@ namespace PMG {
 	public:
 		HSteamNetConnection socket;
 		CSteamID steamId;
+		bool ready;
 	};
 }
