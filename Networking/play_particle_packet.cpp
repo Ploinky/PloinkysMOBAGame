@@ -6,6 +6,8 @@ namespace PMG::Networking {
 
 		std::memcpy(&header, data->data(), sizeof(packet_header_t));
 		std::memcpy(&unit, data->data() + sizeof(packet_header_t), sizeof(unit));
+
+		particle.resize(header.size - sizeof(unit) - sizeof(packet_header_t));
 		std::memcpy(particle.data(), data->data() + sizeof(packet_header_t) + sizeof(unit), header.size - sizeof(unit) - sizeof(packet_header_t));
 	}
 
@@ -14,11 +16,11 @@ namespace PMG::Networking {
 		header.type = type;
 		header.size = sizeof(packet_header_t) + sizeof(unit) + particle.length();
 
-		data->resize(header.size);
+		int offset = data->size();
+		data->resize(data->size() + header.size);
 
-		int mem_index = 0;
-		std::memcpy(data->data(), &header, sizeof(packet_header_t));
-		std::memcpy(data->data() + sizeof(packet_header_t), &unit, sizeof(unit));
-		std::memcpy(data->data() + sizeof(packet_header_t) + sizeof(unit), particle.data(), particle.length());
+		std::memcpy(data->data() + offset, &header, sizeof(packet_header_t));
+		std::memcpy(data->data() + offset + sizeof(packet_header_t), &unit, sizeof(unit));
+		std::memcpy(data->data() + offset + sizeof(packet_header_t) + sizeof(unit), particle.data(), particle.length());
 	}
 }

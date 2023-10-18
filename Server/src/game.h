@@ -7,8 +7,8 @@
 #include "networking.h"
 #include "pmg_networking.h"
 #include "components.h"
-#include "game_object.h"
-#include "igame_object.h"
+#include "GameObject.h"
+#include "IGameObject.h"
 
 namespace PMG {
     class Missile;
@@ -54,14 +54,14 @@ namespace PMG {
         unsigned long networkId;
     } player_t;
 
-    class Game {
+    class Client {
     public:
-        Game();
+        Client();
 
         std::function<void(unsigned long, std::vector<uint8_t>*)> on_sendToClient;
         std::function<void(std::vector<uint8_t>*)> on_sendToAllClients;
 
-        Networking::NetworkHandlerManager<Networking::PacketType>* packet_manager;
+        Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>>* packet_manager;
 
         void Start();
 
@@ -73,39 +73,27 @@ namespace PMG {
         void PlayerAttackCommand(unsigned long netId, unsigned long target_id);
         void PlayerCastSpellCommand(unsigned long netId, int spell_slot, SpellTargetInfo* target_info);
 
-
-        void SendPacket(Networking::BasePacket* packet) {
-            tick_packets_.push_back(packet);
-        }
-
-        GameObject* GetGameObjectById(unsigned int id) {
-            auto it = this->game_objects_.find(id);
+        IGameObject* GetGameObjectById(unsigned int id) {
+            auto it = this->igame_objects_.find(id);
             
-            if (it == game_objects_.end()) {
+            if (it == igame_objects_.end()) {
                 return nullptr;
             }
 
             return it->second;
         }
 
-        void AddGameObject(GameObject* game_object);
+        void AddGameObject(IGameObject* game_object);
         void SpawnMissile(Missile* missile);
 
-        void ApplyDamage(GameObject* target, double damage);
-        void Heal(GameObject* target, double heal);
-
-        void DestroyGameObject(GameObject* to_destroy);
-
-        void CheckCollision(GameObject* collider);
+        void CheckCollision(IGameObject* collider);
 
         void Update(float dt);
         NavMesh* m_navMesh;
         unsigned long gameTick = 0;
         unsigned long current_entity_id_ = 0;
 
-        std::vector<Networking::BasePacket*> tick_packets_;
         std::vector<std::vector<uint8_t>> all_ticks;
-        std::map<unsigned int, GameObject*> game_objects_;
         std::map<unsigned int, IGameObject*> igame_objects_;
     private:
 

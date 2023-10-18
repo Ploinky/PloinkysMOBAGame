@@ -28,9 +28,9 @@ namespace PMG::Networking {
         header.type = type;
         header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(spell_slot) + sizeof(cooldown) + sizeof(total_cooldown);
 
-        int offset = 0;
+        int offset = data->size();
 
-        data->resize(header.size);
+        data->resize(data->size() + header.size);
 
         std::memcpy(data->data() + offset, &header, sizeof(packet_header_t));
         offset += sizeof(packet_header_t);

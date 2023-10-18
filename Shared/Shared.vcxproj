@@ -139,6 +139,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\PakFile.cpp" />
+    <ClCompile Include="src\PakFileTableEntry.h" />
     <ClCompile Include="src\component_registry.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\navigation.cpp" />
@@ -146,6 +148,9 @@
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\PakFile.h" />
+    <ClInclude Include="src\PakHeader.h" />
+    <ClInclude Include="src\PakUtil.h" />
     <ClInclude Include="src\component_registry.h" />
     <ClInclude Include="src\pmg_types.h" />
     <ClInclude Include="src\logger.h" />

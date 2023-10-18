@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Audio">
+      <UniqueIdentifier>{06a1c026-052b-4acc-b640-a331c3b23741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Game">
+      <UniqueIdentifier>{17e4c32a-4554-455c-902c-65e24a9345bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\GameObject">
+      <UniqueIdentifier>{bf61c401-3dfe-495a-a644-94ffc16c11ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics">
+      <UniqueIdentifier>{161d9cfc-63bf-4d70-a037-5af1cded795e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Mesh">
+      <UniqueIdentifier>{5c599e22-9b04-4d57-bb5e-94cb554e6e93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Particles">
+      <UniqueIdentifier>{bfb8aea0-8dc9-4a60-b664-b9ca0db66c7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shaders">
+      <UniqueIdentifier>{efb78bcd-97d7-4ff9-a0ae-b8ae8a79ca8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Gui">
+      <UniqueIdentifier>{a62762ce-0500-42f0-a16c-c74bb83fdb5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Networking">
+      <UniqueIdentifier>{46652982-d7f8-4fd3-a669-7394540337f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{0f46bfff-8d2f-41c5-9f66-439afc984115}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source\Game\MainMenu">
+      <UniqueIdentifier>{c2359735-eaa3-434d-bf3b-2ccd59c1788b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Game\Game">
+      <UniqueIdentifier>{7745ccc6-a39c-435d-94bd-f1397ac89c06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Game\SettingsMenu">
+      <UniqueIdentifier>{a9e27a16-243e-47a0-b804-5a0ea1bfaf5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Game\ServerBrowser">
+      <UniqueIdentifier>{eb01ddf7-30f5-4bb6-8609-b288a91e84ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Game\Lobby">
+      <UniqueIdentifier>{f3bb599a-c1a0-400d-b683-e25a38c3551e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\DDSTextureLoader11.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiButton.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiSimplePane.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiTextfield.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Direct3d.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Map.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VBox.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Vertex.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Settings.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\shader.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ClientNetworkManager.cpp">
+      <Filter>Source\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AudioSystem.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiSelector.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>Source\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Armature.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Animation.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SkinnedTexturedMesh.cpp">
+      <Filter>Source\Graphics\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParticleSystem.cpp">
+      <Filter>Source\Graphics\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParticleShader.cpp">
+      <Filter>Source\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParticleEmitter.cpp">
+      <Filter>Source\Graphics\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Source\Graphics\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AssetManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MainMenu.cpp">
+      <Filter>Source\Game\MainMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game.cpp">
+      <Filter>Source\Game\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Client.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SettingsMenu.cpp">
+      <Filter>Source\Game\SettingsMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ServerBrowser.cpp">
+      <Filter>Source\Game\ServerBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Lobby.cpp">
+      <Filter>Source\Game\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiCheckbox.cpp">
+      <Filter>Source\Gui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AudioSystem.h">
+      <Filter>Source\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Settings.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Systems.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameObject.h">
+      <Filter>Source\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderable.h">
+      <Filter>Source\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Particle.h">
+      <Filter>Source\Graphics\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ParticleEmitter.h">
+      <Filter>Source\Graphics\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ParticleSystem.h">
+      <Filter>Source\Graphics\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ParticleShader.h">
+      <Filter>Source\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Animation.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Armature.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Direct3d.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Map.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shader.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Vertex.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui.h">
+      <Filter>Source\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiSelector.h">
+      <Filter>Source\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Window.h">
+      <Filter>Source\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ClientNetworkManager.h">
+      <Filter>Source\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\Resource.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDSTextureLoader11.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Source\Graphics\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AssetManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game.h">
+      <Filter>Source\Game\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Client.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IClientState.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiButton.h">
+      <Filter>Source\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiElement.h">
+      <Filter>Source\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IClientStateHandler.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SettingsMenu.h">
+      <Filter>Source\Game\SettingsMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ServerBrowser.h">
+      <Filter>Source\Game\ServerBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Lobby.h">
+      <Filter>Source\Game\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MainMenu.h">
+      <Filter>Source\Game\MainMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiCheckbox.h">
+      <Filter>Source\Gui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\pixel_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\texture_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\texture_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\vertex_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\skinned_textured_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\particle_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\Cursor.cur">
+      <Filter>Resource</Filter>
+    </None>
+    <None Include="resources\Client.aps">
+      <Filter>Resource</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\Client.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\icon1.ico">
+      <Filter>Resource</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

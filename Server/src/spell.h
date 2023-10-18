@@ -2,15 +2,15 @@
 
 #include "pmg_physics.h"
 #include <vector>
-#include "game_object.h"
+#include "GameObject.h"
 
 namespace PMG {
-	class GameObject;
-	class Game;
+	class Attackable;
+	class Client;
 
 	class SpellTargetInfo {
 	public:
-		GameObject* target = nullptr;
+		Attackable* target = nullptr;
 		Physics::Vector3 target_point;
 	};
 
@@ -20,10 +20,12 @@ namespace PMG {
 		int cast_point = 100;
 		int cooldown = 5000;
 		int remaining_cooldown = -1;
-		
-		void CastStart(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
 
-		void Cast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info);
-		virtual void OnCast(Game* game, GameObject* spell_owner, SpellTargetInfo* target_info) = 0;
+		std::string cast_animation;
+		
+		void CastStart(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+
+		void Cast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info);
+		virtual void OnCast(Client* game, Attackable* spell_owner, SpellTargetInfo* target_info) = 0;
 	};
 }

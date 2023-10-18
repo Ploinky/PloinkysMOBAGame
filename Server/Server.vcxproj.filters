@@ -1,144 +1,164 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
+    <Filter Include="Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Source\GameObject">
+      <UniqueIdentifier>{076b078f-1e1f-4a08-b7fb-d23f0a9c702a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="Source\GameObject\Spell">
+      <UniqueIdentifier>{007e28ea-4757-47f1-862b-cb07675ea020}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\GameObject\Minions">
+      <UniqueIdentifier>{095de8eb-053f-4f6f-a4b7-4024a8415d42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Characters">
+      <UniqueIdentifier>{7310b7d5-3587-4667-a527-7c33cb49c98a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Characters\FootballPerson">
+      <UniqueIdentifier>{0167f240-31a1-4c71-ad8d-6440b69fe1a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\game_object">
-      <UniqueIdentifier>{076b078f-1e1f-4a08-b7fb-d23f0a9c702a}</UniqueIdentifier>
+    <Filter Include="Source\ServerState">
+      <UniqueIdentifier>{8023ffe3-c302-4f04-aea6-036981c2fb84}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\game_object">
-      <UniqueIdentifier>{7ffaaec1-5547-409c-a32d-9f9c2b598055}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\characters">
-      <UniqueIdentifier>{7310b7d5-3587-4667-a527-7c33cb49c98a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\characters\football_person">
-      <UniqueIdentifier>{0167f240-31a1-4c71-ad8d-6440b69fe1a5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\characters">
-      <UniqueIdentifier>{f8ba031e-2966-4815-933f-ca40ddb26c84}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\characters\football_person">
-      <UniqueIdentifier>{4cbe89b5-8c58-4a4c-b62c-353f78baf3e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\game_object\spell">
-      <UniqueIdentifier>{6daed33f-a6bd-4aac-a71f-00d2db0cc225}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\game_object\spell">
-      <UniqueIdentifier>{007e28ea-4757-47f1-862b-cb07675ea020}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\game_object\minions">
-      <UniqueIdentifier>{a04e1342-1437-4722-9c98-a87878cfb9c8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\game_object\minions">
-      <UniqueIdentifier>{095de8eb-053f-4f6f-a4b7-4024a8415d42}</UniqueIdentifier>
+    <Filter Include="Source\ServerState\LobbyState">
+      <UniqueIdentifier>{e65954e3-c1f4-4f46-98e9-84ea4e829f44}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\game.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Game.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\network_manager.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\NetworkManager.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\server.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Server.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\util.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Util.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\game_object.cpp">
-      <Filter>Source Files\game_object</Filter>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>Source\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="src\building.cpp">
-      <Filter>Source Files\game_object</Filter>
+    <ClCompile Include="src\Building.cpp">
+      <Filter>Source\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="src\football_person.cpp">
-      <Filter>Source Files\characters\football_person</Filter>
+    <ClCompile Include="src\FootballPerson.cpp">
+      <Filter>Source\Characters\FootballPerson</Filter>
     </ClCompile>
-    <ClCompile Include="src\buff.cpp">
-      <Filter>Source Files\game_object</Filter>
+    <ClCompile Include="src\Buff.cpp">
+      <Filter>Source\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="src\spell.cpp">
-      <Filter>Source Files\game_object\spell</Filter>
+    <ClCompile Include="src\Spell.cpp">
+      <Filter>Source\GameObject\Spell</Filter>
     </ClCompile>
-    <ClCompile Include="src\area_spell.cpp">
-      <Filter>Source Files\game_object\spell</Filter>
+    <ClCompile Include="src\AreaSpell.cpp">
+      <Filter>Source\GameObject\Spell</Filter>
     </ClCompile>
-    <ClCompile Include="src\missile_spell.cpp">
-      <Filter>Source Files\game_object\spell</Filter>
+    <ClCompile Include="src\MissileSpell.cpp">
+      <Filter>Source\GameObject\Spell</Filter>
     </ClCompile>
-    <ClCompile Include="src\missile.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\MinionSpawner.cpp">
+      <Filter>Source\GameObject\Minions</Filter>
     </ClCompile>
-    <ClCompile Include="src\minion_spawner.cpp">
-      <Filter>Source Files\game_object\minions</Filter>
+    <ClCompile Include="src\Attackable.cpp">
+      <Filter>Source\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Person.cpp">
+      <Filter>Source\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParticleSpawner.cpp">
+      <Filter>Source\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Missile.cpp">
+      <Filter>Source\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Minion.cpp">
+      <Filter>Source\GameObject\Minions</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LobbyState.cpp">
+      <Filter>Source\ServerState\LobbyState</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\components.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Game.h">
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\game.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Main.h">
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\main.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\NetworkManager.h">
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\network_manager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Server.h">
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\server.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Util.h">
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\util.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Components.h">
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\game_object.h">
-      <Filter>Header Files\game_object</Filter>
+    <ClInclude Include="src\Buff.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\building.h">
-      <Filter>Header Files\game_object</Filter>
+    <ClInclude Include="src\Attackable.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\football_person.h">
-      <Filter>Header Files\characters\football_person</Filter>
+    <ClInclude Include="src\Building.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\buff.h">
-      <Filter>Header Files\game_object</Filter>
+    <ClInclude Include="src\GameObject.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\spell.h">
-      <Filter>Header Files\game_object\spell</Filter>
+    <ClInclude Include="src\Missile.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\area_spell.h">
-      <Filter>Header Files\game_object\spell</Filter>
+    <ClInclude Include="src\ParticleSpawner.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\missile_spell.h">
-      <Filter>Header Files\game_object\spell</Filter>
+    <ClInclude Include="src\Person.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\missile.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\IGameObject.h">
+      <Filter>Source\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="src\minion.h">
-      <Filter>Header Files\game_object\minions</Filter>
+    <ClInclude Include="src\AreaSpell.h">
+      <Filter>Source\GameObject\Spell</Filter>
     </ClInclude>
-    <ClInclude Include="src\minion_spawner.h">
-      <Filter>Header Files\game_object\minions</Filter>
+    <ClInclude Include="src\MissileSpell.h">
+      <Filter>Source\GameObject\Spell</Filter>
     </ClInclude>
-    <ClInclude Include="src\igame_object.h">
-      <Filter>Header Files\game_object</Filter>
+    <ClInclude Include="src\Spell.h">
+      <Filter>Source\GameObject\Spell</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Minion.h">
+      <Filter>Source\GameObject\Minions</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MinionSpawner.h">
+      <Filter>Source\GameObject\Minions</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FootballPerson.h">
+      <Filter>Source\Characters\FootballPerson</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IServerState.h">
+      <Filter>Source\ServerState</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LobbyState.h">
+      <Filter>Source\ServerState\LobbyState</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LobbyPlayer.h">
+      <Filter>Source\ServerState\LobbyState</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

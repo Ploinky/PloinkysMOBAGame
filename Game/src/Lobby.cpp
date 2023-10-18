@@ -1,0 +1,161 @@
+#include "Lobby.h"
+#include "pmg_networking.h"
+#include "Renderer.h"
+
+namespace PMG {
+	Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+		networkManager_ = ServerNetworkManager();
+
+        packetManager_ = Networking::NetworkHandlerManager<Networking::PacketType, std::function<void(std::vector<uint8_t>)>>();
+        // Register network packets, the fuck...
+        packetManager_.RegisterHandler(Networking::PacketType::LOBBY_PCK_SLOT, [this](std::vector<uint8_t> data) { HandleSlotPacket(data); });
+        packetManager_.RegisterHandler(Networking::PacketType::LOBBY_PCK_READY, [this](std::vector<uint8_t> data) { HandleReadyPacket(data); });
+
+        networkManager_.Initialize(&packetManager_);
+
+        networkManager_.ConnectToServer(server);
+
+        mySlot_ = -1;
+
+        rootElement_ = GuiElement();
+        rootElement_.m_pos = { 0, 0 };
+        rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
+
+        GuiButton* btnReady = new GuiButton();
+        btnReady->m_pos = { 100.0f, windowHeight_ - 150.0f };
+        btnReady->m_size = { 300, 80 };
+        btnReady->m_text = "Ready";
+        btnReady->m_color[0] = 0.2f;
+        btnReady->m_color[1] = 0.6f;
+        btnReady->m_color[2] = 0.2f;
+        btnReady->e_onButtonPressed = [this]() {
+            Networking::LobbyReadyCmd cmd;
+            networkManager_.SendPacket(&cmd);
+        };
+        rootElement_.m_children.push_back(btnReady);
+
+        GuiButton* btnBack = new GuiButton();
+        btnBack->m_pos = { windowWidth_ - 400.0f, windowHeight_ - 150.0f };
+        btnBack->m_size = { 300, 80 };
+        btnBack->m_text = "Leave";
+        btnBack->m_color[0] = 0.6f;
+        btnBack->m_color[1] = 0.2f;
+        btnBack->m_color[2] = 0.2f;
+        btnBack->e_onButtonPressed = [this]() {
+            handler_->OpenMainMenu();
+        };
+
+        rootElement_.m_children.push_back(btnBack);
+	}
+
+    Lobby::~Lobby() {
+        if (networkManager_.IsConnected()) {
+            networkManager_.Close();
+        }
+    }
+
+    void Lobby::Update(float dt) {
+        networkManager_.ReceivePacket();
+    }
+
+    void Lobby::Render(Renderer* renderer) {
+        int slotWidth = (windowWidth_ - 150) / 2;
+        int slotHeight = (windowHeight_ - 440) / 5;
+
+        for (int i = 0; i < 10; i++) {
+            bool right = (i % 2) != 0;
+            
+            int ySlot = (i / 2);
+
+            float color[3]{ 0.6, 0.6, 0.6 };
+            if (players_[i] != nullptr) {
+                if (players_[i]->ready) {
+                    color[0] = 0;
+                    color[1] = 1;
+                    color[2] = 0;
+                }
+                else {
+                    color[0] = 1;
+                    color[1] = 0;
+                    color[2] = 0;
+                }
+            }
+
+            int x = 50 + (right ? slotWidth + 50 : 0);
+            int y = 50 + ySlot * slotHeight + ySlot * 10;
+
+            renderer->FillRect(x, y, slotWidth, slotHeight, color);
+
+            if (players_[i] == nullptr) {
+                renderer->RenderText(x, y, slotWidth, slotHeight, "Take slot");
+            }
+            else {
+                renderer->RenderText(x, y, slotWidth, slotHeight, players_[i]->name);
+            }
+        }
+
+        rootElement_.Render(renderer);
+    }
+
+    void Lobby::HandleSlotPacket(std::vector<uint8_t> data) {
+        Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
+        pck.Read(&data);
+
+        if (pck.steamId == SteamUser()->GetSteamID().ConvertToUint64()) {
+            mySlot_ = pck.slot;
+        }
+
+        for (int i = 0; i < 10; i++) {
+            if (players_[i] != nullptr && players_[i]->steamId == pck.steamId) {
+                players_[pck.slot] = players_[i];
+                players_[i] = nullptr;
+                return;
+            }
+        }
+
+        // must be a new player
+        CSteamID id = CSteamID(pck.steamId);
+        Player* p = new Player();
+        p->name = std::string(SteamFriends()->GetFriendPersonaName(id));
+        p->steamId = pck.steamId;
+        players_[pck.slot] = p;
+    }
+
+    void Lobby::HandleReadyPacket(std::vector<uint8_t> data) {
+        Networking::LobbyReadyPck pck = Networking::LobbyReadyPck();
+        pck.Read(&data);
+
+        for (int i = 0; i < 10; i++) {
+            if (players_[i] != nullptr && players_[i]->steamId == pck.steamId) {
+                players_[i]->ready = !players_[i]->ready;
+                return;
+            }
+        }
+    }
+
+    void Lobby::MouseButtonPressed(int button) {
+        if (button != 0) {
+            return;
+        }
+
+        int slotWidth = (windowWidth_ - 150) / 2;
+        int slotHeight = (windowHeight_ - 440) / 5;
+
+        for (int i = 0; i < 10; i++) {
+            bool right = (i % 2) != 0;
+            int ySlot = (i / 2);
+
+            int x = 50 + (right ? slotWidth + 50 : 0);
+            int y = 50 + ySlot * slotHeight + ySlot * 10;
+            if (mouseX_ > x && mouseX_ < x + slotWidth
+                && mouseY_ > y && mouseY_ < y + slotHeight) {
+                Networking::LobbySlotPacket pck = Networking::LobbySlotPacket();
+                pck.slot = i;
+
+                networkManager_.SendPacket(&pck);
+            }
+        }
+
+        rootElement_.MousePressed(mouseX_, mouseY_);
+    }
+}

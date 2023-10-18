@@ -1,18 +1,17 @@
 #pragma once
 
-#include "game_object.h"
+#include "attackable.h"
+#include "GameObject.h"
 
 namespace PMG {
-	class Game;
+	class Client;
 
-	class TowerGameObjectController : public GameObjectController {
+	class Building : public Attackable {
 	public:
-		virtual void Think(Game* game, GameObject* go);
-	};
+		Building(Team team);
 
-	class Building : public GameObject {
-	public:
-		Building();
-		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); }
+		virtual void Update(Client* game, float dt) {};
+		virtual void Act(Client* game, float dt) override;
+		virtual Physics::Sphere GetHitbox() { return Physics::Sphere(position, 1); };
 	};
 }

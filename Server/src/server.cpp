@@ -1,17 +1,34 @@
 #include <chrono>
 #include "server.h"
-#include "network_manager.h"
+#include "NetworkManager.h"
 #include "main.h"
 #include "game.h"
 #include "util.h"
 #include "logger.h"
 #include "spell.h"
+#include "attackable.h"
+#include "steam/steam_gameserver.h"
+#include "steam/steam_api.h"
+
+#include "LobbyState.h"
 
 namespace PMG {
     void Server::Start() {
-        m_networkManager = new ClientNetworkManager();
+        LobbyState state = LobbyState();
+
+
+        bool isRunning = true;
+
+        while (isRunning) {
+            state.Update(0);
+
+            SteamGameServer_RunCallbacks();
+        }
+
+        m_networkManager = new ServerNetworkManager();
         m_networkManager->Initialize();
-        m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
+        // TODO
+        // m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
         m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
         m_networkManager->on_clientMessageReceived = std::bind(&Server::OnMessageReceived, this, std::placeholders::_1, std::placeholders::_2);
         if (!m_networkManager->CreateListenSocket("23119")) {
@@ -19,14 +36,15 @@ namespace PMG {
             return;
         }
 
-        m_game = new Game();
+        m_game = new Client();
         m_game->on_sendToClient = std::bind(&Server::SendMessageToClient, this, std::placeholders::_1, std::placeholders::_2);
         m_game->on_sendToAllClients = std::bind(&Server::SendMessageToAllClients, this, std::placeholders::_1);
         m_game->Start();
 
         long long lastFrame = GetSystemTime();
 
-        bool isRunning = true;
+        // TODO
+        // bool isRunning = true;
 
         Logger::Msg("Server started");
 
@@ -38,6 +56,8 @@ namespace PMG {
             m_networkManager->Update();
 
             m_game->Update(dt);
+
+            SteamGameServer_RunCallbacks();
         }
 
         m_networkManager->Close();
@@ -100,7 +120,7 @@ namespace PMG {
                 cast_command.Read(data);
 
                 SpellTargetInfo* target_info = new SpellTargetInfo();
-                target_info->target = m_game->GetGameObjectById(cast_command.target);
+                target_info->target = dynamic_cast<Attackable*>(m_game->GetGameObjectById(cast_command.target));
                 m_game->PlayerCastSpellCommand(clientId, cast_command.spell_slot, target_info);
                 break;
             }

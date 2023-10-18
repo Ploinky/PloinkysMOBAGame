@@ -122,7 +122,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,43 +144,55 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\area_spell.cpp" />
-    <ClCompile Include="src\buff.cpp" />
-    <ClCompile Include="src\building.cpp" />
-    <ClCompile Include="src\football_person.cpp" />
-    <ClCompile Include="src\game.cpp" />
-    <ClCompile Include="src\game_object.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\minion_spawner.cpp" />
-    <ClCompile Include="src\missile.cpp" />
-    <ClCompile Include="src\missile_spell.cpp" />
-    <ClCompile Include="src\network_manager.cpp" />
-    <ClCompile Include="src\server.cpp" />
-    <ClCompile Include="src\spell.cpp" />
-    <ClCompile Include="src\util.cpp" />
+    <ClCompile Include="src\AreaSpell.cpp" />
+    <ClCompile Include="src\Attackable.cpp" />
+    <ClCompile Include="src\Buff.cpp" />
+    <ClCompile Include="src\Building.cpp" />
+    <ClCompile Include="src\FootballPerson.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\GameObject.cpp" />
+    <ClCompile Include="src\LobbyState.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Minion.cpp" />
+    <ClCompile Include="src\MinionSpawner.cpp" />
+    <ClCompile Include="src\Missile.cpp" />
+    <ClCompile Include="src\MissileSpell.cpp" />
+    <ClCompile Include="src\NetworkManager.cpp" />
+    <ClCompile Include="src\ParticleSpawner.cpp" />
+    <ClCompile Include="src\Person.cpp" />
+    <ClCompile Include="src\Server.cpp" />
+    <ClCompile Include="src\Spell.cpp" />
+    <ClCompile Include="src\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\area_spell.h" />
-    <ClInclude Include="src\buff.h" />
-    <ClInclude Include="src\building.h" />
-    <ClInclude Include="src\components.h" />
-    <ClInclude Include="src\football_person.h" />
-    <ClInclude Include="src\game.h" />
-    <ClInclude Include="src\game_object.h" />
-    <ClInclude Include="src\igame_object.h" />
-    <ClInclude Include="src\main.h" />
-    <ClInclude Include="src\minion.h" />
-    <ClInclude Include="src\minion_spawner.h" />
-    <ClInclude Include="src\missile.h" />
-    <ClInclude Include="src\missile_spell.h" />
-    <ClInclude Include="src\network_manager.h" />
-    <ClInclude Include="src\server.h" />
-    <ClInclude Include="src\spell.h" />
-    <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\AreaSpell.h" />
+    <ClInclude Include="src\Attackable.h" />
+    <ClInclude Include="src\Buff.h" />
+    <ClInclude Include="src\Building.h" />
+    <ClInclude Include="src\Components.h" />
+    <ClInclude Include="src\FootballPerson.h" />
+    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\GameObject.h" />
+    <ClInclude Include="src\IGameObject.h" />
+    <ClInclude Include="src\IServerState.h" />
+    <ClInclude Include="src\LobbyPlayer.h" />
+    <ClInclude Include="src\LobbyState.h" />
+    <ClInclude Include="src\Main.h" />
+    <ClInclude Include="src\Minion.h" />
+    <ClInclude Include="src\MinionSpawner.h" />
+    <ClInclude Include="src\Missile.h" />
+    <ClInclude Include="src\MissileSpell.h" />
+    <ClInclude Include="src\NetworkManager.h" />
+    <ClInclude Include="src\ParticleSpawner.h" />
+    <ClInclude Include="src\Person.h" />
+    <ClInclude Include="src\Server.h" />
+    <ClInclude Include="src\Spell.h" />
+    <ClInclude Include="src\Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Physics\Physics.vcxproj">

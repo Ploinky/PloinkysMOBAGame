@@ -17,16 +17,19 @@ namespace PMG::Networking {
 		offset += sizeof(x);
 
 		std::memcpy(&y, data->data() + offset, sizeof(y));
+		offset += sizeof(y);
+
+		std::memcpy(&z, data->data() + offset, sizeof(z));
 	}
 
 	void SpawnPacket::Write(std::vector<uint8_t>* data) {
 		packet_header_t header{};
 		header.type = type;
-		header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(unit_type) + sizeof(team) + sizeof(x) + sizeof(y);
+		header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(unit_type) + sizeof(team) + sizeof(x) + sizeof(y) + sizeof(z);
 
-		data->resize(header.size);
+		int offset = data->size();
+		data->resize(data->size() + header.size);
 
-		int offset = 0;
 
 		std::memcpy(data->data() + offset, &header, sizeof(header));
 		offset += sizeof(header);
@@ -44,5 +47,8 @@ namespace PMG::Networking {
 		offset += sizeof(x);
 		
 		std::memcpy(data->data() + offset, &y, sizeof(y));
+		offset += sizeof(y);
+
+		std::memcpy(data->data() + offset, &z, sizeof(z));
 	}
 }
