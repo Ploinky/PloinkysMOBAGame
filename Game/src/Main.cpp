@@ -2,13 +2,13 @@
 
 #include <stdio.h>
 #include "Client.h"
-#include "logger.h"
+#include "common/logger.h"
 #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
     #include <Windows.h>
 #endif
 #include <string>
-#include "util.h"
+#include "common/util.h"
 
 std::string GetDir() {
 	char buffer[MAX_PATH];

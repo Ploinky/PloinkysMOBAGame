@@ -1,6 +1,6 @@
 #include "Armature.h"
 #include <fstream>
-#include "logger.h"
+#include "common/logger.h"
 
 namespace PMG {
 	DirectX::XMMATRIX BonePosition::ToMatrix() const {

@@ -4,7 +4,7 @@
 #include <string>
 #include "Direct3D.h"
 #include "Mesh.h"
-#include "logger.h"
+#include "common/logger.h"
 #include "Resource.h"
 #include "Settings.h"
 

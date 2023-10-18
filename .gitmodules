@@ -1,0 +1,3 @@
+[submodule "Game/src/common"]
+	path = Game/src/common
+	url = git@github.com:Ploinky/PloinkysMOBAGameCommon.git

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "component_registry.h"
+#include "common/component_registry.h"
 
 namespace PMG {
 	class PMGSystem {

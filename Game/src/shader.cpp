@@ -1,6 +1,6 @@
 #include "Shader.h"
 #include "Direct3D.h"
-#include "util.h"
+#include "common/util.h"
 
 namespace PMG {
 	Shader::Shader(ShaderType type) : m_type(type) {

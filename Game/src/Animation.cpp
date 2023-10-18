@@ -1,6 +1,6 @@
 #include "Animation.h"
 #include <fstream>
-#include "logger.h"
+#include "common/logger.h"
 
 namespace PMG {
 	Animation* Animation::LoadAnimation(std::string file_name) {

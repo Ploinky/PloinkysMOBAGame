@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include <vector>
 
 namespace PMG {

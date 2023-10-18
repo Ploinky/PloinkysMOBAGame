@@ -4,7 +4,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <string>
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include <map>
 #include "GameObject.h"
 #include "Shader.h"

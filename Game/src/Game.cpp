@@ -1,13 +1,13 @@
 #include "Game.h"
-#include "navigation.h"
+#include "common/navigation.h"
 #include "Map.h"
 #include "Renderer.h"
 #include "Camera.h"
-#include "logger.h"
+#include "common/logger.h"
 #include "Mesh.h"
 #include "AssetManager.h"
 #include "ParticleSystem.h"
-#include "util.h"
+#include "common/util.h"
 #include "MainMenu.h"
 
 namespace PMG {

@@ -1,7 +1,7 @@
 #include "Map.h"
 #include "Mesh.h"
-#include "util.h"
-#include "logger.h"
+#include "common/util.h"
+#include "common/logger.h"
 #include <fstream>
 #include "Vertex.h"
 #include <map>

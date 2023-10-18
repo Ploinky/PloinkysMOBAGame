@@ -1,5 +1,5 @@
 #include "Camera.h"
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 
 namespace PMG {
     Camera::Camera() {

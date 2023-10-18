@@ -3,8 +3,8 @@
 #include "Direct3D.h"
 #include "DDSTextureLoader11.h"
 #include <fstream>
-#include "logger.h"
-#include "util.h"
+#include "common/logger.h"
+#include "common/util.h"
 
 namespace PMG {
     Mesh::~Mesh() {

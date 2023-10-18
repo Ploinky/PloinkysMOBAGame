@@ -5,12 +5,12 @@
 #include <DirectXMath.h>
 #include "Shader.h"
 #include <string>
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include "Armature.h"
 #include <map>
 #include "Animation.h"
 #include "Renderer.h"
-#include "logger.h"
+#include "common/logger.h"
 
 namespace PMG {
     class Direct3D;

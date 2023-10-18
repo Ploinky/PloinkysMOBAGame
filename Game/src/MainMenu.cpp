@@ -2,7 +2,7 @@
 #include "steam/isteamutils.h"
 #include "steam/isteamuser.h"
 #include "steam/isteamutils.h"
-#include "util.h"
+#include "common/util.h"
 #include "Game.h"
 
 namespace PMG {

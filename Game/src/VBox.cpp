@@ -1,6 +1,6 @@
 #include "Gui.h"
 #include "Renderer.h"
-#include "logger.h"
+#include "common/logger.h"
 
 namespace PMG {
 	void VBox::LayoutChildren() {

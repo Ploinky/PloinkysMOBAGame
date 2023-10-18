@@ -137,7 +137,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/Networking;$(SolutionDir)/Physics;$(SolutionDir)/Shared/src;$(ProjectDir)/resources;$(ProjectDir)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)PakUtil;$(SolutionDir)/Networking;$(SolutionDir)/Physics;$(SolutionDir)/Shared/src;$(ProjectDir)/resources;$(ProjectDir)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -157,6 +157,40 @@
     <ClCompile Include="src\AudioSystem.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Client.cpp" />
+    <ClCompile Include="src\common\animation_packet.cpp" />
+    <ClCompile Include="src\common\attack_command.cpp" />
+    <ClCompile Include="src\common\calculation.cpp" />
+    <ClCompile Include="src\common\cast_command.cpp" />
+    <ClCompile Include="src\common\cast_target_command.cpp" />
+    <ClCompile Include="src\common\circle.cpp" />
+    <ClCompile Include="src\common\client_unit_id.cpp" />
+    <ClCompile Include="src\common\collision.cpp" />
+    <ClCompile Include="src\common\component_registry.cpp" />
+    <ClCompile Include="src\common\coodown_packet.cpp" />
+    <ClCompile Include="src\common\despawn_packet.cpp" />
+    <ClCompile Include="src\common\game_tick.cpp" />
+    <ClCompile Include="src\common\LobbyReadyCommand.cpp" />
+    <ClCompile Include="src\common\LobbyReadyPacket.cpp" />
+    <ClCompile Include="src\common\LobbySlotCommand.cpp" />
+    <ClCompile Include="src\common\LobbySlotPacket.cpp" />
+    <ClCompile Include="src\common\logger.cpp" />
+    <ClCompile Include="src\common\matrix.cpp" />
+    <ClCompile Include="src\common\move_command.cpp" />
+    <ClCompile Include="src\common\navigation.cpp" />
+    <ClCompile Include="src\common\networking.cpp" />
+    <ClCompile Include="src\common\PakFile.cpp" />
+    <ClCompile Include="src\common\play_particle_packet.cpp" />
+    <ClCompile Include="src\common\projection.cpp" />
+    <ClCompile Include="src\common\ray.cpp" />
+    <ClCompile Include="src\common\spawn_packet.cpp" />
+    <ClCompile Include="src\common\sphere.cpp" />
+    <ClCompile Include="src\common\stop_command.cpp" />
+    <ClCompile Include="src\common\unit_move_packet.cpp" />
+    <ClCompile Include="src\common\unit_stats_packet.cpp" />
+    <ClCompile Include="src\common\util.cpp" />
+    <ClCompile Include="src\common\vector2.cpp" />
+    <ClCompile Include="src\common\vector3.cpp" />
+    <ClCompile Include="src\common\vector4.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\DDSTextureLoader11.cpp" />
     <ClCompile Include="src\Direct3d.cpp" />
@@ -190,6 +224,30 @@
     <ClInclude Include="src\Armature.h" />
     <ClInclude Include="src\AssetManager.h" />
     <ClInclude Include="src\Client.h" />
+    <ClInclude Include="src\common\calculation.h" />
+    <ClInclude Include="src\common\circle.h" />
+    <ClInclude Include="src\common\collision.h" />
+    <ClInclude Include="src\common\component_registry.h" />
+    <ClInclude Include="src\common\logger.h" />
+    <ClInclude Include="src\common\matrix.h" />
+    <ClInclude Include="src\common\navigation.h" />
+    <ClInclude Include="src\common\networking.h" />
+    <ClInclude Include="src\common\new_packets.h" />
+    <ClInclude Include="src\common\PakFile.h" />
+    <ClInclude Include="src\common\PakFileTableEntry.h" />
+    <ClInclude Include="src\common\PakHeader.h" />
+    <ClInclude Include="src\common\PakUtil.h" />
+    <ClInclude Include="src\common\pmg_networking.h" />
+    <ClInclude Include="src\common\pmg_physics.h" />
+    <ClInclude Include="src\common\pmg_types.h" />
+    <ClInclude Include="src\common\projection.h" />
+    <ClInclude Include="src\common\quaternion.h" />
+    <ClInclude Include="src\common\ray.h" />
+    <ClInclude Include="src\common\sphere.h" />
+    <ClInclude Include="src\common\util.h" />
+    <ClInclude Include="src\common\vector2.h" />
+    <ClInclude Include="src\common\vector3.h" />
+    <ClInclude Include="src\common\vector4.h" />
     <ClInclude Include="src\GameObject.h" />
     <ClInclude Include="resources\Resource.h" />
     <ClInclude Include="src\AudioSystem.h" />
@@ -294,17 +352,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\icon1.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Physics\Physics.vcxproj">
-      <Project>{a6b81d6d-de40-4ce5-8799-14a560965f73}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Shared\Shared.vcxproj">
-      <Project>{7ace48e0-c601-4094-bfe2-6932f0f5210a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="C:\projects\PloinkysMOBAGame\Networking\Networking.vcxproj">
-      <Project>{63bf9ae4-3487-4bf3-a476-f5b44190f630}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

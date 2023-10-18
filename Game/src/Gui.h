@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include "GuiButton.h"
 #include "GuiElement.h"
 

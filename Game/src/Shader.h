@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <string>
 #include <DirectXMath.h>
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 
 namespace PMG {
 	class Direct3D;

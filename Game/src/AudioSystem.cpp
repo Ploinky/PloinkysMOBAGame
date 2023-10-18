@@ -3,7 +3,7 @@
 #include <combaseapi.h>
 #include <string>
 #include "Settings.h"
-#include "logger.h"
+#include "common/logger.h"
 
 
 #define fourccRIFF 'FFIR'

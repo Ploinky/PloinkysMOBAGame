@@ -1,12 +1,12 @@
 #include "Direct3D.h"
 #include "Mesh.h"
-#include "logger.h"
+#include "common/logger.h"
 #include "Vertex.h"
 #include <comdef.h>
 #include <sstream>
 #include <vector>
 #include <type_traits>
-#include "util.h"
+#include "common/util.h"
 #include <DirectXMath.h>
 #include "Settings.h"
 

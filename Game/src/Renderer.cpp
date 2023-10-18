@@ -1,9 +1,9 @@
 #include "Renderer.h"
 #include "Mesh.h"
-#include "logger.h"
+#include "common/logger.h"
 #include "Vertex.h"
 #include "Direct3D.h"
-#include "util.h"
+#include "common/util.h"
 #include "Camera.h"
 #include "Shader.h"
 #include <DirectXMath.h>

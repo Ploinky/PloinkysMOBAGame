@@ -1,5 +1,5 @@
 #include "Lobby.h"
-#include "pmg_networking.h"
+#include "common/pmg_networking.h"
 #include "Renderer.h"
 
 namespace PMG {

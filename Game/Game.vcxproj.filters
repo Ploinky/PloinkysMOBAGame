@@ -54,14 +54,11 @@
     <Filter Include="Source\Game\Lobby">
       <UniqueIdentifier>{f3bb599a-c1a0-400d-b683-e25a38c3551e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Common">
+      <UniqueIdentifier>{0fcd0ff5-7143-42a0-b949-b42bae627da1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\DDSTextureLoader11.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="src\GuiButton.cpp">
       <Filter>Source\Gui</Filter>
     </ClCompile>
@@ -131,9 +128,6 @@
     <ClCompile Include="src\Mesh.cpp">
       <Filter>Source\Graphics\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="src\AssetManager.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="src\MainMenu.cpp">
       <Filter>Source\Game\MainMenu</Filter>
     </ClCompile>
@@ -154,6 +148,117 @@
     </ClCompile>
     <ClCompile Include="src\GuiCheckbox.cpp">
       <Filter>Source\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DDSTextureLoader11.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AssetManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\vector4.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\animation_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\attack_command.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\calculation.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\cast_command.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\cast_target_command.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\circle.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\client_unit_id.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\collision.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\component_registry.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\coodown_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\despawn_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\game_tick.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\LobbyReadyCommand.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\LobbyReadyPacket.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\LobbySlotCommand.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\LobbySlotPacket.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\logger.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\matrix.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\move_command.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\navigation.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\networking.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\PakFile.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\play_particle_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\projection.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\ray.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\spawn_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\sphere.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\stop_command.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\unit_move_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\unit_stats_packet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\util.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\vector2.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\vector3.cpp">
+      <Filter>Source\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -220,17 +325,8 @@
     <ClInclude Include="src\ClientNetworkManager.h">
       <Filter>Source\Networking</Filter>
     </ClInclude>
-    <ClInclude Include="resources\Resource.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DDSTextureLoader11.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="src\Mesh.h">
       <Filter>Source\Graphics\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AssetManager.h">
-      <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="src\Game.h">
       <Filter>Source\Game\Game</Filter>
@@ -264,6 +360,87 @@
     </ClInclude>
     <ClInclude Include="src\GuiCheckbox.h">
       <Filter>Source\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DDSTextureLoader11.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\Resource.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AssetManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\calculation.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\circle.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\collision.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\component_registry.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\logger.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\matrix.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\navigation.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\networking.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\new_packets.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\PakFile.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\PakFileTableEntry.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\PakHeader.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\PakUtil.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\pmg_networking.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\pmg_physics.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\pmg_types.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\projection.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\quaternion.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\ray.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\sphere.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\util.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\vector2.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\vector3.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\vector4.h">
+      <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

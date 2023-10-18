@@ -1,6 +1,6 @@
 #include "ServerBrowser.h"
 #include "Renderer.h"
-#include "util.h"
+#include "common/util.h"
 
 namespace PMG {
 	ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pmg_physics.h"
-#include "pmg_types.h"
+#include "common/pmg_physics.h"
+#include "common/pmg_types.h"
 #include "Renderable.h"
 
 #include <string>

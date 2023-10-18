@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "networking.h"
-#include "pmg_networking.h"
+#include "common/pmg_networking.h"
+#include "common/networking.h"
 #include "steam\steam_api.h"
 #include <functional>
 

@@ -6,7 +6,7 @@
 #include <map>
 #include "AudioSystem.h"
 #include "Settings.h"
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include "AssetManager.h"
 #include "IClientStateHandler.h"
 #include "steam/steam_api.h"

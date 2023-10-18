@@ -1,6 +1,6 @@
 #include "Settings.h"
-#include "util.h"
-#include "logger.h"
+#include "common/util.h"
+#include "common/logger.h"
 #include <ranges>
 
 namespace PMG {

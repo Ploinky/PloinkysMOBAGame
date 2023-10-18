@@ -1,6 +1,6 @@
 #include "ClientNetworkManager.h"
-#include "logger.h"
-#include "pmg_networking.h"
+#include "common/logger.h"
+#include "common/pmg_networking.h"
 
 #include "Game.h"
 

@@ -4,7 +4,7 @@
 #include <math.h>
 #include "Camera.h"
 #include "DDSTextureLoader11.h"
-#include "util.h"
+#include "common/util.h"
 
 namespace PMG {
 	ParticleSystem::ParticleSystem() {

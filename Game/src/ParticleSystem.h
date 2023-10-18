@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include "Particle.h"
 #include <vector>
 #include "Renderer.h"
