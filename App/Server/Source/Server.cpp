@@ -1,0 +1,65 @@
+#include <chrono>
+#include <Server.h>
+#include <NetworkManager.h>
+#include "Main.h"
+#include <Game.h>
+#include <Common/PMG_Common.h>
+#include "Spell.h"
+#include "Attackable.h"
+#include <steam/steam_gameserver.h>
+#include <steam/steam_api.h>
+
+#include "LobbyState.h"
+
+namespace PMG {
+    void Server::Start() {
+		assetManager_. LoadPakFile("Maps/Map1.pak");
+
+        currentState_ = new LobbyState(this);
+
+        Logger::Msg("Server started");
+
+        bool isRunning = true;
+
+        long long lastFrame = GetSystemTime();
+        while (isRunning) {
+            auto thisFrame = GetSystemTime();
+            float dt = (thisFrame - lastFrame) / 1000000.0f / 1000.0f;
+            lastFrame = thisFrame;
+
+            currentState_->Update(dt);
+
+            SteamGameServer_RunCallbacks();
+        }
+
+        // TODO handle player connecting and disconnecting during game
+        // m_networkManager->on_clientConnected = std::bind(&Server::OnClientConnected, this, std::placeholders::_1);
+        // m_networkManager->on_clientDisconnected = std::bind(&Server::OnClientDisconnected, this, std::placeholders::_1);
+    }
+
+    long long Server::GetSystemTime() {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+
+    void Server::StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) {
+
+        Client* client = new Client(this, manager, &assetManager_, players);
+        client->Start();
+
+        if (currentState_ != nullptr) {
+            delete currentState_;
+        }
+
+        currentState_ = client;
+    }
+
+	void Server::StartLobby(ServerNetworkManager* manager) {
+		LobbyState* lobby = new LobbyState(this, manager);
+
+		if (currentState_ != nullptr) {
+			delete currentState_;
+		}
+
+		currentState_ = lobby;
+	}
+}

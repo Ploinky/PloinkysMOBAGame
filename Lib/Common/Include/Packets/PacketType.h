@@ -1,0 +1,31 @@
+#pragma once
+
+namespace PMG::Networking {
+	enum class PacketType {
+		// Lobby handling
+		LOBBY_PLAYER_PCK,
+		LOBBY_CMD_SLOT,
+		LOBBY_PCK_READY,
+		LOBBY_CMD_READY,
+		LOBBY_GAME_START,
+
+		// Gameplay
+		UNITSPAWN,
+		UNITMOVE,
+		UNITIDLE,
+		UNITDESPAWN,
+		GAME_TICK,
+		PCK_NAME_REQUEST,
+		CMD_READY,
+		CMD_NOT_READY,
+		CMD_STOP,
+		CMD_ATTACK,
+		CMD_CAST,
+		CMD_CAST_TARGET,
+		PCK_CLIENT_UNIT_ID,
+		PCK_STATS,
+		PCK_SPELL_COOLDOWN,
+		PCK_PLAY_PARTICLE,
+		PCK_ATTACK_START
+	};
+}

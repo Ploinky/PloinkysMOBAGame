@@ -1,0 +1,948 @@
+#include "Renderer.h"
+
+namespace PMG {
+    CRenderer::~CRenderer() {
+        for (auto mesh_it : meshes_) {
+            delete mesh_it.second;
+        }
+
+        for (auto texture_it : textures_) {
+            texture_it.second->Release();
+        }
+
+        for (auto bitmap_it : bitmaps_) {
+            bitmap_it.second->Release();
+        }
+    }
+
+    void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, AssetManager* assetManager, int width_, int height_) {
+		m_d3d.Initialize(hWindowHandle, bFullScreen);
+	
+        m_width = width_;
+        m_height = height_;
+
+        float hp = static_cast<float>(M_PI / 180.0);
+
+        DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovRH(DirectX::XMConvertToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
+
+        // Set initial constant matrix values
+        DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
+            m_camera.position.x, m_camera.position.y, m_camera.position.z))));
+    }
+
+	void CRenderer::LoadResources(AssetManager* pAssetManager) {
+        // ------------ NEW ------------
+        particleShader_ = new ParticleShader();
+        particleShader_->Initialize(&m_d3d, pAssetManager);
+
+		glbShader_ = new GLBShader();
+		glbShader_->Initialize(&m_d3d, pAssetManager);
+
+        // ------------ TEXTURES ------------
+        bitmaps_.emplace(BitmapId::BUTTON_MENU, CreateBitmapFromData(pAssetManager->LoadFile("UI/Buttons/MenuButton\\MenuButton.bmp")));
+
+		// ------------ IMAGES ------------
+		ID3D11ShaderResourceView* moveToParticle = nullptr;
+		CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("UI/MoveTo\\move_to.png"), &moveToParticle);
+		textures_.emplace("UI/MoveTo\\move_to.png", moveToParticle);
+	
+		ID3D11ShaderResourceView* blastArea = nullptr;
+		CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("Persons/ChessPerson\\blast_area.png"), &blastArea);
+		textures_.emplace("Persons/ChessPerson\\blast_area.png", blastArea);
+	
+		ID3D11ShaderResourceView* particle = nullptr;
+		CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("Persons/ChessPerson\\particle.png"), &particle);
+		textures_.emplace("Persons/ChessPerson\\particle.png", particle);
+
+		// ------------ GLB ------------
+		LoadGLBModel("map1", "Maps/map1\\map1.glb", pAssetManager);
+		LoadGLBModel("football_person", "Persons/ChessPerson\\chess_person.glb", pAssetManager);
+		LoadGLBModel("tower", "Buildings/Tower\\tower.glb", pAssetManager);
+		LoadGLBModel("missile", "Persons/ChessPerson\\missile.glb", pAssetManager);
+		LoadGLBModel("minion", "Persons/Minion\\minion.glb", pAssetManager);
+	}
+
+	Mesh* CRenderer::LoadMesh(GLBModelMesh* glbMesh) {
+		Mesh* mesh = new Mesh();
+		mesh->VertexBuffer = m_d3d.CreateVertexBuffer(glbMesh->Vertices.data(), glbMesh->Vertices.size(), glbMesh->Vertices.size() * sizeof(glb_shader_vertex_t));
+		mesh->IndexBuffer = m_d3d.CreateIndexBuffer(glbMesh->Indices.data(), glbMesh->Indices.size());
+		mesh->IndexCount = glbMesh->Indices.size();
+		mesh->MaterialIndex = glbMesh->MaterialIndex;
+		return mesh;
+	}
+
+	ModelNode* CRenderer::LoadNode(GLBNode* glbNode) {
+		ModelNode* modelNode = new ModelNode();
+		modelNode->Mesh = glbNode->Mesh;
+		modelNode->Skin = glbNode->Skin;
+
+		for(const auto& glbChildNode : glbNode->Children) {
+			modelNode->Children.push_back(glbChildNode);
+		}
+		return modelNode;
+	}
+
+	void CRenderer::LoadGLBModel(std::string name, std::string file, AssetManager* assetManager) {
+		Model* model = new Model();
+		GLBModel* glbModel = GLBFileLoader::LoadModelFromGLBFile(file, assetManager);
+
+		for(const auto& glbNode : glbModel->Nodes) {
+			ModelNode* modelNode = LoadNode(glbNode.second);
+			model->Nodes.emplace(glbNode.first, modelNode);
+		}
+
+		for(const auto& glbMesh : glbModel->Meshes) {
+			Mesh* mesh = LoadMesh(glbMesh.second);
+			model->Meshes.emplace(glbMesh.first, mesh);
+		}
+
+		for(const auto& m : glbModel->Materials) {
+			Material* material = new Material();
+			CreateShaderResourceViewFromPNG(m.second->TextureData, &material->Texture);
+			model->Materials.emplace(m.first, material);
+		}
+
+		for(const auto& skin : glbModel->Skins) {
+			Armature* armature = new Armature();
+			const auto& glbSkin = skin.second;
+
+			for(int i = 0; i < glbSkin->Joints.size(); i++) {
+				const auto& joint = glbSkin->Joints[i];
+				Bone bone = Bone();
+				bone.Index = joint;
+				armature->bones.push_back(bone);
+			}
+
+			for(int i = 0; i < glbSkin->Joints.size(); i++) {
+				for(auto childIndex : glbModel->Nodes[glbSkin->Joints[i]]->Children) {
+					for(int j = 0; j < armature->bones.size(); j++) {
+						if(armature->bones[j].Index == childIndex) {
+							armature->bones[j].parent_index = glbSkin->Joints[i];
+						}
+					}
+				}
+			}
+
+			armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+
+			model->Skins.emplace(skin.first, armature);
+		}
+
+        for(const auto& glbAnimationEntry : glbModel->Animations) {
+            GLBAnimation* glbAnimation = glbAnimationEntry.second;
+            Animation* animation = new Animation();
+            model->Animations.emplace(glbAnimation->Name, animation);
+
+            animation->duration = glbAnimation->Duration;
+            
+			float fMaxTime = 0;
+            for(const auto& channel : glbAnimation->Channels) {
+                AnimationTrack track;
+				track.Path = channel->Path;
+                track.NodeIndex = channel->TargetNode;
+                for(const auto& keyFrame : channel->KeyFrames) {
+					AnimationKeyFrame kf = AnimationKeyFrame();
+                    BonePosition bn = BonePosition();
+                    bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+                    bn.translation = keyFrame.Translation;
+					kf.Position = bn;
+					kf.Time = keyFrame.Time;
+                    track.Positions.push_back(kf);
+
+					if(kf.Time > fMaxTime) {
+						fMaxTime = kf.Time;
+					}
+                }
+                animation->animation_tracks.push_back(track);
+				animation->duration = fMaxTime;
+            }
+        }
+
+		models_.emplace(name, model);
+	}
+
+    void CRenderer::SetDimensions(int width_, int height_) {
+		m_d3d.SetWindowDimensions(width_, height_);
+
+        m_width = width_;
+        m_height = height_;
+
+        float hp = static_cast<float>(M_PI / 180.0);
+        DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
+    }
+
+    void CRenderer::UpdateCameraMatrix() {
+        DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(m_camera.rotation.x),
+            DirectX::XMConvertToRadians(m_camera.rotation.y),
+            DirectX::XMConvertToRadians(m_camera.rotation.z));
+
+        DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(m_camera.position.x, m_camera.position.y, m_camera.position.z);
+
+        DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, rotMat * transMat)));
+    }
+
+    void CRenderer::UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size) {
+        D3D11_MAPPED_SUBRESOURCE mappedResource = { 0 };
+        m_d3d.context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        memcpy(mappedResource.pData, src, size);
+        m_d3d.context->Unmap(buffer, 0);
+    }
+
+    void CRenderer::RenderText(int x, int y, int w, int h, std::string text) {
+        float color[3] = { 1.0, 1.0, 1.0 };
+        RenderText(x, y, w, h, color, text);
+    }
+
+    void CRenderer::RenderText(int x, int y, int w, int h, float color[3], std::string text) {
+        //Set the Font Color
+        D2D1_COLOR_F FontColor = D2D1::ColorF(color[0], color[1], color[2], 1.0f);
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Blue, 0.0f),
+            &brush
+        );
+
+        if (FAILED(hr) || brush == nullptr) {
+            return;
+        }
+
+        m_d3d.format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        IDWriteTextLayout* textLayout;
+
+        std::wstring wstr;
+        int convertResult = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)strlen(text.c_str()), NULL, 0);
+        wstr.resize(convertResult);
+        convertResult = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)strlen(text.c_str()), &wstr[0], (int)wstr.size());
+
+        hr = m_d3d.dWriteFactory->CreateTextLayout(
+            wstr.c_str(),
+            wstr.length(),
+            m_d3d.format,
+            static_cast<float>(w),
+            static_cast<float>(h),
+            &textLayout
+        );
+
+        if (FAILED(hr) || textLayout == nullptr) {
+            return;
+        }
+
+        //Set the brush color D2D will use to draw with
+        brush->SetColor(FontColor);
+
+        //Create the D2D Render Area
+        D2D1_POINT_2F point = D2D1::Point2F(static_cast<float>(x), static_cast<float>(y));
+
+        //Draw the Text
+        m_d3d.renderTarget2D->DrawTextLayout(
+            point,
+            textLayout,
+            brush
+        );
+
+        brush->Release();
+        textLayout->Release();
+    }
+
+    void CRenderer::DrawRect(int x, int y, int w, int h, float color[3]) {
+        D2D1_RECT_F rect{};
+        rect.left = static_cast<float>(x);
+        rect.top = static_cast<float>(y);
+        rect.right = static_cast<float>(x + w);
+        rect.bottom = static_cast<float>(y + h);
+
+        //Set the Font Color
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
+
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+            &brush
+        );
+
+
+        if (FAILED(hr) || brush == 0) {
+            Logger::Err("Failed to create brush for rect");
+            return;
+        }
+
+        brush->SetColor(c);
+
+        m_d3d.renderTarget2D->DrawRectangle(&rect, brush);
+
+        brush->Release();
+    }
+
+    void CRenderer::DrawShape(Physics::Vector2* points, int pointCount, float color[3]) {
+        //Set the Font Color
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+            &brush
+        );
+
+
+        if (FAILED(hr) || brush == 0) {
+            Logger::Err("Failed to create brush for rect");
+            return;
+        }
+
+        brush->SetColor(c);
+
+        ID2D1PathGeometry* geometry;
+        ID2D1GeometrySink* geometrySink = NULL;
+
+        m_d3d.d2d_factory_->CreatePathGeometry(&geometry);
+        // Write to the path geometry using the geometry sink.
+        geometry->Open(&geometrySink);
+        geometrySink->BeginFigure({ static_cast<float>(points[0].x), static_cast<float>(points[0].y) }, D2D1_FIGURE_BEGIN_HOLLOW);
+
+        for (int i = 1; i < pointCount; i++) {
+            geometrySink->AddLine({ static_cast<float>(points[i].x), static_cast<float>(points[i].y) });
+        }
+
+        geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        hr = geometrySink->Close();
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to render shape");
+        }
+
+        m_d3d.renderTarget2D->DrawGeometry(geometry, brush);
+
+        geometrySink->Release();
+        geometry->Release();
+        brush->Release();
+    };
+
+    void CRenderer::FillShape(Physics::Vector2* points, int pointCount, float color[3]) {
+        if (pointCount < 2) {
+            Logger::Err("Failed to draw shape: cannot draw shape from 1 point only");
+            return;
+        }
+
+        //Set the Font Color
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+            &brush
+        );
+
+
+        if (FAILED(hr) || brush == 0) {
+            Logger::Err("Failed to create brush for rect");
+            return;
+        }
+
+        brush->SetColor(c);
+
+        ID2D1PathGeometry* geometry;
+        ID2D1GeometrySink* geometrySink = NULL;
+
+        m_d3d.d2d_factory_->CreatePathGeometry(&geometry);
+        // Write to the path geometry using the geometry sink.
+        geometry->Open(&geometrySink);
+        geometrySink->BeginFigure({ static_cast<float>(points[0].x), static_cast<float>(points[0].y) }, D2D1_FIGURE_BEGIN_FILLED);
+
+        for (int i = 1; i < pointCount; i++) {
+            geometrySink->AddLine({ static_cast<float>(points[i].x), static_cast<float>(points[i].y) });
+        }
+
+        geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        hr = geometrySink->Close();
+
+        if (FAILED(hr)) {
+            Logger::Err("Failed to render shape");
+        }
+
+        m_d3d.renderTarget2D->FillGeometry(geometry, brush);
+
+        geometrySink->Release();
+        geometry->Release();
+        brush->Release();
+    };
+
+    void CRenderer::FillRect(int x, int y, int w, int h, float color[3]) {
+        D2D1_RECT_F rect{};
+        rect.left = static_cast<float>(x);
+        rect.top = static_cast<float>(y);
+        rect.right = static_cast<float>(x + w);
+        rect.bottom = static_cast<float>(y + h);
+
+        //Set the Font Color
+        D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2], 1.0f);
+
+        ID2D1SolidColorBrush* brush;
+        HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(c, &brush);
+
+
+        if (FAILED(hr) || brush == 0) {
+            Logger::Err("Failed to create brush for rect");
+            return;
+        }
+
+        m_d3d.renderTarget2D->FillRectangle(&rect, brush);
+
+        brush->Release();
+    }
+
+    void CRenderer::DrawImage(float x, float y, float w, float h, BitmapId id) {
+        m_d3d.renderTarget2D->DrawBitmap(bitmaps_.find(id)->second, D2D1::RectF(x, y, x + w, y + h));
+    }
+
+    template<>
+    void CRenderer::UpdateShaderConst(particle_shader_frame_const_t const_data) {
+        UpdateBuffer(particleShader_->m_frameConstBuffer, &const_data, sizeof(particleShader_->m_frameConstData));
+        m_d3d.context->VSSetConstantBuffers(0, 1, &particleShader_->m_frameConstBuffer);
+    }
+
+    template<>
+    void CRenderer::UpdateShaderConst(particle_shader_model_const_t const_data) {
+        UpdateBuffer(particleShader_->m_modelConstBuffer, &const_data, sizeof(particleShader_->m_modelConstData));
+        m_d3d.context->VSSetConstantBuffers(1, 1, &particleShader_->m_modelConstBuffer);
+    }
+
+    void CRenderer::EnableAlphaBlending() {
+        m_d3d.EnableAlphaBlending();
+        m_d3d.EnableDepthStencilState();
+    }
+
+    void CRenderer::DisableAlphaBlending() {
+        m_d3d.DisableAlphaBlending();
+        m_d3d.DisableDepthStencilState();
+    }
+
+	void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<DirectX::XMMATRIX>& boneTransforms) {
+		const Bone& bone = skin->bones[i];
+		BonePosition position = bonePositions[bone.Index];
+
+		DirectX::XMMATRIX localTransform = DirectX::XMMatrixAffineTransformation(
+			DirectX::XMVectorSplatOne(),
+			DirectX::XMVectorZero(),
+			position.rotation,
+			DirectX::XMLoadFloat3(&position.translation)
+		);
+
+		if (bone.parent_index == -1) {
+			boneTransforms[i] = localTransform;
+		} else {
+			for(int pi = 0; pi < skin->bones.size(); pi++) {
+				const Bone& b = skin->bones[pi];
+				if(b.Index == bone.parent_index) {
+					boneTransforms[i] = DirectX::XMMatrixMultiply(localTransform, boneTransforms[pi]);
+					break;
+				}
+			}
+		}
+
+		for(int otherBone = 0; otherBone < skin->bones.size(); otherBone++) {
+			if(skin->bones[otherBone].parent_index == bone.Index) {
+				DoThingsWithBones(skin, otherBone, bonePositions, boneTransforms);
+			}
+		}
+	}
+
+    void CRenderer::Draw(GameObject* gameObject) {
+		if(ParticleSystem* ps = dynamic_cast<ParticleSystem*>(gameObject)) {
+			for(auto e : ps->emitters_) {
+				RenderParticle(e);
+			}
+			return;
+		}
+
+		// TODO collect / sort game objects for rendering?
+		if(gameObject->renderable == "") {
+			return; // nothing to draw
+		}
+
+		auto modelIt = models_.find(gameObject->renderable);
+
+		if(modelIt == models_.end()) {
+			Logger::FormatErr("Unable to render object, renderable <%s> not loaded", gameObject->renderable.c_str());
+			return;
+		}
+
+		Model* model = modelIt->second;
+		
+        m_d3d.context->VSSetShader(glbShader_->m_vertexShader, 0, 0);
+        m_d3d.context->PSSetShader(glbShader_->m_pixelShader, 0, 0);
+        m_d3d.context->IASetInputLayout(glbShader_->m_inputLayout);
+		m_d3d.context->PSSetSamplers(0, 1, &glbShader_->samplerState_);
+
+		glb_shader_frame_const_t data{};
+		data.cameraMatrix = cameraMatrix;
+		data.projMatrix = m_projMatrix;
+		UpdateBuffer(glbShader_->m_frameConstBuffer, &data, sizeof(glbShader_->m_frameConstData));
+		m_d3d.context->VSSetConstantBuffers(0, 1, &glbShader_->m_frameConstBuffer);
+
+		glb_shader_model_const_t model_data{};
+		DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(
+			DirectX::XMConvertToRadians(gameObject->rotation.x),
+			DirectX::XMConvertToRadians(gameObject->rotation.y),
+			DirectX::XMConvertToRadians(gameObject->rotation.z));
+		DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(gameObject->position.x, gameObject->position.y, gameObject->position.z);
+		DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+		UpdateBuffer(glbShader_->m_modelConstBuffer, &model_data, sizeof(glbShader_->m_modelConstData));
+		m_d3d.context->VSSetConstantBuffers(1, 1, &glbShader_->m_modelConstBuffer);
+		
+
+		for(const auto& modelNode : model->Nodes) {
+			Mesh* mesh = model->Meshes.at(modelNode.second->Mesh);
+			if(mesh == nullptr) {
+				continue;
+			}
+			
+			if(gameObject->GetCurrentAnimation().GetAnimationName().length() > 0) {
+				auto animIt = model->Animations.find(gameObject->GetCurrentAnimation().GetAnimationName());
+
+				if(animIt != model->Animations.end() && model->Skins.find(modelNode.second->Skin) != model->Skins.end()) {
+					Animation* animation = animIt->second;
+					Armature* skin = model->Skins.at(modelNode.second->Skin);
+					std::map<int, BonePosition> bonePositions = animation->GetBonePositions(gameObject->GetCurrentAnimation().GetAnimationTime());
+					std::vector<DirectX::XMMATRIX> boneTransforms(skin->bones.size());
+
+					for (size_t i = 0; i < skin->bones.size(); ++i) {
+						if(skin->bones[i].parent_index == -1) {
+ 							DoThingsWithBones(skin, i, bonePositions, boneTransforms);
+						}
+					}
+
+					// Apply inverse bind pose to get the final bone transformation
+					for (size_t i = 0; i < skin->bones.size(); ++i) {
+  						boneTransforms[i] = DirectX::XMMatrixMultiply(skin->global_inverse_bind_poses[i], boneTransforms[i]);
+					}
+
+					for(int i = 0; i < boneTransforms.size(); i++) {
+						DirectX::XMStoreFloat4x4(&glbShader_->m_meshConstData.boneTransforms[i], DirectX::XMMatrixTranspose(boneTransforms[i]));
+					}
+					UpdateBuffer(glbShader_->m_meshConstBuffer, &glbShader_->m_meshConstData, sizeof(glbShader_->m_meshConstData));
+					m_d3d.context->VSSetConstantBuffers(2, 1, &glbShader_->m_meshConstBuffer);
+				} else {
+					Logger::FormatErr("GameObject attempting to play invalid animation <%s>", gameObject->GetCurrentAnimation().GetAnimationName());
+				}
+			}
+
+			if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
+				m_d3d.context->PSSetShaderResources(0, 1, &model->Materials.at(mesh->MaterialIndex)->Texture);
+			}
+			UINT uStride = sizeof(glb_shader_vertex_t);
+			UINT uOffset = 0;
+			m_d3d.context->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &uStride, &uOffset);
+			m_d3d.context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			m_d3d.context->DrawIndexed(mesh->IndexCount, 0, 0);
+		}
+    }
+
+	void CRenderer::Draw(Model* model) {
+		for(const auto& modelNode : model->Nodes) {
+			Mesh* mesh = model->Meshes.at(modelNode.second->Mesh);
+			if(mesh == nullptr) {
+				continue;
+			}
+
+			if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
+				m_d3d.context->PSSetShaderResources(0, 1, &model->Materials.at(mesh->MaterialIndex)->Texture);
+			}
+			UINT uStride = sizeof(glb_shader_vertex_t);
+			UINT uOffset = 0;
+			m_d3d.context->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &uStride, &uOffset);
+			m_d3d.context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			m_d3d.context->DrawIndexed(mesh->IndexCount, 0, 0);
+		}
+	}
+
+	void CRenderer::RenderParticle(ParticleEmitter* emitter) {
+        m_d3d.context->VSSetShader(particleShader_->m_vertexShader, 0, 0);
+        m_d3d.context->PSSetShader(particleShader_->m_pixelShader, 0, 0);
+        m_d3d.context->IASetInputLayout(particleShader_->m_inputLayout);
+		m_d3d.context->PSSetSamplers(0, 1, &particleShader_->m_samplerState);
+
+		float rotY = atan2(emitter->position.x - m_camera.position.x, emitter->position.z - m_camera.position.z);
+		float rotX = -atan2(emitter->position.y -m_camera.position.y, m_camera.position.z- emitter->position.z);
+		float rotZ = 0; // no camera roll
+
+		if (emitter->static_angle) {
+			rotX = DirectX::XMConvertToRadians(emitter->particle_angle.x);
+			rotY = DirectX::XMConvertToRadians(emitter->particle_angle.y);
+			rotZ = DirectX::XMConvertToRadians(emitter->particle_angle.z);
+		}
+
+		particle_shader_frame_const_t data{};
+		data.cameraMatrix = cameraMatrix;
+		data.projMatrix = m_projMatrix;
+		DirectX::XMStoreFloat4x4(&data.billboard_matrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationRollPitchYaw(rotX, rotY, rotZ)));
+
+		UpdateShaderConst<particle_shader_frame_const_t>(data);
+
+		particle_shader_model_const_t model_data{};
+		DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(emitter->rotation.x),
+			DirectX::XMConvertToRadians(emitter->rotation.y),
+			DirectX::XMConvertToRadians(emitter->rotation.z));
+		DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(emitter->position.x, emitter->position.y, emitter->position.z);
+		DirectX::XMMATRIX scaleMat = DirectX::XMMatrixScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
+		DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
+
+		UpdateShaderConst<particle_shader_model_const_t>(model_data);
+
+		std::vector<particle_instance_data_t> instances;
+
+		std::sort(emitter->particles.begin(), emitter->particles.end(), [this, emitter](Particle& a, Particle& b) {
+			Physics::Vector3 aVec = a.position + emitter->position;
+			aVec.y = 0;
+			Physics::Vector3 bVec = b.position + emitter->position;
+			bVec.y = 0;
+			return (m_camera.position - a.position).Length() > (m_camera.position - b.position).Length();
+		});
+
+		for (const Particle& particle : emitter->particles) {
+			particle_instance_data_t p;
+			p.instance_position[0] = particle.position.x;
+			p.instance_position[1] = particle.position.y;
+			p.instance_position[2] = particle.position.z;
+			instances.push_back(p);
+		}
+
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		// Lock the vertex buffer.
+		HRESULT result = m_d3d.context->Map(emitter->instance_buffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (FAILED(result))
+		{
+			throw std::exception();
+		}
+
+		// Get a pointer to the data in the vertex buffer.
+		particle_instance_data_t* verticesPtr = (particle_instance_data_t*)mappedResource.pData;
+
+		// Copy the data into the vertex buffer.
+		memcpy(verticesPtr, (void*)instances.data(), (sizeof(particle_instance_data_t) * instances.size()));
+
+		// Unlock the vertex buffer.
+		m_d3d.context->Unmap(emitter->instance_buffer_, 0);
+
+		unsigned int strides[2]{ sizeof(particle_shader_vertex_t), sizeof(particle_instance_data_t) };
+		unsigned int offsets[2]{ 0, 0 };
+		ID3D11Buffer* buffers[2]{ emitter->vertex_buffer_, emitter->instance_buffer_ };
+
+		// Render this specific model
+		m_d3d.context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+
+		if(textures_.find(emitter->texture_name_) != textures_.end()) {
+			m_d3d.context->PSSetShaderResources(0, 1, &textures_.find(emitter->texture_name_)->second);
+		}
+	
+		EnableAlphaBlending();
+		m_d3d.context->DrawInstanced(6, instances.size(), 0, 0);
+		DisableAlphaBlending();
+	}
+
+	void CRenderer::CreateShaderResourceViewFromPNG(std::vector<uint8_t> imageData, ID3D11ShaderResourceView** shaderResourceView) {
+		IWICBitmap* wicBitmap = 0;
+
+		IWICStream* stream = 0;
+		if(FAILED(m_d3d.wicFactory_->CreateStream(&stream))) {
+			return;
+		}
+
+		if(FAILED(stream->InitializeFromMemory(imageData.data(), imageData.size()))) {
+			return;
+		}
+
+		IWICBitmapDecoder* decoder;
+		if(FAILED(m_d3d.wicFactory_->CreateDecoderFromStream(stream, nullptr, WICDecodeMetadataCacheOnLoad, &decoder))) {
+			return;
+		}
+
+		IWICBitmapFrameDecode* frame;
+		if(FAILED(decoder->GetFrame(0, &frame))) {
+			return;
+		}
+
+		m_d3d.wicFactory_->CreateBitmapFromSource(frame, WICBitmapCacheOnLoad, &wicBitmap);
+
+		ID3D11Texture2D* texture = 0;
+
+		UINT width, height;
+		wicBitmap->GetSize(&width, &height);
+
+		WICPixelFormatGUID pixelFormat;
+		wicBitmap->GetPixelFormat(&pixelFormat);
+
+		WICPixelFormatGUID convertFormat = GUID_WICPixelFormat32bppRGBA;
+		IWICBitmapSource* convertedBitmapSource = nullptr;
+
+		if(pixelFormat != convertFormat) {
+			IWICFormatConverter* converter;
+			m_d3d.wicFactory_->CreateFormatConverter(&converter);
+			converter->Initialize(wicBitmap, convertFormat, WICBitmapDitherTypeNone, nullptr, 0.0, WICBitmapPaletteTypeCustom);
+			convertedBitmapSource = converter;
+		} else {
+			convertedBitmapSource = wicBitmap;
+		}
+
+		D3D11_TEXTURE2D_DESC desc = {};
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		// Copy pixel data
+		std::vector<uint8_t> pixels(width * height * 4);
+		convertedBitmapSource->CopyPixels(nullptr, width * 4, pixels.size(), pixels.data());
+
+		D3D11_SUBRESOURCE_DATA initData = {};
+		initData.pSysMem = pixels.data();
+		initData.SysMemPitch = width * 4;
+
+		HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
+		m_d3d.device->CreateShaderResourceView(texture, nullptr, shaderResourceView);
+	}
+
+    ID2D1Bitmap* CRenderer::CreateBitmapFromData(std::vector<uint8_t> data) {
+        IWICBitmapDecoder* pDecoder = NULL;
+        IWICBitmapFrameDecode* pSource = NULL;
+        IWICFormatConverter* pConverter = NULL;
+
+        IStream* stream = nullptr;
+        HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &stream);
+
+        if (FAILED(hr)) {
+            return nullptr;
+        }
+
+        ULONG bytesWritten = 0;
+        hr = stream->Write(data.data(), static_cast<ULONG>(data.size()), &bytesWritten);
+
+        if (FAILED(hr) || bytesWritten != data.size()) {
+            return nullptr;
+        }
+
+        hr = m_d3d.wicFactory_->CreateDecoderFromStream(
+            stream,
+            nullptr,
+            WICDecodeMetadataCacheOnLoad,
+            &pDecoder
+        );
+        if (FAILED(hr))
+        {
+            return nullptr;
+        }
+            // Create the initial frame.
+            hr = pDecoder->GetFrame(0, &pSource);
+
+        if (SUCCEEDED(hr))
+        {
+
+            // Convert the image format to 32bppPBGRA
+            // (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
+            hr = m_d3d.wicFactory_->CreateFormatConverter(&pConverter);
+
+        }
+
+        if (SUCCEEDED(hr))
+        {
+            hr = pConverter->Initialize(
+                pSource,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+            );
+        }
+
+        ID2D1Bitmap* ppBitmap;
+        if (SUCCEEDED(hr))
+        {
+
+            // Create a Direct2D bitmap from the WIC bitmap.
+            hr = m_d3d.renderTarget2D->CreateBitmapFromWicBitmap(
+                pConverter,
+                NULL,
+                &ppBitmap
+            );
+        }
+
+        pDecoder->Release();
+        pSource->Release();
+        pConverter->Release();
+
+        return ppBitmap;
+    }
+
+    ID2D1Bitmap* CRenderer::CreateBitmapFromFile(const wchar_t* fileName) {
+        IWICBitmapDecoder* pDecoder = NULL;
+        IWICBitmapFrameDecode* pSource = NULL;
+        IWICFormatConverter* pConverter = NULL;
+
+        HRESULT hr = m_d3d.wicFactory_->CreateDecoderFromFilename(
+            fileName,
+            NULL,
+            GENERIC_READ,
+            WICDecodeMetadataCacheOnLoad,
+            &pDecoder
+        );
+
+        if (SUCCEEDED(hr))
+        {
+            // Create the initial frame.
+            hr = pDecoder->GetFrame(0, &pSource);
+        }
+
+        if (SUCCEEDED(hr))
+        {
+
+            // Convert the image format to 32bppPBGRA
+            // (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
+            hr = m_d3d.wicFactory_->CreateFormatConverter(&pConverter);
+
+        }
+
+        if (SUCCEEDED(hr))
+        {
+            hr = pConverter->Initialize(
+                pSource,
+                GUID_WICPixelFormat32bppPBGRA,
+                WICBitmapDitherTypeNone,
+                NULL,
+                0.f,
+                WICBitmapPaletteTypeMedianCut
+            );
+        }
+
+        ID2D1Bitmap* ppBitmap;
+        if (SUCCEEDED(hr))
+        {
+
+            // Create a Direct2D bitmap from the WIC bitmap.
+            hr = m_d3d.renderTarget2D->CreateBitmapFromWicBitmap(
+                pConverter,
+                NULL,
+                &ppBitmap
+            );
+        }
+
+        pDecoder->Release();
+        pSource->Release();
+        pConverter->Release();
+
+        return ppBitmap;
+    }
+
+	void CRenderer::DrawMap() {
+        m_d3d.context->VSSetShader(glbShader_->m_vertexShader, 0, 0);
+        m_d3d.context->PSSetShader(glbShader_->m_pixelShader, 0, 0);
+        m_d3d.context->IASetInputLayout(glbShader_->m_inputLayout);
+		m_d3d.context->PSSetSamplers(0, 1, &glbShader_->samplerState_);
+
+		glb_shader_frame_const_t data{};
+		data.cameraMatrix = cameraMatrix;
+		data.projMatrix = m_projMatrix;
+		UpdateBuffer(glbShader_->m_frameConstBuffer, &data, sizeof(glbShader_->m_frameConstData));
+		m_d3d.context->VSSetConstantBuffers(0, 1, &glbShader_->m_frameConstBuffer);
+
+		glb_shader_model_const_t model_data{};
+		DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
+		DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(0, 0, 0);
+		DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+		UpdateBuffer(glbShader_->m_modelConstBuffer, &model_data, sizeof(glbShader_->m_modelConstData));
+		m_d3d.context->VSSetConstantBuffers(1, 1, &glbShader_->m_modelConstBuffer);
+		
+		Model* model = models_.find("map1")->second;
+
+		Draw(model);
+	}
+
+	void CRenderer::ClearScreen() {
+		m_d3d.ClearScreen();
+	}
+
+	void CRenderer::Present() {
+		m_d3d.Present();
+	}
+
+	void CRenderer::SetFullscreen(bool bFullscreen) {
+		m_d3d.SetFullScreen(bFullscreen);
+	}
+	
+	void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeight, float fCoverage) {
+		float afCoverColor[4] = {0.0f, 0.0f, 1, 0.5f};
+		float fHalfWidth = fWidth / 2;
+		float fHalfHeight = fHeight / 2;
+		if (fCoverage > 0.875) {
+			float dx = 0.125 - (fCoverage - 0.875);
+			float fx = 24 * (dx / 0.125);
+
+			Physics::Vector2 points[7]{
+				{ fX + fHalfWidth, fY + fHalfHeight },
+				{ fX + fHalfWidth + fx, fY },
+				{ fX + fWidth, fY },
+				{ fX + fWidth, fY + fHeight },
+				{ fX, fY + fHeight },
+				{ fX, fY },
+				{ fX + fHalfWidth, fY },
+			};
+			FillShape(points, 7, afCoverColor);
+		}
+		else if (fCoverage > 0.625) {
+			float dx = 0.25 - (fCoverage - 0.625);
+			float fx = 49 * (dx / 0.25);
+
+			Physics::Vector2 points[6]{
+				{ fX + fHalfWidth, fY + fHalfHeight },
+				{ fX + fWidth, fY + fx },
+				{ fX + fWidth, fY + fHeight },
+				{ fX, fY + fHeight },
+				{ fX, fY },
+				{ fX + fHalfWidth, fY },
+			};
+			FillShape(points, 6, afCoverColor);
+		}
+		else if (fCoverage > 0.375f) {
+			float dx = 0.25 - (fCoverage - 0.375);
+			float fx = 49 * (dx / 0.25);
+
+			Physics::Vector2 points[5]{
+				{ fX + fHalfWidth, fY + fHalfHeight },
+				{ fX + fWidth - fx, fY + fHeight },
+				{ fX, fY + fHeight },
+				{ fX, fY },
+				{ fX + fHalfWidth, fY },
+			};
+			FillShape(points, 5, afCoverColor);
+		}
+		else if (fCoverage > 0.125f) {
+			float dx = 0.25f - (fCoverage - 0.125f);
+			float fx = 49 * (dx / 0.25f);
+
+			Physics::Vector2 points[4]{
+				{ fX + fHalfWidth, fY + fHalfHeight },
+				{ fX, fY + fHeight - fx },
+				{ fX, fY },
+				{ fX + fHalfWidth, fY },
+			};
+			FillShape(points, 4, afCoverColor);
+		}
+		else if (fCoverage > 0) {
+			float dx = 0.125f - fCoverage;
+			float fx = 24.0f * (dx / 0.125f);
+
+			Physics::Vector2 points[3]{
+				{ fX + fHalfWidth, fY + fHalfHeight },
+				{ fX + fx, fY },
+				{ fX + fHalfWidth, fY },
+			};
+			FillShape(points, 3, afCoverColor);
+		}
+	}
+}

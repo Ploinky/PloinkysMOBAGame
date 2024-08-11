@@ -1,0 +1,42 @@
+#pragma once
+
+#include <vector>
+#include <string>
+#include <functional>
+#include "common/pmg_physics.h"
+#include "GuiButton.h"
+#include "GuiElement.h"
+
+namespace PMG {
+	class CRenderer;
+	class VBox : public GuiElement {
+	public:
+		bool m_hCenter = true;
+		bool m_vCenter = true;
+		int m_gap = 0;
+
+		void LayoutChildren();
+		void Render(CRenderer* renderer);
+	};
+
+	class GuiSimplePane : public GuiElement {
+	public:
+		float m_color[3];
+
+		void LayoutChildren();
+		void Render(CRenderer* renderer);
+	};
+
+	class GuiTextfield : public GuiElement {
+	public:
+		std::string m_text = "";
+		std::function<void(void)> e_onSubmit = {};
+
+		void Render(CRenderer* renderer);
+		void CharTyped(char c);
+
+	private:
+		float m_bgColor[3] = { 1.0, 1.0, 1.0 };
+		float m_color[3] = { 0.0, 0.0, 0.0 };
+	};
+}

@@ -1,0 +1,7 @@
+*.xcf filter=lfs diff=lfs merge=lfs -text
+*.dds filter=lfs diff=lfs merge=lfs -text
+*.bmp filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.cur filter=lfs diff=lfs merge=lfs -text
+*.aps filter=lfs diff=lfs merge=lfs -text

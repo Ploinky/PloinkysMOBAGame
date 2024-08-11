@@ -1,0 +1,16 @@
+#pragma once
+
+#include "BasePacket.h"
+
+namespace PMG::Networking {
+	class LobbySlotPacket : public BasePacket {
+	public:
+		LobbySlotPacket() : BasePacket(PacketType::LOBBY_PLAYER_PCK) {};
+		virtual void Read(std::vector<uint8_t>* data) override;
+		virtual void Write(std::vector<uint8_t>* data) override;
+
+		int slot;
+		uint64_t steamId;
+		bool isReady;
+	};
+}

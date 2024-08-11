@@ -1,0 +1,20 @@
+"lang"
+{
+	"english"
+	{
+		"tokens"
+		{
+			"#Status_AtMainMenu"	"At the main menu"
+			"#Status_OnCommunityServer"	"On a community Server"
+		}
+	}
+	"german"
+	{
+		"tokens"
+		{
+			"#Status_AtMainMenu"	"Im Hauptmenü"
+			"#Status_OnCommunityServer"	"Auf einem freien Server"
+		}
+	}
+
+}
