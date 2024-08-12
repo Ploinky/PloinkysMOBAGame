@@ -14,13 +14,13 @@ namespace PMG::Physics {
         Vector3 relScreen = {
             screen_coords.x * 2.0f / scene_width - 1.0f,
             1.0f - (screen_coords.y * 2.0f) / (float)scene_height,
-            1.0f
+            -1.0f
         };
 
         Vector4 rayClip = {
             relScreen.x,
             relScreen.y,
-            1.0f,
+            -1.0f,
             1.0f
         };
 
@@ -28,7 +28,7 @@ namespace PMG::Physics {
 
         Vector4 rayEye = perspInverse * rayClip;
 
-        rayEye = { rayEye.x, rayEye.y, 1.0, 0.0 };
+        rayEye = { rayEye.x, rayEye.y, -1.0, 0.0 };
 
         Vector4 rw4 = (view * rayEye);
         Vector3 rayWorld = { rw4.x, rw4.y, rw4.z };

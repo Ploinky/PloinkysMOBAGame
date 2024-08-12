@@ -531,7 +531,7 @@ namespace PMG {
 
         for (auto& go_it : game_objects_) {
             GameObject* go = go_it.second;
-            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
+            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 50);
             if (Physics::TestCollision(ray, sphere) && go->has_healthbar && go->team != my_go->team) {
                 handler_->RequestCursor(CursorId::ATTACK_MOVE);
                 break;

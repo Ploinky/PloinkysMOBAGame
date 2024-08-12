@@ -139,7 +139,7 @@ namespace PMG::Physics {
                 {
                     {1 / (aspect * tanf(fov / 2)), 0, 0, 0},
                     {0, 1 / (tanf(fov / 2)), 0, 0},
-                    {0, 0, -(nearZ + farZ) / (nearZ - farZ), -(2 * farZ * nearZ) / (nearZ - farZ)},
+                    {0, 0, (nearZ + farZ) / (nearZ - farZ), (2 * farZ * nearZ) / (nearZ - farZ)},
                     {0, 0, -1, 0}
                 },
             };
