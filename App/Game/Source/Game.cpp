@@ -96,6 +96,28 @@ namespace PMG {
             net_manager_->SendPacket(&stop);
         }
 
+		GameObject* pObjectUnderCursor = nullptr;
+		float hp = static_cast<float>(M_PI / 180.0);
+		Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
+			{ renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z },
+			{ renderer->m_camera.rotation.x, renderer->m_camera.rotation.y, renderer->m_camera.rotation.z },
+			(float)windowWidth_ / (float)windowHeight_,
+			renderer->m_camera.fov * hp,
+			renderer->m_camera.nearClip,
+			renderer->m_camera.farClip,
+			windowWidth_,
+			windowHeight_);
+
+		for (auto& go_it : game_objects_) {
+			GameObject* go = go_it.second;
+			Physics::Sphere sphere(Physics::Vector3(go->position.x, 25, go->position.z), 50);
+			if (Physics::TestCollision(ray, sphere)) {
+				// TODO does this work for multiple objects right behind each other?
+				pObjectUnderCursor = go;
+				break;
+			}
+		}
+
         if (m_keys['q']) {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
@@ -109,27 +131,12 @@ namespace PMG {
         }
 
         if (m_keys['w']) {
-            float hp = static_cast<float>(M_PI / 180.0);
-            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
-                { renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z },
-                { renderer->m_camera.rotation.x, renderer->m_camera.rotation.y, renderer->m_camera.rotation.z },
-                (float)windowWidth_ / (float)windowHeight_,
-                renderer->m_camera.fov * hp,
-                renderer->m_camera.nearClip,
-                renderer->m_camera.farClip,
-                windowWidth_,
-                windowHeight_);
-
-            for (auto& go_it : game_objects_) {
-                GameObject* go = go_it.second;
-                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
-                if (Physics::TestCollision(ray, sphere)) {
-                    Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
-                    cmd.spell_slot = 1;
-                    cmd.target = go->unit_id;
-                    net_manager_->SendPacket(&cmd);
-                }
-            }
+			if (pObjectUnderCursor) {
+				Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
+				cmd.spell_slot = 1;
+				cmd.target = pObjectUnderCursor->unit_id;
+				net_manager_->SendPacket(&cmd);
+			}
         }
 
         if (m_keys['e']) {
@@ -145,27 +152,12 @@ namespace PMG {
         }
 
         if (m_keys['r']) {
-            float hp = static_cast<float>(M_PI / 180.0);
-            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
-                { renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z },
-                { renderer->m_camera.rotation.x, renderer->m_camera.rotation.y, renderer->m_camera.rotation.z },
-                (float)windowWidth_ / (float)windowHeight_,
-                renderer->m_camera.fov * hp,
-                renderer->m_camera.nearClip,
-                renderer->m_camera.farClip,
-                windowWidth_,
-                windowHeight_);
-
-            for (auto& go_it : game_objects_) {
-                GameObject* go = go_it.second;
-                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
-                if (Physics::TestCollision(ray, sphere)) {
-                    Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
-                    cmd.spell_slot = 3;
-                    cmd.target = go->unit_id;
-                    net_manager_->SendPacket(&cmd);
-                }
-            }
+			if (pObjectUnderCursor) {
+				Networking::CastTargetCommandPacket cmd = Networking::CastTargetCommandPacket();
+				cmd.spell_slot = 3;
+				cmd.target = pObjectUnderCursor->unit_id;
+				net_manager_->SendPacket(&cmd);
+			}
         }
 
         last_move = max(0, last_move - dt);
@@ -175,36 +167,17 @@ namespace PMG {
         }
 
         if (last_move == 0 && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
-            float hp = static_cast<float>(M_PI / 180.0);
-            Physics::Ray ray = Physics::ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
-                { renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z },
-                { renderer->m_camera.rotation.x, renderer->m_camera.rotation.y, renderer->m_camera.rotation.z },
-                (float)windowWidth_ / (float)windowHeight_,
-                renderer->m_camera.fov * hp,
-                renderer->m_camera.nearClip,
-                renderer->m_camera.farClip,
-                windowWidth_,
-                windowHeight_);
+			if (pObjectUnderCursor && pObjectUnderCursor->has_healthbar) {
+				SetCursor(LoadCursor(NULL, IDC_HAND));
+				last_move = 150;
 
-            bool pointing_at_unit = FALSE;
-            for (auto& go_it : game_objects_) {
-                GameObject* go = go_it.second;
-                Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 0.5);
-                if (Physics::TestCollision(ray, sphere) && go->has_healthbar) {
-                    SetCursor(LoadCursor(NULL, IDC_HAND));
-                    pointing_at_unit = true;
-                    last_move = 150;
+				if (m_mouseButtons[2]) {
+					Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
+					atk_pk.target_unit = pObjectUnderCursor->unit_id;
 
-                    if (m_mouseButtons[2]) {
-                        Networking::AttackCommandPacket atk_pk = Networking::AttackCommandPacket();
-                        atk_pk.target_unit = go->unit_id;
-
-                        net_manager_->SendPacket(&atk_pk);
-                    }
-                }
-            }
-
-            if (!pointing_at_unit) {
+					net_manager_->SendPacket(&atk_pk);
+				}
+			} else if (!pObjectUnderCursor) {
                 float x, y;
                 TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
 
@@ -292,9 +265,6 @@ namespace PMG {
 			renderer->Draw(go);
         }
 
-
-
-
         // ==========================================================================
 #ifdef _DEBUG123
         
@@ -365,7 +335,6 @@ namespace PMG {
 #endif
         // ==========================================================================
 
-
         RenderGameUI(renderer);
     }
 
@@ -407,7 +376,6 @@ namespace PMG {
                 color[1] = 0;
                 color[2] = 0;
             }
-
 
             /*
             int fracs = go->health / 10;
@@ -531,7 +499,7 @@ namespace PMG {
 
         for (auto& go_it : game_objects_) {
             GameObject* go = go_it.second;
-            Physics::Sphere sphere(Physics::Vector3(go->position.x, 0, go->position.z), 50);
+            Physics::Sphere sphere(Physics::Vector3(go->position.x, 25, go->position.z), 50);
             if (Physics::TestCollision(ray, sphere) && go->has_healthbar && go->team != my_go->team) {
                 handler_->RequestCursor(CursorId::ATTACK_MOVE);
                 break;
