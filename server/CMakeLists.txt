@@ -1,7 +1,4 @@
-link_directories($(CMAKE_SOURCE_DIR)/Bin Vendor/steam/redistributable_bin/win64)
-
-set(TEMP_BUILD_DIR ${CMAKE_SOURCE_DIR}/Temp)
-set(DIST_BUILD_DIR ${CMAKE_SOURCE_DIR}/Dist)
+link_directories($(CMAKE_SOURCE_DIR)/Bin ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64)
 
 add_executable(server
 	src/Buff.cpp
@@ -27,21 +24,16 @@ add_executable(server
 )
 set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 
-target_include_directories(server PRIVATE src Vendor/steam/public)
+target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/steam/public)
 target_link_libraries(server PUBLIC steam_api64 common)
 
-set_target_properties(server
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>
-)
-
 if(WIN32)
-	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/server/Vendor/steam/redistributable_bin/win64/steam_api64.dll ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/steam_api64.dll)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64/steam_api64.dll $<TARGET_FILE_DIR:server>/steam_api64.dll)
 endif()
 
 add_custom_command(TARGET server
 	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/server/Bin/steam_appid.txt ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/steam_appid.txt)
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
 
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
