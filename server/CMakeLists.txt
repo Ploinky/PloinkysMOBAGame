@@ -1,0 +1,59 @@
+link_directories($(CMAKE_SOURCE_DIR)/Bin Vendor/steam/redistributable_bin/win64)
+
+set(TEMP_BUILD_DIR ${CMAKE_SOURCE_DIR}/Temp)
+set(DIST_BUILD_DIR ${CMAKE_SOURCE_DIR}/Dist)
+
+add_executable(server
+	src/Buff.cpp
+	src/EventManager.cpp
+	src/Game.cpp
+	src/GameState.cpp
+	src/LobbyState.cpp
+	src/Main.cpp
+	src/Missile.cpp
+	src/NavigationSystem.cpp
+	src/NetworkManager.cpp
+	src/Server.cpp
+
+	src/GameObject/GameObject.cpp
+	src/GameObject/MovementComponent.cpp
+	src/GameObject/NavigationComponent.cpp
+	src/GameObject/SpellCastComponent.cpp
+	src/GameObject/TransformComponent.cpp
+
+	src/GameObject/Spell/ThrowFootball.cpp
+
+	src/Networking/NetworkSystem.cpp
+)
+set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
+
+target_include_directories(server PRIVATE src Vendor/steam/public)
+target_link_libraries(server PUBLIC steam_api64 common)
+
+set_target_properties(server
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>
+)
+
+if(WIN32)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/server/Vendor/steam/redistributable_bin/win64/steam_api64.dll ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/steam_api64.dll)
+endif()
+
+add_custom_command(TARGET server
+	POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/server/Bin/steam_appid.txt ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/steam_appid.txt)
+
+add_custom_command(
+	OUTPUT ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1
+	COMMAND blender ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend --background --python ${CMAKE_SOURCE_DIR}/Tool/blender_nvm_export.py -- ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
+	DEPENDS ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend
+)
+
+#add_custom_target(ServerAssets
+#	DEPENDS ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
+#)
+#
+#add_dependencies(Server
+#	ServerAssets
+#)

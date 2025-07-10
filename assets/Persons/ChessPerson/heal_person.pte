@@ -1,0 +1,12 @@
+texture_file=Persons/ChessPerson\particle.png
+particle_velocity_x=0
+particle_velocity_y=0
+particle_velocity_z=0
+particle_velocity_range_x=30
+particle_velocity_range_y=30
+particle_velocity_range_z=30
+particle_scale_x=10
+particle_scale_y=10
+particle_scale_z=10
+particle_count=100
+emitter_lifetime=400
