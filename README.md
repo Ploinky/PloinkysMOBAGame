@@ -1,3 +1,30 @@
 # PloinksMOBAGame
 
-Please fill in
+Multiplayer Online Battle Arena game. Does some of the things that games like League of Legends, DotA or HOTS do, except much worse.
+
+This project contains the code for the client application, the game server, the code that is shared between the two, and all assets as well as tools. Basically you should be able to add some third party dependencies (steam sdk ...), compile and run!
+
+
+## Client
+
+Game client written in C++ using Direct3D 11, Direct2D, DirectWrite, XAudio2 and the steam api.
+
+## Server
+
+Game server written in C++ using the steam api.
+
+## Common
+
+Code shared between client and server, for example some physics/maths and networking code.
+
+## Tools
+
+Scripts used in the build process by some or all of the projecs.
+
+## Vendor
+
+Third party libraries and code go here.
+
+## Assets
+
+3D models, textures, sounds ...

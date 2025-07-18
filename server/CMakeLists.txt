@@ -41,11 +41,3 @@ add_custom_command(
 	COMMAND blender ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend --background --python ${CMAKE_SOURCE_DIR}/Tool/blender_nvm_export.py -- ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
 	DEPENDS ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend
 )
-
-#add_custom_target(ServerAssets
-#	DEPENDS ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
-#)
-#
-#add_dependencies(Server
-#	ServerAssets
-#)

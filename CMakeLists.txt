@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD 20)
 # here we go now
 project(PloinkysMOBAGame)
 
-# add projects, common first since the others need it
+# add projects, common first since the others need it'
 add_subdirectory(common)
+add_subdirectory(assets)
 add_subdirectory(server)
 add_subdirectory(client)
