@@ -10,3 +10,4 @@ project(PloinkysMOBAGame)
 # add projects, common first since the others need it
 add_subdirectory(common)
 add_subdirectory(server)
+add_subdirectory(client)
