@@ -29,12 +29,12 @@ public:
 	~ParticleShader();
 	void Initialize(Direct3D* direct3D, AssetManager* assetManager);
 
-	ID3D11Buffer* m_frameConstBuffer;
+	ID3D11Buffer* m_frameConstBuffer = nullptr;
 	particle_shader_frame_const_t m_frameConstData;
-	ID3D11Buffer* m_modelConstBuffer;
+	ID3D11Buffer* m_modelConstBuffer = nullptr;
 	particle_shader_model_const_t m_modelConstData;
-	ID3D11SamplerState* m_samplerState;
-	ID3D11VertexShader* m_vertexShader;
-	ID3D11PixelShader* m_pixelShader;
-	ID3D11InputLayout* m_inputLayout;
+	ID3D11SamplerState* m_samplerState = nullptr;
+	ID3D11VertexShader* m_vertexShader = nullptr;
+	ID3D11PixelShader* m_pixelShader = nullptr;
+	ID3D11InputLayout* m_inputLayout = nullptr;
 };

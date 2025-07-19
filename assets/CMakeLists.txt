@@ -43,6 +43,8 @@ copy_file(UI/MoveTo/move_to.png)
 copy_file(UI/MoveTo/move_to.pte)
 copy_file(UI/MoveTo/move_to.pts)
 
+copy_file(Persons/_Generic/AbilityIcon.bmp)
+
 # Chess person
 copy_file(Persons/ChessPerson/blast_area_2.pte)
 copy_file(Persons/ChessPerson/blast_area.png)
@@ -52,6 +54,7 @@ copy_file(Persons/ChessPerson/heal_person.pts)
 copy_file(Persons/ChessPerson/heal_person.pte)
 copy_file(Persons/ChessPerson/particle.png)
 export_glb(Persons/ChessPerson/chess_person.blend Persons/ChessPerson/chess_person.glb)
+export_glb(Persons/ChessPerson/missile.blend Persons/ChessPerson/missile.glb)
 
 # Minion
 export_glb(Persons/Minion/minion.blend Persons/Minion/minion.glb)
@@ -60,4 +63,9 @@ export_glb(Persons/Minion/minion.blend Persons/Minion/minion.glb)
 export_glb(Maps/map1/map1.blend Maps/map1/map1.glb)
 export_nvm(Maps/map1/map1.blend Maps/map1/map1.nvm)
 
-add_custom_target(assets ALL DEPENDS ${COPY_OUTPUTS} ${GLB_EXPORTS} ${NVM_EXPORTS})
+# Tower
+export_glb(Buildings/Tower/tower.blend Buildings/Tower/tower.glb)
+
+add_custom_target(assets
+    DEPENDS ${COPY_OUTPUTS} ${GLB_EXPORTS} ${NVM_EXPORTS}
+)
