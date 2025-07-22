@@ -1,5 +1,11 @@
 link_directories($(CMAKE_SOURCE_DIR)/Bin ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64)
 
+function(copy_asset_folder)
+    add_custom_command(TARGET server POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different $<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0} $<TARGET_FILE_DIR:server>/${ARGV0}
+    )
+endfunction()
+
 add_executable(server
 	src/Buff.cpp
 	src/EventManager.cpp
@@ -41,3 +47,5 @@ add_custom_command(
 	COMMAND blender ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend --background --python ${CMAKE_SOURCE_DIR}/Tool/blender_nvm_export.py -- ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
 	DEPENDS ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend
 )
+
+copy_asset_folder(Maps)

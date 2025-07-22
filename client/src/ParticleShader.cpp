@@ -44,21 +44,21 @@ void ParticleShader::Initialize(Direct3D* direct3D, AssetManager* assetManager) 
 	HRESULT hr = direct3D->device->CreateVertexShader(shaderByteCode.data(), shaderByteCode.size(), nullptr, &m_vertexShader);
 
 	if (FAILED(hr)) {
-		printf("Failed to load color vertex shader!");
+		printf("Failed to load particle vertex shader!");
 		return;
 	}
 
 	hr = direct3D->device->CreatePixelShader(psByteCode.data(), psByteCode.size(), nullptr, &m_pixelShader);
 
 	if (FAILED(hr)) {
-		printf("Failed to load color pixel shader!");
+		printf("Failed to load particle pixel shader!");
 		return;
 	}
 
 	hr = direct3D->device->CreateInputLayout(inputLayoutDesc, 3, shaderByteCode.data(), shaderByteCode.size(), &m_inputLayout);
 
 	if (FAILED(hr)) {
-		printf("Failed to load color shader input layout!");
+		printf("Failed to load particle shader input layout!");
 	}
 
 	D3D11_BUFFER_DESC desc;

@@ -1,6 +1,5 @@
 link_directories($(CMAKE_SOURCE_DIR)/Bin ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64)
 
-
 function(copy_asset_folder)
     add_custom_command(TARGET client POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different $<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0} $<TARGET_FILE_DIR:client>/${ARGV0}
@@ -8,20 +7,20 @@ function(copy_asset_folder)
 endfunction()
 
 function(compile_vertex_shader)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
-        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T vs_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
+        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T vs_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl
     )
-    list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso)
+    list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso)
     set(SHADER_FILES ${SHADER_FILES} PARENT_SCOPE)
 endfunction()
 
 function(compile_pixel_shader)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
-        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T ps_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
+        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T ps_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl
     )
-    list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso)
+    list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso)
     set(SHADER_FILES ${SHADER_FILES} PARENT_SCOPE)
 endfunction()
 
@@ -93,6 +92,7 @@ compile_pixel_shader(GLBPixelShader)
 compile_vertex_shader(flat_unlit_vs)
 compile_pixel_shader(flat_unlit_ps)
 compile_vertex_shader(particle_vs)
+compile_pixel_shader(texture_ps)
 
 add_custom_target(shaders
     DEPENDS ${SHADER_FILES}
