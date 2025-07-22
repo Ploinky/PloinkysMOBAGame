@@ -320,7 +320,7 @@ void Client::Update(float dt) {
     
     for(auto go_it : GameState.GameObjects) {
         CGameObject* go = go_it.second;
-        go->Update(&GameState, dt);
+        go->Update(&GameState, TICKRATE / 1000.0f);
     }
 
     m_pNavigationSystem->UpdateAgents(&GameState, TICKRATE / 1000.0f);

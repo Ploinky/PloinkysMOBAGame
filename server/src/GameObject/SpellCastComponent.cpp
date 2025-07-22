@@ -14,6 +14,10 @@ void CSpellCastComponent::Update(CGameState* pGameState, float fDelta) {
 
         if(m_vecSpells[i].bIsCasting) {
             m_vecSpells[i].fTimeSinceCast += fDelta;
+
+            if(m_vecSpells[i].fTimeSinceCast >= m_vecSpells[i].pSpell->fCastPoint) {
+                m_vecSpells[i].pSpell ->OnCast();
+            }
         }
     }
 }
