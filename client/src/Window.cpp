@@ -28,6 +28,8 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
 
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
+    m_hBrushBackground = CreateSolidBrush(RGB(0, 0, 0));
+
     // ------ Create window -----
     WNDCLASSEXW wc{};
     wc.cbSize = sizeof(WNDCLASSEXW);
@@ -38,10 +40,11 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
     wc.hInstance = hInstance;
     wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
     wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_DEFAULT));
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hbrBackground = m_hBrushBackground;
     wc.lpszMenuName = NULL;
     wc.lpszClassName = className;
     wc.hIconSm = wc.hIcon;
+
 
     int posX, posY;
 
@@ -111,6 +114,9 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
 }
 
 Window::~Window() {
+    if(m_hBrushBackground != nullptr) {
+        DeleteObject(m_hBrushBackground);
+    }
 }
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {

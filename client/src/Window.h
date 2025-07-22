@@ -51,6 +51,9 @@ class Window {
         LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
             
     private:
-        HWND windowHandle;
+        HWND windowHandle = nullptr;
+
+        HBRUSH m_hBrushBackground = nullptr;
+
         bool shouldClose;
 };
