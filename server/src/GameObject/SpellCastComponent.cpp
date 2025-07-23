@@ -8,21 +8,35 @@ CSpellCastComponent::CSpellCastComponent(std::vector<SpellSlot_t> vecSpells) {
 
 void CSpellCastComponent::Update(CGameState* pGameState, float fDelta) {
     for(int i = 0; i < m_vecSpells.size(); i++) {
-        if(m_vecSpells[i].fCooldownRemaining > 0.0f) {
-            m_vecSpells[i].fCooldownRemaining = std::max(m_vecSpells[i].fCooldownRemaining - fDelta, 0.0f);
+        SpellSlot_t& spellSlot = m_vecSpells.at(i);
+
+        if(spellSlot.fCooldownRemaining > 0.0f) {
+            spellSlot.fCooldownRemaining = std::max(spellSlot.fCooldownRemaining - fDelta, 0.0f);
+            continue;
         }
 
-        if(m_vecSpells[i].bIsCasting) {
-            m_vecSpells[i].fTimeSinceCast += fDelta;
+        if(!spellSlot.bIsCasting) {
+            continue;
+        }
 
-            if(m_vecSpells[i].fTimeSinceCast >= m_vecSpells[i].pSpell->fCastPoint) {
-                m_vecSpells[i].pSpell ->OnCast();
-            }
+        if(spellSlot.fTimeSinceCast < spellSlot.pSpell->fCastPoint && spellSlot.fTimeSinceCast + fDelta >= spellSlot.pSpell->fCastPoint) {
+            CSpellCastContext ctx(pGameState);
+            ctx.idCaster = m_pGameObject->GetId();
+            ctx.idTarget = spellSlot.pTargetInfo->target;
+            spellSlot.pSpell ->OnCast(&ctx);
+        }
+
+        spellSlot.fTimeSinceCast += fDelta;
+
+        if(spellSlot.fTimeSinceCast >= spellSlot.pSpell->fCastTime) {
+            spellSlot.fCooldownRemaining = spellSlot.pSpell->fCooldown;
+            spellSlot.bIsCasting = false;
+            spellSlot.fTimeSinceCast = 0.0f;
         }
     }
 }
 
-void CSpellCastComponent::CastSpell(int nIndex) {
+void CSpellCastComponent::CastSpell(int nIndex, SpellTargetInfo* pTargetInfo) {
     Logger::FormatMsg("casting spell no. %d", nIndex);
 
     if(nIndex >= m_vecSpells.size()) {
@@ -42,9 +56,13 @@ void CSpellCastComponent::CastSpell(int nIndex) {
     m_pGameObject->GetComponent<CNavigationComponent>()->StopNavigation();
     m_pGameObject->GetComponent<CMovementComponent>()->ClearTarget();
 
-    spellSlot.pSpell->OnCastStart();
+    CSpellCastContext ctx(nullptr);
+    ctx.idCaster = m_pGameObject->GetId();
+    ctx.idTarget = pTargetInfo->target;
+    spellSlot.pSpell->OnCastStart(&ctx);
     m_vecSpells[nIndex].bIsCasting = true;
     m_vecSpells[nIndex].fTimeSinceCast = 0.0f;
+    m_vecSpells[nIndex].pTargetInfo = pTargetInfo;
 
     SpellCastStartedData_t data { m_pGameObject->GetId(), nIndex };
     CEventManager::Emit(EEventType::SPELL_CAST_STARTED, &data);

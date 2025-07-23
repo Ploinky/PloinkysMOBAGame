@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "Components.h"
 #include "Common/pmg_physics.h"
-#include "GameObjectAction.h"
 #include "Missile.h"
 #include "Common/pmg_networking.h"
 #include "GameObject/GameObject.h"
@@ -11,6 +10,7 @@
 #include "NavigationSystem.h"
 #include "GameObject/Components.h"
 #include "GameObject/Spells.h"
+#include "SpellTargetInfo.h"
 
 uint64_t g_unitId = 0;
 
@@ -124,7 +124,10 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
     pGameObject->AddComponent(pSpellCast);
 
-    GameState.GameObjects.emplace(pGameObject->GetId(), pGameObject);
+    CHealthComponent* health = new CHealthComponent(200);
+    pGameObject->AddComponent(health);
+
+    AddGameObject(pGameObject);
 
     UnitIdPacket packet = UnitIdPacket();
     packet.unit_id = pGameObject->GetId();
@@ -217,7 +220,7 @@ void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTarg
             return;
         }
 
-        pSpellCast->CastSpell(spell_slot);
+        pSpellCast->CastSpell(spell_slot, target_info);
     }
 }
 
@@ -232,7 +235,8 @@ void Client::Start() {
     pDummy->AddComponent(new CMovementComponent());
     pDummy->GetComponent<CMovementComponent>()->SetTarget({2000, 0, -2000});
     pDummy->AddComponent(new CNetworkComponent());
-    // AddGameObject(pDummy); TODO need to add him again
+    pDummy->AddComponent(new CHealthComponent(100));
+    AddGameObject(pDummy);// TODO need to add him again
 }
 
 void Client::CheckCollision(CGameObject* collider) {
@@ -331,6 +335,7 @@ void Client::Update(float dt) {
         CheckCollision(go);
     }
     
+    GameState.Update();
     m_pNetworkSystem->SyncGameState(&GameState);
 
     // TODO why is this stupid

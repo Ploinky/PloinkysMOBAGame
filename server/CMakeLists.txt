@@ -19,10 +19,14 @@ add_executable(server
 	src/Server.cpp
 
 	src/GameObject/GameObject.cpp
+	src/GameObject/health-component.cpp
 	src/GameObject/MovementComponent.cpp
 	src/GameObject/NavigationComponent.cpp
 	src/GameObject/SpellCastComponent.cpp
 	src/GameObject/TransformComponent.cpp
+
+	src/GameObject/event/damage-event.cpp
+
 
 	src/GameObject/Spell/ThrowFootball.cpp
 

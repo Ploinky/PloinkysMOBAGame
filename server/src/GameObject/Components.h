@@ -5,3 +5,4 @@
 #include "MovementComponent.h"
 #include "NavigationComponent.h"
 #include "SpellCastComponent.h"
+#include "health-component.h"

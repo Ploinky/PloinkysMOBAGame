@@ -73,6 +73,14 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
             }
         }
 
+        if(CHealthComponent* pHealth = pGameObject->GetComponent<CHealthComponent>()) {
+            UnitStatsPacket pck = UnitStatsPacket();
+            pck.max_health = pHealth->GetMaxHealth();
+            pck.health = pHealth->GetCurrentHealth();
+            pck.unit = pGameObject->GetId();
+            m_pNetworkManager->SendToAllClients(pck);
+        }
+
         if(CSpellCastComponent* pSpellCast = pGameObject->GetComponent<CSpellCastComponent>()) {
         }
     }

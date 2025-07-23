@@ -269,15 +269,21 @@ void Game::Update(float dt) {
 	}
 
     if (m_keys['q']) {
-        float x, y;
-        TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
-
-        CastCommandPacket cast = CastCommandPacket();
-        cast.spell_slot = 0;
-        cast.x = x;
-        cast.y = 0;
-        cast.z = y;
-        net_manager_->SendPacket(&cast);
+        //float x, y;
+        //TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+        //
+        //CastCommandPacket cast = CastCommandPacket();
+        //cast.spell_slot = 0;
+        //cast.x = x;
+        //cast.y = 0;
+        //cast.z = y;
+        //net_manager_->SendPacket(&cast);
+		if (pObjectUnderCursor) {
+			CastTargetCommandPacket cmd = CastTargetCommandPacket();
+			cmd.spell_slot = 0;
+			cmd.target = pObjectUnderCursor->unit_id;
+			net_manager_->SendPacket(&cmd);
+		}
     }
 
     if (m_keys['w']) {
@@ -696,6 +702,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->team = team;
+        go->PlayAnimation("idle", true);
         game_objects_.emplace(unitId, go);
         return;
     }

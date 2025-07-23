@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Common/PMG_Common.h>
 
 class SpellTargetInfo {
