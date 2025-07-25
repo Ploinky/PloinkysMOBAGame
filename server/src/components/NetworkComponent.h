@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
+#include "GameState.h"
 
 class CNetworkComponent : public IComponent {
 public:

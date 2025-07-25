@@ -29,9 +29,10 @@ public:
 				return pSpecific;
 			}
 		}
-	
+
 		return nullptr;
 	}
+
 
 	void AddComponent(IComponent* pComponent);
 

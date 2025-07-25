@@ -1,5 +1,5 @@
 #include "Missile.h"
-#include "GameObject/GameObject.h"
+#include "GameObject.h"
 
 /*
 void Missile::Act(Client* game, float dt) {

@@ -1,14 +1,14 @@
 #include "damage-event.h"
-#include "GameObject/GameObject.h"
-#include "GameObject/Components.h"
+#include "GameObject.h"
+#include "components/Components.h"
 
-CDamageCommand::CDamageCommand(UnitId idSource, UnitId idTarget, int nDamage) {
+CDamageEvent::CDamageEvent(UnitId idSource, UnitId idTarget, int nDamage) {
     m_idSource = idSource;
     m_idTarget = idTarget;
     m_nDamage = nDamage;
 }
 
-void CDamageCommand::Execute(CGameState* pGameState) {
+void CDamageEvent::Execute(CGameState* pGameState) {
     CGameObject* pSource = pGameState->FindGameObjectById(m_idSource);
     CGameObject* pTarget = pGameState->FindGameObjectById(m_idTarget);
 
@@ -17,7 +17,7 @@ void CDamageCommand::Execute(CGameState* pGameState) {
         return;
     }
 
-    pTarget->GetComponent<CHealthComponent>()->TakeDamage(m_nDamage);
+    pTarget->GetComponent<CHealthComponent>()->nHealth -= m_nDamage;
 
     Logger::FormatMsg("Apply %d damage to %d from %d", m_nDamage, m_idSource, m_idTarget);
 }

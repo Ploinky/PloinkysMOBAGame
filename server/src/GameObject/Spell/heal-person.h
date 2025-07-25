@@ -1,8 +1,8 @@
 #include "../Spell.h"
 
-class CThrowFootball : public ISpell {
+class CHealPerson : public ISpell {
 public:
-    CThrowFootball();
+    CHealPerson();
     virtual void OnCastStart(CSpellCastContext* ctx) override;
     virtual void OnCast(CSpellCastContext* ctx) override;
 };

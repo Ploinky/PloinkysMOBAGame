@@ -1,23 +1,26 @@
-#include "GameObject.h"
-#include "Spell.h"
-#include "SpellTargetInfo.h"
+#pragma once
 
-struct SpellSlot_t {
+#include "GameObject.h"
+#include "GameObject/Spell.h"
+#include "SpellTargetInfo.h"
+#include "components/Components.h"
+
+typedef struct SpellSlot_s {
 	float fCooldownRemaining = 0.0f;
 	bool bIsCasting = false;
 	float fTimeSinceCast = 0.0f;
 	ISpell* pSpell = nullptr;
-	SpellTargetInfo* pTargetInfo;
-};
+	CSpellCastContext* spellCtx = nullptr;
+} SpellSlot_t;
 
 class CSpellCastComponent : public IComponent {
 public:
 	CSpellCastComponent(std::vector<SpellSlot_t> vecSpells);
 	virtual void Update(CGameState* pGameState, float fDelta) override;
 
-	void CastSpell(int nIndex, SpellTargetInfo* pTargetInfo);
+	void CastSpell(CSpellCastContext* spellCtx);
 
-	std::vector<SpellSlot_t> GetSpellSlots();
+	std::vector<SpellSlot_t>& GetSpellSlots();
 
 private:
 	std::vector<SpellSlot_t> m_vecSpells;

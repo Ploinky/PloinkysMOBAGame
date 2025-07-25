@@ -1,6 +1,6 @@
 #include "GameState.h"
 
-#include "GameObject/GameObject.h"
+#include "GameObject.h"
 
 std::vector<CGameObject*> CGameState::GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const {
     throw std::exception("implement me");

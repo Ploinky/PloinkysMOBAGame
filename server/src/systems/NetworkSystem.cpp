@@ -1,5 +1,5 @@
-#include <Networking/NetworkSystem.h>
-#include <GameObject/Components.h>
+#include <systems/NetworkSystem.h>
+#include <components/Components.h>
 
 CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     m_pNetworkManager = pManager;
@@ -75,8 +75,8 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
 
         if(CHealthComponent* pHealth = pGameObject->GetComponent<CHealthComponent>()) {
             UnitStatsPacket pck = UnitStatsPacket();
-            pck.max_health = pHealth->GetMaxHealth();
-            pck.health = pHealth->GetCurrentHealth();
+            pck.max_health = pHealth->nMaxHealth;
+            pck.health = pHealth->nHealth;
             pck.unit = pGameObject->GetId();
             m_pNetworkManager->SendToAllClients(pck);
         }

@@ -2,7 +2,7 @@
 
 #include <Common/PMG_Common.h>
 
-#include "GameObject/GameObject.h"
+#include "GameObject.h"
 
 class Buff {
 public:

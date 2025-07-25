@@ -18,19 +18,25 @@ add_executable(server
 	src/NetworkManager.cpp
 	src/Server.cpp
 
-	src/GameObject/GameObject.cpp
-	src/GameObject/health-component.cpp
-	src/GameObject/MovementComponent.cpp
-	src/GameObject/NavigationComponent.cpp
-	src/GameObject/SpellCastComponent.cpp
-	src/GameObject/TransformComponent.cpp
+	src/GameObject.cpp
 
-	src/GameObject/event/damage-event.cpp
+	src/components/MovementComponent.cpp
+	src/components/NavigationComponent.cpp
+	src/components/SpellCastComponent.cpp
+	src/components/TransformComponent.cpp
 
+	src/events/damage-event.cpp
+	src/events/heal-event.cpp
+	src/events/spell-cast-event.cpp
+	src/events/spell-cast-start-event.cpp
+
+	src/systems/damage-system.cpp
+	src/systems/NetworkSystem.cpp
+	src/systems/spell-system.cpp
 
 	src/GameObject/Spell/ThrowFootball.cpp
+	src/GameObject/Spell/heal-person.cpp
 
-	src/Networking/NetworkSystem.cpp
 )
 set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 

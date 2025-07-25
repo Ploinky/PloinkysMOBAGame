@@ -3,14 +3,16 @@
 #include "Common/pmg_physics.h"
 #include "Missile.h"
 #include "Common/pmg_networking.h"
-#include "GameObject/GameObject.h"
+#include "GameObject.h"
 #include <cstring>
 #include "IServerState.h"
 #include "IServerStateHandler.h"
 #include "NavigationSystem.h"
-#include "GameObject/Components.h"
+#include "Components.h"
 #include "GameObject/Spells.h"
 #include "SpellTargetInfo.h"
+#include "events/spell-cast-start-event.h"
+#include "events/damage-event.h"
 
 uint64_t g_unitId = 0;
 
@@ -120,7 +122,10 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     std::vector<SpellSlot_t> vecSpells;
     SpellSlot_t spell1;
     spell1.pSpell = new CThrowFootball();
+    SpellSlot_t spell2;
+    spell2.pSpell = new CHealPerson();
     vecSpells.push_back(spell1);
+    vecSpells.push_back(spell2);
     CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
     pGameObject->AddComponent(pSpellCast);
 
@@ -204,24 +209,21 @@ void Client::PlayerAttackCommand(PlayerID playerId, uint64_t target_id) {
 }
 
 void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTargetInfo* target_info) {
-    if (players_.find(playerId) != players_.end()) {
-        CGameObject* actor = GetGameObjectById(players_.find(playerId)->second->unit);
-
-        CSpellCastComponent* pSpellCast = actor->GetComponent<CSpellCastComponent>();
-        if(pSpellCast == nullptr) {
-            // nope!
-            // TODO
-            return;
-        }
-
-        if (false) {
-            // nope!
-            // TODO can we cast? do we check here?
-            return;
-        }
-
-        pSpellCast->CastSpell(spell_slot, target_info);
+    if (players_.find(playerId) == players_.end()) {
+        Logger::FormatErr("Invalid cast command: unknown playerId %d", playerId);
+        return;
     }
+
+    CGameObject* actor = GetGameObjectById(players_.find(playerId)->second->unit);
+
+    if(actor == nullptr) {
+        Logger::FormatErr("Invalid cast command: no game object for player %d", playerId);
+        return;
+    }
+
+    Logger::FormatMsg("Player %d cast command received", playerId);
+    CSpellCastStartEvent* pSpellEvent = new CSpellCastStartEvent(actor->GetId(), *target_info, spell_slot);
+    GameState.VecEvent.push_back(pSpellEvent);
 }
 
 void Client::Start() {
@@ -335,7 +337,15 @@ void Client::Update(float dt) {
         CheckCollision(go);
     }
     
-    GameState.Update();
+    m_spellSystem.Process(&GameState, TICKRATE);
+    m_damageSystem.Process(&GameState, TICKRATE);
+
+    // TODO this appears wrong
+    for(IGameEvent* evt : GameState.VecEvent) {
+        delete evt;
+    }
+    GameState.VecEvent.clear();
+
     m_pNetworkSystem->SyncGameState(&GameState);
 
     // TODO why is this stupid

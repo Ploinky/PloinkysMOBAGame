@@ -9,12 +9,14 @@
 #include "IServerState.h"
 #include "NetworkManager.h"
 #include "LobbyPlayer.h"
-#include "GameObject/GameObject.h"
+#include "GameObject.h"
 #include <Common/PMG_Common.h>
 #include <Buff.h>
 #include <GameState.h>
 
-#include <Networking/NetworkSystem.h>
+#include "systems/NetworkSystem.h"
+#include "systems/damage-system.h"
+#include "systems/spell-system.h"
 
 class Missile;
 static uint64_t current_network_id_ = 0;
@@ -124,4 +126,6 @@ private:
 
     CNavigationSystem* m_pNavigationSystem;
     CNetworkSystem* m_pNetworkSystem;
+    CDamageSystem m_damageSystem;
+    CSpellSystem m_spellSystem;
 };
