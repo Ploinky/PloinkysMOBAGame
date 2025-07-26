@@ -9,8 +9,6 @@ public:
     void SetTarget(Vector3 vec3Target);
     void ClearTarget();
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
-
 private:
     Vector3 m_vec3Target;
 

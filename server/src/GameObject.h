@@ -8,8 +8,6 @@ class CGameObject;
 
 class IComponent {
 public:
-	virtual void Update(CGameState* pGameState, float fDelta) = 0;
-
 	virtual void SetGameObject(CGameObject* pGameObject);
 
 protected:
@@ -19,8 +17,6 @@ protected:
 class CGameObject {
 public:
 	CGameObject();
-
-	void Update(CGameState* pGameState, float fDelta);
 
 	template<typename T>
 	T* GetComponent() {

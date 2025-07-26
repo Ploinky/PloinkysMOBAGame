@@ -11,8 +11,7 @@ public:
     void SetPosition(Vector3 vec3NewRotation);
     void SetRotation(Vector3 vec3NewRotation);
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
-private:
+    private:
     Vector3 m_vec3Position;
     Vector3 m_vec3Rotation;
 };

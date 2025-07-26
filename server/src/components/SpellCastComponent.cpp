@@ -7,9 +7,6 @@ CSpellCastComponent::CSpellCastComponent(std::vector<SpellSlot_t> vecSpells) {
     m_vecSpells = vecSpells;
 }
 
-void CSpellCastComponent::Update(CGameState* pGameState, float fDelta) {
-}
-
 void CSpellCastComponent::CastSpell(CSpellCastContext* spellCtx) {
     Logger::FormatMsg("casting spell no. %d", spellCtx->nSpellIndex);
 

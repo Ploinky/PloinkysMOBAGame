@@ -15,6 +15,3 @@ void CTransformComponent::SetPosition(Vector3 vec3NewPosition) {
 void CTransformComponent::SetRotation(Vector3 vec3NewRotation) {
     m_vec3Rotation = vec3NewRotation;
 }
-
-void CTransformComponent::Update(CGameState* pGameState, float fDelta) {
-}

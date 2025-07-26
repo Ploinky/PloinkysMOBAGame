@@ -7,7 +7,7 @@
 #include <cstring>
 #include "IServerState.h"
 #include "IServerStateHandler.h"
-#include "NavigationSystem.h"
+#include "systems/NavigationSystem.h"
 #include "Components.h"
 #include "GameObject/Spells.h"
 #include "SpellTargetInfo.h"
@@ -321,15 +321,10 @@ void Client::Update(float dt) {
         m_navGrid->GetCellAt(pTransform->GetPosition().x + 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
         m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->IsOpen = false;
         m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
-
     }
     
-    for(auto go_it : GameState.GameObjects) {
-        CGameObject* go = go_it.second;
-        go->Update(&GameState, TICKRATE / 1000.0f);
-    }
-
-    m_pNavigationSystem->UpdateAgents(&GameState, TICKRATE / 1000.0f);
+    m_pNavigationSystem->Process(&GameState, TICKRATE);
+    m_moveSystem.Process(&GameState, TICKRATE);
     
 
     for (auto go_it : GameState.GameObjects) {

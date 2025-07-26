@@ -10,12 +10,6 @@ UnitId CGameObject::GetId() {
     return m_idUnit;
 }
 
-void CGameObject::Update(CGameState* pGameState, float fDelta) {
-    for(IComponent* pComponent : m_vecComponents) {
-        pComponent->Update(pGameState, fDelta);
-    }
-}
-
 void CGameObject::AddComponent(IComponent* pComponent) {
     if(pComponent == nullptr) {
         // TODO this seem overzealous

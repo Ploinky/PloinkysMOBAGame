@@ -14,24 +14,25 @@ add_executable(server
 	src/LobbyState.cpp
 	src/Main.cpp
 	src/Missile.cpp
-	src/NavigationSystem.cpp
 	src/NetworkManager.cpp
 	src/Server.cpp
-
+	
 	src/GameObject.cpp
-
+	
 	src/components/MovementComponent.cpp
 	src/components/NavigationComponent.cpp
 	src/components/SpellCastComponent.cpp
 	src/components/TransformComponent.cpp
-
+	
 	src/events/damage-event.cpp
 	src/events/heal-event.cpp
 	src/events/spell-cast-event.cpp
 	src/events/spell-cast-start-event.cpp
-
+	
 	src/systems/damage-system.cpp
+	src/systems/NavigationSystem.cpp
 	src/systems/NetworkSystem.cpp
+	src/systems/movement-system.cpp
 	src/systems/spell-system.cpp
 
 	src/GameObject/Spell/ThrowFootball.cpp

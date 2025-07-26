@@ -16,7 +16,6 @@ typedef struct SpellSlot_s {
 class CSpellCastComponent : public IComponent {
 public:
 	CSpellCastComponent(std::vector<SpellSlot_t> vecSpells);
-	virtual void Update(CGameState* pGameState, float fDelta) override;
 
 	void CastSpell(CSpellCastContext* spellCtx);
 

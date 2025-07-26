@@ -5,8 +5,6 @@
 
 class CNetworkComponent : public IComponent {
 public:
-    virtual void Update(CGameState* pGameState, float fDelta) override {};
-
     bool SyncMovement() { return m_bSyncMovement; };
     void SetSyncMovement(bool bSyncMovement) { m_bSyncMovement = bSyncMovement; };
     bool IsSpawnSynced() { return m_bIsSpawnSynced; };

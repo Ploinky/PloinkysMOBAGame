@@ -17,6 +17,7 @@
 #include "systems/NetworkSystem.h"
 #include "systems/damage-system.h"
 #include "systems/spell-system.h"
+#include "systems/movement-system.h"
 
 class Missile;
 static uint64_t current_network_id_ = 0;
@@ -128,4 +129,5 @@ private:
     CNetworkSystem* m_pNetworkSystem;
     CDamageSystem m_damageSystem;
     CSpellSystem m_spellSystem;
+    CMovementSystem m_moveSystem;
 };
