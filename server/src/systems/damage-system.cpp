@@ -15,25 +15,6 @@ CDamageSystem::CDamageSystem() {
 
 void CDamageSystem::Update(CGameState* pGameState, float fDelta) { 
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
-        CGameObject* pGameObject = goPair.second;
-
-        CHealthComponent* pHealthComp = pGameObject->GetComponent<CHealthComponent>();
-
-        if(pHealthComp == nullptr) {
-            continue;
-        }
-
-        if(pHealthComp->bIsDead) {
-            pHealthComp->fTimeSinceDeath += fDelta;
-
-            if(pHealthComp->fTimeSinceDeath >= 3000.0f) {
-                pHealthComp->nHealth = pHealthComp->nMaxHealth;
-                pHealthComp->bIsDead = false;
-                pHealthComp->fTimeSinceDeath = 0.0f;
-
-                pGameState->VecEvent.emplace(new CRespawnEvent(pGameObject->GetId()));
-            }
-        }
     }
 }
 

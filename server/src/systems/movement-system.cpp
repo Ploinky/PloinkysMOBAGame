@@ -33,6 +33,7 @@ void CMovementSystem::Update(CGameState* pGameState, float fDelta) {
 
         if(CompareFloat((pMoveComp->GetTarget() - vec3OldPosition).Length(), 0 )) {
             // TODO we're at our target
+            pMoveComp->ClearTarget();
             return;
         }
 

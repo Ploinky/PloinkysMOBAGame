@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <queue>
 #include <typeindex>
@@ -16,13 +17,10 @@ public:
     virtual std::type_index GetType() const = 0;
 };
 
-template <typename Derived>
-class BaseGameEvent : public IGameEvent {
-public:
-    std::type_index GetType() const override {
-        return typeid(Derived);
-    }
-};
+typedef struct {
+    Vector2 vec2Pos;
+    float fAngle;
+} SpawnPoint_t;
 
 class CGameState {
 public:
@@ -41,6 +39,11 @@ public:
 
     unsigned int uTeam1Points = 0;
     unsigned int uTeam2Points = 0;
+
+    std::unordered_map<Team, std::vector<SpawnPoint_t>> mapTeamSpawnPoints = {
+        {Team::TEAM_1, {{Vector2 {1000, -1000}, 0.0f}}},
+        {Team::TEAM_2, {{Vector2 {2000, -1000}, 180.0f}}},
+    };
 
 private:
     NavigationMap* m_pNavMap;

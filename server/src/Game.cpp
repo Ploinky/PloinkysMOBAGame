@@ -15,6 +15,7 @@
 #include "events/damage-event.h"
 #include "events.h"
 #include "systems/points-system.h"
+#include "systems/respawn-system.h"
 
 uint64_t g_unitId = 0;
 
@@ -111,6 +112,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(&m_damageSystem);
     m_vecSystems.push_back(m_pNetworkSystem);
     m_vecSystems.push_back(new CPointsSystem());
+    m_vecSystems.push_back(new CRespawnSystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -141,7 +143,7 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     CHealthComponent* health = new CHealthComponent(200);
     pGameObject->AddComponent(health);
 
-    pGameObject->AddComponent(new CTeamComponent(Team::TEAM_2));
+    pGameObject->AddComponent(new CTeamComponent(Team::TEAM_1));
 
     AddGameObject(pGameObject);
 
@@ -246,10 +248,11 @@ void Client::Start() {
     pDummy->AddComponent(new CTransformComponent());
     pDummy->GetComponent<CTransformComponent>()->SetPosition({2000, 0, -2000});
     pDummy->AddComponent(new CMovementComponent());
-    pDummy->GetComponent<CMovementComponent>()->SetTarget({2000, 0, -2000});
+    pDummy->GetComponent<CMovementComponent>()->ClearTarget();
     pDummy->AddComponent(new CNetworkComponent());
+    pDummy->GetComponent<CNetworkComponent>()->SetSyncMovement(true);
     pDummy->AddComponent(new CHealthComponent(100));
-    pDummy->AddComponent(new CTeamComponent(Team::TEAM_1));
+    pDummy->AddComponent(new CTeamComponent(Team::TEAM_2));
     AddGameObject(pDummy);// TODO need to add him again
 }
 

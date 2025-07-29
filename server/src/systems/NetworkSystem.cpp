@@ -49,32 +49,21 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
 
         if(pNetComponent->SyncMovement()) {
              if(CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>()) {
-                if(CMovementComponent* pMove = pGameObject->GetComponent<CMovementComponent>()) {
-                    if(pMove->GetTarget() != pTransform->GetPosition()) {
-                        UnitMovePacket move = UnitMovePacket();
-                        move.unit = pGameObject->GetId();
-                        move.x = pTransform->GetPosition().x;
-                        move.y = pTransform->GetPosition().y;
-                        move.z = pTransform->GetPosition().z;
-                        move.r = pTransform->GetRotation().y;
-                        m_pNetworkManager->SendToAllClients(move);
-                    }
-
+                UnitMovePacket move = UnitMovePacket();
+                move.unit = pGameObject->GetId();
+                move.x = pTransform->GetPosition().x;
+                move.y = pTransform->GetPosition().y;
+                move.z = pTransform->GetPosition().z;
+                move.r = pTransform->GetRotation().y;
+                m_pNetworkManager->SendToAllClients(move);
+            }
+            if(CMovementComponent* pMove = pGameObject->GetComponent<CMovementComponent>()) {
                     UnitMoveIntentionPacket moveInt = UnitMoveIntentionPacket();
                     moveInt.unit = pGameObject->GetId();
                     moveInt.x = pMove->GetTarget().x;
                     moveInt.y = pMove->GetTarget().y;
                     moveInt.z = pMove->GetTarget().z;
                     m_pNetworkManager->SendToAllClients(moveInt);
-                } else {
-                    UnitMovePacket move = UnitMovePacket();
-                    move.unit = pGameObject->GetId();
-                    move.x = pTransform->GetPosition().x;
-                    move.y = pTransform->GetPosition().y;
-                    move.z = pTransform->GetPosition().z;
-                    move.r = pTransform->GetRotation().y;
-                    m_pNetworkManager->SendToAllClients(move);
-                }
             }
         }
 

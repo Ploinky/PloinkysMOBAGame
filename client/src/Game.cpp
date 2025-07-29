@@ -55,8 +55,10 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
         go->rotation.y = move.r; // this actually looks less fucked for now :O
 
-        if (go->GetCurrentAnimation().GetAnimationName().compare("run") != 0) {
+        if (vec3Move.Length() > 5 && go->GetCurrentAnimation().GetAnimationName().compare("run") != 0) {
             go->PlayAnimation("run", true);
+        } else if(vec3Move.Length() <= 5) {
+            go->PlayAnimation("idle", true); // TODO yikes
         }
     });
     packet_manager.RegisterHandler(PacketType::UNITIDLE, [this](std::vector<uint8_t> data) {
