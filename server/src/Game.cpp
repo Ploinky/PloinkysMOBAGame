@@ -141,6 +141,8 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     CHealthComponent* health = new CHealthComponent(200);
     pGameObject->AddComponent(health);
 
+    pGameObject->AddComponent(new CTeamComponent(Team::TEAM_2));
+
     AddGameObject(pGameObject);
 
     UnitIdPacket packet = UnitIdPacket();
@@ -247,6 +249,7 @@ void Client::Start() {
     pDummy->GetComponent<CMovementComponent>()->SetTarget({2000, 0, -2000});
     pDummy->AddComponent(new CNetworkComponent());
     pDummy->AddComponent(new CHealthComponent(100));
+    pDummy->AddComponent(new CTeamComponent(Team::TEAM_1));
     AddGameObject(pDummy);// TODO need to add him again
 }
 

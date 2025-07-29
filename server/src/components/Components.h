@@ -6,3 +6,4 @@
 #include "NavigationComponent.h"
 #include "SpellCastComponent.h"
 #include "health-component.h"
+#include "team-component.h"
