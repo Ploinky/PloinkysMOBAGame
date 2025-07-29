@@ -9,8 +9,7 @@ class CSpellCastEvent : public IGameEvent {
 public:
     CSpellCastEvent(CSpellCastContext* spellCtx);
 
-    virtual void Execute(CGameState* pGameState) override;
+    virtual std::type_index GetType() const override { return typeid(CSpellCastEvent); };
 
-private:
     CSpellCastContext* m_spellCtx;
 };

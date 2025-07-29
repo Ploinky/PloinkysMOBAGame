@@ -65,6 +65,8 @@ public:
 
 	bool destroy = false;
 
+	bool dead = false;
+
 private:
 	CAnimationComponent m_animationComponent;
 	CMovementComponent m_movementComponent;

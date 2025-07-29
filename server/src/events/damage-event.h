@@ -6,7 +6,7 @@ class CDamageEvent : public IGameEvent {
 public:
     CDamageEvent(UnitId idSource, UnitId idTarget, int nDamage);
 
-    virtual void Execute(CGameState* pGameState) override;
+    virtual std::type_index GetType() const override { return typeid(CDamageEvent); };
 
     UnitId m_idSource;
     UnitId m_idTarget;

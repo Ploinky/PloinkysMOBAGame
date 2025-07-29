@@ -7,7 +7,7 @@ class CHealEvent : public IGameEvent {
 public:
     CHealEvent(UnitId idSource, UnitId idTarget, int nHeal);
 
-    virtual void Execute(CGameState* pGameState) override;
+    virtual std::type_index GetType() const override { return typeid(CHealEvent); };
 
     UnitId m_idSource;
     UnitId m_idTarget;

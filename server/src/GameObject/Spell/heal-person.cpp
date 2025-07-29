@@ -13,6 +13,10 @@ void CHealPerson::OnCastStart(CSpellCastContext* ctx) {
 
 void CHealPerson::OnCast(CSpellCastContext* ctx) {
     Logger::FormatMsg("Cast of heal person completed by %d", ctx->idCaster);
+}
+
+void CHealPerson::ApplyEffects(CSpellCastContext* ctx) {
+    Logger::FormatMsg("Applying effects of heal person by %d", ctx->idCaster);
     CHealEvent* ev = new CHealEvent(ctx->idCaster, ctx->idTarget, 10);
     ctx->EmitEvent(ev);
 }

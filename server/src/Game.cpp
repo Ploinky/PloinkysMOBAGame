@@ -13,6 +13,7 @@
 #include "SpellTargetInfo.h"
 #include "events/spell-cast-start-event.h"
 #include "events/damage-event.h"
+#include "events.h"
 
 uint64_t g_unitId = 0;
 
@@ -102,6 +103,12 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_pNetworkSystem = new CNetworkSystem(networkManager_);
     m_pNavigationSystem = new CNavigationSystem(m_navMap);
     GameState.SetNavMap(m_navMap);
+
+    m_vecSystems.push_back(m_pNavigationSystem);
+    m_vecSystems.push_back(&m_moveSystem);
+    m_vecSystems.push_back(&m_spellSystem);
+    m_vecSystems.push_back(&m_damageSystem);
+    m_vecSystems.push_back(m_pNetworkSystem);
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -222,8 +229,8 @@ void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTarg
     }
 
     Logger::FormatMsg("Player %d cast command received", playerId);
-    CSpellCastStartEvent* pSpellEvent = new CSpellCastStartEvent(actor->GetId(), *target_info, spell_slot);
-    GameState.VecEvent.push_back(pSpellEvent);
+    CSpellAttemptCastEvent* pSpellEvent = new CSpellAttemptCastEvent(actor->GetId(), *target_info, spell_slot);
+    GameState.VecEvent.emplace(pSpellEvent);
 }
 
 void Client::Start() {
@@ -302,10 +309,6 @@ void Client::Update(float dt) {
 
     for(auto go_it : GameState.GameObjects) {
         CGameObject* go = go_it.second;
-        if(go->GetComponent<CNavigationComponent>() == nullptr) {
-            // TODO fix this
-            continue;
-        }
 
         CTransformComponent* pTransform = go->GetComponent<CTransformComponent>();
 
@@ -323,23 +326,28 @@ void Client::Update(float dt) {
         m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
     }
     
-    m_pNavigationSystem->Process(&GameState, TICKRATE);
-    m_moveSystem.Process(&GameState, TICKRATE);
+    for(ISystem* system : m_vecSystems) {
+        system->Update(&GameState, TICKRATE);
+    }
     
-
     for (auto go_it : GameState.GameObjects) {
         CGameObject* go = go_it.second;
         CheckCollision(go);
     }
-    
-    m_spellSystem.Process(&GameState, TICKRATE);
-    m_damageSystem.Process(&GameState, TICKRATE);
 
     // TODO this appears wrong
-    for(IGameEvent* evt : GameState.VecEvent) {
-        delete evt;
+    while(!GameState.VecEvent.empty()) {
+        IGameEvent* pEvt = GameState.VecEvent.front();
+        for(ISystem* system : m_vecSystems) {
+            system->Process(&GameState, pEvt);
+        }
+        GameState.VecEvent.pop();
+        delete pEvt;
     }
-    GameState.VecEvent.clear();
+
+    for(ISystem* system : m_vecSystems) {
+        system->Finalize(&GameState);
+    }
 
     m_pNetworkSystem->SyncGameState(&GameState);
 
@@ -351,7 +359,7 @@ void Client::Update(float dt) {
         // }
 
         return false;
-        });
+    });
 }
 
 void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {

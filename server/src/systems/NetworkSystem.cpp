@@ -1,33 +1,19 @@
 #include <systems/NetworkSystem.h>
 #include <components/Components.h>
+#include "events/spell-cast-start-event.h"
+#include "events/spell-hit-event.h"
+#include "events.h"
 
 CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     m_pNetworkManager = pManager;
 
-    m_vecEventHandlerIds.push_back(std::pair(CEventManager::Subscribe(EEventType::SPELL_CAST_STARTED, [this](void* data) {
-        SpellCastStartedData_t* pSpellStartData = (SpellCastStartedData_t*) data;
-
-        SpellCastStartPacket pck = SpellCastStartPacket();
-        pck.unit = pSpellStartData->unit;
-        m_pNetworkManager->SendToAllClients(pck);
-    }), EEventType::SPELL_CAST_STARTED));
-    
-    m_vecEventHandlerIds.push_back(std::pair(CEventManager::Subscribe(EEventType::MOVE_INTENTION, [this](void* data) {
-        MoveIntentionData_t* pMoveData = (MoveIntentionData_t*) data;
-
-        UnitMoveIntentionPacket pck = UnitMoveIntentionPacket();
-        pck.unit = pMoveData->unit;
-        pck.x = pMoveData->x;
-        pck.y = 0;
-        pck.z = pMoveData->y;
-        m_pNetworkManager->SendToAllClients(pck);
-    }), EEventType::MOVE_INTENTION));
+    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart);
+    REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellhit);
+    REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
+    REGISTER_EVENT_HANDLER(CRespawnEvent, OnRespawn);
 }
 
 CNetworkSystem::~CNetworkSystem() {
-    for(std::pair<EventHandlerId, EEventType> pair : m_vecEventHandlerIds) {
-        CEventManager::Unsubscribe(pair.second, pair.first);
-    }
 }
 
 void CNetworkSystem::SyncGameState(CGameState* pGameState) {
@@ -63,13 +49,32 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
 
         if(pNetComponent->SyncMovement()) {
              if(CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>()) {
-                UnitMovePacket move = UnitMovePacket();
-                move.unit = pGameObject->GetId();
-                move.x = pTransform->GetPosition().x;
-                move.y = pTransform->GetPosition().y;
-                move.z = pTransform->GetPosition().z;
-                move.r = pTransform->GetRotation().y;
-                m_pNetworkManager->SendToAllClients(move);
+                if(CMovementComponent* pMove = pGameObject->GetComponent<CMovementComponent>()) {
+                    if(pMove->GetTarget() != pTransform->GetPosition()) {
+                        UnitMovePacket move = UnitMovePacket();
+                        move.unit = pGameObject->GetId();
+                        move.x = pTransform->GetPosition().x;
+                        move.y = pTransform->GetPosition().y;
+                        move.z = pTransform->GetPosition().z;
+                        move.r = pTransform->GetRotation().y;
+                        m_pNetworkManager->SendToAllClients(move);
+                    }
+
+                    UnitMoveIntentionPacket moveInt = UnitMoveIntentionPacket();
+                    moveInt.unit = pGameObject->GetId();
+                    moveInt.x = pMove->GetTarget().x;
+                    moveInt.y = pMove->GetTarget().y;
+                    moveInt.z = pMove->GetTarget().z;
+                    m_pNetworkManager->SendToAllClients(moveInt);
+                } else {
+                    UnitMovePacket move = UnitMovePacket();
+                    move.unit = pGameObject->GetId();
+                    move.x = pTransform->GetPosition().x;
+                    move.y = pTransform->GetPosition().y;
+                    move.z = pTransform->GetPosition().z;
+                    move.r = pTransform->GetRotation().y;
+                    m_pNetworkManager->SendToAllClients(move);
+                }
             }
         }
 
@@ -164,4 +169,29 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
         
     }
     */
+}
+
+void CNetworkSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pStartCastEvt) {
+    SpellCastStartPacket pck = SpellCastStartPacket();
+    pck.unit = pStartCastEvt->pCtx->idCaster;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnSpellhit(CGameState* pGameState, CSpellHitEvent* pHitEvt) {
+    SpellHitPacket pck = SpellHitPacket();
+    pck.unit = pHitEvt->idTarget;
+    pck.spell = pHitEvt->strSpell;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnDeath(CGameState* pGameState, CDeathEvent* pEvt) {
+    CUnitDeathPacket pck = CUnitDeathPacket();
+    pck.idUnit = pEvt->idTarget;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnRespawn(CGameState* pGameState, CRespawnEvent* pEvt) {
+    CUnitRespawnPacket pck = CUnitRespawnPacket();
+    pck.idUnit = pEvt->idTarget;
+    m_pNetworkManager->SendToAllClients(pck);
 }

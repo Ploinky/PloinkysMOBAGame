@@ -147,7 +147,12 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
 
         CMovementComponent* pMovementComponent = go->GetMovementComponent();
-        pMovementComponent->SetTarget({ move.x, 0, move.z });
+        Vector3 vec3NewTarget = { move.x, 0, move.z };
+        if(pMovementComponent->GetTarget() == vec3NewTarget) {
+            return;
+        }
+        pMovementComponent->SetTarget(vec3NewTarget);
+
 
         if (go->GetCurrentAnimation().GetAnimationName().compare("run") != 0) {
             go->PlayAnimation("run", true);
@@ -168,6 +173,56 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         go->PlayAnimation("attack1", false);
 
     });
+    packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, [this](std::vector<uint8_t> data) {
+        SpellHitPacket pck;
+        pck.Read(&data);
+
+        GameObject* go = GetGameObject(pck.unit);
+
+        if (go == nullptr) {
+            // TODO
+            Logger::Err("Received spell cast start for unknown unit");
+            return;
+        }
+
+        ParticleSystem* particle_system = ParticleSystem::Load("Persons/ChessPerson\\heal_person.pts", assetManager_);
+        particle_system->Initialize(direct3D);
+        // particle_system->Attach(go);
+        particle_system->position = {go->position.x, 100, go->position.z};
+
+        game_objects_.emplace(Util::GetSystemTime(), particle_system);
+    });
+    packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, [this](std::vector<uint8_t> data) {
+        CUnitDeathPacket pck;
+        pck.Read(&data);
+
+        GameObject* go = GetGameObject(pck.idUnit);
+
+        if (go == nullptr) {
+            // TODO
+            Logger::Err("Received death for unknown unit");
+            return;
+        }
+        
+        go->PlayAnimation("death", false);
+        go->dead = true;
+    });
+    packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, [this](std::vector<uint8_t> data) {
+        CUnitRespawnPacket pck;
+        pck.Read(&data);
+
+        GameObject* go = GetGameObject(pck.idUnit);
+
+        if (go == nullptr) {
+            // TODO
+            Logger::Err("Received death for unknown unit");
+            return;
+        }
+        
+        go->dead = false;
+        go->PlayAnimation("idle", true);
+    });
+
     net_manager_->Initialize(&packet_manager);
 
     this->direct3D = &handler->GetRenderer()->m_d3d;
@@ -260,6 +315,11 @@ void Game::Update(float dt) {
 
 	for (auto& go_it : game_objects_) {
 		GameObject* go = go_it.second;
+
+        if(go->dead) {
+            continue;
+        }
+
 		Sphere sphere(Vector3(go->position.x, 25, go->position.z), 50);
 		if (TestCollision(ray, sphere)) {
 			// TODO does this work for multiple objects right behind each other?
@@ -428,7 +488,7 @@ void Game::Render(CRenderer* renderer) {
     for (auto go_it : game_objects_) {
         GameObject* go = go_it.second;
 
-		renderer->Draw(go);
+        renderer->Draw(go);
     }
 
     RenderGameUI(renderer);
@@ -438,7 +498,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
     for (auto go_it : game_objects_) {
         GameObject* go = go_it.second;
 
-        if (!go->has_healthbar) {
+        if (!go->has_healthbar || go->dead) {
             continue;
         }
 

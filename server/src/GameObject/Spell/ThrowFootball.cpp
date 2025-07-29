@@ -13,6 +13,10 @@ void CThrowFootball::OnCastStart(CSpellCastContext* ctx) {
 
 void CThrowFootball::OnCast(CSpellCastContext* ctx) {
     Logger::FormatMsg("Cast of throwfootball completed by %d", ctx->idCaster);
-    CDamageEvent* ev = new CDamageEvent(ctx->idCaster, ctx->idTarget, 10);
+}
+
+void CThrowFootball::ApplyEffects(CSpellCastContext* ctx) {
+    Logger::FormatMsg("Applying effects of throwfootball by %d", ctx->idCaster);
+    CDamageEvent* ev = new CDamageEvent(ctx->idCaster, ctx->idTarget, 60);
     ctx->EmitEvent(ev);
 }

@@ -20,7 +20,7 @@ struct AnimationTrack {
 
 class Animation {
 public:
-	std::map<int, BonePosition> GetBonePositions(float time);
+	std::map<int, BonePosition> GetBonePositions(float time, bool bLoop);
 	BonePosition InterpolateBonePosition(const BonePosition& start, const BonePosition& end, float factor);
 
 	int bone_count;

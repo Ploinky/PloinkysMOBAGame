@@ -550,7 +550,7 @@ void CRenderer::Draw(GameObject* gameObject) {
 			if(animIt != model->Animations.end() && model->Skins.find(modelNode.second->Skin) != model->Skins.end()) {
 				Animation* animation = animIt->second;
 				Armature* skin = model->Skins.at(modelNode.second->Skin);
-				std::map<int, BonePosition> bonePositions = animation->GetBonePositions(gameObject->GetCurrentAnimation().GetAnimationTime());
+				std::map<int, BonePosition> bonePositions = animation->GetBonePositions(gameObject->GetCurrentAnimation().GetAnimationTime(), gameObject->GetCurrentAnimation().DoLoop());
 				std::vector<DirectX::XMMATRIX> boneTransforms(skin->bones.size());
 
 				for (size_t i = 0; i < skin->bones.size(); ++i) {

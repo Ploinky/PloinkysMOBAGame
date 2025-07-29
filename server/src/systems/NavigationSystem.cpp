@@ -9,7 +9,7 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 }
 
 
-void CNavigationSystem::Process(CGameState* pGameState, float fDelta) {
+void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
         CGameObject* pGameObject = goPair.second;
 

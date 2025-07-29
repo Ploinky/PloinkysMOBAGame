@@ -3,13 +3,17 @@
 #include <Common/PMG_Common.h>
 #include "Armature.h"
 
-std::map<int, BonePosition> Animation::GetBonePositions(float time) {
+std::map<int, BonePosition> Animation::GetBonePositions(float time, bool bLoop) {
 	std::map<int, BonePosition> bonePositions;
 
 	time /= 1000;
 
 	while(time > duration) {
- 		time -= duration;
+		if(bLoop) {
+			time -= duration;
+		} else {
+			time = duration;
+		}
 	}
 
  	for (const auto& track : animation_tracks) {

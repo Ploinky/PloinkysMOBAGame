@@ -6,6 +6,8 @@ class CHealthComponent : public IComponent{
 public:
     CHealthComponent(int nMaxHealth) : nMaxHealth(nMaxHealth), nHealth(nMaxHealth) {};
 
-    int nMaxHealth;
-    int nHealth;
+    int nMaxHealth = 100;
+    int nHealth = 100;
+    bool bIsDead = false;
+    float fTimeSinceDeath = 0.0f;
 };

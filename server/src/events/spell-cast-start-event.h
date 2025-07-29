@@ -6,11 +6,9 @@
 
 class CSpellCastStartEvent : public IGameEvent {
 public:
-    CSpellCastStartEvent(UnitId idCaster, SpellTargetInfo info, int nIndex);
+    CSpellCastStartEvent(CSpellCastContext* pCtx);
 
-    virtual void Execute(CGameState* pGameState) override;
+    virtual std::type_index GetType() const override { return typeid(CSpellCastStartEvent); };
 
-    UnitId m_idCaster;
-    SpellTargetInfo m_targetInfo;
-    int m_nIndex;
+    CSpellCastContext* pCtx;
 };

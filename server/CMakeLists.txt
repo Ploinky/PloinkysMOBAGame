@@ -8,7 +8,6 @@ endfunction()
 
 add_executable(server
 	src/Buff.cpp
-	src/EventManager.cpp
 	src/Game.cpp
 	src/GameState.cpp
 	src/LobbyState.cpp
@@ -34,6 +33,7 @@ add_executable(server
 	src/systems/NetworkSystem.cpp
 	src/systems/movement-system.cpp
 	src/systems/spell-system.cpp
+	src/systems/system.cpp
 
 	src/GameObject/Spell/ThrowFootball.cpp
 	src/GameObject/Spell/heal-person.cpp

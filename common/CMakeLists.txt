@@ -35,7 +35,10 @@ add_library(common
 	src/Packets/ServerInfoPacket.cpp
 	src/Packets/SpawnPacket.cpp
 	src/Packets/SpellCastStartPacket.cpp
+	src/Packets/SpellHitPacket.cpp
 	src/Packets/StopCommand.cpp
+	src/Packets/unit-death-packet.cpp
+	src/Packets/unit-respawn-packet.cpp
 	src/Packets/UnitIdlePacket.cpp
 	src/Packets/UnitIdPacket.cpp
 	src/Packets/UnitMoveIntentionPacket.cpp

@@ -4,9 +4,18 @@
 #include "GameObject.h"
 #include "components/Components.h"
 
-void CMovementSystem::Process(CGameState* pGameState, float fDelta) {
+CMovementSystem::CMovementSystem() {
+    REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
+}
+
+void CMovementSystem::Update(CGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
         CGameObject* pGameObject = goPair.second;
+
+        CHealthComponent* pHealthComp = pGameObject->GetComponent<CHealthComponent>();
+        if(pHealthComp != nullptr && pHealthComp->bIsDead) {
+            continue;
+        }
 
         CMovementComponent* pMoveComp = pGameObject->GetComponent<CMovementComponent>();
 
@@ -40,4 +49,16 @@ void CMovementSystem::Process(CGameState* pGameState, float fDelta) {
         pTransform->SetPosition(vec3OldPosition + vec3Move);
         pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {pMoveComp->GetTarget().x, pMoveComp->GetTarget().z}), 0});
     }
+}
+
+void CMovementSystem::OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvt) {
+    CGameObject* pGameObject = pGameState->FindGameObjectById(pDeathEvt->idTarget);
+
+    CMovementComponent* pMoveComp = pGameObject->GetComponent<CMovementComponent>();
+
+    if(pMoveComp == nullptr) {
+        return;
+    }
+
+    pMoveComp->ClearTarget();
 }

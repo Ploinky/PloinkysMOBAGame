@@ -10,8 +10,9 @@ class IComponent {
 public:
 	virtual void SetGameObject(CGameObject* pGameObject);
 
-protected:
+	// TODO private
 	CGameObject* m_pGameObject;
+protected:
 };
 
 class CGameObject {

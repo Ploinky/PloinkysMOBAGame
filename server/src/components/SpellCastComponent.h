@@ -5,22 +5,31 @@
 #include "SpellTargetInfo.h"
 #include "components/Components.h"
 
+enum class ESpellCastState {
+	IDLE,
+	CASTING,
+	CAST_POINT_REACHED,
+	BACKSWING,
+	FINISHED,
+	CANCELLED
+};
+
 typedef struct SpellSlot_s {
 	float fCooldownRemaining = 0.0f;
-	bool bIsCasting = false;
-	float fTimeSinceCast = 0.0f;
 	ISpell* pSpell = nullptr;
-	CSpellCastContext* spellCtx = nullptr;
 } SpellSlot_t;
+
+typedef struct ActiveCast_s {
+	int nIndex = -1;
+	ESpellCastState eState = ESpellCastState::IDLE;
+	float fTimeInState = 0.0f;
+	CSpellCastContext* spellCtx = nullptr;
+} ActiveCast_t;
 
 class CSpellCastComponent : public IComponent {
 public:
 	CSpellCastComponent(std::vector<SpellSlot_t> vecSpells);
 
-	void CastSpell(CSpellCastContext* spellCtx);
-
-	std::vector<SpellSlot_t>& GetSpellSlots();
-
-private:
-	std::vector<SpellSlot_t> m_vecSpells;
+	std::vector<SpellSlot_t> vecSpellSlots;
+	std::optional<ActiveCast_t> optCurrentCast;
 };
