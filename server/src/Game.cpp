@@ -14,6 +14,7 @@
 #include "events/spell-cast-start-event.h"
 #include "events/damage-event.h"
 #include "events.h"
+#include "systems/points-system.h"
 
 uint64_t g_unitId = 0;
 
@@ -109,6 +110,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(&m_spellSystem);
     m_vecSystems.push_back(&m_damageSystem);
     m_vecSystems.push_back(m_pNetworkSystem);
+    m_vecSystems.push_back(new CPointsSystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {

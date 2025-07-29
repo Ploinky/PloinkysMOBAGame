@@ -39,6 +39,9 @@ public:
 
     std::queue<IGameEvent*> VecEvent;
 
+    unsigned int uTeam1Points = 0;
+    unsigned int uTeam2Points = 0;
+
 private:
     NavigationMap* m_pNavMap;
 };

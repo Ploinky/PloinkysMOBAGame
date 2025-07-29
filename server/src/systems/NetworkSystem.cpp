@@ -89,6 +89,11 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
         if(CSpellCastComponent* pSpellCast = pGameObject->GetComponent<CSpellCastComponent>()) {
         }
     }
+
+    ScoreUpdatePacket pckScore = ScoreUpdatePacket();
+    pckScore.usTeam1Score = pGameState->uTeam1Points;
+    pckScore.usTeam2Score = pGameState->uTeam2Points;
+    m_pNetworkManager->SendToAllClients(pckScore);
     /*
         CGameObject* pGameObject = entry.second;
         if(pGameObject->NetworkSyncComponent.SyncSpawn) {
