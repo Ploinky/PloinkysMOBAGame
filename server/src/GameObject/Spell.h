@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 #include "GameState.h"
+#include "spell-cast-api.h"
 
 enum class ETargetingType {
     UNIT,
@@ -28,13 +29,15 @@ public:
 };
 
 class ISpell {
-    public:
-    virtual void OnCastStart(CSpellCastContext* ctx) {};
-    virtual void OnCast(CSpellCastContext* ctx) {};
-    virtual void ApplyEffects(CSpellCastContext* ctx) {};
+public:
+    ISpell(std::string idSpell) : idSpell(idSpell) {};
+    virtual void OnCastStart(CSpellCastApi api, CSpellCastContext* ctx) {};
+    virtual void OnCast(CSpellCastApi api, CSpellCastContext* ctx) {};
+    virtual void ApplyEffects(CSpellCastApi api, CSpellCastContext* ctx) {};
     
     float fCastPoint = 1000;
     float fCastTime = 2000;
     float fCooldown = 5000;
+    std::string idSpell;
     ETargetingType eTargetType = ETargetingType::UNIT_INSTANT;
 };

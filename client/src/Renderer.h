@@ -96,6 +96,8 @@ class CRenderer {
         CFlatUnlitShader* m_pFlatUnlitShader;
 		GLBShader* glbShader_;
 
+        void LoadCharacterManifest(std::string strCharacterId, AssetManager* pAssetManager);
+
 #ifdef _DEBUG
         // --- navigation grid rendering ---
         ID3D11Buffer* m_pNavGridVertexBuffer;

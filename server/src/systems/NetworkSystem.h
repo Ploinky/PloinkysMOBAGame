@@ -3,11 +3,7 @@
 #include <NetworkManager.h>
 #include <GameState.h>
 #include "system.h"
-
-class CSpellCastStartEvent;
-class CSpellHitEvent;
-class CDeathEvent;
-class CRespawnEvent;
+#include "events.h"
 
 class CNetworkSystem : public ISystem{
 public:
@@ -16,11 +12,13 @@ public:
 
     void SyncGameState(CGameState* pGameState);
 
-    
     void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pEvt);
     void OnSpellhit(CGameState* pGameState, CSpellHitEvent* pEvt);
     void OnDeath(CGameState* pGameState, CDeathEvent* pEvt);
     void OnRespawn(CGameState* pGameState, CRespawnEvent* pEvt);
+    void OnMove(CGameState* pGameState, CMoveEvent* pEvt);
+    void OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent* pEvt);
+    void OnCooldownStarted(CGameState* pGameState, CCooldownStartedEvent* pEvt);
 
 private:
     ServerNetworkManager* m_pNetworkManager;

@@ -11,6 +11,9 @@ CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellhit);
     REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
     REGISTER_EVENT_HANDLER(CRespawnEvent, OnRespawn);
+    REGISTER_EVENT_HANDLER(CMoveEvent, OnMove);
+    REGISTER_EVENT_HANDLER(CMoveIntentionEvent, OnMoveIntention);
+    REGISTER_EVENT_HANDLER(CCooldownStartedEvent, OnCooldownStarted);
 }
 
 CNetworkSystem::~CNetworkSystem() {
@@ -30,7 +33,7 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
 
         if(!pNetComponent->IsSpawnSynced()) {
             SpawnPacket spawn;
-            spawn.unit_type = UnitPrefab::FOOTBALL_PERSON;
+            spawn.unit_type = pGameObject->GetComponent<CCharacterComponent>()->prefab;
             spawn.team = Team::TEAM_1;
             spawn.unit = pGameObject->GetId();
             if(CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>()) {
@@ -45,26 +48,6 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
             m_pNetworkManager->SendToAllClients(spawn);
 
             pNetComponent->SetSpawnSynced();
-        }
-
-        if(pNetComponent->SyncMovement()) {
-             if(CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>()) {
-                UnitMovePacket move = UnitMovePacket();
-                move.unit = pGameObject->GetId();
-                move.x = pTransform->GetPosition().x;
-                move.y = pTransform->GetPosition().y;
-                move.z = pTransform->GetPosition().z;
-                move.r = pTransform->GetRotation().y;
-                m_pNetworkManager->SendToAllClients(move);
-            }
-            if(CMovementComponent* pMove = pGameObject->GetComponent<CMovementComponent>()) {
-                    UnitMoveIntentionPacket moveInt = UnitMoveIntentionPacket();
-                    moveInt.unit = pGameObject->GetId();
-                    moveInt.x = pMove->GetTarget().x;
-                    moveInt.y = pMove->GetTarget().y;
-                    moveInt.z = pMove->GetTarget().z;
-                    m_pNetworkManager->SendToAllClients(moveInt);
-            }
         }
 
         if(CHealthComponent* pHealth = pGameObject->GetComponent<CHealthComponent>()) {
@@ -187,5 +170,33 @@ void CNetworkSystem::OnDeath(CGameState* pGameState, CDeathEvent* pEvt) {
 void CNetworkSystem::OnRespawn(CGameState* pGameState, CRespawnEvent* pEvt) {
     CUnitRespawnPacket pck = CUnitRespawnPacket();
     pck.idUnit = pEvt->idTarget;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnMove(CGameState* pGameState, CMoveEvent* pEvt) {
+    UnitMovePacket pck = UnitMovePacket();
+    pck.unit = pEvt->idUnit;
+    pck.x = pEvt->vec3Position.x;
+    pck.y = pEvt->vec3Position.y;
+    pck.z = pEvt->vec3Position.z;
+    pck.r = pEvt->fRotation;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent* pEvt) {
+    UnitMoveIntentionPacket moveInt = UnitMoveIntentionPacket();
+    moveInt.unit = pEvt->idUnit;
+    moveInt.x = pEvt->vec3Position.x;
+    moveInt.y = pEvt->vec3Position.y;
+    moveInt.z = pEvt->vec3Position.z;
+    m_pNetworkManager->SendToAllClients(moveInt);
+}
+
+void CNetworkSystem::OnCooldownStarted(CGameState* pGameState, CCooldownStartedEvent* pEvt) {
+    CooldownPacket pck = CooldownPacket();
+    pck.cooldown = pEvt->fCooldown;
+    pck.unit = pEvt->idUnit;
+    pck.spell_slot = pEvt->nSpellIndex;
+    pck.total_cooldown = pEvt->fCooldown;
     m_pNetworkManager->SendToAllClients(pck);
 }

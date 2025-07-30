@@ -1,0 +1,12 @@
+{
+    "name": "Thunderstrike",
+    "id": "thunderstrike",
+    "icon": "thunderstrike_icon.png",
+    "castAnimation": "attack1",
+    "castSound": "thunderstrike_cast_sfx.ogg",
+    "target_hit_vfx": "thunderstrike.pts",
+    "target_hit_sfx": "characters/stormcaller/abilities/thunderstrike.wav",
+    "castRange": 500,
+    "targetingType": "UNIT",
+    "description": "Strikes an enemy with lightning, dealing instant damage."
+}

@@ -21,6 +21,16 @@ typedef struct {
     uint64_t unitId;
 } unit_t;
 
+enum class EAbilityTargetType {
+    UNIT
+};
+
+typedef struct {
+    std::string strName;
+    std::string strIcon;
+    EAbilityTargetType eTargetType;
+} UIAbility_t;
+
 class Game : public IClientState {
     typedef struct {
         unsigned long long received;
@@ -105,4 +115,5 @@ public:
     bool m_bGameHasEnded;
 
     std::vector<std::string> m_vecChat;
+    std::vector<UIAbility_t> m_vecAbilities;
 };

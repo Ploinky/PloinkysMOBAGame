@@ -10,6 +10,7 @@ public:
     static const uint64_t FOOTBALL_PERSON = 2;
     static const uint64_t THROW_FOOTBALL = 3;
     static const uint64_t MINION = 4;
+    static const uint64_t STORMCALLER = 5;
 };
 
 enum class Team {

@@ -66,7 +66,10 @@ public:
 	bool destroy = false;
 
 	bool dead = false;
+	bool bIsCasting = false;
 
+
+	uint64_t uPrefab = 0;
 private:
 	CAnimationComponent m_animationComponent;
 	CMovementComponent m_movementComponent;

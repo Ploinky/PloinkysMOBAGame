@@ -86,6 +86,7 @@ copy_asset_folder(Generic)
 copy_asset_folder(Maps)
 copy_asset_folder(Persons)
 copy_asset_folder(UI)
+copy_asset_folder(characters)
 
 compile_vertex_shader(GLBVertexShader)
 compile_pixel_shader(GLBPixelShader)

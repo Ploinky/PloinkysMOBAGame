@@ -1,0 +1,12 @@
+texture_file=characters/stormcaller/abilities\thunderstrike.png
+particle_velocity_x=0
+particle_velocity_y=1
+particle_velocity_z=0
+particle_velocity_range_x=0
+particle_velocity_range_y=0
+particle_velocity_range_z=0
+particle_scale_x=100
+particle_scale_y=100
+particle_scale_z=100
+particle_count=1
+emitter_lifetime=400

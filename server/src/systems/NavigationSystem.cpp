@@ -3,11 +3,11 @@
 #include "GameState.h"
 #include "Common/navigation.h"
 #include "components/Components.h"
+#include "events.h"
 
 CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     m_pMap = pMap;
 }
-
 
 void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
@@ -65,5 +65,6 @@ void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
         }
 
         pMovement->SetTarget({pNavComp->m_pNavGridAgent->path.at(0).x, 0, pNavComp->m_pNavGridAgent->path.at(0).y});
+        pGameState->VecEvent.emplace(new CMoveIntentionEvent(goPair.first, pMovement->GetTarget(), 0));
     }
 }

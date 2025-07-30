@@ -7,3 +7,4 @@
 #include "SpellCastComponent.h"
 #include "health-component.h"
 #include "team-component.h"
+#include "character-component.h"

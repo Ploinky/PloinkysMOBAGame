@@ -3,6 +3,7 @@
 #include "GameState.h"
 #include "GameObject.h"
 #include "components/Components.h"
+#include "events.h"
 
 CMovementSystem::CMovementSystem() {
     REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
@@ -49,6 +50,8 @@ void CMovementSystem::Update(CGameState* pGameState, float fDelta) {
 
         pTransform->SetPosition(vec3OldPosition + vec3Move);
         pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {pMoveComp->GetTarget().x, pMoveComp->GetTarget().z}), 0});
+
+        pGameState->VecEvent.emplace(new CMoveEvent(goPair.first, pTransform->GetPosition(), pTransform->GetRotation().y));
     }
 }
 

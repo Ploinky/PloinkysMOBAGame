@@ -45,6 +45,16 @@ copy_file(UI/MoveTo/move_to.pts)
 
 copy_file(Persons/_Generic/AbilityIcon.bmp)
 
+# Stormcaller
+export_glb(characters/stormcaller/stormcaller.blend characters/stormcaller/stormcaller.glb)
+copy_file(characters/stormcaller/abilities/thunderstrike.json)
+copy_file(characters/stormcaller/abilities/thunderstrike_icon.png)
+copy_file(characters/stormcaller/character_manifest.json)
+copy_file(characters/stormcaller/abilities/thunderstrike.png)
+copy_file(characters/stormcaller/abilities/thunderstrike.pte)
+copy_file(characters/stormcaller/abilities/thunderstrike.pts)
+copy_file(characters/stormcaller/abilities/thunderstrike.wav)
+
 # Chess person
 copy_file(Persons/ChessPerson/blast_area_2.pte)
 copy_file(Persons/ChessPerson/blast_area.png)

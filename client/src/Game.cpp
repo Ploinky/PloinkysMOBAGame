@@ -44,6 +44,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
+        go->bIsCasting = false;
         Vector3 vec3Move = { move.x, move.y, move.z };
         if ((go->position - vec3Move).Length() > 5) {
             Logger::FormatMsg("diff: %f", (go->position - vec3Move).Length());
@@ -72,6 +73,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
+        go->bIsCasting = false;
         if (go->GetCurrentAnimation().GetAnimationName().compare("idle") != 0) {
             go->PlayAnimation("idle", true);
         }
@@ -172,6 +174,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
+        go->bIsCasting = true;
         go->PlayAnimation("attack1", false);
 
     });
@@ -187,12 +190,14 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
-        ParticleSystem* particle_system = ParticleSystem::Load("Persons/ChessPerson\\heal_person.pts", assetManager_);
+        ParticleSystem* particle_system = ParticleSystem::Load("characters/stormcaller/abilities\\" + pck.spell + ".pts", assetManager_);
         particle_system->Initialize(direct3D);
         // particle_system->Attach(go);
         particle_system->position = {go->position.x, 100, go->position.z};
 
         game_objects_.emplace(Util::GetSystemTime(), particle_system);
+
+        handler_->PlayGenericSound("characters/stormcaller/abilities\\" + pck.spell + ".wav");
     });
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, [this](std::vector<uint8_t> data) {
         CUnitDeathPacket pck;
@@ -206,6 +211,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
         
+        go->bIsCasting = false;
         go->PlayAnimation("death", false);
         go->dead = true;
     });
@@ -221,6 +227,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
         
+        go->bIsCasting = false;
         go->dead = false;
         go->PlayAnimation("idle", true);
     });
@@ -317,6 +324,35 @@ void Game::Update(float dt) {
 
 	for (auto& go_it : game_objects_) {
 		GameObject* go = go_it.second;
+        std::string desiredAnim;
+        bool bLoop;
+
+        if (go->dead) {
+            desiredAnim = "death";
+            bLoop = false;
+        } else if (go->GetMovementComponent()->GetTarget() != go->position) {
+            Logger::FormatMsg("MOVING! (%f, %f, %f) -> (%f, %f, %f)",
+                go->GetMovementComponent()->GetTarget().x,
+                go->GetMovementComponent()->GetTarget().y,
+                go->GetMovementComponent()->GetTarget().z,
+                go->position.x,
+                go->position.y,
+                go->position.z
+            );
+            desiredAnim = "run";
+            bLoop = true;
+        } else if(go->bIsCasting) {
+            desiredAnim = "attack1";
+            bLoop = false;
+        } else {
+            desiredAnim = "idle";
+            bLoop = true;
+        }
+
+        if (go->GetCurrentAnimation().GetAnimationName() != desiredAnim) {
+            go->PlayAnimation(desiredAnim, bLoop);
+        }
+
 
         if(go->dead) {
             continue;
@@ -331,21 +367,27 @@ void Game::Update(float dt) {
 	}
 
     if (m_keys['q']) {
-        //float x, y;
-        //TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
-        //
-        //CastCommandPacket cast = CastCommandPacket();
-        //cast.spell_slot = 0;
-        //cast.x = x;
-        //cast.y = 0;
-        //cast.z = y;
-        //net_manager_->SendPacket(&cast);
-		if (pObjectUnderCursor) {
-			CastTargetCommandPacket cmd = CastTargetCommandPacket();
-			cmd.spell_slot = 0;
-			cmd.target = pObjectUnderCursor->unit_id;
-			net_manager_->SendPacket(&cmd);
-		}
+        switch(m_vecAbilities[0].eTargetType) {
+            case EAbilityTargetType::UNIT:
+                if (pObjectUnderCursor) {
+                    CastTargetCommandPacket cmd = CastTargetCommandPacket();
+                    cmd.spell_slot = 0;
+                    cmd.target = pObjectUnderCursor->unit_id;
+                    net_manager_->SendPacket(&cmd);
+                }
+                break;
+            default:
+                float x, y;
+                TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+                
+                CastCommandPacket cast = CastCommandPacket();
+                cast.spell_slot = 0;
+                cast.x = x;
+                cast.y = 0;
+                cast.z = y;
+                net_manager_->SendPacket(&cast);
+                break;
+        }
     }
 
     if (m_keys['w']) {
@@ -591,44 +633,47 @@ void Game::RenderGameUI(CRenderer* renderer) {
     renderer->RenderText(x, y, 400, 25, std::to_string(my_go->health).append("/").append(std::to_string(my_go->max_health)).c_str());
 
     float gray[3]{ 0.5, 0.5, 0.5 };
-    // Ability icons ?!
-    y = windowHeight_ - 110;
-    x = windowWidth_ / 2 - 115;
 
-    renderer->DrawRect(x, y, 50, 50, black);
-    renderer->DrawImage(x + 1, y + 1, 48, 48, my_go->renderable + "/ability_01_icon");
-    if (cooldowns[0] != -1) {
-        float cd_remaining = (float)cooldowns[0] / (float)total_cooldowns[0];
-		renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
-    }
-    renderer->RenderText(x, y, 50, 50, "Q");
+    if(unit_id_received_ && m_vecAbilities.size() == 4) {
+        // Ability icons ?!
+        y = windowHeight_ - 110;
+        x = windowWidth_ / 2 - 115;
 
-    x = windowWidth_ / 2 - 55;
-    renderer->DrawRect(x, y, 50, 50, black);
-    renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
-    if (cooldowns[1] != -1) {
-        float cd_remaining = (float)cooldowns[1] / (float)total_cooldowns[1];
-		renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
-    }
-    renderer->RenderText(x, y, 50, 50, "W");
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_vecAbilities.at(0).strIcon);
+        if (cooldowns[0] != -1) {
+            float cd_remaining = (float)cooldowns[0] / (float)total_cooldowns[0];
+            renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
+        }
+        renderer->RenderText(x, y, 50, 50, "Q");
 
-    x = windowWidth_ / 2 + 5;
-    renderer->DrawRect(x, y, 50, 50, black);
-    renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
-    if (cooldowns[2] != -1) {
-        float cd_remaining = (float)cooldowns[2] / (float)total_cooldowns[2];
-		renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
-    }
-    renderer->RenderText(x, y, 50, 50, "E");
+        x = windowWidth_ / 2 - 55;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
+        if (cooldowns[1] != -1) {
+            float cd_remaining = (float)cooldowns[1] / (float)total_cooldowns[1];
+            renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
+        }
+        renderer->RenderText(x, y, 50, 50, "W");
 
-    x = windowWidth_ / 2 + 65;
-    renderer->DrawRect(x, y, 50, 50, black);
-    renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
-    if (cooldowns[3] != -1) {
-        float cd_remaining = (float)cooldowns[3] / (float)total_cooldowns[3];
-		renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
+        x = windowWidth_ / 2 + 5;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
+        if (cooldowns[2] != -1) {
+            float cd_remaining = (float)cooldowns[2] / (float)total_cooldowns[2];
+            renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
+        }
+        renderer->RenderText(x, y, 50, 50, "E");
+
+        x = windowWidth_ / 2 + 65;
+        renderer->DrawRect(x, y, 50, 50, black);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
+        if (cooldowns[3] != -1) {
+            float cd_remaining = (float)cooldowns[3] / (float)total_cooldowns[3];
+            renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
+        }
+        renderer->RenderText(x, y, 50, 50, "R");
     }
-    renderer->RenderText(x, y, 50, 50, "R");
 
     float hp = static_cast<float>(M_PI / 180.0);
     Ray ray = ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
@@ -736,6 +781,24 @@ void Game::SpawnUnit(uint64_t unitId) {
 }
 
 void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos) {
+    if(unitId == my_unit_id_) {
+
+        switch(unit_type) {
+            case UnitPrefab::FOOTBALL_PERSON:
+            case UnitPrefab::STORMCALLER:
+                m_vecAbilities.resize(4);
+                m_vecAbilities[0] = {
+                    .strName = "Thunderstrike",
+                    .strIcon = "characters/stormcaller/abilities\\thunderstrike_icon.png",
+                    .eTargetType = EAbilityTargetType::UNIT,
+                };
+                break;
+                break;
+            default:
+                break;
+        }
+    }
+
     if (game_objects_.find(unitId) != game_objects_.end()) {
         // already spawned!
         return;
@@ -751,6 +814,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->rotation = { 0, 0, 0 };
         go->has_healthbar = false;
         go->team = team;
+        go->uPrefab = unit_type;
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -764,6 +828,22 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->team = team;
+        go->uPrefab = unit_type;
+        go->PlayAnimation("idle", true);
+        game_objects_.emplace(unitId, go);
+        return;
+    }
+
+    if (unit_type == UnitPrefab::STORMCALLER) {
+        GameObject* go = new GameObject();
+        go->renderable = "stormcaller";
+        go->unit_id = unitId;
+        go->health = 50;
+        go->max_health = 100;
+        go->position = pos;
+        go->rotation = { 0, 0, 0 };
+        go->team = team;
+        go->uPrefab = unit_type;
         go->PlayAnimation("idle", true);
         game_objects_.emplace(unitId, go);
         return;
@@ -780,6 +860,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->has_healthbar = true;
         go->has_title = false;
         go->team = team;
+        go->uPrefab = unit_type;
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -794,6 +875,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->has_healthbar = false;
         go->has_title = false;
         go->team = team;
+        go->uPrefab = unit_type;
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -809,6 +891,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->has_healthbar = true;
         go->has_title = false;
         go->team = team;
+        go->uPrefab = unit_type;
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -837,12 +920,11 @@ void Game::HandleTicks(float dt) {
 
         Vector3 vec3Move = { pMovementComponent->GetTarget().x - pGameObject->position.x, 0, pMovementComponent->GetTarget().z - pGameObject->position.z};
 
-        if (vec3Move.Length() < 600 * (7 / 1000.0f)) {
-            continue;
+        if (vec3Move.Length() > 600 * (7 / 1000.0f)) {
+            vec3Move = vec3Move.Normalize().ScaleToLength(600 * (7 / 1000.0f));
         }
-
-        vec3Move = vec3Move.Normalize();
-        pGameObject->position = pGameObject->position + vec3Move.ScaleToLength(600 * (7 / 1000.0f));
+        
+        pGameObject->position = pGameObject->position + vec3Move;
         pGameObject->rotation.y = CalculateAngle({ pGameObject->position.x, pGameObject->position.z }, { pMovementComponent->GetTarget().x, pMovementComponent->GetTarget().z });
 
     }

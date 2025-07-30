@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include "common/PloinkysJSONLibrary.h"
+
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {
 		delete model_it.second;
@@ -75,6 +77,10 @@ void CRenderer::LoadResources(AssetManager* pAssetManager) {
 	ID3D11ShaderResourceView* particle = nullptr;
 	CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("Persons/ChessPerson\\particle.png"), &particle);
 	textures_.emplace("Persons/ChessPerson\\particle.png", particle);
+	
+	ID3D11ShaderResourceView* thunder = nullptr;
+	CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("characters/stormcaller/abilities\\thunderstrike.png"), &thunder);
+	textures_.emplace("characters/stormcaller/abilities\\thunderstrike.png", thunder);
 
 	// ------------ GLB ------------
 	LoadGLBModel("map1", "Maps/map1\\map1.glb", pAssetManager);
@@ -82,6 +88,8 @@ void CRenderer::LoadResources(AssetManager* pAssetManager) {
 	LoadGLBModel("tower", "Buildings/Tower\\tower.glb", pAssetManager);
 	LoadGLBModel("missile", "Persons/ChessPerson\\missile.glb", pAssetManager);
 	LoadGLBModel("minion", "Persons/Minion\\minion.glb", pAssetManager);
+
+	LoadCharacterManifest("stormcaller", pAssetManager);
 
 #ifdef _DEBUG
 	FlatUnlitShaderVertex_t vertices[4] = {
@@ -96,6 +104,34 @@ void CRenderer::LoadResources(AssetManager* pAssetManager) {
 	m_pNavGridVertexBuffer = m_d3d.CreateVertexBuffer(vertices, 4, sizeof(FlatUnlitShaderVertex_t) * 4);
 	m_pNavGridIndexBuffer = m_d3d.CreateIndexBuffer(indices, 6);
 #endif
+}
+
+void CRenderer::LoadCharacterManifest(std::string strCharacterId, AssetManager* pAssetManager) {
+	PJL::JSONValue manifestValue = PJL::JSONParser().Parse(
+		std::string((char*) pAssetManager->LoadFile("characters/" + strCharacterId + "/character_manifest.json").data())
+	);
+
+	if(!manifestValue.IsObject()) {
+		Logger::Err("Failed to load manifest for character " + strCharacterId);
+		return;
+	}
+
+	PJL::JSONObject manifest = manifestValue.AsObject();
+
+	if(manifest.Contains("model") && manifest.Get("model").IsString()) {
+		LoadGLBModel(strCharacterId, manifest.Get("model").AsString(), pAssetManager);
+	}
+
+	if(manifest.Contains("icons") && manifest.Get("icons").IsArray()) {
+		PJL::JSONArray arrIcons = manifest.Get("icons").AsArray();
+		for(int i = 0; i < arrIcons.Size(); i++) {
+			PJL::JSONValue val = arrIcons.Get(i);
+
+			if(val.IsString()) {
+				bitmaps_.emplace(val.AsString(), CreateBitmapFromData(pAssetManager->LoadFile(val.AsString())));
+			}
+		}
+	}
 }
 
 Mesh* CRenderer::LoadMesh(GLBModelMesh* glbMesh) {

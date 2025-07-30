@@ -15,6 +15,7 @@ add_executable(server
 	src/Missile.cpp
 	src/NetworkManager.cpp
 	src/Server.cpp
+	src/spell-cast-api.cpp
 	
 	src/GameObject.cpp
 	
@@ -37,9 +38,7 @@ add_executable(server
 	src/systems/spell-system.cpp
 	src/systems/system.cpp
 
-	src/GameObject/Spell/ThrowFootball.cpp
-	src/GameObject/Spell/heal-person.cpp
-
+	src/content/characters/stormcaller/thunderstrike.cpp
 )
 set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 

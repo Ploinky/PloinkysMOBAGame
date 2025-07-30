@@ -29,11 +29,14 @@ void CRespawnSystem::Update(CGameState* pGameState, float fDelta) {
                     SpawnPoint_t spawn = pGameState->mapTeamSpawnPoints[pTeam->eTeam].at(0);
                     pTransform->SetPosition({spawn.vec2Pos.x, 0, spawn.vec2Pos.y});
                     pTransform->SetRotation({0, spawn.fAngle, 0});
+
+                    if(pGameObject->GetComponent<CMovementComponent>()) {
+                        pGameObject->GetComponent<CMovementComponent>()->ClearTarget();
+                    }
+
+                    pGameState->VecEvent.emplace(new CMoveEvent(pGameObject->GetId(), pTransform->GetPosition(), pTransform->GetRotation().y));
                 }
 
-                if(pGameObject->GetComponent<CMovementComponent>()) {
-                    pGameObject->GetComponent<CMovementComponent>()->ClearTarget();
-                }
 
                 pGameState->VecEvent.emplace(new CRespawnEvent(pGameObject->GetId()));
             }

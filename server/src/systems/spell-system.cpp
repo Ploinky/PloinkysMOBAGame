@@ -57,6 +57,8 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
                 }
             case ESpellCastState::FINISHED:
                 vecSpells[activeCast.nIndex].fCooldownRemaining = vecSpells[activeCast.nIndex].pSpell->fCooldown;
+                pGameState->VecEvent.emplace(new CCooldownStartedEvent(pGameObj.first, activeCast.nIndex, vecSpells[activeCast.nIndex].pSpell->fCooldown));
+                pSpellComp->optCurrentCast.reset();
                 break;
             case ESpellCastState::CANCELLED:
                 pSpellComp->optCurrentCast.reset(); // Done
@@ -104,6 +106,8 @@ void CSpellSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent
     // TODO stop movement
     pCaster->GetComponent<CNavigationComponent>()->StopNavigation();
     pCaster->GetComponent<CMovementComponent>()->ClearTarget();
+    Vector3 pos = pCaster->GetComponent<CTransformComponent>()->GetPosition();
+    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pCaster->GetId(), pos, 0));
 
     CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
 
@@ -113,7 +117,7 @@ void CSpellSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent
     }
 
     SpellSlot_t spellSlot = pSpellComp->vecSpellSlots.at(pCastStartEvt->pCtx->nSpellIndex);
-    spellSlot.pSpell->OnCastStart(pCastStartEvt->pCtx);
+    spellSlot.pSpell->OnCastStart(CSpellCastApi(pGameState), pCastStartEvt->pCtx);
 
     ActiveCast_t cast;
     cast.eState = ESpellCastState::CASTING;
@@ -122,7 +126,7 @@ void CSpellSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent
     cast.spellCtx = pCastStartEvt->pCtx;
     pSpellComp->optCurrentCast.emplace(cast);
 }
-    
+
 void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent) {
     Logger::FormatMsg("Received cast event, processing...");
 
@@ -140,7 +144,7 @@ void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEve
         return;
     }
 
-    pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).pSpell->OnCast(pCastEvent->m_spellCtx);
+    pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).pSpell->OnCast(CSpellCastApi(pGameState), pCastEvent->m_spellCtx);
 
     if(pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).pSpell->eTargetType == ETargetingType::UNIT_INSTANT) {
         SpellHit(pGameState, pCastEvent->m_spellCtx);
@@ -151,9 +155,9 @@ void CSpellSystem::SpellHit(CGameState* pGameState, CSpellCastContext* pCtx) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pCtx->idCaster);
 
     CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
-    pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).pSpell->ApplyEffects(pCtx);
+    pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).pSpell->ApplyEffects(CSpellCastApi(pGameState), pCtx);
 
-    pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, "test123"));
+    pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).pSpell->idSpell));
 }
 
 void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpellCtx) {

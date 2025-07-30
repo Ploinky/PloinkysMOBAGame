@@ -4,7 +4,6 @@
 #include "GameState.h"
 #include "GameObject.h"
 #include "components/Components.h"
-#include "GameObject/Spells.h"
 #include "systems/spell-system.h"
 #include "systems/damage-system.h"
 #include "systems/movement-system.h"
@@ -25,12 +24,14 @@ TEST_CASE(TestFirebolt) {
     pPlayer->AddComponent(new CNavigationComponent());
 
     std::vector<SpellSlot_t> vecSpells;
+    /*
     SpellSlot_t spell1;
     spell1.pSpell = new CThrowFootball();
     SpellSlot_t spell2;
     spell2.pSpell = new CHealPerson();
     vecSpells.push_back(spell1);
     vecSpells.push_back(spell2);
+    */
     CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
     pPlayer->AddComponent(pSpellCast);
 

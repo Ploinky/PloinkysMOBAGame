@@ -9,13 +9,13 @@
 #include "IServerStateHandler.h"
 #include "systems/NavigationSystem.h"
 #include "Components.h"
-#include "GameObject/Spells.h"
 #include "SpellTargetInfo.h"
 #include "events/spell-cast-start-event.h"
 #include "events/damage-event.h"
 #include "events.h"
 #include "systems/points-system.h"
 #include "systems/respawn-system.h"
+#include "content/characters/stormcaller/thunderstrike.h"
 
 uint64_t g_unitId = 0;
 
@@ -132,11 +132,8 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
 
     std::vector<SpellSlot_t> vecSpells;
     SpellSlot_t spell1;
-    spell1.pSpell = new CThrowFootball();
-    SpellSlot_t spell2;
-    spell2.pSpell = new CHealPerson();
+    spell1.pSpell = new CThunderstrike();
     vecSpells.push_back(spell1);
-    vecSpells.push_back(spell2);
     CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
     pGameObject->AddComponent(pSpellCast);
 
@@ -144,6 +141,7 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     pGameObject->AddComponent(health);
 
     pGameObject->AddComponent(new CTeamComponent(Team::TEAM_1));
+    pGameObject->AddComponent(new CCharacterComponent(UnitPrefab::STORMCALLER));
 
     AddGameObject(pGameObject);
 
@@ -207,6 +205,9 @@ void Client::PlayerStopCommand(PlayerID playerId) {
 
         if(CNavigationComponent* pNavComp = person->GetComponent<CNavigationComponent>()) {
             pNavComp->StopNavigation();
+            // TODO this belongsn't here
+            Vector3 pos = person->GetComponent<CTransformComponent>()->GetPosition();
+            GameState.VecEvent.emplace(new CMoveIntentionEvent(person->GetId(), pos, 0));
         }
     }
 }
@@ -253,6 +254,7 @@ void Client::Start() {
     pDummy->GetComponent<CNetworkComponent>()->SetSyncMovement(true);
     pDummy->AddComponent(new CHealthComponent(100));
     pDummy->AddComponent(new CTeamComponent(Team::TEAM_2));
+    pDummy->AddComponent(new CCharacterComponent(UnitPrefab::FOOTBALL_PERSON));
     AddGameObject(pDummy);// TODO need to add him again
 }
 

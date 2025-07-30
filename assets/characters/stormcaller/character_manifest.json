@@ -1,0 +1,16 @@
+{
+  "model": "characters/stormcaller/stormcaller.glb",
+  "portrait": "portraits/square.png",
+  "abilities": [
+    "characters/stormcaller/abilities/thunderstrike.json"
+  ],
+  "sounds": [
+    "characters/stormcaller/abilities/thunderstrike.wav"
+  ],
+  "icons": [
+    "characters/stormcaller/abilities/thunderstrike_icon.png"
+  ],
+  "particles": [
+    "abilities/thunderstrike_target_hit.particle"
+  ]
+}
