@@ -15,7 +15,7 @@ LobbyState::LobbyState(IServerStateHandler* handler, ServerNetworkManager* netwo
 void LobbyState::Initialize() {
 	networkManager_->CreateListenSocket(std::to_string(DEFAULT_PORT));
 
-	packetHandler_.RegisterHandler(PacketType::LOBBY_PLAYER_PCK, [this](std::vector<uint8_t> data, PlayerID playerId) {
+	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_SLOT, [this](std::vector<uint8_t> data, PlayerID playerId) {
 		LobbySlotCmd cmd = LobbySlotCmd();
 		cmd.Read(&data);
 

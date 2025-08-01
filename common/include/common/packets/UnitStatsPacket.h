@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BasePacket.h"
+#include "PMG_Common.h"
 
 class UnitStatsPacket : public BasePacket {
 public:
@@ -8,7 +9,7 @@ public:
 	virtual void Read(std::vector<uint8_t>* data) override;
 	virtual void Write(std::vector<uint8_t>* data) override;
 	
-	unsigned int unit;
-	int health;
-	int max_health;
+	UnitId unit;
+	uint64_t health;
+	uint64_t max_health;
 };

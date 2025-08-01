@@ -8,7 +8,7 @@ public:
 	virtual void Read(std::vector<uint8_t>* data) override;
 	virtual void Write(std::vector<uint8_t>* data) override;
 
-	int slot;
+	uint8_t slot;
 	uint64_t steamId;
 	bool isReady;
 };

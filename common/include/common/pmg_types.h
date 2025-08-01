@@ -13,7 +13,7 @@ public:
     static const uint64_t STORMCALLER = 5;
 };
 
-enum class Team {
+enum class Team : uint8_t {
     TEAM_1,
     TEAM_2,
     NEUTRAL

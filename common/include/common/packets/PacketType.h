@@ -1,6 +1,8 @@
 #pragma once
 
-enum class PacketType {
+#include <stdint.h>
+
+enum class PacketType : uint64_t {
 	// Finding servers
 	SERVER_INFO,
 

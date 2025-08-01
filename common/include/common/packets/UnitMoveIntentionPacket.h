@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BasePacket.h"
+#include "common/PMG_Common.h"
 
 class UnitMoveIntentionPacket : public BasePacket {
 public:
@@ -10,7 +11,7 @@ public:
 	virtual void Read(std::vector<uint8_t>* data) override;
 	virtual void Write(std::vector<uint8_t>* data) override;
 
-	unsigned int unit;
+	UnitId unit;
 	float x;
 	float y;
 	float z;
