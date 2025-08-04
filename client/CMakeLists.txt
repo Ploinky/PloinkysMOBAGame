@@ -79,7 +79,12 @@ target_include_directories(client PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/steam/p
 target_link_libraries(client PUBLIC steam_api64 common d3d11 dwrite d2d1 xaudio2)
 
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64/steam_api64.dll $<TARGET_FILE_DIR:client>/steam_api64.dll)
-add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:client>/steam_appid.txt)
+add_custom_command(TARGET client POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E $<IF:$<CONFIG:Debug>,copy_if_different,true>
+        ${CMAKE_SOURCE_DIR}/steam_appid.txt
+        $<TARGET_FILE_DIR:client>/steam_appid.txt
+    COMMENT 
+)
 
 copy_asset_folder(Buildings)
 copy_asset_folder(Generic)

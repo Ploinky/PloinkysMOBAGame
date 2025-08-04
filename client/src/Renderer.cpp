@@ -1039,6 +1039,7 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 	}
 }
 
+#ifdef _DEBUG
 void CRenderer::RenderNavGrid(NavigationCellGrid* pNavGrid) {
 	FlatUnlitShaderFrameConst_t data{};
 	data.cameraMatrix = cameraMatrix;
@@ -1076,7 +1077,7 @@ void CRenderer::RenderNavGrid(NavigationCellGrid* pNavGrid) {
 		m_d3d.context->DrawIndexed(6, 0, 0);
 	}
 }
-
+#endif
 
 void CRenderer::RenderChat(std::vector<std::string> vecMsgs) {
 	if (vecMsgs.size() == 0) {
