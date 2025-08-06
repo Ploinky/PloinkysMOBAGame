@@ -191,10 +191,12 @@ void Client::PlayerMoveCommand(PlayerID playerId, float nx, float ny) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
         CGameObject* person = GameState.GameObjects.find(player->unit)->second;
-        if(CNavigationComponent* pNavComp = person->GetComponent<CNavigationComponent>()) {
-            // TODO what if no? is this really the right unit?
-            pNavComp->NavigateTo({nx, 0, ny});
-        }
+
+        GameState.VecEvent.emplace(new CMoveAttemptEvent(
+            person->GetId(),
+            {nx, 0, ny},
+            0
+        ));
     }
 }
 

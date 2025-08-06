@@ -13,6 +13,8 @@ public:
     virtual void Update(CGameState* pGameState, float fDelta) override;
 
     void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvent);
+    void OnMoveAttempt(CGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent);
+
 private:
     NavigationMap* m_pMap;
 };

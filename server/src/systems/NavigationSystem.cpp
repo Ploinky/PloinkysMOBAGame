@@ -8,6 +8,7 @@
 CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     m_pMap = pMap;
     REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart);
+    REGISTER_EVENT_HANDLER(CMoveAttemptEvent, OnMoveAttempt);
 }
 
 void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
@@ -82,4 +83,19 @@ void CNavigationSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStart
 
     pNavComp->StopNavigation();
     pGameState->VecEvent.emplace(new CMoveIntentionEvent(pGameObject->GetId(), pTransformComp->GetPosition(), 0));
+}
+
+void CNavigationSystem::OnMoveAttempt(CGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
+    CGameObject* pGameObject = pGameState->FindGameObjectById(pMoveAttemptEvent->idUnit);
+    CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
+
+    if(pNavComp == nullptr) {
+        return;
+    }
+
+    pNavComp->NavigateTo(pMoveAttemptEvent->vec3Position);
+
+    if(CSpellCastComponent* pSpellCastComp = pGameObject->GetComponent<CSpellCastComponent>()) {
+        pSpellCastComp->optCurrentCast.reset();
+    }
 }
