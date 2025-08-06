@@ -6,10 +6,11 @@
 #include "quaternion.h"
 
 // Geometric shapes
-#include "sphere.h"
-#include "ray.h"
+#include "capsule.h"
 #include "circle.h"
 #include "Line.h"
+#include "ray.h"
+#include "sphere.h"
 
 // Advanced
 #include "collision.h"

@@ -1,5 +1,44 @@
 #include "collision.h"
 #include <math.h>
+#include <algorithm>
+
+bool TestCollision(Ray ray, Capsule_t cap) {
+    Vector3 vec3RayDirNorm = ray.direction.Normalize();
+    Vector3 vec3LineSeg = cap.vec3End - cap.vec3Start;
+    Vector3 w0 = ray.origin - cap.vec3Start;
+
+    double a = vec3RayDirNorm * vec3RayDirNorm;
+    double b = vec3RayDirNorm * vec3LineSeg;
+    double c = vec3LineSeg * vec3LineSeg;
+    double d = vec3RayDirNorm * w0;
+    double e = vec3LineSeg * w0;
+
+    double denom = a * c - b * b;
+
+    double t_c = 0.0, u_c = 0.0;
+
+    if (denom != 0.0) {
+        t_c = (b * e - c * d) / denom;
+        u_c = (a * e - b * d) / denom;
+    }
+
+    if (t_c < 0.0) {
+        t_c = 0.0;
+    }
+
+    double u_c_clamped = std::clamp(u_c, 0.0, 1.0);
+
+    if (denom != 0.0 && u_c != u_c_clamped) {
+        u_c = u_c_clamped;
+        t_c = (b * u_c + d) / a;
+        if (t_c < 0.0) t_c = 0.0;
+    }
+
+    Vector3 closestPointRay = ray.origin + vec3RayDirNorm * t_c;
+    Vector3 closestPointSeg = cap.vec3Start + vec3LineSeg * u_c_clamped;
+
+    return (closestPointRay - closestPointSeg).Length() < cap.fRadius;
+}
 
 bool TestCollision(Ray ray, Sphere sphere) {
     float xd = ray.direction.x;
@@ -68,7 +107,7 @@ Vector2 TestCollision(Line line, Circle circle) {
         float y_factor = sqrtDiscriminant * dx / (dr * dr);
         
         return { (D * dy + dx * (dy > 0 ? 1 : -1) * sqrtDiscriminant) / (dr * dr) + circle.position.x,
-            (-D * dx + (float)fabs(dy) * sqrtDiscriminant) / (dr * dr) + circle.position.y };
+   (-D * dx + (float)fabs(dy) * sqrtDiscriminant) / (dr * dr) + circle.position.y };
     }
 
     /*

@@ -358,8 +358,13 @@ void Game::Update(float dt) {
             continue;
         }
 
-		Sphere sphere(Vector3(go->position.x, 25, go->position.z), 50);
-		if (TestCollision(ray, sphere)) {
+        Capsule_t capsule = Capsule_t {
+            .vec3Start = Vector3(go->position.x, 0, go->position.z),
+            .vec3End = Vector3(go->position.x, 200, go->position.z),
+            .fRadius = 50,
+        };
+
+		if (TestCollision(ray, capsule)) {
 			// TODO does this work for multiple objects right behind each other?
 			pObjectUnderCursor = go;
 			break;
@@ -513,6 +518,10 @@ void Game::Update(float dt) {
     // clamp camera position to avoid scrolling off map
     m_camPos[0] = min(max(m_camPos[0], 0), 9000);
     m_camPos[2] = max(min(m_camPos[2], 1000), -4400);
+
+    if(pObjectUnderCursor) {
+        handler_->RequestCursor(CursorId::ATTACK_MOVE);
+    }
 }
 
 void Game::Render(CRenderer* renderer) {
