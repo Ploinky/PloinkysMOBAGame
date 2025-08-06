@@ -2,6 +2,7 @@
 
 #include <GameState.h>
 #include "system.h"
+#include "events.h"
 
 class NavigationMap;
 
@@ -11,6 +12,7 @@ public:
 
     virtual void Update(CGameState* pGameState, float fDelta) override;
 
+    void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvent);
 private:
     NavigationMap* m_pMap;
 };

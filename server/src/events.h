@@ -7,5 +7,6 @@
 #include "events/move-intention-event.h"
 #include "events/respawn-event.h"
 #include "events/spell-attempt-cast-event.h"
+#include "events/spell-cast-event.h"
 #include "events/spell-cast-start-event.h"
 #include "events/spell-hit-event.h"

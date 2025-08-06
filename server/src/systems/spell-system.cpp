@@ -12,7 +12,6 @@
 
 CSpellSystem::CSpellSystem() {
     REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellAttemptCast);
-    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart);
     REGISTER_EVENT_HANDLER(CSpellCastEvent, OnSpellCast);
 }
 
@@ -40,8 +39,38 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
         ActiveCast_t& activeCast = pSpellComp->optCurrentCast.value();
         activeCast.fTimeInState += fDelta;
 
+        CGameObject* pCaster = nullptr;
+        CGameObject* pTarget = nullptr;
+        CTransformComponent* pCasterTransform = nullptr;
+        CTransformComponent* pTargetTransform = nullptr;
+        CNavigationComponent* pNavigationComponent = nullptr;
+
         switch(activeCast.eState) {
             case ESpellCastState::IDLE:
+            case ESpellCastState::APPROACHING:
+                pCaster = pGameState->FindGameObjectById(activeCast.spellCtx->idCaster);
+                pTarget = pGameState->FindGameObjectById(activeCast.spellCtx->idTarget);
+
+                pCasterTransform = pCaster->GetComponent<CTransformComponent>();
+                pTargetTransform = pTarget->GetComponent<CTransformComponent>();
+
+                pNavigationComponent = pCaster->GetComponent<CNavigationComponent>();
+                if(vecSpells[activeCast.nIndex].pSpell->fCastRange > (pCasterTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
+                    activeCast.eState = ESpellCastState::CASTING;
+                    activeCast.fTimeInState = 0.0f;
+                    
+                    vecSpells[activeCast.nIndex].pSpell->OnCastStart(CSpellCastApi(pGameState), activeCast.spellCtx);
+
+                    CSpellCastStartEvent* pStartEvt = new CSpellCastStartEvent(activeCast.spellCtx);
+                    pGameState->VecEvent.emplace(pStartEvt);
+                    break;
+                }
+
+                if(pNavigationComponent->m_vec3Destination != pTargetTransform->GetPosition()) {
+                    pNavigationComponent->NavigateTo(pTargetTransform->GetPosition());
+                }
+
+                break;
             case ESpellCastState::CASTING:
                 if(activeCast.fTimeInState >= vecSpells[activeCast.nIndex].pSpell->fCastPoint) {
                     pGameState->VecEvent.emplace(new CSpellCastEvent(activeCast.spellCtx));
@@ -100,33 +129,6 @@ void CSpellSystem::OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastE
     TryCastSpell(pGameState, pSpellCtx);
 }
 
-void CSpellSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvt) {
-    CGameObject* pCaster = pGameState->FindGameObjectById(pCastStartEvt->pCtx->idCaster);
-
-    // TODO stop movement
-    pCaster->GetComponent<CNavigationComponent>()->StopNavigation();
-    pCaster->GetComponent<CMovementComponent>()->ClearTarget();
-    Vector3 pos = pCaster->GetComponent<CTransformComponent>()->GetPosition();
-    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pCaster->GetId(), pos, 0));
-
-    CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
-
-    if(pSpellComp == nullptr) {
-        Logger::FormatErr("Invalid cast event: caster with id %d does not not have a spell cast component", pCastStartEvt->pCtx->idCaster);
-        return;
-    }
-
-    SpellSlot_t spellSlot = pSpellComp->vecSpellSlots.at(pCastStartEvt->pCtx->nSpellIndex);
-    spellSlot.pSpell->OnCastStart(CSpellCastApi(pGameState), pCastStartEvt->pCtx);
-
-    ActiveCast_t cast;
-    cast.eState = ESpellCastState::CASTING;
-    cast.fTimeInState = 0.0f;
-    cast.nIndex = pCastStartEvt->pCtx->nSpellIndex;
-    cast.spellCtx = pCastStartEvt->pCtx;
-    pSpellComp->optCurrentCast.emplace(cast);
-}
-
 void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent) {
     Logger::FormatMsg("Received cast event, processing...");
 
@@ -164,6 +166,7 @@ void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpel
     Logger::FormatMsg("casting spell no. %d", pSpellCtx->nSpellIndex);
 
     CGameObject* pCaster = pGameState->FindGameObjectById(pSpellCtx->idCaster);
+    CGameObject* pTarget = pGameState->FindGameObjectById(pSpellCtx->idTarget);
 
     CSpellCastComponent* pCastComponent = pCaster->GetComponent<CSpellCastComponent>();
 
@@ -190,8 +193,18 @@ void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpel
         return;
     }
 
-    CSpellCastStartEvent* pStartEvt = new CSpellCastStartEvent(pSpellCtx);
-    pGameState->VecEvent.emplace(pStartEvt);
+    // TODO stop movement
+    pCaster->GetComponent<CNavigationComponent>()->StopNavigation();
+    pCaster->GetComponent<CMovementComponent>()->ClearTarget();
+    Vector3 pos = pCaster->GetComponent<CTransformComponent>()->GetPosition();
+    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pCaster->GetId(), pos, 0));
+
+    ActiveCast_t cast;
+    cast.eState = ESpellCastState::IDLE;
+    cast.fTimeInState = 0.0f;
+    cast.nIndex = pSpellCtx->nSpellIndex;
+    cast.spellCtx = pSpellCtx;
+    pCastComponent->optCurrentCast.emplace(cast);
 }
 
 

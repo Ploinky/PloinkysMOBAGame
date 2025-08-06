@@ -7,6 +7,7 @@
 
 CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     m_pMap = pMap;
+    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart);
 }
 
 void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
@@ -67,4 +68,18 @@ void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
         pMovement->SetTarget({pNavComp->m_pNavGridAgent->path.at(0).x, 0, pNavComp->m_pNavGridAgent->path.at(0).y});
         pGameState->VecEvent.emplace(new CMoveIntentionEvent(goPair.first, pMovement->GetTarget(), 0));
     }
+}
+
+void CNavigationSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
+    CGameObject* pGameObject = pGameState->FindGameObjectById(pCastStartEvent->pCtx->idCaster);
+
+    CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
+    CTransformComponent* pTransformComp = pGameObject->GetComponent<CTransformComponent>();
+
+    if(pNavComp == nullptr) {
+        return;
+    }
+
+    pNavComp->StopNavigation();
+    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pGameObject->GetId(), pTransformComp->GetPosition(), 0));
 }

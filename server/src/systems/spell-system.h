@@ -15,7 +15,6 @@ public:
     virtual void Update(CGameState* pGameState, float fDelta) override;
 
     void OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastEvent* pEvt);
-    void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pEvt);
     void OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent);
 
     void OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvent);

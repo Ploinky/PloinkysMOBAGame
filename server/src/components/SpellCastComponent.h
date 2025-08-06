@@ -7,6 +7,7 @@
 
 enum class ESpellCastState {
 	IDLE,
+	APPROACHING,
 	CASTING,
 	CAST_POINT_REACHED,
 	BACKSWING,
