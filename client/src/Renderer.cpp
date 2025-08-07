@@ -57,20 +57,20 @@ void CRenderer::LoadResources(AssetManager* pAssetManager) {
 
     // ------------ TEXTURES ------------
 	// TODO do we need this somewhere lelse
-	// bitmaps_.emplace("MissingTexture", CreateBitmapFromData(pAssetManager->LoadFile("Generic\\missing_texture.bmp")));
+	// bitmaps_.emplace("MissingTexture", CreateBitmapFromData(pAssetManager->LoadFile("Generic/missing_texture.bmp")));
 
 	// ------------ IMAGES ------------
-	m_pAssetManager->LoadTexture("UI/MoveTo\\move_to.png");
-	m_pAssetManager->LoadTexture("Persons/ChessPerson\\blast_area.png");
-	m_pAssetManager->LoadTexture("Persons/ChessPerson\\particle.png");
-	m_pAssetManager->LoadTexture("characters/stormcaller/abilities\\thunderstrike.png");
+	m_pAssetManager->LoadTexture("UI/MoveTo/move_to.png");
+	m_pAssetManager->LoadTexture("Persons/ChessPerson/blast_area.png");
+	m_pAssetManager->LoadTexture("Persons/ChessPerson/particle.png");
+	m_pAssetManager->LoadTexture("characters/stormcaller/abilities/thunderstrike.png");
 
 	// ------------ GLB ------------
-	LoadGLBModel("map1", "Maps/map1\\map1.glb", pAssetManager);
-	LoadGLBModel("football_person", "Persons/ChessPerson\\chess_person.glb", pAssetManager);
-	LoadGLBModel("tower", "Buildings/Tower\\tower.glb", pAssetManager);
-	LoadGLBModel("missile", "Persons/ChessPerson\\missile.glb", pAssetManager);
-	LoadGLBModel("minion", "Persons/Minion\\minion.glb", pAssetManager);
+	LoadGLBModel("map1", "Maps/Map1/map1.glb", pAssetManager);
+	LoadGLBModel("football_person", "Persons/ChessPerson/chess_person.glb", pAssetManager);
+	LoadGLBModel("tower", "Buildings/Tower/tower.glb", pAssetManager);
+	LoadGLBModel("missile", "Persons/ChessPerson/missile.glb", pAssetManager);
+	LoadGLBModel("minion", "Persons/Minion/minion.glb", pAssetManager);
 
 	LoadCharacterManifest("stormcaller", pAssetManager);
 

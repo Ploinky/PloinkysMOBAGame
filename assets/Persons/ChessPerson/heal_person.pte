@@ -1,4 +1,4 @@
-texture_file=Persons/ChessPerson\particle.png
+texture_file=Persons/ChessPerson/particle.png
 particle_velocity_x=0
 particle_velocity_y=0
 particle_velocity_z=0

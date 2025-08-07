@@ -26,8 +26,9 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
         }
     }
     
+    assetManager->LoadPakFile("Maps/map1.pak");
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(assetManager->LoadPlainFile("Maps/map1/map1.nvm"));
+    m_navMesh->LoadFromData(assetManager->LoadPlainFile("Maps/Map1/map1.nvm"));
 
     m_navGrid = new NavigationCellGrid(m_navMesh);
     m_navMap = new NavigationMap();

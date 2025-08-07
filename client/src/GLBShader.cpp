@@ -50,8 +50,8 @@ void GLBShader::Initialize(Direct3D* direct3D, AssetManager* assetManager) {
 		{"WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 
-	std::vector<uint8_t> shaderByteCode = assetManager->LoadFile("Shaders\\GLBVertexShader.cso");
-	std::vector<uint8_t> psByteCode = assetManager->LoadFile("Shaders\\GLBPixelShader.cso");
+	std::vector<uint8_t> shaderByteCode = assetManager->LoadFile("Shaders/GLBVertexShader.cso");
+	std::vector<uint8_t> psByteCode = assetManager->LoadFile("Shaders/GLBPixelShader.cso");
 
 	HRESULT hr = direct3D->device->CreateVertexShader(shaderByteCode.data(), shaderByteCode.size(), nullptr, &m_vertexShader);
 

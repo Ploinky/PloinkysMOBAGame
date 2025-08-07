@@ -3,7 +3,7 @@
 #include <Common/PMG_Common.h>
 
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
-	HBitmap hBitmap = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton\\MenuButton.bmp");
+	HBitmap hBitmap = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton/MenuButton.bmp");
 
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };

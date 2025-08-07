@@ -22,7 +22,7 @@ std::string FromWStringToString(std::wstring stringToConvert) {
 std::string GetDir() {
 	char buffer[MAX_PATH];
 	GetModuleFileNameA(NULL, buffer, MAX_PATH);
-	std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+	std::string::size_type pos = std::string(buffer).find_last_of("//");
 	return std::string(buffer).substr(0, pos);
 }
 
@@ -144,8 +144,8 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     GameObject go = GameObject();
     Renderable mesh = Renderable();
-    // mesh.LoadTexturedMesh(assetManager.LoadFile("models\\cube_minion.p3d"), "models/cube_minion.p3d", &d3d);
-    mesh.LoadTexturedMesh(assetManager.LoadFile("Models\\minion.p3d"), "models/minion", &d3d);
+    // mesh.LoadTexturedMesh(assetManager.LoadFile("models/cube_minion.p3d"), "models/cube_minion.p3d", &d3d);
+    mesh.LoadTexturedMesh(assetManager.LoadFile("Models/minion.p3d"), "models/minion", &d3d);
     go.PlayAnimation("idle", true);
     go.renderable = &mesh;
 

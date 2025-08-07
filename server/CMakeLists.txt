@@ -6,6 +6,17 @@ function(copy_asset_folder)
     )
 endfunction()
 
+function(pak_folder)
+    file(GLOB PAK_SOURCE "$<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0}/**")
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
+        COMMAND PakUtil ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
+        DEPENDS ${PAK_SOURCE}
+        WORKING_DIRECTORY $<TARGET_PROPERTY:assets,BINARY_DIR>
+    )
+    list(APPEND PAK_FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1})
+    set(PAK_FILES ${PAK_FILES} PARENT_SCOPE)
+endfunction()
+
 add_executable(server
 	src/Buff.cpp
 	src/Game.cpp
@@ -53,11 +64,10 @@ add_custom_command(TARGET server
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
 
-add_custom_command(
-	OUTPUT ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
-	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1
-	COMMAND blender ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend --background --python ${CMAKE_SOURCE_DIR}/Tool/blender_nvm_export.py -- ${CMAKE_SOURCE_DIR}/Dist/Server/$<CONFIG>/Maps/map1/map1.nvm
-	DEPENDS ${CMAKE_SOURCE_DIR}/Assets/Maps/map1/map1.blend
+pak_folder(Maps/Map1 Maps/Map1.pak)
+
+add_custom_target(server_assets
+    DEPENDS ${PAK_FILES}
 )
 
-copy_asset_folder(Maps)
+add_dependencies(server server_assets)

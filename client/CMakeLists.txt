@@ -6,22 +6,15 @@ function(copy_asset_folder)
     )
 endfunction()
 
-function(compile_vertex_shader)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
-        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T vs_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl
+function(pak_folder)
+    file(GLOB PAK_SOURCE "$<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0}/**")
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
+        COMMAND PakUtil ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
+        DEPENDS ${PAK_SOURCE}
+        WORKING_DIRECTORY $<TARGET_PROPERTY:assets,BINARY_DIR>
     )
-    list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso)
-    set(SHADER_FILES ${SHADER_FILES} PARENT_SCOPE)
-endfunction()
-
-function(compile_pixel_shader)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
-        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T ps_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl
-    )
-    list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Shaders/${ARGV0}.cso)
-    set(SHADER_FILES ${SHADER_FILES} PARENT_SCOPE)
+    list(APPEND PAK_FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1})
+    set(PAK_FILES ${PAK_FILES} PARENT_SCOPE)
 endfunction()
 
 add_executable(client WIN32
@@ -88,24 +81,22 @@ add_custom_command(TARGET client POST_BUILD
     COMMENT 
 )
 
-copy_asset_folder(Buildings)
-copy_asset_folder(Generic)
-copy_asset_folder(Maps)
-copy_asset_folder(Persons)
-copy_asset_folder(UI)
-copy_asset_folder(characters)
 
-compile_vertex_shader(GLBVertexShader)
-compile_pixel_shader(GLBPixelShader)
-compile_vertex_shader(flat_unlit_vs)
-compile_pixel_shader(flat_unlit_ps)
-compile_vertex_shader(particle_vs)
-compile_pixel_shader(texture_ps)
+pak_folder(Buildings/Tower Buildings/Tower.pak)
+pak_folder(Generic Generic.pak)
+pak_folder(Shaders Shaders.pak)
+pak_folder(Maps/Map1 Maps/Map1.pak)
+pak_folder(Persons/_Generic Persons/_Generic.pak)
+pak_folder(Persons/ChessPerson Persons/ChessPerson.pak)
+pak_folder(Persons/Minion Persons/Minion.pak)
+pak_folder(UI/Buttons/MenuButton UI/Buttons/MenuButton.pak)
+pak_folder(UI/MoveTo UI/MoveTo.pak)
+pak_folder(characters/stormcaller characters/stormcaller.pak)
 
-add_custom_target(shaders
-    DEPENDS ${SHADER_FILES}
+add_custom_target(pak_file_target
+    DEPENDS ${PAK_FILES}
 )
 add_dependencies(client
     assets
-    shaders
+    pak_file_target
 )

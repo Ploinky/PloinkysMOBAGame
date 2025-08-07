@@ -12,7 +12,6 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 	m_iLoadStep = 0;
 	m_loadingThread = std::thread([this]() {
 
-#ifndef _DEBUG
 		m_pAssetManager->LoadPakFile("Persons/ChessPerson.pak");
 		m_pAssetManager->LoadPakFile("Buildings/Tower.pak");
 		m_pAssetManager->LoadPakFile("Persons/Minion.pak");
@@ -22,7 +21,7 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 		m_pAssetManager->LoadPakFile("Maps/Map1.pak");
 		m_pAssetManager->LoadPakFile("Shaders.pak");
 		m_pAssetManager->LoadPakFile("Generic.pak");
-#endif
+		m_pAssetManager->LoadPakFile("characters/stormcaller.pak");
 
 		m_iLoadStep++;
 

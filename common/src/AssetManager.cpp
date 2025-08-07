@@ -20,13 +20,6 @@ void AssetManager::LoadPakFile(std::string fileName) {
 }
 
 std::vector<uint8_t> AssetManager::LoadFile(std::string fileName) {
-#ifdef _DEBUG
-	file_t f = Util::ReadBytesFromFile(fileName);
-	std::vector<uint8_t> ret;
-	ret.resize(f.size);
-	memcpy(ret.data(), f.data, ret.size());
-	return ret;
-#endif
 	// check if any of our paks have the file
 	for (PakFile* pakFile : files) {
 		if (pakFile->HasFile(fileName)) {

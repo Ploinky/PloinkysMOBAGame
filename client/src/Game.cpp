@@ -8,7 +8,7 @@
 
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/map1\\map1.nvm"));
+    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/Map1/map1.nvm"));
 
     m_navGrid = new NavigationCellGrid(m_navMesh);
 
@@ -196,14 +196,14 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
-        ParticleSystem* particle_system = ParticleSystem::Load("characters/stormcaller/abilities\\" + pck.spell + ".pts", assetManager_);
+        ParticleSystem* particle_system = ParticleSystem::Load("characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
         particle_system->Initialize(direct3D);
         // particle_system->Attach(go);
         particle_system->position = {go->position.x, 100, go->position.z};
 
         game_objects_.emplace(Util::GetSystemTime(), particle_system);
 
-        handler_->PlayGenericSound("characters/stormcaller/abilities\\" + pck.spell + ".wav");
+        handler_->PlayGenericSound("characters/stormcaller/abilities/" + pck.spell + ".wav");
     });
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, [this](std::vector<uint8_t> data) {
         CUnitDeathPacket pck;
@@ -248,7 +248,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     SteamFriends()->SetRichPresence("steam_display", "#Status_OnCommunityServer");
 
-    m_hGenericIcon = handler->GetAssetManager()->LoadBitmapImage("Persons/_Generic\\AbilityIcon.bmp");
+    m_hGenericIcon = handler->GetAssetManager()->LoadBitmapImage("Persons/_Generic/AbilityIcon.bmp");
 }
 
 Game::~Game() {
@@ -455,7 +455,7 @@ void Game::Update(float dt) {
             mv.y = y;
             net_manager_->SendPacket(&mv);
 
-            ParticleSystem* particle_system = ParticleSystem::Load("UI/MoveTo\\move_to.pts", assetManager_);
+            ParticleSystem* particle_system = ParticleSystem::Load("UI/MoveTo/move_to.pts", assetManager_);
             particle_system->Initialize(direct3D);
             particle_system->position = { x, 0, y };
 
@@ -796,7 +796,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
                 m_vecAbilities.resize(4);
                 m_vecAbilities[0] = {
                     .strName = "Thunderstrike",
-                    .hIcon = assetManager_->LoadBitmapImage("characters/stormcaller/abilities\\thunderstrike_icon.png"),
+                    .hIcon = assetManager_->LoadBitmapImage("characters/stormcaller/abilities/thunderstrike_icon.png"),
                     .eTargetType = EAbilityTargetType::UNIT,
                 };
                 break;

@@ -6,7 +6,7 @@
 #include "Game.h"
 
 MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
-	HBitmap hButton = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton\\MenuButton.bmp");
+	HBitmap hButton = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton/MenuButton.bmp");
 
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
@@ -20,7 +20,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	buttonServerBrowser_.m_pos = { windowWidth_ - 400.0f, 50 };
 	buttonServerBrowser_.m_size = { 300, 80 };
 	buttonServerBrowser_.e_onMousePressed = [this]() {
-		handler_->PlayGenericSound("UI/Buttons/MenuButton\\MenuButtonClick.wav");
+		handler_->PlayGenericSound("UI/Buttons/MenuButton/MenuButtonClick.wav");
 		handler_->OpenServerBrowser();
 	};
 
@@ -33,7 +33,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	buttonSettings_.m_pos = { windowWidth_ - 400.0f, 180 };
 	buttonSettings_.m_size = { 300, 80 };
 	buttonSettings_.e_onMousePressed = [this]() {
-		handler_->PlayGenericSound("UI/Buttons/MenuButton\\MenuButtonClick.wav");
+		handler_->PlayGenericSound("UI/Buttons/MenuButton/MenuButtonClick.wav");
 		handler_->OpenSettingsMenu();
 	};
 
@@ -46,7 +46,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	buttonBack_.m_pos = { windowWidth_ - 400.0f, windowHeight_ - 150.0f };
 	buttonBack_.m_size = { 300, 80 };
 	buttonBack_.e_onMousePressed = [this]() {
-		handler_->PlayGenericSound("UI/Buttons/MenuButton\\MenuButtonClick.wav");
+		handler_->PlayGenericSound("UI/Buttons/MenuButton/MenuButtonClick.wav");
 		NewState(nullptr);
 	};
 

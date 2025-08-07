@@ -37,8 +37,8 @@ bool AudioSystem::Initialize(AssetManager* pAssetManager) {
     SFXSend = { 0, music_submix_voice_ };
     SFXSendList = { 1, &SFXSend };
 
-    LoadSoundFile("UI/Buttons/MenuButton\\MenuButtonClick.wav", pAssetManager);
-    LoadSoundFile("characters/stormcaller/abilities\\thunderstrike.wav", pAssetManager);
+    LoadSoundFile("UI/Buttons/MenuButton/MenuButtonClick.wav", pAssetManager);
+    LoadSoundFile("characters/stormcaller/abilities/thunderstrike.wav", pAssetManager);
 
     // 3D sounds
     if (FAILED(X3DAudioInitialize(0, 33300, m_h3dAudio))) {

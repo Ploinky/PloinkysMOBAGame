@@ -38,8 +38,8 @@ void CFlatUnlitShader::Initialize(Direct3D* direct3D, AssetManager* assetManager
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	std::vector<uint8_t> vecVsByteCode = assetManager->LoadFile("Shaders\\flat_unlit_vs.cso");
-	std::vector<uint8_t> vecPsByteCode = assetManager->LoadFile("Shaders\\flat_unlit_ps.cso");
+	std::vector<uint8_t> vecVsByteCode = assetManager->LoadFile("Shaders/flat_unlit_vs.cso");
+	std::vector<uint8_t> vecPsByteCode = assetManager->LoadFile("Shaders/flat_unlit_ps.cso");
 
 	HRESULT hr = direct3D->device->CreateVertexShader(vecVsByteCode.data(), vecVsByteCode.size(), nullptr, &m_pVertexShader);
 
