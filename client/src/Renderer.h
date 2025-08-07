@@ -24,13 +24,14 @@
 #include "GameObject.h"
 #include "wincodec.h"
 #include <Common/navigation.h>
+#include "client-asset-manager.h"
 
 class GameObject;
 
 class CRenderer {
     public:
         ~CRenderer();
-        void Initialize(HWND hWindowHandle, bool bFullScreen, AssetManager* assetManager, int width_, int height_);
+        void Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_);
 		void LoadResources(AssetManager* pAssetManager);
         void SetDimensions(int width_, int height_);
         void UpdateCameraMatrix();
@@ -46,7 +47,7 @@ class CRenderer {
         void DrawShape(Vector2* points, int pointCount, float color[3]);
         void FillShape(Vector2* points, int pointCount, float color[3]);
         void FillRect(int x, int y, int w, int h, float color[3]);
-        void DrawImage(float x, float y, float w, float h, std::string strImageName);
+        void DrawImage(float x, float y, float w, float h, HBitmap hBitmap);
         void UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size);
 
         template<typename T>
@@ -77,13 +78,7 @@ class CRenderer {
         int m_width;
         int m_height;
 
-        std::map<std::string, ID3D11ShaderResourceView*> textures_;
-        std::map<std::string, ID2D1Bitmap*> bitmaps_;
 		std::map<std::string, Model*> models_;
-
-		void CreateShaderResourceViewFromPNG(std::vector<uint8_t> imageData, ID3D11ShaderResourceView** shaderResourceView);
-        ID2D1Bitmap* CreateBitmapFromData(std::vector<uint8_t> data);
-        ID2D1Bitmap* CreateBitmapFromFile(const wchar_t* fileName);
 
 		void LoadGLBModel(std::string name, std::string file, AssetManager* assetManager);
 		ModelNode* LoadNode(GLBNode* glbNode);
@@ -103,4 +98,6 @@ class CRenderer {
         ID3D11Buffer* m_pNavGridVertexBuffer;
         ID3D11Buffer* m_pNavGridIndexBuffer;
 #endif
+
+        CClientAssetManager* m_pAssetManager;
 };

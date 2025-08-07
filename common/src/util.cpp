@@ -58,9 +58,7 @@ file_t Util::ReadBytesFromFile(std::string fileName) {
 		return {f, length};
 	}
 
-	// TODO improve logging
-	// throw new std::runtime_error("Could not load content of file <" + fileName + ">");
-	return {};
+	throw new std::runtime_error("Could not load content of file <" + fileName + ">");
 }
 
 std::list<std::string> Util::SplitString(std::string str, std::string delim) {

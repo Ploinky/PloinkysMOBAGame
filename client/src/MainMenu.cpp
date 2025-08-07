@@ -6,10 +6,13 @@
 #include "Game.h"
 
 MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+	HBitmap hButton = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton\\MenuButton.bmp");
+
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
 
 	// Server browser button
+	buttonServerBrowser_.hImage = hButton;
 	buttonServerBrowser_.m_text = "Server Browser";
 	buttonServerBrowser_.m_color[0] = 0.4f;
 	buttonServerBrowser_.m_color[1] = 0.4f;
@@ -22,6 +25,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	};
 
 	// Server browser button
+	buttonSettings_.hImage = hButton;
 	buttonSettings_.m_text = "Settings";
 	buttonSettings_.m_color[0] = 0.4f;
 	buttonSettings_.m_color[1] = 0.4f;
@@ -34,6 +38,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	};
 
 	// Quit button
+	buttonBack_.hImage = hButton;
 	buttonBack_.m_text = "Quit";
 	buttonBack_.m_color[0] = 0.6f;
 	buttonBack_.m_color[1] = 0.2f;

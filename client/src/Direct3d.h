@@ -62,7 +62,6 @@ class Direct3D {
         IDWriteTextFormat* format;
         IDWriteFactory* dWriteFactory;
         IDXGISwapChain1* swapChain;
-        IWICImagingFactory* wicFactory_;
         ID2D1Factory* d2d_factory_;
         HWND windowHandle;
 

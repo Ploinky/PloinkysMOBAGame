@@ -1,18 +1,11 @@
 #include "Renderer.h"
 
 #include "common/PloinkysJSONLibrary.h"
+#include "client-asset-manager.h"
 
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {
 		delete model_it.second;
-	}
-
-	for (auto texture_it : textures_) {
-		texture_it.second->Release();
-	}
-
-	for (auto bitmap_it : bitmaps_) {
-		bitmap_it.second->Release();
 	}
 
 	if (particleShader_ != nullptr) {
@@ -34,7 +27,7 @@ CRenderer::~CRenderer() {
 #endif
 }
 
-void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, AssetManager* assetManager, int width_, int height_) {
+void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_) {
 	m_d3d.Initialize(hWindowHandle, bFullScreen);
 	
     m_width = width_;
@@ -47,6 +40,8 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, AssetManager* a
     // Set initial constant matrix values
     DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
         m_camera.position.x, m_camera.position.y, m_camera.position.z))));
+
+		m_pAssetManager = assetManager;
 }
 
 void CRenderer::LoadResources(AssetManager* pAssetManager) {
@@ -61,26 +56,14 @@ void CRenderer::LoadResources(AssetManager* pAssetManager) {
 	m_pFlatUnlitShader->Initialize(&m_d3d, pAssetManager);
 
     // ------------ TEXTURES ------------
-    bitmaps_.emplace("MenuButton", CreateBitmapFromData(pAssetManager->LoadFile("UI/Buttons/MenuButton\\MenuButton.bmp")));
-	bitmaps_.emplace("GenericIcon", CreateBitmapFromData(pAssetManager->LoadFile("Persons/_Generic\\AbilityIcon.bmp")));
-	bitmaps_.emplace("MissingTexture", CreateBitmapFromData(pAssetManager->LoadFile("Generic\\missing_texture.bmp")));
+	// TODO do we need this somewhere lelse
+	// bitmaps_.emplace("MissingTexture", CreateBitmapFromData(pAssetManager->LoadFile("Generic\\missing_texture.bmp")));
 
 	// ------------ IMAGES ------------
-	ID3D11ShaderResourceView* moveToParticle = nullptr;
-	CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("UI/MoveTo\\move_to.png"), &moveToParticle);
-	textures_.emplace("UI/MoveTo\\move_to.png", moveToParticle);
-	
-	ID3D11ShaderResourceView* blastArea = nullptr;
-	CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("Persons/ChessPerson\\blast_area.png"), &blastArea);
-	textures_.emplace("Persons/ChessPerson\\blast_area.png", blastArea);
-	
-	ID3D11ShaderResourceView* particle = nullptr;
-	CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("Persons/ChessPerson\\particle.png"), &particle);
-	textures_.emplace("Persons/ChessPerson\\particle.png", particle);
-	
-	ID3D11ShaderResourceView* thunder = nullptr;
-	CreateShaderResourceViewFromPNG(pAssetManager->LoadFile("characters/stormcaller/abilities\\thunderstrike.png"), &thunder);
-	textures_.emplace("characters/stormcaller/abilities\\thunderstrike.png", thunder);
+	m_pAssetManager->LoadTexture("UI/MoveTo\\move_to.png");
+	m_pAssetManager->LoadTexture("Persons/ChessPerson\\blast_area.png");
+	m_pAssetManager->LoadTexture("Persons/ChessPerson\\particle.png");
+	m_pAssetManager->LoadTexture("characters/stormcaller/abilities\\thunderstrike.png");
 
 	// ------------ GLB ------------
 	LoadGLBModel("map1", "Maps/map1\\map1.glb", pAssetManager);
@@ -128,7 +111,8 @@ void CRenderer::LoadCharacterManifest(std::string strCharacterId, AssetManager* 
 			PJL::JSONValue val = arrIcons.Get(i);
 
 			if(val.IsString()) {
-				bitmaps_.emplace(val.AsString(), CreateBitmapFromData(pAssetManager->LoadFile(val.AsString())));
+				// TODO this moves to asset manager
+				// bitmaps_.emplace(val.AsString(), CreateBitmapFromData(pAssetManager->LoadFile(val.AsString())));
 			}
 		}
 	}
@@ -170,7 +154,7 @@ void CRenderer::LoadGLBModel(std::string name, std::string file, AssetManager* a
 
 	for(const auto& m : glbModel->Materials) {
 		Material* material = new Material();
-		CreateShaderResourceViewFromPNG(m.second->TextureData, &material->Texture);
+		material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
 		model->Materials.emplace(m.first, material);
 	}
 
@@ -465,17 +449,22 @@ void CRenderer::FillRect(int x, int y, int w, int h, float color[3]) {
     brush->Release();
 }
 
-void CRenderer::DrawImage(float x, float y, float w, float h, std::string strImageName) {
-	ID2D1Bitmap* pImg = nullptr;
-
-	if (!bitmaps_.contains(strImageName)) {
-		pImg = bitmaps_.find("MissingTexture")->second;
-	}
-	else {
-		pImg = bitmaps_.find(strImageName)->second;
+void CRenderer::DrawImage(float x, float y, float w, float h, HBitmap hBitmap) {
+	if(hBitmap == INVALID_ASSET_HANDLE) {
+		throw std::exception("attempting to draw invalid image");
 	}
 
-    m_d3d.renderTarget2D->DrawBitmap(pImg, D2D1::RectF(x, y, x + w, y + h));
+	BitmapAsset_t& bitmap = m_pAssetManager->GetBitmapImage(hBitmap);
+
+	if(bitmap.pBitmap == nullptr) {
+        // Create a Direct2D bitmap from the WIC bitmap.
+        m_d3d.renderTarget2D->CreateBitmapFromWicBitmap(
+            bitmap.pConvertedData,
+            NULL,
+            &bitmap.pBitmap
+        );
+	}
+    m_d3d.renderTarget2D->DrawBitmap(bitmap.pBitmap, D2D1::RectF(x, y, x + w, y + h));
 }
 
 template<>
@@ -616,7 +605,36 @@ void CRenderer::Draw(GameObject* gameObject) {
 		}
 
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
-			m_d3d.context->PSSetShaderResources(0, 1, &model->Materials.at(mesh->MaterialIndex)->Texture);
+			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
+			if(textureAsset.pTexture == nullptr) {
+				ID3D11Texture2D* texture = 0;
+
+				D3D11_SUBRESOURCE_DATA initData = {};
+				initData.pSysMem = textureAsset.data.data();
+				initData.SysMemPitch = textureAsset.uWidth * 4;
+
+				D3D11_TEXTURE2D_DESC desc = {};
+				desc.Width = textureAsset.uWidth;
+				desc.Height = textureAsset.uHeight;
+				desc.MipLevels = 1;
+				desc.ArraySize = 1;
+				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				desc.SampleDesc.Count = 1;
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+				HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
+
+				if (FAILED(hr) || texture == nullptr) {
+					return;
+				}
+
+ 				m_d3d.device->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
+
+				texture->Release();
+			}
+			ID3D11ShaderResourceView* pTex = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture).pTexture;
+			m_d3d.context->PSSetShaderResources(0, 1, &pTex);
 		}
 		UINT uStride = sizeof(glb_shader_vertex_t);
 		UINT uOffset = 0;
@@ -634,7 +652,36 @@ void CRenderer::Draw(Model* model) {
 		}
 
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
-			m_d3d.context->PSSetShaderResources(0, 1, &model->Materials.at(mesh->MaterialIndex)->Texture);
+			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
+			if(textureAsset.pTexture == nullptr) {
+				ID3D11Texture2D* texture = 0;
+
+				D3D11_SUBRESOURCE_DATA initData = {};
+				initData.pSysMem = textureAsset.data.data();
+				initData.SysMemPitch = textureAsset.uWidth * 4;
+
+				D3D11_TEXTURE2D_DESC desc = {};
+				desc.Width = textureAsset.uWidth;
+				desc.Height = textureAsset.uHeight;
+				desc.MipLevels = 1;
+				desc.ArraySize = 1;
+				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				desc.SampleDesc.Count = 1;
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+				HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
+
+				if (FAILED(hr) || texture == nullptr) {
+					return;
+				}
+
+				m_d3d.device->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
+
+				texture->Release();
+			}
+			ID3D11ShaderResourceView* pTex = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture).pTexture;
+			m_d3d.context->PSSetShaderResources(0, 1, &pTex);
 		}
 		UINT uStride = sizeof(glb_shader_vertex_t);
 		UINT uOffset = 0;
@@ -719,217 +766,42 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	// Render this specific model
 	m_d3d.context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
 
-	if(textures_.find(emitter->texture_name_) != textures_.end()) {
-		m_d3d.context->PSSetShaderResources(0, 1, &textures_.find(emitter->texture_name_)->second);
+	HTexture hTexture = m_pAssetManager->LoadTexture(emitter->texture_name_);
+	TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(hTexture);
+
+	if(textureAsset.pTexture == nullptr) {
+		ID3D11Texture2D* texture = 0;
+
+		D3D11_SUBRESOURCE_DATA initData = {};
+		initData.pSysMem = textureAsset.data.data();
+		initData.SysMemPitch = textureAsset.uWidth * 4;
+
+		D3D11_TEXTURE2D_DESC desc = {};
+		desc.Width = textureAsset.uWidth;
+		desc.Height = textureAsset.uHeight;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
+
+		if (FAILED(hr) || texture == nullptr) {
+			return;
+		}
+
+ 		m_d3d.device->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
+
+		texture->Release();
 	}
+
+	m_d3d.context->PSSetShaderResources(0, 1, &textureAsset.pTexture);
 	
 	EnableAlphaBlending();
 	m_d3d.context->DrawInstanced(6, instances.size(), 0, 0);
 	DisableAlphaBlending();
-}
-
-void CRenderer::CreateShaderResourceViewFromPNG(std::vector<uint8_t> imageData, ID3D11ShaderResourceView** shaderResourceView) {
-	IWICBitmap* wicBitmap = 0;
-
-	IWICStream* stream = 0;
-	if(FAILED(m_d3d.wicFactory_->CreateStream(&stream))) {
-		return;
-	}
-
-	if(FAILED(stream->InitializeFromMemory(imageData.data(), imageData.size()))) {
-		return;
-	}
-
-	IWICBitmapDecoder* decoder;
-	if(FAILED(m_d3d.wicFactory_->CreateDecoderFromStream(stream, nullptr, WICDecodeMetadataCacheOnLoad, &decoder))) {
-		return;
-	}
-
-	IWICBitmapFrameDecode* frame;
-	if(FAILED(decoder->GetFrame(0, &frame))) {
-		return;
-	}
-
-	m_d3d.wicFactory_->CreateBitmapFromSource(frame, WICBitmapCacheOnLoad, &wicBitmap);
-
-	ID3D11Texture2D* texture = 0;
-
-	UINT width, height;
-	wicBitmap->GetSize(&width, &height);
-
-	WICPixelFormatGUID pixelFormat;
-	wicBitmap->GetPixelFormat(&pixelFormat);
-
-	WICPixelFormatGUID convertFormat = GUID_WICPixelFormat32bppRGBA;
-	IWICBitmapSource* convertedBitmapSource = nullptr;
-
-	if(pixelFormat != convertFormat) {
-		IWICFormatConverter* converter;
-		m_d3d.wicFactory_->CreateFormatConverter(&converter);
-		converter->Initialize(wicBitmap, convertFormat, WICBitmapDitherTypeNone, nullptr, 0.0, WICBitmapPaletteTypeCustom);
-		convertedBitmapSource = converter;
-	} else {
-		convertedBitmapSource = wicBitmap;
-	}
-
-	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Width = width;
-	desc.Height = height;
-	desc.MipLevels = 1;
-	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.SampleDesc.Count = 1;
-	desc.Usage = D3D11_USAGE_DEFAULT;
-	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-	// Copy pixel data
-	std::vector<uint8_t> pixels(width * height * 4);
-	convertedBitmapSource->CopyPixels(nullptr, width * 4, pixels.size(), pixels.data());
-
-	D3D11_SUBRESOURCE_DATA initData = {};
-	initData.pSysMem = pixels.data();
-	initData.SysMemPitch = width * 4;
-
-	HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
-
-	if (FAILED(hr) || texture == nullptr) {
-		return;
-	}
-
-	m_d3d.device->CreateShaderResourceView(texture, nullptr, shaderResourceView);
-
-	texture->Release();
-}
-
-ID2D1Bitmap* CRenderer::CreateBitmapFromData(std::vector<uint8_t> data) {
-    IWICBitmapDecoder* pDecoder = NULL;
-    IWICBitmapFrameDecode* pSource = NULL;
-    IWICFormatConverter* pConverter = NULL;
-
-    IStream* stream = nullptr;
-    HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &stream);
-
-    if (FAILED(hr)) {
-        return nullptr;
-    }
-
-    ULONG bytesWritten = 0;
-    hr = stream->Write(data.data(), static_cast<ULONG>(data.size()), &bytesWritten);
-
-    if (FAILED(hr) || bytesWritten != data.size()) {
-        return nullptr;
-    }
-
-    hr = m_d3d.wicFactory_->CreateDecoderFromStream(
-        stream,
-        nullptr,
-        WICDecodeMetadataCacheOnLoad,
-        &pDecoder
-    );
-    if (FAILED(hr))
-    {
-        return nullptr;
-    }
-        // Create the initial frame.
-        hr = pDecoder->GetFrame(0, &pSource);
-
-    if (SUCCEEDED(hr))
-    {
-
-        // Convert the image format to 32bppPBGRA
-        // (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
-        hr = m_d3d.wicFactory_->CreateFormatConverter(&pConverter);
-
-    }
-
-    if (SUCCEEDED(hr))
-    {
-        hr = pConverter->Initialize(
-            pSource,
-            GUID_WICPixelFormat32bppPBGRA,
-            WICBitmapDitherTypeNone,
-            NULL,
-            0.f,
-            WICBitmapPaletteTypeMedianCut
-        );
-    }
-
-    ID2D1Bitmap* ppBitmap = nullptr;
-    if (SUCCEEDED(hr))
-    {
-
-        // Create a Direct2D bitmap from the WIC bitmap.
-        hr = m_d3d.renderTarget2D->CreateBitmapFromWicBitmap(
-            pConverter,
-            NULL,
-            &ppBitmap
-        );
-    }
-
-    pDecoder->Release();
-    pSource->Release();
-    pConverter->Release();
-
-    return ppBitmap;
-}
-
-ID2D1Bitmap* CRenderer::CreateBitmapFromFile(const wchar_t* fileName) {
-    IWICBitmapDecoder* pDecoder = NULL;
-    IWICBitmapFrameDecode* pSource = NULL;
-    IWICFormatConverter* pConverter = NULL;
-
-    HRESULT hr = m_d3d.wicFactory_->CreateDecoderFromFilename(
-        fileName,
-        NULL,
-        GENERIC_READ,
-        WICDecodeMetadataCacheOnLoad,
-        &pDecoder
-    );
-
-    if (SUCCEEDED(hr))
-    {
-        // Create the initial frame.
-        hr = pDecoder->GetFrame(0, &pSource);
-    }
-
-    if (SUCCEEDED(hr))
-    {
-
-        // Convert the image format to 32bppPBGRA
-        // (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
-        hr = m_d3d.wicFactory_->CreateFormatConverter(&pConverter);
-
-    }
-
-    if (SUCCEEDED(hr))
-    {
-        hr = pConverter->Initialize(
-            pSource,
-            GUID_WICPixelFormat32bppPBGRA,
-            WICBitmapDitherTypeNone,
-            NULL,
-            0.f,
-            WICBitmapPaletteTypeMedianCut
-        );
-    }
-
-    ID2D1Bitmap* ppBitmap;
-    if (SUCCEEDED(hr))
-    {
-
-        // Create a Direct2D bitmap from the WIC bitmap.
-        hr = m_d3d.renderTarget2D->CreateBitmapFromWicBitmap(
-            pConverter,
-            NULL,
-            &ppBitmap
-        );
-    }
-
-    pDecoder->Release();
-    pSource->Release();
-    pConverter->Release();
-
-    return ppBitmap;
 }
 
 void CRenderer::DrawMap() {

@@ -3,9 +3,12 @@
 #include <Common/PMG_Common.h>
 
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+	HBitmap hBitmap = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton\\MenuButton.bmp");
+
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
 
+	buttonRefresh_.hImage = hBitmap;
 	buttonRefresh_.m_text = "Refresh";
 	buttonRefresh_.m_color[0] = 0.4f;
 	buttonRefresh_.m_color[1] = 0.4f;
@@ -24,6 +27,7 @@ ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height
 		StartRefresh();
 	};
 
+	buttonBack_.hImage = hBitmap;
 	buttonBack_.m_text = "Back";
 	buttonBack_.m_color[0] = 0.4f;
 	buttonBack_.m_color[1] = 0.4f;

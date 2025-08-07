@@ -151,6 +151,7 @@ void CNetworkSystem::SyncGameState(CGameState* pGameState) {
 void CNetworkSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pStartCastEvt) {
     SpellCastStartPacket pck = SpellCastStartPacket();
     pck.unit = pStartCastEvt->pCtx->idCaster;
+    pck.idTarget = pStartCastEvt->pCtx->idTarget;
     m_pNetworkManager->SendToAllClients(pck);
 }
 

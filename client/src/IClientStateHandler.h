@@ -32,5 +32,5 @@ public:
     virtual void PlayGenericSound(std::string strSoundName) = 0;
 		
 	virtual CRenderer* GetRenderer() = 0;
-	virtual AssetManager* GetAssetManager() = 0;
+	virtual CClientAssetManager* GetAssetManager() = 0;
 };

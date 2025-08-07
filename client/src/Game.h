@@ -10,6 +10,7 @@
 #include <Common/PMG_Common.h>
 #include "Renderer.h"
 #include <Model.h>
+#include "client-asset-manager.h"
 
 class NavMesh;
 class NavigationCellGrid;
@@ -27,7 +28,7 @@ enum class EAbilityTargetType {
 
 typedef struct {
     std::string strName;
-    std::string strIcon;
+    HBitmap hIcon;
     EAbilityTargetType eTargetType;
 } UIAbility_t;
 
@@ -42,7 +43,7 @@ public:
 
     ClientNetworkManager* net_manager_;
     CRenderer* renderer;
-    AssetManager* assetManager_;
+    CClientAssetManager* assetManager_;
     Direct3D* direct3D;
         
     void AddPacketToCurrentTick(std::vector<uint8_t> data);
@@ -116,4 +117,6 @@ public:
 
     std::vector<std::string> m_vecChat;
     std::vector<UIAbility_t> m_vecAbilities;
+
+    HBitmap m_hGenericIcon = INVALID_ASSET_HANDLE;
 };

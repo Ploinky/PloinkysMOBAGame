@@ -50,7 +50,7 @@ public:
     virtual void PlayGenericSound(std::string strSoundName) override;
 
 	virtual CRenderer* GetRenderer() override;
-	virtual AssetManager* GetAssetManager() override;
+	virtual CClientAssetManager* GetAssetManager() override;
 
 
     STEAM_CALLBACK(Client, GameServerChangeRequested, GameServerChangeRequested_t);
@@ -78,7 +78,7 @@ private:
 
     Settings settings_;
     AudioSystem audio_system_;
-    AssetManager assetManager_;
+    CClientAssetManager assetManager_;
 
     // User Authentication
     HAuthTicket authTicket_;

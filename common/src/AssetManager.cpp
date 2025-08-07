@@ -34,8 +34,7 @@ std::vector<uint8_t> AssetManager::LoadFile(std::string fileName) {
 		}
 	}
 
-	// throw std::runtime_error(std::string("Failed to load asset <").append(fileName).append(">").c_str());
-	return {};
+	throw std::runtime_error(std::string("Failed to load asset <").append(fileName).append(">").c_str());
 }
 
 std::list<std::string> AssetManager::LoadPlainFile(std::string fileName) {

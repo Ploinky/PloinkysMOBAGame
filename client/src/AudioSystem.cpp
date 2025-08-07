@@ -146,7 +146,7 @@ void AudioSystem::LoadSoundFile(std::string strSoundName, AssetManager* pAssetMa
 }
 
 void AudioSystem::SetMasterVolume(float value) {
-    value = min(1, max(value, 0));
+    value = std::min(1.0f, std::max(value, 0.0f));
 
     pMasterVoice->SetVolume(value);
 }

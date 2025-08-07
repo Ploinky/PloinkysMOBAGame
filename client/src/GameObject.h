@@ -53,6 +53,7 @@ public:
 	unsigned int max_health;
 
 	Vector3 position;
+
 	Vector3 rotation;
 	unsigned long long position_received;
 
@@ -67,7 +68,6 @@ public:
 
 	bool dead = false;
 	bool bIsCasting = false;
-
 
 	uint64_t uPrefab = 0;
 private:

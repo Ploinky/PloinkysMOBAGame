@@ -87,12 +87,13 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     Logger::Msg("Starting Ploinky's MOBA Game...");
 
-    Client* client = new Client();
-
-#ifdef _DEBUG
+    Client* client = nullptr;
+    #ifdef _DEBUG
+        client = new Client();
         client->Run(connectString);
 #else
     try {
+        client = new Client();
         client->Run(connectString);
     }
     catch (std::exception  e) {

@@ -26,5 +26,5 @@ std::vector<uint8_t> PakFile::GetFileData(std::string fileName) {
 		}
 	}
 
-	return {};
+	throw std::runtime_error(std::string("Failed to get filedata for <").append(fileName).append(">").c_str());
 }

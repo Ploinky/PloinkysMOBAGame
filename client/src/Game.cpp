@@ -45,22 +45,19 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
 
         go->bIsCasting = false;
+
         Vector3 vec3Move = { move.x, move.y, move.z };
         if ((go->position - vec3Move).Length() > 5) {
             Logger::FormatMsg("diff: %f", (go->position - vec3Move).Length());
 
-            go->position.x = vec3Move.x;
-            go->position.y = vec3Move.y;
-            go->position.z = vec3Move.z;
+            Vector3 vec3Catchup = (vec3Move - go->position).ScaleToLength(((vec3Move - go->position).Length() - 5) / 10);
+            go->position = go->position + vec3Catchup;
+//            go->position.x = vec3Move.x;
+//            go->position.y = vec3Move.y;
+//            go->position.z = vec3Move.z;
         }
 
         go->rotation.y = move.r; // this actually looks less fucked for now :O
-
-        if (vec3Move.Length() > 5 && go->GetCurrentAnimation().GetAnimationName().compare("run") != 0) {
-            go->PlayAnimation("run", true);
-        } else if(vec3Move.Length() <= 5) {
-            go->PlayAnimation("idle", true); // TODO yikes
-        }
     });
     packet_manager.RegisterHandler(PacketType::UNITIDLE, [this](std::vector<uint8_t> data) {
         UnitIdlePacket idle{};
@@ -73,10 +70,11 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
-        go->bIsCasting = false;
-        if (go->GetCurrentAnimation().GetAnimationName().compare("idle") != 0) {
-            go->PlayAnimation("idle", true);
+        if(CMovementComponent* pMoveComp = go->GetMovementComponent()) {
+            pMoveComp->ClearTarget();
         }
+
+        go->bIsCasting = false;
         go->position.x = idle.x;
         go->position.y = idle.y;
         go->position.z = idle.z;
@@ -152,15 +150,16 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
         CMovementComponent* pMovementComponent = go->GetMovementComponent();
         Vector3 vec3NewTarget = { move.x, 0, move.z };
+        if((go->position - vec3NewTarget).Length() < 1) {
+            pMovementComponent->ClearTarget();
+            return;
+        }
+
         if(pMovementComponent->GetTarget() == vec3NewTarget) {
             return;
         }
+
         pMovementComponent->SetTarget(vec3NewTarget);
-
-
-        if (go->GetCurrentAnimation().GetAnimationName().compare("run") != 0) {
-            go->PlayAnimation("run", true);
-        }
     });
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, [this](std::vector<uint8_t> data) {
         SpellCastStartPacket pck;
@@ -174,9 +173,16 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
-        go->bIsCasting = true;
-        go->PlayAnimation("attack1", false);
+        GameObject* pTarget = GetGameObject(pck.idTarget);
+        if(pTarget != nullptr) {
+            go->rotation.y = CalculateAngle({go->position.x, go->position.z}, {pTarget->position.x, pTarget->position.z});
+        }
 
+        go->bIsCasting = true;
+
+        if(CMovementComponent* pMoveComp = go->GetMovementComponent()) {
+            pMoveComp->ClearTarget();
+        }
     });
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, [this](std::vector<uint8_t> data) {
         SpellHitPacket pck;
@@ -212,7 +218,6 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
         
         go->bIsCasting = false;
-        go->PlayAnimation("death", false);
         go->dead = true;
     });
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, [this](std::vector<uint8_t> data) {
@@ -229,7 +234,6 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         
         go->bIsCasting = false;
         go->dead = false;
-        go->PlayAnimation("idle", true);
     });
 
     net_manager_->Initialize(&packet_manager);
@@ -243,6 +247,8 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     m_bGameHasEnded = false;
 
     SteamFriends()->SetRichPresence("steam_display", "#Status_OnCommunityServer");
+
+    m_hGenericIcon = handler->GetAssetManager()->LoadBitmapImage("Persons/_Generic\\AbilityIcon.bmp");
 }
 
 Game::~Game() {
@@ -330,15 +336,7 @@ void Game::Update(float dt) {
         if (go->dead) {
             desiredAnim = "death";
             bLoop = false;
-        } else if (go->GetMovementComponent()->GetTarget() != go->position) {
-            Logger::FormatMsg("MOVING! (%f, %f, %f) -> (%f, %f, %f)",
-                go->GetMovementComponent()->GetTarget().x,
-                go->GetMovementComponent()->GetTarget().y,
-                go->GetMovementComponent()->GetTarget().z,
-                go->position.x,
-                go->position.y,
-                go->position.z
-            );
+        } else if (go->GetMovementComponent()->IsMoving()) {
             desiredAnim = "run";
             bLoop = true;
         } else if(go->bIsCasting) {
@@ -431,7 +429,7 @@ void Game::Update(float dt) {
         }
     }
 
-    last_move = max(0, last_move - dt);
+    last_move = std::max(0.0, last_move - dt);
 
     if (!m_mouseButtons[2]) {
         last_move = 0;
@@ -516,8 +514,8 @@ void Game::Update(float dt) {
     }
 
     // clamp camera position to avoid scrolling off map
-    m_camPos[0] = min(max(m_camPos[0], 0), 9000);
-    m_camPos[2] = max(min(m_camPos[2], 1000), -4400);
+    m_camPos[0] = std::min(std::max(m_camPos[0], 0.0f), 9000.0f);
+    m_camPos[2] = std::max(std::min(m_camPos[2], 1000.0f), -4400.0f);
 
     if(pObjectUnderCursor) {
         handler_->RequestCursor(CursorId::ATTACK_MOVE);
@@ -649,7 +647,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
         x = windowWidth_ / 2 - 115;
 
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, m_vecAbilities.at(0).strIcon);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_vecAbilities.at(0).hIcon);
         if (cooldowns[0] != -1) {
             float cd_remaining = (float)cooldowns[0] / (float)total_cooldowns[0];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -658,7 +656,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         x = windowWidth_ / 2 - 55;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_hGenericIcon);
         if (cooldowns[1] != -1) {
             float cd_remaining = (float)cooldowns[1] / (float)total_cooldowns[1];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -667,7 +665,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         x = windowWidth_ / 2 + 5;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_hGenericIcon);
         if (cooldowns[2] != -1) {
             float cd_remaining = (float)cooldowns[2] / (float)total_cooldowns[2];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -676,7 +674,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         x = windowWidth_ / 2 + 65;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, "GenericIcon");
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_hGenericIcon);
         if (cooldowns[3] != -1) {
             float cd_remaining = (float)cooldowns[3] / (float)total_cooldowns[3];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -798,7 +796,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
                 m_vecAbilities.resize(4);
                 m_vecAbilities[0] = {
                     .strName = "Thunderstrike",
-                    .strIcon = "characters/stormcaller/abilities\\thunderstrike_icon.png",
+                    .hIcon = assetManager_->LoadBitmapImage("characters/stormcaller/abilities\\thunderstrike_icon.png"),
                     .eTargetType = EAbilityTargetType::UNIT,
                 };
                 break;
@@ -928,6 +926,12 @@ void Game::HandleTicks(float dt) {
         }
 
         Vector3 vec3Move = { pMovementComponent->GetTarget().x - pGameObject->position.x, 0, pMovementComponent->GetTarget().z - pGameObject->position.z};
+
+        if(vec3Move.Length() < 1) {
+            // this must mean we arrived
+            pMovementComponent->ClearTarget();
+            continue;
+        }
 
         if (vec3Move.Length() > 600 * (7 / 1000.0f)) {
             vec3Move = vec3Move.Normalize().ScaleToLength(600 * (7 / 1000.0f));

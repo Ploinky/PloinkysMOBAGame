@@ -3,12 +3,16 @@
 
 SettingsMenu::SettingsMenu(IClientStateHandler* handler, int width, int height, Settings* settings)
 	: IClientState(handler, width, height), settings_(settings) {
+
+	HBitmap hBitmap = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton\\MenuButton.bmp");
+
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
 
 	mouseX_ = 0;
 	mouseY_ = 0;
 	// Quit button
+	buttonBack_.hImage = hBitmap;
 	buttonBack_.m_text = "Back";
 	buttonBack_.m_color[0] = 0.4f;
 	buttonBack_.m_color[1] = 0.4f;

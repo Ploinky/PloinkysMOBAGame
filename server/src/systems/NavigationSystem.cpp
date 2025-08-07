@@ -56,6 +56,7 @@ void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
             vec2IntermediateTarget = pNavComp->m_pNavGridAgent->path.at(0);
             vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
             pMovement->SetTarget({pNavComp->m_pNavGridAgent->path.at(0).x, 0, pNavComp->m_pNavGridAgent->path.at(0).y});
+            pGameState->VecEvent.emplace(new CMoveIntentionEvent(goPair.first, pMovement->GetTarget(), 0));
             return;
         }
 
@@ -82,7 +83,7 @@ void CNavigationSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStart
     }
 
     pNavComp->StopNavigation();
-    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pGameObject->GetId(), pTransformComp->GetPosition(), 0));
+    // pGameState->VecEvent.emplace(new CMoveIntentionEvent(pGameObject->GetId(), pTransformComp->GetPosition(), 0));
 }
 
 void CNavigationSystem::OnMoveAttempt(CGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {

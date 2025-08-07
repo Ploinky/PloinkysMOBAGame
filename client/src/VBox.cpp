@@ -28,7 +28,7 @@ void VBox::LayoutChildren() {
 		// Width is always the smaller value of preferred width and my max width
 		// If no preferred width is given, grow to max width!
 		// Careful, now it's size[0]...
-		el->m_size.x = el->m_prefSize.x != 0 ? min(el->m_prefSize.x, m_size.x) : m_size.x;
+		el->m_size.x = el->m_prefSize.x != 0 ? std::min(el->m_prefSize.x, m_size.x) : m_size.x;
 	}
 
 	if (m_gap != 0) {

@@ -39,6 +39,8 @@ Client::Client() {
 }
 
 Client::~Client() {
+    assetManager_.Cleanup();
+
     if (renderer != nullptr) {
         delete renderer;
         renderer = 0;
@@ -267,7 +269,7 @@ CRenderer* Client::GetRenderer() {
 	return renderer;
 }
 	
-AssetManager* Client::GetAssetManager() {
+CClientAssetManager* Client::GetAssetManager() {
 	return &assetManager_;
 }
 

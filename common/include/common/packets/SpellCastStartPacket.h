@@ -12,4 +12,5 @@ public:
 	virtual void Write(std::vector<uint8_t>* data) override;
 
 	UnitId unit;
+	UnitId idTarget;
 };

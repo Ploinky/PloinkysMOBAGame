@@ -2,6 +2,7 @@
 
 #include "GuiElement.h"
 #include <string>
+#include "client-asset-manager.h"
 
 class GuiButton : public GuiElement {
 public:
@@ -10,4 +11,6 @@ public:
 	std::string m_text = "";
 
 	void Render(CRenderer* renderer);
+
+	HBitmap hImage;
 };

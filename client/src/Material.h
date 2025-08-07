@@ -1,10 +1,11 @@
 #pragma once
 
 #include <d3d11.h>
+#include <client-asset-manager.h>
 
 class Material {
 public:
 	~Material();
 
-	ID3D11ShaderResourceView* Texture;
+	HTexture hTexture;
 };

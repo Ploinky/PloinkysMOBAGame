@@ -47,7 +47,7 @@ void CCharacterSelectState::Render(CRenderer* renderer) {
     int iTimeReaminingSeconds = m_iRemainingTime / 1000;
     renderer->RenderText(windowWidth_ / 2 - 100, 50, 200, 20, std::to_string(iTimeReaminingSeconds).append(" s"));
 
-    renderer->DrawImage(windowWidth_ / 2 - 75, 100, 50, 50, "FootballPersonIcon");
+    // renderer->DrawImage(windowWidth_ / 2 - 75, 100, 50, 50, "FootballPersonIcon");
     renderer->RenderText(windowWidth_ / 2 - 100, 150, 100, 100, "FootballPerson");
 }
 

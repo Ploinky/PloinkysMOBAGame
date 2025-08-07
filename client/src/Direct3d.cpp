@@ -24,7 +24,6 @@ Direct3D::~Direct3D() {
     dWriteFactory->Release();
     renderTargetView->Release();
     renderTarget2D->Release();
-    wicFactory_->Release();
     d2d_factory_->Release();
     format->Release();
     depthView->Release();
@@ -44,8 +43,6 @@ Direct3D::~Direct3D() {
     context->Flush();
     context->Release();
     device->Release();
-
-
 
 #ifdef _DEBUG
     debug->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL | D3D11_RLDO_DETAIL);
@@ -349,14 +346,6 @@ bool Direct3D::CreateDepthBuffer() {
 }
 
 bool Direct3D::Create2DSurface() {
-    // Create the COM imaging factory
-    HRESULT hr = CoCreateInstance(
-        CLSID_WICImagingFactory,
-        NULL,
-        CLSCTX_INPROC_SERVER,
-        IID_PPV_ARGS(&wicFactory_)
-    );
-
     D2D1_RENDER_TARGET_PROPERTIES props = {
             D2D1_RENDER_TARGET_TYPE_DEFAULT,
             D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
@@ -365,7 +354,7 @@ bool Direct3D::Create2DSurface() {
     };
     IDXGISurface* surf;
 
-    hr = swapChain->GetBuffer(
+    HRESULT hr = swapChain->GetBuffer(
         0,
         IID_PPV_ARGS(&surf)
     );

@@ -32,6 +32,7 @@ add_executable(client WIN32
     src/Camera.cpp
     src/CharacterSelectState.cpp
     src/Client.cpp
+    src/client-asset-manager.cpp
     src/ClientNetworkManager.cpp
     src/ConnectingState.cpp
     src/Direct3D.cpp
@@ -73,6 +74,7 @@ add_executable(client WIN32
     Resources/Resource.rc
 )
 
+target_compile_definitions(client PUBLIC NOMINMAX)
 
 target_include_directories(client PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/steam/public)
 

@@ -4,6 +4,7 @@
 #include "GameObject/Spell.h"
 #include "SpellTargetInfo.h"
 #include "components/Components.h"
+#include <optional>
 
 enum class ESpellCastState {
 	IDLE,
