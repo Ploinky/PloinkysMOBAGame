@@ -183,3 +183,127 @@ TextureAsset_t& CClientAssetManager::GetTexture(HTexture hTexture) {
 
     throw std::exception(("Texture asset " + std::to_string(hTexture) + " missing").c_str());
 }
+
+#define fourccRIFF 'FFIR'
+#define fourccDATA 'atad'
+#define fourccFMT ' tmf'
+#define fourccWAVE 'EVAW'
+#define fourccXWMA 'AMWX'
+#define fourccDPDS 'sdpd'
+
+HRESULT FindChunk(std::vector<uint8_t>& vecFileData, DWORD fourcc, DWORD& dwChunkSize, DWORD& dwChunkDataPosition) {
+    DWORD dwChunkType;
+    DWORD dwChunkDataSize;
+    DWORD dwRIFFDataSize = 0;
+    DWORD dwFileType;
+    DWORD bytesRead = 0;
+    DWORD dwOffset = 0;
+    DWORD dwFilePosition = 0;
+
+    while (dwOffset <= vecFileData.size()) {
+        DWORD dwRead;
+        std::memcpy(&dwChunkType, vecFileData.data() + dwFilePosition, sizeof(dwChunkType));
+        dwFilePosition += sizeof(dwChunkType);
+        std::memcpy(&dwChunkDataSize, vecFileData.data() + dwFilePosition, sizeof(dwChunkType));
+        dwFilePosition += sizeof(dwChunkDataSize);
+    
+        switch (dwChunkType)
+        {
+            case fourccRIFF:
+                dwRIFFDataSize = dwChunkDataSize;
+                dwChunkDataSize = 4;
+                std::memcpy(&dwFileType, vecFileData.data() + dwFilePosition, sizeof(dwFileType));
+                dwFilePosition += sizeof(dwFileType);
+                break;
+
+            default:
+                dwFilePosition += dwChunkDataSize;
+                break;
+        }
+
+        dwOffset += sizeof(DWORD) * 2;
+
+        if (dwChunkType == fourcc)
+        {
+            dwChunkSize = dwChunkDataSize;
+            dwChunkDataPosition = dwOffset;
+            return S_OK;
+        }
+
+        dwOffset += dwChunkDataSize;
+
+        if (bytesRead >= dwRIFFDataSize) return S_FALSE;
+
+    }
+
+    return S_OK;
+}
+
+HRESULT ReadChunkData(std::vector<uint8_t>& vecFileData, void* buffer, DWORD buffersize, DWORD bufferoffset)
+{
+    HRESULT hr = S_OK;
+    std::memcpy(buffer, vecFileData.data() + bufferoffset, buffersize);
+
+    return hr;
+}
+
+HSound CClientAssetManager::LoadSound(std::string strSound) {
+    if(m_mapSounds.contains(strSound)) {
+        return m_mapSounds[strSound];
+    }
+    
+    std::vector<uint8_t> vecFileData = LoadFile(strSound);
+
+    if (vecFileData.size() == 0) {
+        Logger::Err("Failed to load sound");
+        return INVALID_ASSET_HANDLE;
+    }
+
+    DWORD dwChunkSize;
+    DWORD dwChunkPosition;
+    //check the file type, should be fourccWAVE or 'XWMA'
+    FindChunk(vecFileData, fourccRIFF, dwChunkSize, dwChunkPosition);
+    DWORD filetype;
+    ReadChunkData(vecFileData, &filetype, sizeof(DWORD), dwChunkPosition);
+    if (filetype != fourccWAVE) {
+        Logger::Err("Failed to load sound");
+        return INVALID_ASSET_HANDLE;
+    }
+
+    WAVEFORMATEX wfx{};
+
+    FindChunk(vecFileData, fourccFMT, dwChunkSize, dwChunkPosition);
+    ReadChunkData(vecFileData, &wfx, dwChunkSize, dwChunkPosition);
+
+    //fill out the audio data buffer with the contents of the fourccDATA chunk
+    FindChunk(vecFileData, fourccDATA, dwChunkSize, dwChunkPosition);
+    BYTE* pDataBuffer = new BYTE[dwChunkSize];
+    ReadChunkData(vecFileData, pDataBuffer, dwChunkSize, dwChunkPosition);
+
+    XAUDIO2_BUFFER buffer{};
+    buffer.AudioBytes = dwChunkSize;  //size of the audio buffer in bytes
+    buffer.pAudioData = pDataBuffer;  //buffer containing audio data
+    buffer.Flags = XAUDIO2_END_OF_STREAM; // tell the source voice not to expect any data after this buffer
+    buffer.LoopCount = XAUDIO2_NO_LOOP_REGION;
+
+    SoundAsset_t soundAsset = SoundAsset_t();
+    soundAsset.buffer = buffer;
+    soundAsset.format = wfx;
+
+    m_vecSounds.push_back(soundAsset);
+
+    HSound handle = m_vecSounds.size() - 1;
+    m_mapSounds.emplace(strSound, handle);
+
+    return handle;
+}
+
+SoundAsset_t& CClientAssetManager::GetSound(HSound hSound) {
+    if(m_vecSounds.size() > hSound) {
+        return m_vecSounds[hSound];
+    }
+
+    throw std::exception(("Missing sound asset " + std::to_string(hSound)).c_str());
+}
+
+

@@ -104,7 +104,7 @@ void Client::Run(std::string connectString_) {
 
 	currentState_ = new CLoadingState(this, window->width_, window->height_, connectString_);
         
-    audio_system_.Initialize(&assetManager_);
+    m_audioEngine.Initialize(&assetManager_);
 
     // Main game loop
     // Keep running while both the client wants to keep runnning and the window has not been closed
@@ -133,7 +133,7 @@ void Client::Run(std::string connectString_) {
         currentState_->Render(renderer);
         FinishRender();
 
-        audio_system_.Update();
+        m_audioEngine.Update();
 
         SteamAPI_RunCallbacks();
 
@@ -162,7 +162,7 @@ void Client::FinishRender() {
 
 void Client::HandleSettingChanged(std::string setting) {
     if (setting == PMGSettings::MASTER_VOLUME) {
-        audio_system_.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
+        m_audioEngine.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
     }
     else if (setting == PMGSettings::WINDOW_MODE) {
         auto allModes = settings_.GetAllVideoModesAndValues();
@@ -273,6 +273,6 @@ CClientAssetManager* Client::GetAssetManager() {
 	return &assetManager_;
 }
 
-void Client::PlayGenericSound(std::string strSoundName) {
-    audio_system_.StartPlayingSound(strSoundName);
+CAudioEngine* Client::GetAudioEngine() {
+    return &m_audioEngine;
 }

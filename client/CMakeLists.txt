@@ -59,6 +59,8 @@ add_executable(client WIN32
     src/Vertex.cpp
     src/Window.cpp
 
+    src/core/audio/audio-engine.cpp
+
     Resources/Cursor.cur
     Resources/cursor1.cur
     Resources/Hover.cur

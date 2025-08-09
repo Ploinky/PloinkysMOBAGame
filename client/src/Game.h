@@ -4,6 +4,7 @@
 #include "IClientStateHandler.h"
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include "common/pmg_physics.h"
 #include "ClientNetworkManager.h"
 #include "GameObject.h"
@@ -11,6 +12,8 @@
 #include "Renderer.h"
 #include <Model.h>
 #include "client-asset-manager.h"
+#include "common/game/game-state.h"
+#include "AudioSystem.h"
 
 class NavMesh;
 class NavigationCellGrid;
@@ -83,6 +86,8 @@ public:
 
     std::map<UnitId, GameObject*> game_objects_;
 
+    CGameState m_gameState;
+
     NavMesh* m_navMesh;
     NavigationCellGrid* m_navGrid;
 
@@ -119,4 +124,8 @@ public:
     std::vector<UIAbility_t> m_vecAbilities;
 
     HBitmap m_hGenericIcon = INVALID_ASSET_HANDLE;
+    // TODO
+    AudioSystem* m_pAudioSystem;
+    HSound m_hThunderstrikeSound = INVALID_ASSET_HANDLE;
+    HSound m_hStormcallerDeath = INVALID_ASSET_HANDLE;
 };

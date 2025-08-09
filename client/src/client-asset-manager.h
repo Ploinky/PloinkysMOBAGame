@@ -7,12 +7,14 @@
 #include <d2d1.h>
 #include <d3d11.h>
 #include "wincodec.h"
+#include "xaudio2.h"
 
 typedef uint64_t ASSET_HANDLE;
 constexpr ASSET_HANDLE INVALID_ASSET_HANDLE = std::numeric_limits<uint64_t>::max();
 
 typedef ASSET_HANDLE HBitmap;
 typedef ASSET_HANDLE HTexture;
+typedef ASSET_HANDLE HSound;
 
 typedef struct {
     IWICFormatConverter* pConvertedData;
@@ -25,6 +27,11 @@ typedef struct {
     UINT uWidth;
     UINT uHeight;
 } TextureAsset_t;
+
+typedef struct {
+    XAUDIO2_BUFFER buffer;
+    WAVEFORMATEX format;
+} SoundAsset_t;
 
 class CClientAssetManager : public AssetManager {
 public:
@@ -39,6 +46,9 @@ public:
     HTexture LoadTextureFromData(std::vector<uint8_t> data);
     TextureAsset_t& GetTexture(HTexture hTexture);
 
+    HSound LoadSound(std::string strSound);
+    SoundAsset_t& GetSound(HSound hSound);
+
 private:
     IWICImagingFactory* m_pWicFactory;
 
@@ -47,4 +57,7 @@ private:
 
     std::unordered_map<std::string, HTexture> m_mapTextures;
     std::vector<TextureAsset_t> m_vecTextures;
+
+    std::unordered_map<std::string, HSound> m_mapSounds;
+    std::vector<SoundAsset_t> m_vecSounds;
 };

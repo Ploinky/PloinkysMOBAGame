@@ -47,10 +47,11 @@ public:
     virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) override;
 
     virtual void RequestCursor(CursorId newId) override;
-    virtual void PlayGenericSound(std::string strSoundName) override;
 
 	virtual CRenderer* GetRenderer() override;
 	virtual CClientAssetManager* GetAssetManager() override;
+
+    virtual CAudioEngine* GetAudioEngine() override;
 
 
     STEAM_CALLBACK(Client, GameServerChangeRequested, GameServerChangeRequested_t);
@@ -77,7 +78,7 @@ private:
     void HandleSettingChanged(std::string setting);
 
     Settings settings_;
-    AudioSystem audio_system_;
+    CAudioEngine m_audioEngine;
     CClientAssetManager assetManager_;
 
     // User Authentication

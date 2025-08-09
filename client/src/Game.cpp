@@ -5,6 +5,7 @@
 #include "ParticleSystem.h"
 #include "MainMenu.h"
 #include "../Resources/resource.h"
+#include "components/components.h"
 
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
@@ -203,7 +204,10 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
         game_objects_.emplace(Util::GetSystemTime(), particle_system);
 
-        handler_->PlayGenericSound("characters/stormcaller/abilities/" + pck.spell + ".wav");
+        CSpellHitEvent* pHitEvent = new CSpellHitEvent();
+        pHitEvent->idUnit = go->unit_id;
+        pHitEvent->hSound = m_hStormcallerDeath;
+        m_gameState.EmitEvent(pHitEvent);
     });
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, [this](std::vector<uint8_t> data) {
         CUnitDeathPacket pck;
@@ -219,6 +223,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         
         go->bIsCasting = false;
         go->dead = true;
+        m_pAudioSystem->PlaySoundOnUnit(m_hStormcallerDeath, go->unit_id);
     });
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, [this](std::vector<uint8_t> data) {
         CUnitRespawnPacket pck;
@@ -248,7 +253,13 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     SteamFriends()->SetRichPresence("steam_display", "#Status_OnCommunityServer");
 
+    // TODO
+    m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());
     m_hGenericIcon = handler->GetAssetManager()->LoadBitmapImage("Persons/_Generic/AbilityIcon.bmp");
+    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("characters/stormcaller/abilities/thunderstrike.wav");
+    m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("characters/stormcaller/death.wav");
+
+    m_gameState.AddSystem(m_pAudioSystem);
 }
 
 Game::~Game() {
@@ -517,8 +528,13 @@ void Game::Update(float dt) {
     m_camPos[0] = std::min(std::max(m_camPos[0], 0.0f), 9000.0f);
     m_camPos[2] = std::max(std::min(m_camPos[2], 1000.0f), -4400.0f);
 
-    if(pObjectUnderCursor) {
+    if(pObjectUnderCursor && m_gameState.GetComponent<TargetableComponent_t>(pObjectUnderCursor->unit_id)) {
         handler_->RequestCursor(CursorId::ATTACK_MOVE);
+    }
+
+    m_pAudioSystem->SetListenerPosition({m_camPos[0], m_camPos[1], m_camPos[2]});
+    for(IGameSystem* pSystem : m_gameState.m_vecGameSystems) {
+        pSystem->Update(&m_gameState, dt);
     }
 }
 
@@ -810,6 +826,8 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         // already spawned!
         return;
     }
+
+    m_gameState.vecUnits.push_back(unitId);
     // Hacky missile hack
     if (unit_type == UnitPrefab::THROW_FOOTBALL) {
         GameObject* go = new GameObject();
@@ -837,6 +855,10 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->team = team;
         go->uPrefab = unit_type;
         go->PlayAnimation("idle", true);
+        m_gameState.AddComponent<TargetableComponent_t>(unitId);
+        m_gameState.AddComponent<TransformComponent_t>(unitId);
+        m_gameState.AddComponent<AudioEmitterComponent_t>(unitId);
+        m_gameState.GetComponent<AudioEmitterComponent_t>(unitId)->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -851,6 +873,10 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->rotation = { 0, 0, 0 };
         go->team = team;
         go->uPrefab = unit_type;
+        m_gameState.AddComponent<TargetableComponent_t>(unitId);
+        m_gameState.AddComponent<TransformComponent_t>(unitId);
+        m_gameState.AddComponent<AudioEmitterComponent_t>(unitId);
+        m_gameState.GetComponent<AudioEmitterComponent_t>(unitId)->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
         go->PlayAnimation("idle", true);
         game_objects_.emplace(unitId, go);
         return;
@@ -899,6 +925,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         go->has_title = false;
         go->team = team;
         go->uPrefab = unit_type;
+        m_gameState.AddComponent<TargetableComponent_t>(unitId);
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -919,6 +946,11 @@ void Game::DespawnUnit(uint64_t unitId) {
 void Game::HandleTicks(float dt) {
     for (auto go_it : game_objects_) {
         GameObject* pGameObject = go_it.second;
+
+        TransformComponent_t* pTransformComp = m_gameState.GetComponent<TransformComponent_t>(pGameObject->unit_id);
+        if(pTransformComp) {
+            pTransformComp->vec3Position = pGameObject->position;
+        }
 
         CMovementComponent* pMovementComponent = pGameObject->GetMovementComponent();
         if (!pMovementComponent->IsMoving()) {

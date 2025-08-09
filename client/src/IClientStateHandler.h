@@ -13,6 +13,7 @@ enum class CursorId {
     ATTACK_MOVE
 };
 class IClientState;
+class CAudioEngine;
 class ClientNetworkManager;
 
 class IClientStateHandler {
@@ -29,8 +30,9 @@ public:
     virtual void OpenServerBrowser() = 0;
 
     virtual void RequestCursor(CursorId newId) = 0;
-    virtual void PlayGenericSound(std::string strSoundName) = 0;
 		
 	virtual CRenderer* GetRenderer() = 0;
 	virtual CClientAssetManager* GetAssetManager() = 0;
+
+    virtual CAudioEngine* GetAudioEngine() = 0;
 };

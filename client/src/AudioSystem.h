@@ -4,40 +4,23 @@
 #include <x3daudio.h>
 #include <map>
 #include <string>
-#include <Common/AssetManager.h>
+#include "client-asset-manager.h"
+#include "core/audio/audio-engine.h"
+#include "common/game/game-state.h"
+#include "common/game/game-system.h"
+#include "game/events/events.h"
 
-class AudioComponent {
+class AudioSystem : public IGameSystem{
 public:
-	std::string fileName;
-	bool isPlaying;
-	IXAudio2SourceVoice* pSourceVoice;
-	bool shouldStopPlaying;
-};
+	AudioSystem(CAudioEngine* pEngine, CClientAssetManager* pAssetManager);
+	virtual void Update(CGameState* pGameState, float fDelta) override;
 
-struct Sound {
-	XAUDIO2_BUFFER Buffer;
-	WAVEFORMATEX Format;
-};
+	void PlaySoundOnUnit(HSound hSound, UnitId idUnit);
 
-class AudioSystem {
-public:
-	void Update();
-	bool Initialize(AssetManager* pAssetManager);
-	void StartPlayingSound(std::string strSoundName);
-
-	void SetMasterVolume(float value);
+	void SetListenerPosition(Vector3 vec3LisPos);
+	void OnSpellHit(CGameState* pGameState, CSpellHitEvent* pHitEvent);
 
 private:
-	X3DAUDIO_HANDLE m_h3dAudio;
-	IXAudio2* pXAudio2;
-	IXAudio2MasteringVoice* pMasterVoice;
-
-	IXAudio2SubmixVoice* music_submix_voice_;
-	XAUDIO2_SEND_DESCRIPTOR SFXSend{};
-	XAUDIO2_VOICE_SENDS SFXSendList{};
-
-	std::map<std::string, Sound*> m_mapSounds;
-	std::vector<IXAudio2SourceVoice*> m_vecPlayingSounds;
-
-	void LoadSoundFile(std::string strSoundName, AssetManager* pAssetManager);
+	CClientAssetManager* m_pAssetManager;
+	CAudioEngine* m_pEngine;
 };

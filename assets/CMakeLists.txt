@@ -72,6 +72,7 @@ copy_file(characters/stormcaller/abilities/thunderstrike.png)
 copy_file(characters/stormcaller/abilities/thunderstrike.pte)
 copy_file(characters/stormcaller/abilities/thunderstrike.pts)
 copy_file(characters/stormcaller/abilities/thunderstrike.wav)
+copy_file(characters/stormcaller/death.wav)
 
 # Chess person
 copy_file(Persons/ChessPerson/blast_area_2.pte)
