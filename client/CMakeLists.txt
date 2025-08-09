@@ -28,7 +28,7 @@ add_executable(client WIN32
     src/client-asset-manager.cpp
     src/ClientNetworkManager.cpp
     src/ConnectingState.cpp
-    src/Direct3D.cpp
+    src/Direct3d.cpp
     src/FlatUnlitShader.cpp
     src/Game.cpp
     src/GameObject.cpp
