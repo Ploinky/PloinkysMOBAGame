@@ -45,7 +45,13 @@ private:
 	XAUDIO2_VOICE_SENDS SFXSendList{};
     
 	std::vector<IXAudio2SourceVoice*> m_vecPlayingSounds;
-	
+
+	X3DAUDIO_DISTANCE_CURVE_POINT volumePoints[3] = {
+		{ 0.0f, 1.0f },   // at distance 0 -> full volume
+		{ 0.6f, 1.0f },  // up to 0.25*CurveDistanceScaler -> keep full volume
+		{ 1.0f, 0.0f }    // at CurveDistanceScaler -> silence
+	};
+	X3DAUDIO_DISTANCE_CURVE volumeCurve = {volumePoints, 3};
 	X3DAUDIO_CONE m_listenerCone;
 	X3DAUDIO_LISTENER m_listener;
 	std::vector<X3DAUDIO_EMITTER> m_vecEmitters;

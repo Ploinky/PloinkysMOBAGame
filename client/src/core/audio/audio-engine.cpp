@@ -114,7 +114,7 @@ HEmitter CAudioEngine::CreateEmitter(Vector3 vec3InitialPos) {
 }
 
 void CAudioEngine::SetListenerPosition(Vector3 vec3NewPos) {
-    Vector3 scaledPos = vec3NewPos.ScaleToLength(vec3NewPos.Length() / 100.0f);
+    Vector3 scaledPos = vec3NewPos.ScaleToLength(vec3NewPos.Length());
     m_listener.Position = X3DAUDIO_VECTOR({scaledPos.x, scaledPos.y, -scaledPos.z});
 }
 
@@ -125,10 +125,11 @@ void CAudioEngine::UpdateVoicePosition(HVoice hVoice, HEmitter hEmitter, Vector3
     }
 
     X3DAUDIO_EMITTER& emitter = m_vecEmitters.at(hEmitter);
-    Vector3 scaledPos = vec3Position.ScaleToLength(vec3Position.Length() / 100.0f);
+    Vector3 scaledPos = vec3Position.ScaleToLength(vec3Position.Length());
     emitter.Position = X3DAUDIO_VECTOR({scaledPos.x, scaledPos.y, -scaledPos.z});
     emitter.ChannelCount = 1;
-    emitter.CurveDistanceScaler = 100.0f;
+    emitter.CurveDistanceScaler = 3000;
+    emitter.pVolumeCurve = &volumeCurve;
 
     IXAudio2SourceVoice* pVoice = m_vecPlayingSounds.at(hVoice);
     XAUDIO2_VOICE_DETAILS sourceDetails;
