@@ -6,7 +6,7 @@
 #include <queue>
 #include <typeindex>
 
-#include "Common/PMG_Common.h"
+#include "common/PMG_Common.h"
 
 class CGameObject;
 class CGameState;

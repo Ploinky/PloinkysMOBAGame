@@ -3,7 +3,7 @@
 #include "GameObject.h"
 
 std::vector<CGameObject*> CGameState::GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const {
-    throw std::exception("implement me");
+    throw std::runtime_error("implement me");
     return {};
 }
 

@@ -206,7 +206,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
         CSpellHitEvent* pHitEvent = new CSpellHitEvent();
         pHitEvent->idUnit = go->unit_id;
-        pHitEvent->hSound = m_hStormcallerDeath;
+        pHitEvent->hSound = m_hThunderstrikeSound;
         m_gameState.EmitEvent(pHitEvent);
     });
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, [this](std::vector<uint8_t> data) {

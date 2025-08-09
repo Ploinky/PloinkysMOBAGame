@@ -1,4 +1,5 @@
 #include "packets/UnitDeathPacket.h"
+#include <string.h>
 
 void CUnitDeathPacket::Read(std::vector<uint8_t>* data) {
 	packet_header_t header;

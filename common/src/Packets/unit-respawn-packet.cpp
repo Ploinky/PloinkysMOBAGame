@@ -1,5 +1,5 @@
 #include "packets/unit-respawn-packet.h"
-
+#include <string.h>
 void CUnitRespawnPacket::Read(std::vector<uint8_t>* data) {
 	packet_header_t header;
 

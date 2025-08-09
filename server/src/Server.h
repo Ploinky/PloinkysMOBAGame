@@ -2,8 +2,8 @@
 
 #include <string>
 #include <list>
-#include <Common/PMG_Common.h>
-#include <Common/pmg_networking.h>
+#include <common/PMG_Common.h>
+#include <common/pmg_networking.h>
 #include "steam/steam_gameserver.h"
 #include "IServerState.h"
 #include "IServerStateHandler.h"

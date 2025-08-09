@@ -3,8 +3,8 @@
 #include <string>
 #include <list>
 #include <functional>
-#include <Common/PMG_Common.h>
-#include "Common/pmg_networking.h"
+#include <common/PMG_Common.h>
+#include "common/pmg_networking.h"
 
 #include "steam/isteamnetworkingsockets.h"
 #include "steam/steam_api.h"

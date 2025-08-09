@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include "pmg_physics.h"
+#include <stdint.h>
 
 typedef struct {
 	float x;

@@ -1,4 +1,5 @@
 #include <Packets/SpellCastStartPacket.h>
+#include <string.h>
 
 void SpellCastStartPacket::Read(std::vector<uint8_t>* data) {
 	packet_header_t header;

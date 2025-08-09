@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BasePacket.h"
-#include "Common/PMG_Common.h"
+#include "common/PMG_Common.h"
 
 class UnitMovePacket : public BasePacket {
 public:
