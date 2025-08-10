@@ -8,7 +8,6 @@ add_library(common
 	src/JSONValue.cpp
 	src/logger.cpp
 	src/navigation.cpp
-	src/PakFile.cpp
 	src/projection.cpp
 	src/ray.cpp
 	src/sphere.cpp
@@ -55,3 +54,7 @@ target_include_directories(common PUBLIC include)
 
 # TODO fix this but not right now pls
 target_include_directories(common PRIVATE include/common)
+
+find_package(paklib)
+
+target_link_libraries(common PUBLIC ploinky::paklib)

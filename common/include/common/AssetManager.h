@@ -1,7 +1,7 @@
 #ifndef ASSETMANAGER_H
 #define ASSETMANAGER_H
 
-#include "PakFile.h"
+#include <paklib/PakFile.h>
 #include <list>
 
 class AssetManager {
