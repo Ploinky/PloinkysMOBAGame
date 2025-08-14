@@ -20,6 +20,7 @@
 #include "wincodec.h"
 #include <Common/navigation.h>
 #include "client-asset-manager.h"
+#include "core/rendering/render-command.h"
 
 class GameObject;
 class ParticleSystem;
@@ -67,10 +68,6 @@ public:
     void FillRect(int x, int y, int w, int h, float color[3]);
     void DrawImage(float x, float y, float w, float h, HBitmap hBitmap);
 
-    void Draw(GameObject* gameObject);
-    void Draw(Model* modelNode);
-    void RenderParticle(ParticleEmitter* emitter);
-
     void DrawMap();
 
     void ClearScreen();
@@ -87,6 +84,8 @@ public:
     // Renders the navigation cell grid over the map
     void RenderNavGrid(NavigationCellGrid* grid);
 #endif
+
+    void Submit(RenderCommand_t command);
 
 private:
     IGraphicsEngine* m_pGraphicsEngine;
@@ -120,4 +119,11 @@ private:
     #endif
     
     CClientAssetManager* m_pAssetManager;
+
+    std::vector<RenderCommand_t> m_vecCommands;
+
+    
+    void Draw(GameObject* gameObject);
+    void Draw(Model* modelNode);
+    void RenderParticle(ParticleEmitter* emitter);
 };

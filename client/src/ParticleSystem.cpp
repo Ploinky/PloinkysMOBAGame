@@ -67,6 +67,10 @@ void ParticleSystem::AddEmitter(ParticleEmitter* emitter) {
 
 void ParticleSystem::Render(CRenderer* renderer) {
 	for (ParticleEmitter* emitter : emitters_) {
-		renderer->RenderParticle(emitter);
+		RenderCommand_t command {
+			.eType = ERenderCommandType::SKINNED_MESH,
+			.pModel = this
+		};
+		renderer->Submit(command);
 	}
 }

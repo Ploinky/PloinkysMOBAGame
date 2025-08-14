@@ -536,6 +536,25 @@ void CRenderer::ClearScreen() {
 }
 
 void CRenderer::Present() {
+	for(RenderCommand_t command : m_vecCommands) {
+		switch(command.eType) {
+			case ERenderCommandType::STATIC_MESH:
+				Draw(command.pModel);
+				break;
+			case ERenderCommandType::SKINNED_MESH:
+				Draw(command.pModel);
+				break;
+			case ERenderCommandType::PARTICLE_SYSTEM:
+				Draw(command.pModel);
+				break;
+			default:
+			case ERenderCommandType::NONE:
+				break;
+		}
+	}
+
+	m_vecCommands.clear();
+
 	m_pGraphicsEngine->Present();
 }
 
@@ -693,4 +712,8 @@ bool CRenderer::InitParticleSystem(ParticleSystem* pSystem) {
 	}
 
 	return true;
+}
+
+void CRenderer::Submit(RenderCommand_t command) {
+	m_vecCommands.push_back(command);
 }

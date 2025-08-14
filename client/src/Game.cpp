@@ -581,7 +581,10 @@ void Game::Render(CRenderer* renderer) {
     for (auto go_it : game_objects_) {
         GameObject* go = go_it.second;
 
-        renderer->Draw(go);
+        RenderCommand_t command;
+        command.eType = ERenderCommandType::SKINNED_MESH;
+        command.pModel = go;
+        renderer->Submit(command);
     }
 
     RenderGameUI(renderer);
