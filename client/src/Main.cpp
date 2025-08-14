@@ -126,7 +126,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     window.Show();
 
 
-    Direct3D d3d = Direct3D();
+    CD3D11GraphicsEngine d3d = CD3D11GraphicsEngine();
     if (!d3d.Initialize(window.GetWindowHandle(), false)) {
         MessageBoxA(NULL, "fml", "fml", MB_ICONERROR);
     }

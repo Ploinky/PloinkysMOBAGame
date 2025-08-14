@@ -1,4 +1,4 @@
-#include <GLBShader.hlsli>
+#include <glb.hlsli>
 
 Texture2D shaderTexture;
 SamplerState sampleType;

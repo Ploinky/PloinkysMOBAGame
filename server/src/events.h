@@ -1,5 +1,9 @@
 #pragma once
 
+#include "events/attack-finished-event.h"
+#include "events/attack-hit-event.h"
+#include "events/attack-intention-event.h"
+#include "events/attack-start-event.h"
 #include "events/cooldown-started-event.h"
 #include "events/damage-event.h"
 #include "events/death-event.h"

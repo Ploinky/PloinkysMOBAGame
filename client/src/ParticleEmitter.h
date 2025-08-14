@@ -3,7 +3,7 @@
 #include <string>
 #include "common/pmg_physics.h"
 #include "Particle.h"
-#include <Direct3D.h>
+#include "renderer.h"
 #include <vector>
 #include <list>
 
@@ -14,8 +14,6 @@ public:
 	ParticleEmitter(std::string texture_name);
 	~ParticleEmitter();
 	void Update(float dt);
-
-	bool Initialize(Direct3D* direct3D);
 
 	bool IsDone();
 
@@ -34,8 +32,8 @@ public:
 	std::vector<Particle> particles;
 	int emitter_life;
 	bool static_angle = false;
-	ID3D11Buffer* vertex_buffer_;
-	ID3D11Buffer* instance_buffer_;
+	BufferHandle_t vertex_buffer_;
+	BufferHandle_t instance_buffer_;
 	bool initialized;
 	std::string texture_name_;
 };

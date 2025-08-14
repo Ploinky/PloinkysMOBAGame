@@ -15,6 +15,7 @@
 #include "events.h"
 #include "systems/points-system.h"
 #include "systems/respawn-system.h"
+#include "systems/attack-system.h"
 #include "content/characters/stormcaller/thunderstrike.h"
 
 uint64_t g_unitId = 0;
@@ -114,6 +115,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(m_pNetworkSystem);
     m_vecSystems.push_back(new CPointsSystem());
     m_vecSystems.push_back(new CRespawnSystem());
+    m_vecSystems.push_back(new CAttackSystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -143,6 +145,7 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
 
     pGameObject->AddComponent(new CTeamComponent(Team::TEAM_1));
     pGameObject->AddComponent(new CCharacterComponent(UnitPrefab::STORMCALLER));
+    pGameObject->AddComponent(new CBasicAttackComponent());
 
     AddGameObject(pGameObject);
 
@@ -216,13 +219,9 @@ void Client::PlayerStopCommand(PlayerID playerId) {
 }
 
 void Client::PlayerAttackCommand(PlayerID playerId, uint64_t target_id) {
-    /*
     if (players_.find(playerId) != players_.end()) {
-        CGameObject* actor = GameState.GameObjects.find(players_.find(playerId)->second->unit)->second;
-        CGameObject* target = GetGameObjectById(target_id);
-        actor->current_action_ = new CGameObjectActionAttackUnit(target->unit_id);
+        GameState.VecEvent.emplace(new CAttackIntentionEvent(players_.find(playerId)->second->unit, target_id));
     }
-    */
 }
 
 void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTargetInfo* target_info) {

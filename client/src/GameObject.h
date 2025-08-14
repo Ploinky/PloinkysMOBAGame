@@ -68,6 +68,7 @@ public:
 
 	bool dead = false;
 	bool bIsCasting = false;
+	bool bIsAttacking = false;
 
 	uint64_t uPrefab = 0;
 private:

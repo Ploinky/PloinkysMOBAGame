@@ -9,7 +9,7 @@ endfunction()
 function(pak_folder)
     file(GLOB PAK_SOURCE "$<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0}/**")
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
-        COMMAND PakUtil ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
+        COMMAND pakr ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
         DEPENDS ${PAK_SOURCE}
         WORKING_DIRECTORY $<TARGET_PROPERTY:assets,BINARY_DIR>
     )
@@ -40,6 +40,7 @@ add_executable(server
 	src/events/spell-cast-event.cpp
 	src/events/spell-cast-start-event.cpp
 	
+	src/systems/attack-system.cpp
 	src/systems/damage-system.cpp
 	src/systems/NavigationSystem.cpp
 	src/systems/NetworkSystem.cpp

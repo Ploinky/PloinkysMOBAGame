@@ -19,6 +19,7 @@ add_library(common
 	src/game/game-system.cpp
 
 	src/Packets/AttackCommand.cpp
+	src/Packets/AttackFinishedPacket.cpp
 	src/Packets/AttackStartPacket.cpp
 	src/Packets/CastCommand.cpp
 	src/Packets/CastTargetCommand.cpp

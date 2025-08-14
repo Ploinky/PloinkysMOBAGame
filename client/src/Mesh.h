@@ -1,13 +1,13 @@
 #pragma once
 
-#include <d3d11.h>
+#include <core/graphics/graphics-engine.h>
 
 class Mesh {
 public:
 	~Mesh();
 
-	ID3D11Buffer* VertexBuffer;
-	ID3D11Buffer* IndexBuffer;
+	BufferHandle_t VertexBuffer;
+	BufferHandle_t IndexBuffer;
 	int IndexCount;
 	int MaterialIndex = -1;
 };

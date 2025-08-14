@@ -8,6 +8,7 @@
 #include <vector>
 #include <Renderer.h>
 #include <Lobby.h>
+#include <client-asset-manager.h>
 
 class CLoadingState : public IClientState {
 public:
@@ -23,7 +24,7 @@ public:
 	virtual void Render(CRenderer* pRenderer) override;
 
 private:
-	AssetManager* m_pAssetManager;
+	CClientAssetManager* m_pAssetManager;
 	CRenderer* m_pRenderer;
 	int m_iLoadStep;
 	bool m_bLoadingDone;

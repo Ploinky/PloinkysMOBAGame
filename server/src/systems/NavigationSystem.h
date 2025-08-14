@@ -14,6 +14,7 @@ public:
 
     void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvent);
     void OnMoveAttempt(CGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent);
+    void OnAttackStart(CGameState* pGameState, CAttackStartEvent* pEvt);
 
 private:
     NavigationMap* m_pMap;

@@ -1,4 +1,4 @@
-#include <GLBShader.hlsli>
+#include <glb.hlsli>
 
 cbuffer perFrameBuffer {
 	float4x4 projMatrix;

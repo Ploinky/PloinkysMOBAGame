@@ -1,11 +1,8 @@
 #pragma once
 
 #include "system.h"
+#include "events.h"
 
-class CSpellCastContext;
-class CSpellCastStartEvent;
-class CSpellAttemptCastEvent;
-class CSpellCastEvent;
 class CDeathEvent;
 
 class CSpellSystem : public ISystem {
@@ -16,7 +13,8 @@ public:
 
     void OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastEvent* pEvt);
     void OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent);
-
+    
+    void OnAttackIntention(CGameState* pGameState, CAttackIntentionEvent* pCastEvent);
     void OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvent);
 
 private:

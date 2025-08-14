@@ -14,6 +14,9 @@ CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     REGISTER_EVENT_HANDLER(CMoveEvent, OnMove);
     REGISTER_EVENT_HANDLER(CMoveIntentionEvent, OnMoveIntention);
     REGISTER_EVENT_HANDLER(CCooldownStartedEvent, OnCooldownStarted);
+    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart);
+    REGISTER_EVENT_HANDLER(CAttackHitEvent, OnAttackHit);
+    REGISTER_EVENT_HANDLER(CAttackFinishedEvent, OnAttackFinished);
 }
 
 CNetworkSystem::~CNetworkSystem() {
@@ -199,5 +202,29 @@ void CNetworkSystem::OnCooldownStarted(CGameState* pGameState, CCooldownStartedE
     pck.unit = pEvt->idUnit;
     pck.spell_slot = pEvt->nSpellIndex;
     pck.total_cooldown = pEvt->fCooldown;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnAttackStart(CGameState* pGameState, CAttackStartEvent* pEvt) {
+    attack_start_pck_t pckData {};
+    pckData.unit = pEvt->idAttacker;
+    pckData.target = pEvt->idTarget;
+
+    AttackStartPacket pck = AttackStartPacket();
+    pck.content = pckData;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnAttackHit(CGameState* pGameState, CAttackHitEvent* pEvt) {
+
+}
+
+
+void CNetworkSystem::OnAttackFinished(CGameState* pGameState, CAttackFinishedEvent* pEvt) {
+    attack_finished_pck_t pckData {};
+    pckData.unit = pEvt->idAttacker;
+
+    CAttackFinishedPacket pck = CAttackFinishedPacket();
+    pck.content = pckData;
     m_pNetworkManager->SendToAllClients(pck);
 }

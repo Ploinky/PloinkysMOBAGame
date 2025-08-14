@@ -1,18 +1,12 @@
 #include "spell-system.h"
 
 #include "GameState.h"
-#include "events/spell-cast-start-event.h"
-#include "events/spell-cast-event.h"
-#include "events/spell-hit-event.h"
-
-#include "events/damage-event.h"
-
-#include "events.h"
 #include "SpellTargetInfo.h"
 
 CSpellSystem::CSpellSystem() {
     REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellAttemptCast);
     REGISTER_EVENT_HANDLER(CSpellCastEvent, OnSpellCast);
+    REGISTER_EVENT_HANDLER(CAttackIntentionEvent, OnAttackIntention);
 }
 
 void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
@@ -205,6 +199,24 @@ void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpel
     cast.nIndex = pSpellCtx->nSpellIndex;
     cast.spellCtx = pSpellCtx;
     pCastComponent->optCurrentCast.emplace(cast);
+}
+
+
+void CSpellSystem::OnAttackIntention(CGameState* pGameState, CAttackIntentionEvent* pEvt) {
+    CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idUnit);
+
+    if(pAttacker == nullptr) {
+        Logger::FormatErr("Invalid attack intention event: unit with id %d does not exist", pEvt->idTarget);
+        return;
+    }
+
+    CSpellCastComponent* pSpellComp = pAttacker->GetComponent<CSpellCastComponent>();
+
+    if(pSpellComp == nullptr) {
+        return;
+    }
+
+    pSpellComp->optCurrentCast.reset();
 }
 
 

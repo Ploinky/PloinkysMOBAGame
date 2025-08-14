@@ -1,9 +1,9 @@
 #include "ParticleSystem.h"
-#include "Direct3D.h"
-#include "ParticleShader.h"
+#include "core/graphics/d3d11-graphics-engine.h"
 #include <math.h>
 #include "Camera.h"
 #include <Common/PMG_Common.h>
+#include "ParticleEmitter.h"
 
 ParticleSystem::ParticleSystem() {
 	has_healthbar = false;
@@ -69,14 +69,4 @@ void ParticleSystem::Render(CRenderer* renderer) {
 	for (ParticleEmitter* emitter : emitters_) {
 		renderer->RenderParticle(emitter);
 	}
-}
-
-bool ParticleSystem::Initialize(Direct3D* direct3D) {
-	for (ParticleEmitter* emitter : emitters_) {
-		if (!emitter->Initialize(direct3D)) {
-			return false;
-		}
-	}
-
-	return true;
 }

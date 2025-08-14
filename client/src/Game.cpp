@@ -17,15 +17,33 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     packet_manager = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
     // Register network packets, the fuck...
+    packet_manager.RegisterHandler(PacketType::PCK_ATTACK_FINISHED, [this](std::vector<uint8_t> data) {
+        CAttackFinishedPacket pck{};
+        pck.Read(&data);
+
+        GameObject* go = GetGameObject(pck.content.unit);
+        go->bIsAttacking = false;
+    });
     packet_manager.RegisterHandler(PacketType::PCK_ATTACK_START, [this](std::vector<uint8_t> data) {
         AttackStartPacket pck{};
         pck.Read(&data);
 
         GameObject* go = GetGameObject(pck.content.unit);
-
-        if (go->GetCurrentAnimation().GetAnimationName() != "attack1") {
-            go->PlayAnimation("attack1", true);
+        go->bIsAttacking = true;
+        
+        if(CMovementComponent* pMoveComp = go->GetMovementComponent()) {
+            pMoveComp->ClearTarget();
         }
+
+        GameObject* pTarget = GetGameObject(pck.content.target);
+        if(pTarget != nullptr) {
+            go->rotation.y = CalculateAngle({go->position.x, go->position.z}, {pTarget->position.x, pTarget->position.z});
+        }
+
+        CAttackStartEvent* pAttackEvent = new CAttackStartEvent();
+        pAttackEvent->idUnit = go->unit_id;
+        pAttackEvent->hSound = m_hStormcallerAttack;
+        m_gameState.EmitEvent(pAttackEvent);
     });
     packet_manager.RegisterHandler(PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
     packet_manager.RegisterHandler(PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });
@@ -46,9 +64,13 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
 
         go->bIsCasting = false;
+        go->bIsAttacking = false;
 
         Vector3 vec3Move = { move.x, move.y, move.z };
-        if ((go->position - vec3Move).Length() > 5) {
+        if((go->position - vec3Move).Length() > 100) {
+            Logger::FormatMsg("snap: %f", (go->position - vec3Move).Length());
+            go->position = vec3Move;
+        } else if ((go->position - vec3Move).Length() > 5) {
             Logger::FormatMsg("diff: %f", (go->position - vec3Move).Length());
 
             Vector3 vec3Catchup = (vec3Move - go->position).ScaleToLength(((vec3Move - go->position).Length() - 5) / 10);
@@ -75,6 +97,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             pMoveComp->ClearTarget();
         }
 
+        go->bIsAttacking = false;
         go->bIsCasting = false;
         go->position.x = idle.x;
         go->position.y = idle.y;
@@ -87,7 +110,6 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         part.Read(&data);
 
         ParticleSystem* particle_system = ParticleSystem::Load(part.particle, assetManager_);
-        particle_system->Initialize(direct3D);
 
         GameObject* go = GetGameObject(part.unit);
         if (part.unit != 0 && go != nullptr) {
@@ -198,7 +220,6 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
 
         ParticleSystem* particle_system = ParticleSystem::Load("characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
-        particle_system->Initialize(direct3D);
         // particle_system->Attach(go);
         particle_system->position = {go->position.x, 100, go->position.z};
 
@@ -238,12 +259,12 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
         
         go->bIsCasting = false;
+        go->bIsAttacking = false;
         go->dead = false;
     });
 
     net_manager_->Initialize(&packet_manager);
 
-    this->direct3D = &handler->GetRenderer()->m_d3d;
     this->assetManager_ = handler->GetAssetManager();
     this->renderer = handler->GetRenderer();
 
@@ -258,6 +279,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     m_hGenericIcon = handler->GetAssetManager()->LoadBitmapImage("Persons/_Generic/AbilityIcon.bmp");
     m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("characters/stormcaller/abilities/thunderstrike.wav");
     m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("characters/stormcaller/death.wav");
+    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("characters/stormcaller/attack.wav");
 
     m_gameState.AddSystem(m_pAudioSystem);
 }
@@ -353,12 +375,17 @@ void Game::Update(float dt) {
         } else if(go->bIsCasting) {
             desiredAnim = "attack1";
             bLoop = false;
+        } else if(go->bIsAttacking) {
+            Logger::FormatMsg("PLAY ATTACK!");
+            desiredAnim = "attack1";
+            bLoop = false;
         } else {
             desiredAnim = "idle";
             bLoop = true;
         }
 
         if (go->GetCurrentAnimation().GetAnimationName() != desiredAnim) {
+            Logger::FormatMsg("Playing animation %s", desiredAnim.c_str());
             go->PlayAnimation(desiredAnim, bLoop);
         }
 
@@ -467,7 +494,6 @@ void Game::Update(float dt) {
             net_manager_->SendPacket(&mv);
 
             ParticleSystem* particle_system = ParticleSystem::Load("UI/MoveTo/move_to.pts", assetManager_);
-            particle_system->Initialize(direct3D);
             particle_system->position = { x, 0, y };
 
             game_objects_.emplace(Util::GetSystemTime(), particle_system);
@@ -562,6 +588,29 @@ void Game::Render(CRenderer* renderer) {
 }
 
 void Game::RenderGameUI(CRenderer* renderer) {
+#ifdef _DEBUG
+    for (int c = 0; c < m_navGrid->CellCountX * m_navGrid->CellCountY; c++) {
+        m_navGrid->Cells[c]->IsOpen = true;
+    }
+    m_navGrid->Reset();
+    for (auto& go_it : game_objects_) {
+        GameObject* go = go_it.second;
+
+        if (!go->has_healthbar) {
+            continue;   
+        }
+        m_navGrid->GetCellAt(go->position.x - 25, go->position.z - 25)->IsOpen = false;
+        m_navGrid->GetCellAt(go->position.x - 25, go->position.z - 25)->UnitId = go->unit_id;
+        m_navGrid->GetCellAt(go->position.x + 25, go->position.z - 25)->IsOpen = false;
+        m_navGrid->GetCellAt(go->position.x + 25, go->position.z - 25)->UnitId = go->unit_id;
+        m_navGrid->GetCellAt(go->position.x + 25, go->position.z + 25)->IsOpen = false;
+        m_navGrid->GetCellAt(go->position.x + 25, go->position.z + 25)->UnitId = go->unit_id;
+        m_navGrid->GetCellAt(go->position.x - 25, go->position.z + 25)->IsOpen = false;
+        m_navGrid->GetCellAt(go->position.x - 25, go->position.z + 25)->UnitId = go->unit_id;
+    }
+    renderer->RenderNavGrid(m_navGrid);
+#endif
+
     for (auto go_it : game_objects_) {
         GameObject* go = go_it.second;
 
@@ -726,29 +775,6 @@ void Game::RenderGameUI(CRenderer* renderer) {
         renderer->FillRect(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 100, black);
         renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 100, "Game Over!");
     }
-
-#ifdef _DEBUG
-    for (int c = 0; c < m_navGrid->CellCountX * m_navGrid->CellCountY; c++) {
-        m_navGrid->Cells[c]->IsOpen = true;
-    }
-    m_navGrid->Reset();
-    for (auto& go_it : game_objects_) {
-        GameObject* go = go_it.second;
-
-        if (!go->has_healthbar) {
-            continue;   
-        }
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z - 25)->UnitId = go->unit_id;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z - 25)->UnitId = go->unit_id;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z + 25)->UnitId = go->unit_id;
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z + 25)->UnitId = go->unit_id;
-    }
-    renderer->RenderNavGrid(m_navGrid);
-#endif
 
     renderer->RenderChat(m_vecChat);
 }

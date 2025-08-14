@@ -5,9 +5,10 @@
 #include <vector>
 #include "Renderer.h"
 #include "GameObject.h"
-#include "ParticleEmitter.h"
 #include <GameObject.h>
 #include <Common/PMG_Common.h>
+
+class ParticleEmitter;
 
 class ParticleSystem : public GameObject {
 public:
@@ -17,7 +18,6 @@ public:
 	static ParticleSystem* Load(std::string particleName, AssetManager* assetManager);
 
 	void Render(CRenderer* renderer);
-	bool Initialize(Direct3D* direct3D);
 	virtual void Update(float dt) override;
 
 	void Attach(GameObject* other);

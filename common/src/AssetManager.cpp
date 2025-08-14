@@ -10,18 +10,18 @@ AssetManager::AssetManager() {
 }
 
 AssetManager::~AssetManager() {
-	for (PakFile* pakFile : files) {
+	for (paklib::PakFile* pakFile : files) {
 		delete pakFile;
 	}
 }
 
 void AssetManager::LoadPakFile(std::string fileName) {
-	files.push_back(PakFile::Load(fileName));
+	files.push_back(paklib::PakFile::Load(fileName));
 }
 
 std::vector<uint8_t> AssetManager::LoadFile(std::string fileName) {
 	// check if any of our paks have the file
-	for (PakFile* pakFile : files) {
+	for (paklib::PakFile* pakFile : files) {
 		if (pakFile->HasFile(fileName)) {
 			return pakFile->GetFileData(fileName);
 		}

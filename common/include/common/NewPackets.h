@@ -12,6 +12,7 @@
 
 #include "packets/AttackCommand.h"
 #include "packets/AttackStartPacket.h"
+#include "packets/AttackFinishedPacket.h"
 #include "packets/CastCommand.h"
 #include "packets/CastTargetCommand.h"
 #include "packets/CooldownPacket.h"

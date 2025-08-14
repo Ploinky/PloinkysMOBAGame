@@ -15,7 +15,7 @@
 
 // Main game application
 class Mesh;
-class Direct3D;
+class CD3D11GraphicsEngine;
 class CRenderer;
 class Window;
 class KeyboardInput;

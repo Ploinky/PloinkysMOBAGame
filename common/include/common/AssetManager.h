@@ -1,7 +1,7 @@
 #ifndef ASSETMANAGER_H
 #define ASSETMANAGER_H
 
-#include <paklib/PakFile.h>
+#include <paklib/pak-file.h>
 #include <list>
 
 class AssetManager {
@@ -9,7 +9,7 @@ public:
 	AssetManager();
 	~AssetManager();
 
-	std::vector<PakFile*> files;
+	std::vector<paklib::PakFile*> files;
 
 	void LoadPakFile(std::string fileName);
 

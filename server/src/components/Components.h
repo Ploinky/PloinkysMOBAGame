@@ -1,5 +1,6 @@
 #pragma once
 
+#include "basic-attack-component.h"
 #include "NetworkComponent.h"
 #include "TransformComponent.h"
 #include "MovementComponent.h"

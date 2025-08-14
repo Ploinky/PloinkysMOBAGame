@@ -19,6 +19,9 @@ public:
     void OnMove(CGameState* pGameState, CMoveEvent* pEvt);
     void OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent* pEvt);
     void OnCooldownStarted(CGameState* pGameState, CCooldownStartedEvent* pEvt);
+    void OnAttackStart(CGameState* pGameState, CAttackStartEvent* pEvt);
+    void OnAttackHit(CGameState* pGameState, CAttackHitEvent* pEvt);
+    void OnAttackFinished(CGameState* pGameState, CAttackFinishedEvent* pEvt);
 
 private:
     ServerNetworkManager* m_pNetworkManager;

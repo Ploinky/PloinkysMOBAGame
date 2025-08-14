@@ -4,7 +4,7 @@
 
 class CThunderstrike : public ISpell {
 public:
-    CThunderstrike() : ISpell("thunderstrike") {};
+    CThunderstrike();
     virtual void OnCastStart(CSpellCastApi api, CSpellCastContext* ctx) override;
     virtual void OnCast(CSpellCastApi api, CSpellCastContext* ctx) override;
     virtual void ApplyEffects(CSpellCastApi api, CSpellCastContext* ctx) override;

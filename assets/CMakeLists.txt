@@ -36,7 +36,7 @@ endfunction()
 
 function(compile_vertex_shader)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
-        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T vs_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
+        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T vs_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso /Zi
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl
     )
     list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso)
@@ -45,7 +45,7 @@ endfunction()
 
 function(compile_pixel_shader)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
-        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T ps_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso
+        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl /T ps_5_0 /Fo ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso /Zi
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${ARGV0}.hlsl
     )
     list(APPEND SHADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/Shaders/${ARGV0}.cso)
@@ -73,6 +73,7 @@ copy_file(characters/stormcaller/abilities/thunderstrike.pte)
 copy_file(characters/stormcaller/abilities/thunderstrike.pts)
 copy_file(characters/stormcaller/abilities/thunderstrike.wav)
 copy_file(characters/stormcaller/death.wav)
+copy_file(characters/stormcaller/attack.wav)
 
 # Chess person
 copy_file(Persons/ChessPerson/blast_area_2.pte)
@@ -96,12 +97,13 @@ export_nvm(Maps/map1/map1.blend Maps/map1/map1.nvm)
 export_glb(Buildings/Tower/tower.blend Buildings/Tower/tower.glb)
 
 # Shaders
-compile_vertex_shader(GLBVertexShader)
-compile_pixel_shader(GLBPixelShader)
-compile_vertex_shader(flat_unlit_vs)
-compile_pixel_shader(flat_unlit_ps)
-compile_vertex_shader(particle_vs)
-compile_pixel_shader(texture_ps)
+compile_vertex_shader(glb.vert)
+compile_pixel_shader(glb.pixel)
+compile_vertex_shader(flat_unlit.vert)
+compile_pixel_shader(flat_unlit.pixel)
+compile_vertex_shader(particle.vert)
+compile_pixel_shader(particle.pixel)
+compile_pixel_shader(texture.pixel)
 
 add_custom_target(assets
     DEPENDS ${COPY_OUTPUTS} ${GLB_EXPORTS} ${NVM_EXPORTS} ${SHADER_FILES}

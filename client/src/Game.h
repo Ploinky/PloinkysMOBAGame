@@ -47,7 +47,6 @@ public:
     ClientNetworkManager* net_manager_;
     CRenderer* renderer;
     CClientAssetManager* assetManager_;
-    Direct3D* direct3D;
         
     void AddPacketToCurrentTick(std::vector<uint8_t> data);
     void HandleUnitIdPacket(std::vector<uint8_t> data);
@@ -128,4 +127,5 @@ public:
     AudioSystem* m_pAudioSystem;
     HSound m_hThunderstrikeSound = INVALID_ASSET_HANDLE;
     HSound m_hStormcallerDeath = INVALID_ASSET_HANDLE;
+    HSound m_hStormcallerAttack = INVALID_ASSET_HANDLE;
 };

@@ -10,10 +10,10 @@
 #include "navigation.h"
 #include "networking.h"
 #include "NewPackets.h"
-#include <paklib/PakFile.h>
-#include <paklib/PakFileTableEntry.h>
-#include <paklib/PakHeader.h>
-#include <paklib/PakUtil.h>
+#include <paklib/pak-file.h>
+#include <paklib/pak-file-table-entry.h>
+#include <paklib/pak-header.h>
+#include <paklib/pak-util.h>
 #include "projection.h"
 #include "quaternion.h"
 #include "ray.h"

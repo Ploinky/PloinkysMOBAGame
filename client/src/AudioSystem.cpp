@@ -11,6 +11,7 @@ AudioSystem::AudioSystem(CAudioEngine* pEngine, CClientAssetManager* pAssetManag
     m_pAssetManager = pAssetManager;
 
     REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellHit)
+    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
 }
 
 void AudioSystem::PlaySoundOnUnit(HSound hSound, UnitId idUnit) {
@@ -36,6 +37,14 @@ void AudioSystem::SetListenerPosition(Vector3 vec3LisPos) {
 }
 
 void AudioSystem::OnSpellHit(CGameState* pGameState, CSpellHitEvent* pHitEvent) {
+    SoundAsset_t& sound = m_pAssetManager->GetSound(pHitEvent->hSound);
+    HVoice hVoice = m_pEngine->CreateVoice(sound);
+
+    AudioEmitterComponent_t* pEmitterComp = pGameState->GetComponent<AudioEmitterComponent_t>(pHitEvent->idUnit);
+    pEmitterComp->vecCurrentSounds.push_back(hVoice);
+}
+
+void AudioSystem::OnAttackStart(CGameState* pGameState, CAttackStartEvent* pHitEvent) {
     SoundAsset_t& sound = m_pAssetManager->GetSound(pHitEvent->hSound);
     HVoice hVoice = m_pEngine->CreateVoice(sound);
 

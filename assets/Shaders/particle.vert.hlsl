@@ -2,12 +2,17 @@ cbuffer perFrameBuffer
 {
     float4x4 projMatrix;
     float4x4 cameraMatrix;
-    float4x4 billboard_matrix;
 }
 
 cbuffer perObjectBuffer
 {
     float4x4 modelMatrix;
+}
+
+cbuffer perFrameBillboardBuffer 
+{
+    float4x4 billboard_matrix;
+
 }
 
 void main(float3 position : POSITION, float2 tex_coord : TEXCOORD0, float3 instance_position : POSITION1, out float4 positionOut : SV_POSITION, out float2 tex : TEXCOORD0, out float3 normal : NORMAL)

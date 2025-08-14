@@ -1,6 +1,5 @@
 #include "ParticleEmitter.h"
-#include "ParticleShader.h"
-#include "Direct3D.h"
+#include "core/graphics/d3d11-graphics-engine.h"
 #include "Camera.h"
 #include <Common/PMG_Common.h>
 #include <algorithm>
@@ -87,15 +86,6 @@ ParticleEmitter* ParticleEmitter::Load(std::list<std::string> lines) {
 }
 
 ParticleEmitter::~ParticleEmitter() {
-	if (vertex_buffer_) {
-		vertex_buffer_->Release();
-		vertex_buffer_ = nullptr;
-	}
-
-	if (instance_buffer_) {
-		instance_buffer_->Release();
-		instance_buffer_ = nullptr;
-	}
 }
 static double test = 0;
 
@@ -161,34 +151,4 @@ void ParticleEmitter::Update(float dt) {
 
 bool ParticleEmitter::IsDone() {
 	return emitter_life >= emitter_lifetime && particles.size() == 0;
-}
-
-bool ParticleEmitter::Initialize(Direct3D* direct3D) {
-	particle_shader_vertex_t vertices[6]{
-		{ {-1, 1, 0}, {0, 0} },
-		{ {1, 1, 0}, {1, 0} },
-		{ {1, -1, 0}, {1, 1} },
-		{ {-1, 1, 0}, {0, 0} },
-		{ {1, -1, 0}, {1, 1} },
-		{ {-1, -1, 0}, {0, 1} },
-	};
-	int vertex_count = 6;
-	vertex_buffer_ = direct3D->CreateVertexBuffer(vertices, vertex_count, sizeof(particle_shader_vertex_t) * vertex_count);
-
-	if (vertex_buffer_ == nullptr) {
-		initialized = false;
-		return false;
-	}
-
-	particle_instance_data_t* instances = new particle_instance_data_t[particle_count]{};
-	instance_buffer_ = direct3D->CreateInstanceBuffer(instances, particle_count, sizeof(particle_instance_data_t));
-
-	if (instance_buffer_ == nullptr) {
-		initialized = false;
-		return false;
-	}
-
-	initialized = true;
-
-	return initialized;
 }

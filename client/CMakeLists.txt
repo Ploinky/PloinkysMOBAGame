@@ -9,7 +9,7 @@ endfunction()
 function(pak_folder)
     file(GLOB PAK_SOURCE "$<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0}/**")
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
-        COMMAND PakUtil ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
+        COMMAND pakr ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
         DEPENDS ${PAK_SOURCE}
         WORKING_DIRECTORY $<TARGET_PROPERTY:assets,BINARY_DIR>
     )
@@ -28,12 +28,9 @@ add_executable(client WIN32
     src/client-asset-manager.cpp
     src/ClientNetworkManager.cpp
     src/ConnectingState.cpp
-    src/Direct3d.cpp
-    src/FlatUnlitShader.cpp
     src/Game.cpp
     src/GameObject.cpp
     src/GLBFileLoader.cpp
-    src/GLBShader.cpp
     src/GuiButton.cpp
     src/GuiCheckbox.cpp
     src/GuiSelector.cpp
@@ -49,7 +46,6 @@ add_executable(client WIN32
     src/Model.cpp
     src/MovementComponent.cpp
     src/ParticleEmitter.cpp
-    src/ParticleShader.cpp
     src/ParticleSystem.cpp
     src/Renderer.cpp
     src/ServerBrowser.cpp
@@ -60,6 +56,8 @@ add_executable(client WIN32
     src/Window.cpp
 
     src/core/audio/audio-engine.cpp
+
+    src/core/graphics/d3d11-graphics-engine.cpp
 
     Resources/Cursor.cur
     Resources/cursor1.cur

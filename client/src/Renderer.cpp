@@ -2,33 +2,22 @@
 
 #include "common/PloinkysJSONLibrary.h"
 #include "client-asset-manager.h"
+#include "ParticleEmitter.h"
+#include "ParticleSystem.h"
 
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {
 		delete model_it.second;
 	}
 
-	if (particleShader_ != nullptr) {
-		delete particleShader_;
-	}
-
-	if (glbShader_ != nullptr) {
-		delete glbShader_;
-	}
-
-	if (m_pFlatUnlitShader != nullptr) {
-		delete m_pFlatUnlitShader;
-		m_pFlatUnlitShader = nullptr;
-	}
-
 #ifdef _DEBUG
-	m_pNavGridIndexBuffer->Release();
-	m_pNavGridVertexBuffer->Release();
+	((ID3D11Buffer*) m_pNavGridIndexBuffer.ptr)->Release();
+	((ID3D11Buffer*) m_pNavGridVertexBuffer.ptr)->Release();
 #endif
 }
 
 void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_) {
-	m_d3d.Initialize(hWindowHandle, bFullScreen);
+	m_pGraphicsEngine = IGraphicsEngine::Create(hWindowHandle, width_, height_); // TODO bFullScreen);
 	
     m_width = width_;
     m_height = height_;
@@ -41,19 +30,19 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetMan
     DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
         m_camera.position.x, m_camera.position.y, m_camera.position.z))));
 
-		m_pAssetManager = assetManager;
+	m_pAssetManager = assetManager;
+
+	m_hFrameConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(FrameConstants_t), nullptr);
+	m_hModelConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(ModelConstants_t), nullptr);
+	m_hSkinnedModelConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(SkinnedModelConstants_t), nullptr);
+	m_hBillboardFrameConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(BillboardFrameConstants_t), nullptr);
 }
 
-void CRenderer::LoadResources(AssetManager* pAssetManager) {
+void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
     // ------------ NEW ------------
-    particleShader_ = new ParticleShader();
-    particleShader_->Initialize(&m_d3d, pAssetManager);
-
-	glbShader_ = new GLBShader();
-	glbShader_->Initialize(&m_d3d, pAssetManager);
-
-	m_pFlatUnlitShader = new CFlatUnlitShader();
-	m_pFlatUnlitShader->Initialize(&m_d3d, pAssetManager);
+	m_hGlbShaderProgram = m_pGraphicsEngine->LoadShaderProgram("glb", EVertexFormat::SKINNED_MESH, pAssetManager);
+	m_hParticleShaderProgram = m_pGraphicsEngine->LoadShaderProgram("particle", EVertexFormat::PARTICLE, pAssetManager);
+	m_hFlatUnlitShaderProgram = m_pGraphicsEngine->LoadShaderProgram("flat_unlit", EVertexFormat::STATIC_MESH, pAssetManager);
 
     // ------------ TEXTURES ------------
 	// TODO do we need this somewhere lelse
@@ -84,8 +73,8 @@ void CRenderer::LoadResources(AssetManager* pAssetManager) {
 
 	unsigned int indices[6] = { 0, 1, 2, 0, 2, 3 };
 
-	m_pNavGridVertexBuffer = m_d3d.CreateVertexBuffer(vertices, 4, sizeof(FlatUnlitShaderVertex_t) * 4);
-	m_pNavGridIndexBuffer = m_d3d.CreateIndexBuffer(indices, 6);
+	m_pNavGridVertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(vertices, sizeof(FlatUnlitShaderVertex_t) * 4, 4);
+	m_pNavGridIndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(indices, 6);
 #endif
 }
 
@@ -120,8 +109,8 @@ void CRenderer::LoadCharacterManifest(std::string strCharacterId, AssetManager* 
 
 Mesh* CRenderer::LoadMesh(GLBModelMesh* glbMesh) {
 	Mesh* mesh = new Mesh();
-	mesh->VertexBuffer = m_d3d.CreateVertexBuffer(glbMesh->Vertices.data(), glbMesh->Vertices.size(), glbMesh->Vertices.size() * sizeof(glb_shader_vertex_t));
-	mesh->IndexBuffer = m_d3d.CreateIndexBuffer(glbMesh->Indices.data(), glbMesh->Indices.size());
+	mesh->VertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(glbMesh->Vertices.data(), glbMesh->Vertices.size() * sizeof(SkinnnedMeshShaderVertex_t), glbMesh->Vertices.size());
+	mesh->IndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(glbMesh->Indices.data(), glbMesh->Indices.size());
 	mesh->IndexCount = glbMesh->Indices.size();
 	mesh->MaterialIndex = glbMesh->MaterialIndex;
 	return mesh;
@@ -218,7 +207,7 @@ void CRenderer::LoadGLBModel(std::string name, std::string file, AssetManager* a
 }
 
 void CRenderer::SetDimensions(int width_, int height_) {
-	m_d3d.SetWindowDimensions(width_, height_);
+	m_pGraphicsEngine->SetWindowDimensions(width_, height_);
 
     m_width = width_;
     m_height = height_;
@@ -237,256 +226,45 @@ void CRenderer::UpdateCameraMatrix() {
     DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, rotMat * transMat)));
 }
 
-void CRenderer::UpdateBuffer(ID3D11Buffer* buffer, const void* src, size_t size) {
-    D3D11_MAPPED_SUBRESOURCE mappedResource = { 0 };
-    m_d3d.context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, src, size);
-    m_d3d.context->Unmap(buffer, 0);
-}
-
 void CRenderer::RenderText(int x, int y, int w, int h, std::string text) {
     float color[3] = { 1.0, 1.0, 1.0 };
     RenderText(x, y, w, h, color, text);
 }
 
 void CRenderer::RenderText(int x, int y, int w, int h, float color[3], std::string text) {
-    //Set the Font Color
-    D2D1_COLOR_F FontColor = D2D1::ColorF(color[0], color[1], color[2], 1.0f);
-
-    ID2D1SolidColorBrush* brush;
-    HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
-        D2D1::ColorF(D2D1::ColorF::Blue, 0.0f),
-        &brush
-    );
-
-    if (FAILED(hr) || brush == nullptr) {
-        return;
-    }
-
-    m_d3d.format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-
-    IDWriteTextLayout* textLayout;
-
-    std::wstring wstr;
-    int convertResult = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)strlen(text.c_str()), NULL, 0);
-    wstr.resize(convertResult);
-    convertResult = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)strlen(text.c_str()), &wstr[0], (int)wstr.size());
-
-    hr = m_d3d.dWriteFactory->CreateTextLayout(
-        wstr.c_str(),
-        wstr.length(),
-        m_d3d.format,
-        static_cast<float>(w),
-        static_cast<float>(h),
-        &textLayout
-    );
-
-    if (FAILED(hr) || textLayout == nullptr) {
-        return;
-    }
-
-    //Set the brush color D2D will use to draw with
-    brush->SetColor(FontColor);
-
-    //Create the D2D Render Area
-    D2D1_POINT_2F point = D2D1::Point2F(static_cast<float>(x), static_cast<float>(y));
-
-    //Draw the Text
-    m_d3d.renderTarget2D->DrawTextLayout(
-        point,
-        textLayout,
-        brush
-    );
-
-    brush->Release();
-    textLayout->Release();
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	pCanvas->RenderText(x, y, w, h, color, text);
 }
 
 void CRenderer::DrawRect(int x, int y, int w, int h, float color[3]) {
-    D2D1_RECT_F rect{};
-    rect.left = static_cast<float>(x);
-    rect.top = static_cast<float>(y);
-    rect.right = static_cast<float>(x + w);
-    rect.bottom = static_cast<float>(y + h);
-
-    //Set the Font Color
-    D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
-
-
-    ID2D1SolidColorBrush* brush;
-    HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
-        D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
-        &brush
-    );
-
-
-    if (FAILED(hr) || brush == 0) {
-        Logger::Err("Failed to create brush for rect");
-        return;
-    }
-
-    brush->SetColor(c);
-
-    m_d3d.renderTarget2D->DrawRectangle(&rect, brush);
-
-    brush->Release();
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	pCanvas->DrawRect(x, y, w, h, color);
 }
 
 void CRenderer::DrawShape(Vector2* points, int pointCount, float color[3]) {
-    //Set the Font Color
-    D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
-
-    ID2D1SolidColorBrush* brush;
-    HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
-        D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
-        &brush
-    );
-
-
-    if (FAILED(hr) || brush == 0) {
-        Logger::Err("Failed to create brush for rect");
-        return;
-    }
-
-    brush->SetColor(c);
-
-    ID2D1PathGeometry* geometry;
-    ID2D1GeometrySink* geometrySink = NULL;
-
-    m_d3d.d2d_factory_->CreatePathGeometry(&geometry);
-    // Write to the path geometry using the geometry sink.
-    geometry->Open(&geometrySink);
-    geometrySink->BeginFigure({ static_cast<float>(points[0].x), static_cast<float>(points[0].y) }, D2D1_FIGURE_BEGIN_HOLLOW);
-
-    for (int i = 1; i < pointCount; i++) {
-        geometrySink->AddLine({ static_cast<float>(points[i].x), static_cast<float>(points[i].y) });
-    }
-
-    geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
-    hr = geometrySink->Close();
-
-    if (FAILED(hr)) {
-        Logger::Err("Failed to render shape");
-    }
-
-    m_d3d.renderTarget2D->DrawGeometry(geometry, brush);
-
-    geometrySink->Release();
-    geometry->Release();
-    brush->Release();
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	pCanvas->DrawShape(points, pointCount, color);
 };
 
 void CRenderer::FillShape(Vector2* points, int pointCount, float color[3]) {
-    if (pointCount < 2) {
-        Logger::Err("Failed to draw shape: cannot draw shape from 1 point only");
-        return;
-    }
-
-    //Set the Font Color
-    D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
-
-    ID2D1SolidColorBrush* brush;
-    HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(
-        D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
-        &brush
-    );
-
-
-    if (FAILED(hr) || brush == 0) {
-        Logger::Err("Failed to create brush for rect");
-        return;
-    }
-
-    brush->SetColor(c);
-
-    ID2D1PathGeometry* geometry;
-    ID2D1GeometrySink* geometrySink = NULL;
-
-    m_d3d.d2d_factory_->CreatePathGeometry(&geometry);
-    // Write to the path geometry using the geometry sink.
-    geometry->Open(&geometrySink);
-    geometrySink->BeginFigure({ static_cast<float>(points[0].x), static_cast<float>(points[0].y) }, D2D1_FIGURE_BEGIN_FILLED);
-
-    for (int i = 1; i < pointCount; i++) {
-        geometrySink->AddLine({ static_cast<float>(points[i].x), static_cast<float>(points[i].y) });
-    }
-
-    geometrySink->EndFigure(D2D1_FIGURE_END_CLOSED);
-    hr = geometrySink->Close();
-
-    if (FAILED(hr)) {
-        Logger::Err("Failed to render shape");
-    }
-
-    m_d3d.renderTarget2D->FillGeometry(geometry, brush);
-
-    geometrySink->Release();
-    geometry->Release();
-    brush->Release();
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	pCanvas->FillShape(points, pointCount, color);
 };
 
 void CRenderer::FillRect(int x, int y, int w, int h, float color[3]) {
-    D2D1_RECT_F rect{};
-    rect.left = static_cast<float>(x);
-    rect.top = static_cast<float>(y);
-    rect.right = static_cast<float>(x + w);
-    rect.bottom = static_cast<float>(y + h);
-
-    //Set the Font Color
-    D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2], 1.0f);
-
-    ID2D1SolidColorBrush* brush;
-    HRESULT hr = m_d3d.renderTarget2D->CreateSolidColorBrush(c, &brush);
-
-
-    if (FAILED(hr) || brush == 0) {
-        Logger::Err("Failed to create brush for rect");
-        return;
-    }
-
-    m_d3d.renderTarget2D->FillRectangle(&rect, brush);
-
-    brush->Release();
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	pCanvas->FillRect(x, y, w, h, color);
 }
 
 void CRenderer::DrawImage(float x, float y, float w, float h, HBitmap hBitmap) {
 	if(hBitmap == INVALID_ASSET_HANDLE) {
-		throw std::exception("attempting to draw invalid image");
+		Logger::Err("Attempting to draw invalid image");
+		return;
 	}
 
-	BitmapAsset_t& bitmap = m_pAssetManager->GetBitmapImage(hBitmap);
-
-	if(bitmap.pBitmap == nullptr) {
-        // Create a Direct2D bitmap from the WIC bitmap.
-        m_d3d.renderTarget2D->CreateBitmapFromWicBitmap(
-            bitmap.pConvertedData,
-            NULL,
-            &bitmap.pBitmap
-        );
-	}
-    m_d3d.renderTarget2D->DrawBitmap(bitmap.pBitmap, D2D1::RectF(x, y, x + w, y + h));
-}
-
-template<>
-void CRenderer::UpdateShaderConst(particle_shader_frame_const_t const_data) {
-    UpdateBuffer(particleShader_->m_frameConstBuffer, &const_data, sizeof(particleShader_->m_frameConstData));
-    m_d3d.context->VSSetConstantBuffers(0, 1, &particleShader_->m_frameConstBuffer);
-}
-
-template<>
-void CRenderer::UpdateShaderConst(particle_shader_model_const_t const_data) {
-    UpdateBuffer(particleShader_->m_modelConstBuffer, &const_data, sizeof(particleShader_->m_modelConstData));
-    m_d3d.context->VSSetConstantBuffers(1, 1, &particleShader_->m_modelConstBuffer);
-}
-
-void CRenderer::EnableAlphaBlending() {
-    m_d3d.EnableAlphaBlending();
-    m_d3d.EnableDepthStencilState();
-}
-
-void CRenderer::DisableAlphaBlending() {
-    m_d3d.DisableAlphaBlending();
-    m_d3d.DisableDepthStencilState();
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	BitmapAsset_t& bmp = m_pAssetManager->GetBitmapImage(hBitmap);
+	pCanvas->DrawImage(x, y, w, h, bmp);
 }
 
 void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<DirectX::XMMATRIX>& boneTransforms) {
@@ -540,29 +318,26 @@ void CRenderer::Draw(GameObject* gameObject) {
 	}
 
 	Model* model = modelIt->second;
-		
-    m_d3d.context->VSSetShader(glbShader_->m_vertexShader, 0, 0);
-    m_d3d.context->PSSetShader(glbShader_->m_pixelShader, 0, 0);
-    m_d3d.context->IASetInputLayout(glbShader_->m_inputLayout);
-	m_d3d.context->PSSetSamplers(0, 1, &glbShader_->samplerState_);
 
-	glb_shader_frame_const_t data{};
-	data.cameraMatrix = cameraMatrix;
-	data.projMatrix = m_projMatrix;
-	UpdateBuffer(glbShader_->m_frameConstBuffer, &data, sizeof(glbShader_->m_frameConstData));
-	m_d3d.context->VSSetConstantBuffers(0, 1, &glbShader_->m_frameConstBuffer);
+	m_pGraphicsEngine->BindShaderProgram(m_hGlbShaderProgram);
 
-	glb_shader_model_const_t model_data{};
+	FrameConstants_t frameConstants {};
+	frameConstants.cameraMatrix = cameraMatrix;
+	frameConstants.projMatrix = m_projMatrix;
+	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &frameConstants, sizeof(FrameConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
+
+	ModelConstants_t modelConstants {};
 	DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(
 		DirectX::XMConvertToRadians(gameObject->rotation.x),
 		DirectX::XMConvertToRadians(gameObject->rotation.y),
 		DirectX::XMConvertToRadians(gameObject->rotation.z));
 	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(gameObject->position.x, gameObject->position.y, gameObject->position.z);
-	DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
-	UpdateBuffer(glbShader_->m_modelConstBuffer, &model_data, sizeof(glbShader_->m_modelConstData));
-	m_d3d.context->VSSetConstantBuffers(1, 1, &glbShader_->m_modelConstBuffer);
-		
+	DirectX::XMStoreFloat4x4(&modelConstants.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelConstants, sizeof(ModelConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
+	SkinnedModelConstants_t skinnedModelConstants {};
 	for(const auto& modelNode : model->Nodes) {
 		Mesh* mesh = model->Meshes.at(modelNode.second->Mesh);
 		if(mesh == nullptr) {
@@ -590,16 +365,16 @@ void CRenderer::Draw(GameObject* gameObject) {
 				}
 
 				for(int i = 0; i < boneTransforms.size(); i++) {
-					DirectX::XMStoreFloat4x4(&glbShader_->m_meshConstData.boneTransforms[i], DirectX::XMMatrixTranspose(boneTransforms[i]));
+					DirectX::XMStoreFloat4x4(&skinnedModelConstants.boneTransforms[i], DirectX::XMMatrixTranspose(boneTransforms[i]));
 				}
-				UpdateBuffer(glbShader_->m_meshConstBuffer, &glbShader_->m_meshConstData, sizeof(glbShader_->m_meshConstData));
-				m_d3d.context->VSSetConstantBuffers(2, 1, &glbShader_->m_meshConstBuffer);
+				m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
+				m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 			} else {
 				for(int i = 0; i < 256; i++) {
-					DirectX::XMStoreFloat4x4(&glbShader_->m_meshConstData.boneTransforms[i], DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity()));
+					DirectX::XMStoreFloat4x4(&skinnedModelConstants.boneTransforms[i], DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity()));
 				}
-				UpdateBuffer(glbShader_->m_meshConstBuffer, &glbShader_->m_meshConstData, sizeof(glbShader_->m_meshConstData));
-				m_d3d.context->VSSetConstantBuffers(2, 1, &glbShader_->m_meshConstBuffer);
+				m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
+				m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 				// TODO Logger::FormatErr("GameObject attempting to play invalid animation <%s>", gameObject->GetCurrentAnimation().GetAnimationName());
 			}
 		}
@@ -607,40 +382,14 @@ void CRenderer::Draw(GameObject* gameObject) {
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
 			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
 			if(textureAsset.pTexture == nullptr) {
-				ID3D11Texture2D* texture = 0;
-
-				D3D11_SUBRESOURCE_DATA initData = {};
-				initData.pSysMem = textureAsset.data.data();
-				initData.SysMemPitch = textureAsset.uWidth * 4;
-
-				D3D11_TEXTURE2D_DESC desc = {};
-				desc.Width = textureAsset.uWidth;
-				desc.Height = textureAsset.uHeight;
-				desc.MipLevels = 1;
-				desc.ArraySize = 1;
-				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				desc.SampleDesc.Count = 1;
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-				HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
-
-				if (FAILED(hr) || texture == nullptr) {
-					return;
-				}
-
- 				m_d3d.device->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
-
-				texture->Release();
+				m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
 			}
-			ID3D11ShaderResourceView* pTex = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture).pTexture;
-			m_d3d.context->PSSetShaderResources(0, 1, &pTex);
+			m_pGraphicsEngine->BindTexture(0, textureAsset);
 		}
-		UINT uStride = sizeof(glb_shader_vertex_t);
-		UINT uOffset = 0;
-		m_d3d.context->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &uStride, &uOffset);
-		m_d3d.context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		m_d3d.context->DrawIndexed(mesh->IndexCount, 0, 0);
+
+		m_pGraphicsEngine->SetVertexBuffer(0, mesh->VertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0); // TODO glb_shader_vertex_t ??
+		m_pGraphicsEngine->SetIndexBuffer(mesh->IndexBuffer);
+		m_pGraphicsEngine->DrawIndexed(mesh->IndexCount);
 	}
 }
 
@@ -654,48 +403,19 @@ void CRenderer::Draw(Model* model) {
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
 			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
 			if(textureAsset.pTexture == nullptr) {
-				ID3D11Texture2D* texture = 0;
-
-				D3D11_SUBRESOURCE_DATA initData = {};
-				initData.pSysMem = textureAsset.data.data();
-				initData.SysMemPitch = textureAsset.uWidth * 4;
-
-				D3D11_TEXTURE2D_DESC desc = {};
-				desc.Width = textureAsset.uWidth;
-				desc.Height = textureAsset.uHeight;
-				desc.MipLevels = 1;
-				desc.ArraySize = 1;
-				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				desc.SampleDesc.Count = 1;
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-				HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
-
-				if (FAILED(hr) || texture == nullptr) {
-					return;
-				}
-
-				m_d3d.device->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
-
-				texture->Release();
+				m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
 			}
-			ID3D11ShaderResourceView* pTex = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture).pTexture;
-			m_d3d.context->PSSetShaderResources(0, 1, &pTex);
+			m_pGraphicsEngine->BindTexture(0, textureAsset);
 		}
-		UINT uStride = sizeof(glb_shader_vertex_t);
-		UINT uOffset = 0;
-		m_d3d.context->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &uStride, &uOffset);
-		m_d3d.context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		m_d3d.context->DrawIndexed(mesh->IndexCount, 0, 0);
+
+		m_pGraphicsEngine->SetVertexBuffer(0, mesh->VertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0);
+		m_pGraphicsEngine->SetIndexBuffer(mesh->IndexBuffer);
+		m_pGraphicsEngine->DrawIndexed(mesh->IndexCount);
 	}
 }
 
 void CRenderer::RenderParticle(ParticleEmitter* emitter) {
-    m_d3d.context->VSSetShader(particleShader_->m_vertexShader, 0, 0);
-    m_d3d.context->PSSetShader(particleShader_->m_pixelShader, 0, 0);
-    m_d3d.context->IASetInputLayout(particleShader_->m_inputLayout);
-	m_d3d.context->PSSetSamplers(0, 1, &particleShader_->m_samplerState);
+	m_pGraphicsEngine->BindShaderProgram(m_hParticleShaderProgram);
 
 	float rotY = atan2(emitter->position.x - m_camera.position.x, emitter->position.z - m_camera.position.z);
 	float rotX = -atan2(emitter->position.y -m_camera.position.y, m_camera.position.z- emitter->position.z);
@@ -707,24 +427,26 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 		rotZ = DirectX::XMConvertToRadians(emitter->particle_angle.z);
 	}
 
-	particle_shader_frame_const_t data{};
+	FrameConstants_t data{};
 	data.cameraMatrix = cameraMatrix;
 	data.projMatrix = m_projMatrix;
-	DirectX::XMStoreFloat4x4(&data.billboard_matrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationRollPitchYaw(rotX, rotY, rotZ)));
+	BillboardFrameConstants_t bbData {};
+	DirectX::XMStoreFloat4x4(&bbData.billboardMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationRollPitchYaw(rotX, rotY, rotZ)));
 
-	UpdateShaderConst<particle_shader_frame_const_t>(data);
+	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
+	m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 
-	particle_shader_model_const_t model_data{};
+	ModelConstants_t modelData {};
 	DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(emitter->rotation.x),
 		DirectX::XMConvertToRadians(emitter->rotation.y),
 		DirectX::XMConvertToRadians(emitter->rotation.z));
 	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(emitter->position.x, emitter->position.y, emitter->position.z);
 	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
-	DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
+	DirectX::XMStoreFloat4x4(&modelData.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
 
-	UpdateShaderConst<particle_shader_model_const_t>(model_data);
+	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
 
-	std::vector<particle_instance_data_t> instances;
+	std::vector<ParticleShaderVertexInstance_t> instances;
 
 	std::sort(emitter->particles.begin(), emitter->particles.end(), [this, emitter](Particle& a, Particle& b) {
 		Vector3 aVec = a.position + emitter->position;
@@ -735,109 +457,90 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	});
 
 	for (const Particle& particle : emitter->particles) {
-		particle_instance_data_t p;
+		ParticleShaderVertexInstance_t p;
 		p.instance_position[0] = particle.position.x;
 		p.instance_position[1] = particle.position.y;
 		p.instance_position[2] = particle.position.z;
 		instances.push_back(p);
 	}
 
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	// Lock the vertex buffer.
-	HRESULT result = m_d3d.context->Map(emitter->instance_buffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if (FAILED(result))
-	{
-		throw std::exception();
+	if(!emitter->instance_buffer_) {
+		emitter->instance_buffer_ = m_pGraphicsEngine->CreateInstanceBuffer(instances.data(), instances.size(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
+	} else {
+		m_pGraphicsEngine->UpdateBuffer(emitter->instance_buffer_, (void*) instances.data(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
 	}
 
-	// Get a pointer to the data in the vertex buffer.
-	particle_instance_data_t* verticesPtr = (particle_instance_data_t*)mappedResource.pData;
+	if(!emitter->vertex_buffer_) {
+		ParticleShaderVertex_t vertices[6]{
+			{ {-1, 1, 0}, {0, 0} },
+			{ {1, 1, 0}, {1, 0} },
+			{ {1, -1, 0}, {1, 1} },
+			{ {-1, 1, 0}, {0, 0} },
+			{ {1, -1, 0}, {1, 1} },
+			{ {-1, -1, 0}, {0, 1} },
+		};
+		emitter->vertex_buffer_ = m_pGraphicsEngine->CreateVertexBuffer(vertices, sizeof(ParticleShaderVertex_t) * 6, 6);
+	}
 
-	// Copy the data into the vertex buffer.
-	memcpy(verticesPtr, (void*)instances.data(), (sizeof(particle_instance_data_t) * instances.size()));
 
-	// Unlock the vertex buffer.
-	m_d3d.context->Unmap(emitter->instance_buffer_, 0);
-
-	unsigned int strides[2]{ sizeof(particle_shader_vertex_t), sizeof(particle_instance_data_t) };
-	unsigned int offsets[2]{ 0, 0 };
-	ID3D11Buffer* buffers[2]{ emitter->vertex_buffer_, emitter->instance_buffer_ };
-
-	// Render this specific model
-	m_d3d.context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+ 	m_pGraphicsEngine->SetVertexBuffer(0, emitter->vertex_buffer_, sizeof(ParticleShaderVertex_t), 0);
+	m_pGraphicsEngine->SetVertexBuffer(1, emitter->instance_buffer_, sizeof(ParticleShaderVertexInstance_t), 0);
 
 	HTexture hTexture = m_pAssetManager->LoadTexture(emitter->texture_name_);
 	TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(hTexture);
 
 	if(textureAsset.pTexture == nullptr) {
-		ID3D11Texture2D* texture = 0;
-
-		D3D11_SUBRESOURCE_DATA initData = {};
-		initData.pSysMem = textureAsset.data.data();
-		initData.SysMemPitch = textureAsset.uWidth * 4;
-
-		D3D11_TEXTURE2D_DESC desc = {};
-		desc.Width = textureAsset.uWidth;
-		desc.Height = textureAsset.uHeight;
-		desc.MipLevels = 1;
-		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		desc.SampleDesc.Count = 1;
-		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-		HRESULT hr = m_d3d.device->CreateTexture2D(&desc, &initData, &texture);
-
-		if (FAILED(hr) || texture == nullptr) {
-			return;
-		}
-
- 		m_d3d.device->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
-
-		texture->Release();
+		m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
 	}
 
-	m_d3d.context->PSSetShaderResources(0, 1, &textureAsset.pTexture);
+	m_pGraphicsEngine->BindTexture(0, textureAsset);
+
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hBillboardFrameConstBuffer);
 	
-	EnableAlphaBlending();
-	m_d3d.context->DrawInstanced(6, instances.size(), 0, 0);
-	DisableAlphaBlending();
+	m_pGraphicsEngine->EnableAlphaBlending();
+    m_pGraphicsEngine->EnableDepthStencilState();
+	m_pGraphicsEngine->DrawInstanced(6, instances.size());
+	m_pGraphicsEngine->DisableAlphaBlending();
+    m_pGraphicsEngine->DisableDepthStencilState();
 }
 
 void CRenderer::DrawMap() {
-    m_d3d.context->VSSetShader(glbShader_->m_vertexShader, 0, 0);
-    m_d3d.context->PSSetShader(glbShader_->m_pixelShader, 0, 0);
-    m_d3d.context->IASetInputLayout(glbShader_->m_inputLayout);
-	m_d3d.context->PSSetSamplers(0, 1, &glbShader_->samplerState_);
+	m_pGraphicsEngine->BindShaderProgram(m_hGlbShaderProgram);
 
-	glb_shader_frame_const_t data{};
+	FrameConstants_t data{};
 	data.cameraMatrix = cameraMatrix;
 	data.projMatrix = m_projMatrix;
-	UpdateBuffer(glbShader_->m_frameConstBuffer, &data, sizeof(glbShader_->m_frameConstData));
-	m_d3d.context->VSSetConstantBuffers(0, 1, &glbShader_->m_frameConstBuffer);
+	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
-	glb_shader_model_const_t model_data{};
+	ModelConstants_t modelData{};
 	DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
 	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(0, 0, 0);
-	DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
-	UpdateBuffer(glbShader_->m_modelConstBuffer, &model_data, sizeof(glbShader_->m_modelConstData));
-	m_d3d.context->VSSetConstantBuffers(1, 1, &glbShader_->m_modelConstBuffer);
-		
+	DirectX::XMStoreFloat4x4(&modelData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
+
+	SkinnedModelConstants_t skinConst{};
+	m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinConst, sizeof(SkinnedModelConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
+
 	Model* model = models_.find("map1")->second;
 
 	Draw(model);
 }
 
 void CRenderer::ClearScreen() {
-	m_d3d.ClearScreen();
+	m_pGraphicsEngine->ClearScreen();
 }
 
 void CRenderer::Present() {
-	m_d3d.Present();
+	m_pGraphicsEngine->Present();
 }
 
 void CRenderer::SetFullscreen(bool bFullscreen) {
-	m_d3d.SetFullScreen(bFullscreen);
+	m_pGraphicsEngine->SetFullScreen(bFullscreen);
 }
 	
 void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeight, float fCoverage) {
@@ -913,40 +616,33 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 
 #ifdef _DEBUG
 void CRenderer::RenderNavGrid(NavigationCellGrid* pNavGrid) {
-	FlatUnlitShaderFrameConst_t data{};
+	FrameConstants_t data{};
 	data.cameraMatrix = cameraMatrix;
 	data.projMatrix = m_projMatrix;
-	UpdateBuffer(m_pFlatUnlitShader->m_pFrameConstBuffer, &data, sizeof(m_pFlatUnlitShader->m_frameConstData));
-	m_d3d.context->VSSetConstantBuffers(0, 1, &m_pFlatUnlitShader->m_pFrameConstBuffer);
-
+	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
 	for (int i = 0; i < pNavGrid->CellCountX * pNavGrid->CellCountY; i++) {
 		NavigationCell* pCell = pNavGrid->Cells[i];
 		if (pCell->IsWalkable && pCell->IsOpen) {
 			continue;
 		}
-		FlatUnlitShaderObjectConst_t model_data{};
+		ModelConstants_t modelData{};
 		DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(
 			DirectX::XMConvertToRadians(0),
 			DirectX::XMConvertToRadians(0),
 			DirectX::XMConvertToRadians(0));
 		DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(pCell->X, 0, pCell->Y);
-		DirectX::XMStoreFloat4x4(&model_data.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
-		UpdateBuffer(m_pFlatUnlitShader->m_pModelConstBuffer, &model_data, sizeof(m_pFlatUnlitShader->m_modelConstData));
-		m_d3d.context->VSSetConstantBuffers(1, 1, &m_pFlatUnlitShader->m_pModelConstBuffer);
+		DirectX::XMStoreFloat4x4(&modelData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+		m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
+		m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
-		m_d3d.context->VSSetShader(m_pFlatUnlitShader->m_pVertexShader, nullptr, 0);
-		m_d3d.context->PSSetShader(m_pFlatUnlitShader->m_pPixelShader, nullptr, 0);
+		m_pGraphicsEngine->BindShaderProgram(m_hFlatUnlitShaderProgram);
 
+		m_pGraphicsEngine->SetVertexBuffer(0, m_pNavGridVertexBuffer, sizeof(FlatUnlitShaderVertex_t), 0);
+		m_pGraphicsEngine->SetIndexBuffer(m_pNavGridIndexBuffer);
 
-		unsigned int uStride = sizeof(FlatUnlitShaderVertex_t);
-		unsigned int uOffset = 0;
-
-		m_d3d.context->IASetVertexBuffers(0, 1, &m_pNavGridVertexBuffer, &uStride, &uOffset);
-		m_d3d.context->IASetIndexBuffer(m_pNavGridIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-		m_d3d.context->IASetInputLayout(m_pFlatUnlitShader->m_pInputLayout);
-		m_d3d.context->DrawIndexed(6, 0, 0);
+		m_pGraphicsEngine->DrawIndexed(6);
 	}
 }
 #endif
@@ -959,4 +655,42 @@ void CRenderer::RenderChat(std::vector<std::string> vecMsgs) {
 	float afRed[3] = { 255, 0, 0 };
 	std::string strMsg = vecMsgs.back();
 	RenderText(100, m_height - 100, 300, 10, afRed, strMsg);
+}
+
+
+bool CRenderer::InitParticleEmitter(ParticleEmitter* pEmitter) {
+	ParticleShaderVertex_t vertices[6] {
+		{ {-1, 1, 0}, {0, 0} },
+		{ {1, 1, 0}, {1, 0} },
+		{ {1, -1, 0}, {1, 1} },
+		{ {-1, 1, 0}, {0, 0} },
+		{ {1, -1, 0}, {1, 1} },
+		{ {-1, -1, 0}, {0, 1} },
+	};
+	int vertex_count = 6;
+	pEmitter->vertex_buffer_ = m_pGraphicsEngine->CreateVertexBuffer(vertices, vertex_count, sizeof(ParticleShaderVertex_t) * vertex_count);
+
+	if (!pEmitter->vertex_buffer_) {
+		return false;
+	}
+
+	ParticleShaderVertexInstance_t* instances = new ParticleShaderVertexInstance_t[pEmitter->particle_count]{};
+	pEmitter->instance_buffer_ = m_pGraphicsEngine->CreateInstanceBuffer(instances, pEmitter->particle_count, sizeof(ParticleShaderVertexInstance_t));
+
+	if (!pEmitter->instance_buffer_) {
+		return false;
+	}
+
+	return true;
+}
+
+
+bool CRenderer::InitParticleSystem(ParticleSystem* pSystem) {
+	for (ParticleEmitter* emitter : pSystem->emitters_) {
+		if (!InitParticleEmitter(emitter)) {
+			return false;
+		}
+	}
+
+	return true;
 }

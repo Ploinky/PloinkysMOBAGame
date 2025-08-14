@@ -9,7 +9,7 @@
 #include "Settings.h"
 
 // Forward declarations to avoid too many headers
-class Direct3D;
+class CD3D11GraphicsEngine;
 
 class Window {
     public:
