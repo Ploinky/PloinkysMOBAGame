@@ -12,5 +12,5 @@ void CThunderstrike::OnCast(CSpellCastApi api, CSpellCastContext* ctx) {
 }
 
 void CThunderstrike::ApplyEffects(CSpellCastApi api, CSpellCastContext* ctx) {
-    api.ApplyDamage(ctx->idCaster, ctx->idTarget, 100);
+    api.ApplyDamage(ctx->idCaster, ctx->idTarget, 10);
 }

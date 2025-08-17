@@ -39,7 +39,10 @@ add_executable(server
 	src/events/heal-event.cpp
 	src/events/spell-cast-event.cpp
 	src/events/spell-cast-start-event.cpp
-	
+
+	src/game/wave-manager.cpp
+
+	src/systems/ai-system.cpp
 	src/systems/attack-system.cpp
 	src/systems/damage-system.cpp
 	src/systems/NavigationSystem.cpp

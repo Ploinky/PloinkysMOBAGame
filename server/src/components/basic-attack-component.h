@@ -22,7 +22,7 @@ public:
     CBasicAttackComponent() {};
     
     float fRange = 100;
-    float fAttackTime = 2000;
-    float fAttackPoint = 1000;
+    float fAttackTime = 272;
+    float fAttackPoint = 230;
 	std::optional<ActiveAttack_t> optCurrentAttack;
 };

@@ -19,7 +19,6 @@ endfunction()
 
 add_executable(client WIN32
     src/Animation.cpp
-    src/AnimationComponent.cpp
     src/Armature.cpp
     src/AudioSystem.cpp
     src/Camera.cpp
@@ -44,7 +43,6 @@ add_executable(client WIN32
     src/Material.cpp
     src/Mesh.cpp
     src/Model.cpp
-    src/MovementComponent.cpp
     src/ParticleEmitter.cpp
     src/ParticleSystem.cpp
     src/Renderer.cpp

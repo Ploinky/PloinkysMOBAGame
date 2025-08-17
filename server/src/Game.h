@@ -19,6 +19,8 @@
 #include "systems/spell-system.h"
 #include "systems/movement-system.h"
 
+#include "game/wave-manager.h"
+
 class Missile;
 static uint64_t current_network_id_ = 0;
 
@@ -122,6 +124,7 @@ private:
     float lastTick = 0;
 
     ServerNetworkManager* networkManager_ = nullptr;
+    CWaveManager m_waveManager;
     // LobbyPlayer* players_[10];
     std::map<PlayerID, LobbyPlayer*> players_;
 

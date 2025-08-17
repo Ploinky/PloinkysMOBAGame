@@ -18,7 +18,20 @@ void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
 
         CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
 
-        if(pNavComp == nullptr || !pNavComp->m_bIsNavigating) {
+        if(pNavComp == nullptr) {
+            continue;
+        }
+
+        CIntentComponent* pIntentComp = pGameObject->GetComponent<CIntentComponent>();
+        if(pIntentComp != nullptr) {
+            if(pIntentComp->eType == EIntentType::MOVE) {
+                if(pIntentComp->vec3Target != pNavComp->m_vec3Destination) {
+                    pNavComp->NavigateTo(pIntentComp->vec3Target);
+                }
+            }
+        }
+
+        if(!pNavComp->m_bIsNavigating) {
             continue;
         }
 

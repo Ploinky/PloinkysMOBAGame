@@ -16,6 +16,7 @@
 #include "systems/points-system.h"
 #include "systems/respawn-system.h"
 #include "systems/attack-system.h"
+#include "systems/ai-system.h"
 #include "content/characters/stormcaller/thunderstrike.h"
 
 uint64_t g_unitId = 0;
@@ -116,6 +117,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(new CPointsSystem());
     m_vecSystems.push_back(new CRespawnSystem());
     m_vecSystems.push_back(new CAttackSystem());
+    m_vecSystems.push_back(new CAiSystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -338,6 +340,7 @@ void Client::Update(float dt) {
         m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
     }
     
+    m_waveManager.Update(&GameState, TICKRATE);
     for(ISystem* system : m_vecSystems) {
         system->Update(&GameState, TICKRATE);
     }

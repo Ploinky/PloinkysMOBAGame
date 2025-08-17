@@ -21,6 +21,7 @@
 #include <Common/navigation.h>
 #include "client-asset-manager.h"
 #include "core/rendering/render-command.h"
+#include "common/game/game-state.h"
 
 class GameObject;
 class ParticleSystem;
@@ -69,6 +70,8 @@ public:
     void DrawImage(float x, float y, float w, float h, HBitmap hBitmap);
 
     void DrawMap();
+
+    void Render(CGameState* pGameState);
 
     void ClearScreen();
     void Present();
@@ -123,7 +126,7 @@ private:
     std::vector<RenderCommand_t> m_vecCommands;
 
     
-    void Draw(GameObject* gameObject);
+    void Draw(RenderCommand_t cmd);
     void Draw(Model* modelNode);
     void RenderParticle(ParticleEmitter* emitter);
 };

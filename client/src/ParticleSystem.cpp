@@ -69,7 +69,8 @@ void ParticleSystem::Render(CRenderer* renderer) {
 	for (ParticleEmitter* emitter : emitters_) {
 		RenderCommand_t command {
 			.eType = ERenderCommandType::SKINNED_MESH,
-			.pModel = this
+			.vec3Position = emitter->position,
+			.vec3Rotation = emitter->rotation,
 		};
 		renderer->Submit(command);
 	}

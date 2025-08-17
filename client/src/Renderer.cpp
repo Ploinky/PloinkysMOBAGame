@@ -4,6 +4,7 @@
 #include "client-asset-manager.h"
 #include "ParticleEmitter.h"
 #include "ParticleSystem.h"
+#include "components/components.h"
 
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {
@@ -297,23 +298,15 @@ void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& boneP
 	}
 }
 
-void CRenderer::Draw(GameObject* gameObject) {
-	if(ParticleSystem* ps = dynamic_cast<ParticleSystem*>(gameObject)) {
-		for(auto e : ps->emitters_) {
-			RenderParticle(e);
-		}
-		return;
-	}
-
-	// TODO collect / sort game objects for rendering?
-	if(gameObject->renderable == "") {
+void CRenderer::Draw(RenderCommand_t cmd) {
+	if(cmd.strRenderable == "") {
 		return; // nothing to draw
 	}
 
-	auto modelIt = models_.find(gameObject->renderable);
+	auto modelIt = models_.find(cmd.strRenderable);
 
 	if(modelIt == models_.end()) {
-		Logger::FormatErr("Unable to render object, renderable <%s> not loaded", gameObject->renderable.c_str());
+		Logger::FormatErr("Unable to render object, renderable <%s> not loaded", cmd.strRenderable.c_str());
 		return;
 	}
 
@@ -329,10 +322,10 @@ void CRenderer::Draw(GameObject* gameObject) {
 
 	ModelConstants_t modelConstants {};
 	DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(
-		DirectX::XMConvertToRadians(gameObject->rotation.x),
-		DirectX::XMConvertToRadians(gameObject->rotation.y),
-		DirectX::XMConvertToRadians(gameObject->rotation.z));
-	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(gameObject->position.x, gameObject->position.y, gameObject->position.z);
+		DirectX::XMConvertToRadians(cmd.vec3Rotation.x),
+		DirectX::XMConvertToRadians(cmd.vec3Rotation.y),
+		DirectX::XMConvertToRadians(cmd.vec3Rotation.z));
+	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
 	DirectX::XMStoreFloat4x4(&modelConstants.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelConstants, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
@@ -343,14 +336,15 @@ void CRenderer::Draw(GameObject* gameObject) {
 		if(mesh == nullptr) {
 			continue;
 		}
-			
-		if(gameObject->GetCurrentAnimation().GetAnimationName().length() > 0) {
-			auto animIt = model->Animations.find(gameObject->GetCurrentAnimation().GetAnimationName());
+
+		// TODO
+		if(cmd.strAnimation.length() > 0) {
+			auto animIt = model->Animations.find(cmd.strAnimation);
 
 			if(animIt != model->Animations.end() && model->Skins.find(modelNode.second->Skin) != model->Skins.end()) {
 				Animation* animation = animIt->second;
 				Armature* skin = model->Skins.at(modelNode.second->Skin);
-				std::map<int, BonePosition> bonePositions = animation->GetBonePositions(gameObject->GetCurrentAnimation().GetAnimationTime(), gameObject->GetCurrentAnimation().DoLoop());
+				std::map<int, BonePosition> bonePositions = animation->GetBonePositions(cmd.fAnimTime, cmd.bDoLoop);
 				std::vector<DirectX::XMMATRIX> boneTransforms(skin->bones.size());
 
 				for (size_t i = 0; i < skin->bones.size(); ++i) {
@@ -378,6 +372,9 @@ void CRenderer::Draw(GameObject* gameObject) {
 				// TODO Logger::FormatErr("GameObject attempting to play invalid animation <%s>", gameObject->GetCurrentAnimation().GetAnimationName());
 			}
 		}
+
+		// m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
+		// m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
 			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
@@ -539,13 +536,13 @@ void CRenderer::Present() {
 	for(RenderCommand_t command : m_vecCommands) {
 		switch(command.eType) {
 			case ERenderCommandType::STATIC_MESH:
-				Draw(command.pModel);
+				Draw(command);
 				break;
 			case ERenderCommandType::SKINNED_MESH:
-				Draw(command.pModel);
+				Draw(command);
 				break;
 			case ERenderCommandType::PARTICLE_SYSTEM:
-				Draw(command.pModel);
+				Draw(command);
 				break;
 			default:
 			case ERenderCommandType::NONE:
@@ -716,4 +713,30 @@ bool CRenderer::InitParticleSystem(ParticleSystem* pSystem) {
 
 void CRenderer::Submit(RenderCommand_t command) {
 	m_vecCommands.push_back(command);
+}
+
+void CRenderer::Render(CGameState* pGameState) {
+	for(UnitId idUnit : pGameState->vecUnits) {
+		if(RenderableComponent_t* pRenderable = pGameState->GetComponent<RenderableComponent_t>(idUnit)) {
+			RenderCommand_t cmd {
+				.eType = ERenderCommandType::SKINNED_MESH,
+				.worldMatrix = {},
+				.strRenderable = pRenderable->strRenderable,
+				.vecBones = {},
+			};
+	
+			if(TransformComponent_t* pTransform = pGameState->GetComponent<TransformComponent_t>(idUnit)) {
+				cmd.vec3Position = pTransform->vec3Position;
+				cmd.vec3Rotation = pTransform->vec3Rotation;
+			}
+
+			if(AnimationComponent_t* pAnim = pGameState->GetComponent<AnimationComponent_t>(idUnit)) {
+				cmd.strAnimation = pAnim->m_strAnimationName;
+				cmd.fAnimTime = pAnim->m_fAnimationTime;
+				cmd.bDoLoop = pAnim->m_bLoop;
+			}
+
+			Submit(cmd);
+		}
+	}
 }

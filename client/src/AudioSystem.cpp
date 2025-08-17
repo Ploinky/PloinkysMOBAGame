@@ -41,7 +41,9 @@ void AudioSystem::OnSpellHit(CGameState* pGameState, CSpellHitEvent* pHitEvent) 
     HVoice hVoice = m_pEngine->CreateVoice(sound);
 
     AudioEmitterComponent_t* pEmitterComp = pGameState->GetComponent<AudioEmitterComponent_t>(pHitEvent->idUnit);
-    pEmitterComp->vecCurrentSounds.push_back(hVoice);
+    if(pEmitterComp) {
+        pEmitterComp->vecCurrentSounds.push_back(hVoice);
+    }
 }
 
 void AudioSystem::OnAttackStart(CGameState* pGameState, CAttackStartEvent* pHitEvent) {
