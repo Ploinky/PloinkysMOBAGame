@@ -19,8 +19,12 @@ target_include_directories(test
   src
 )
 
+target_link_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 target_link_libraries(test
   PRIVATE
   common
-  steam_api64
+  enet
 )
+if(WIN32)
+	target_link_libraries(test PUBLIC ws2_32 winmm)
+endif()

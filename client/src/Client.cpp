@@ -14,7 +14,6 @@
 #include "ParticleSystem.h"
 #include "Gui.h"
 #include "MainMenu.h"
-#include "steam/steam_api.h"
 #include <Game.h>
 #include "SettingsMenu.h"
 #include "ServerBrowser.h"
@@ -56,7 +55,6 @@ void Client::Run(std::string connectString_) {
     Logger::Msg("Starting Ploinky's MOBA Game client...");
 
     Logger::Msg("Authenticating user session...");
-    authTicket_ = SteamUser()->GetAuthTicketForWebApi(nullptr);
 
     Logger::Msg("Loading settings...");
     settings_.LoadDefaults();
@@ -137,8 +135,6 @@ void Client::Run(std::string connectString_) {
 
         m_audioEngine.Update();
 
-        SteamAPI_RunCallbacks();
-
         fps = (int)(1000.0f / dt);
     }
 
@@ -209,46 +205,18 @@ void Client::NewState(IClientState* clientState) {
     currentState_ = clientState;
 }
 
-void Client::GameServerChangeRequested(GameServerChangeRequested_t* callback) {
-    printf("requested");
-
-    NewState(new Lobby(callback->m_rgchServer, this, window->width_, window->height_));
-}
-
-void Client::WebApiTicketReceived(GetTicketForWebApiResponse_t* callback) {
-    printf("Received web api ticket");
-
-    if (callback->m_eResult != k_EResultOK) {
-        Logger::Err("Failed to get web api ticket");
-        return;
-    }
-
-    std::ostringstream oss;
-    oss << std::hex << std::setfill('0'); // Set output format to hexadecimal with leading zeros
-
-    for (size_t i = 0; i < 2560; ++i) {
-        oss << std::setw(2) << static_cast<int>(callback->m_rgubTicket[i]); // Convert each byte to hexadecimal
-    }
-
-    std::string str = oss.str();
-    HTTPRequestHandle reqHandle = SteamHTTP()->CreateHTTPRequest(k_EHTTPMethodGET, std::string("http://localhost:3000/account/").append(str).c_str());
-    SteamAPICall_t* call = nullptr;
-    if (!SteamHTTP()->SendHTTPRequest(reqHandle, call)) {
-        throw std::exception("Failed to authenticate with service");
-    }
-}
-void Client::StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) {
+void Client::StartCharacterSelect(ClientNetworkManagerEnet* networkManager, Player** ppPlayers) {
     CCharacterSelectState* select = new CCharacterSelectState(networkManager, this, window->width_, window->height_, ppPlayers);
     NewState(select);
 }
 
-void Client::JoinGame(ClientNetworkManager* networkManager) {
+void Client::JoinGame(ClientNetworkManagerEnet* networkManager) {
     Game* game = new Game(networkManager, this, window->width_, window->height_);
     NewState(game);
 };
 
-void Client::JoinLobby(servernetadr_t addr) {
-    Lobby* lobby = new Lobby(addr.GetConnectionAddressString(), this, window->width_, window->height_);
+void Client::JoinLobby(std::string addr) {
+    Lobby* lobby = new Lobby(addr, this, window->width_, window->height_);
     NewState(lobby);
 }
 

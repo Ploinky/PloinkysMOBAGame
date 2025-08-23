@@ -24,7 +24,7 @@ uint64_t g_unitId = 0;
 Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManager, AssetManager* assetManager, LobbyPlayer* players[10]) : IServerState(handler) {
     for (int i = 0; i < 10; i++) {
         if (players[i] != nullptr) {
-            players_.emplace(players[i]->steamId, players[i]);
+            players_.emplace(players[i]->idPlayer, players[i]);
         }
     }
     
@@ -65,7 +65,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
         std::vector<uint8_t> data;
         pck.Write(&data);
 
-        SendMessageToClient(player->steamId, &data);
+        SendMessageToClient(player->idPlayer, &data);
         data.clear();
         data.resize(0);
 
@@ -73,10 +73,10 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
         packet.unit_id = player->unit;
         packet.Write(&data);
 
-        SendMessageToClient(player->steamId, &data);
+        SendMessageToClient(player->idPlayer, &data);
 
         for (auto tick : all_ticks) {
-            SendMessageToClient(player->steamId, &tick);
+            SendMessageToClient(player->idPlayer, &tick);
         }
     };
 
@@ -122,7 +122,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     for (auto tick : all_ticks) {
-        SendMessageToClient(player->steamId, &tick);
+        SendMessageToClient(player->idPlayer, &tick);
     }
 
     CGameObject* pGameObject = new CGameObject();
@@ -156,7 +156,7 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     std::vector<uint8_t> data;
     packet.Write(&data);
     player->unit = pGameObject->GetId();
-    SendMessageToClient(player->steamId, &data);
+    SendMessageToClient(player->idPlayer, &data);
 
     /*
     sol::table personTable = m_luaState.script_file("./Scripts/Person/football-person.lua");

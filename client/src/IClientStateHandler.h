@@ -1,6 +1,5 @@
 #pragma once
 
-#include "steam/steam_api.h"
 #include <Renderer.h>
 #include <Common/PMG_Common.h>
 #include <Player.h>
@@ -14,16 +13,16 @@ enum class CursorId {
 };
 class IClientState;
 class CAudioEngine;
-class ClientNetworkManager;
+class ClientNetworkManagerEnet;
 
 class IClientStateHandler {
 public:
     virtual void NewState(IClientState* newState) = 0;
 
-    virtual void JoinGame(ClientNetworkManager* networkManager) = 0;
-    virtual void JoinLobby(servernetadr_t addr) = 0;
+    virtual void JoinGame(ClientNetworkManagerEnet* networkManager) = 0;
+    virtual void JoinLobby(std::string addr) = 0;
 
-    virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) = 0;
+    virtual void StartCharacterSelect(ClientNetworkManagerEnet* networkManager, Player** ppPlayers) = 0;
 
     virtual void OpenSettingsMenu() = 0;
     virtual void OpenMainMenu() = 0;

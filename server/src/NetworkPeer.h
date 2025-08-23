@@ -1,7 +1,9 @@
-#include "steam/steam_api.h"
+#include "enet/enet.h"
+
+typedef uint64_t PlayerID;
 
 class NetworkPeer {
 public:
-	CSteamID steamId;
-	HSteamNetConnection connection;
+	PlayerID idPlayer;
+	ENetPeer* pConnection;
 };

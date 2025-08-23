@@ -7,7 +7,7 @@
 #include "../Resources/resource.h"
 #include "components/components.h"
 
-Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
     m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/Map1/map1.nvm"));
 
@@ -285,8 +285,6 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     m_iTeam1Score = 0;
     m_iTeam2Score = 0;
     m_bGameHasEnded = false;
-
-    SteamFriends()->SetRichPresence("steam_display", "#Status_OnCommunityServer");
 
     // TODO
     m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());

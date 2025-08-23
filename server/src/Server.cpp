@@ -1,10 +1,8 @@
 #include <chrono>
 #include <Server.h>
-#include <NetworkManager.h>
+#include <NetworkManagerEnet.h>
 #include <Game.h>
 #include <Common/PMG_Common.h>
-#include <steam/steam_gameserver.h>
-#include <steam/steam_api.h>
 
 #include "LobbyState.h"
 
@@ -26,8 +24,6 @@ void Server::Start() {
         lastFrame = thisFrame;
 
         currentState_->Update(dt);
-
-        SteamGameServer_RunCallbacks();
     }
 
     // TODO handle player connecting and disconnecting during game

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "steam/steam_api.h"
+#include "NetworkManagerEnet.h"
 
 class LobbyPlayer {
 public:
-	CSteamID steamId;
+	PlayerID idPlayer;
 	bool ready;
 	UnitId unit;
 	int slot;

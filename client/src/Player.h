@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
-#include <steam/steam_api.h>
 
+typedef uint64_t PlayerID;
 
 class Player {
 public:
 	std::string name;
-	CSteamID steamId;
+	PlayerID steamId;
 	bool ready;
 };

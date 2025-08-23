@@ -6,7 +6,7 @@
 #include <map>
 #include <unordered_map>
 #include "common/pmg_physics.h"
-#include "ClientNetworkManager.h"
+#include "ClientNetworkManagerEnet.h"
 #include "GameObject.h"
 #include <Common/PMG_Common.h>
 #include "Renderer.h"
@@ -41,10 +41,10 @@ class Game : public IClientState {
         std::vector<std::vector<uint8_t>> Data;
     } game_tick_t;
 public:
-	Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height);
+	Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height);
     ~Game();
 
-    ClientNetworkManager* net_manager_;
+    ClientNetworkManagerEnet* net_manager_;
     CRenderer* renderer;
     CClientAssetManager* assetManager_;
         

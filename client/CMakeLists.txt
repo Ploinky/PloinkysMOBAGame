@@ -1,5 +1,3 @@
-link_directories($(CMAKE_SOURCE_DIR)/Bin ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64)
-
 function(copy_asset_folder)
     add_custom_command(TARGET client POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different $<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0} $<TARGET_FILE_DIR:client>/${ARGV0}
@@ -25,7 +23,7 @@ add_executable(client WIN32
     src/CharacterSelectState.cpp
     src/Client.cpp
     src/client-asset-manager.cpp
-    src/ClientNetworkManager.cpp
+    src/ClientNetworkManagerEnet.cpp
     src/ConnectingState.cpp
     src/Game.cpp
     src/GameObject.cpp
@@ -66,19 +64,12 @@ add_executable(client WIN32
 )
 
 target_compile_definitions(client PUBLIC NOMINMAX)
+target_precompile_headers(client PRIVATE src/platform.h)
 
-target_include_directories(client PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/steam/public)
+target_include_directories(client PRIVATE src vendor/include)
+target_link_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 
-target_link_libraries(client PUBLIC steam_api64 common d3d11 dwrite d2d1 xaudio2)
-
-add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64/steam_api64.dll $<TARGET_FILE_DIR:client>/steam_api64.dll)
-add_custom_command(TARGET client POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E $<IF:$<CONFIG:Debug>,copy_if_different,true>
-        ${CMAKE_SOURCE_DIR}/steam_appid.txt
-        $<TARGET_FILE_DIR:client>/steam_appid.txt
-    COMMENT 
-)
-
+target_link_libraries(client PUBLIC common d3d11 dwrite d2d1 xaudio2 enet ws2_32.lib winmm.lib)
 
 pak_folder(Buildings/Tower Buildings/Tower.pak)
 pak_folder(Generic Generic.pak)
@@ -94,7 +85,11 @@ pak_folder(characters/stormcaller characters/stormcaller.pak)
 add_custom_target(pak_file_target
     DEPENDS ${PAK_FILES}
 )
-add_dependencies(client
+
+add_dependencies(pak_file_target
     assets
+)
+
+add_dependencies(client
     pak_file_target
 )

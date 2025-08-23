@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/PMG_Common.h>
-#include <NetworkManager.h>
+#include <NetworkManagerEnet.h>
 
 class CGameState;
 class CGameObject;

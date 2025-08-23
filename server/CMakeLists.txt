@@ -1,5 +1,3 @@
-link_directories($(CMAKE_SOURCE_DIR)/Bin ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64)
-
 function(copy_asset_folder)
     add_custom_command(TARGET server POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different $<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0} $<TARGET_FILE_DIR:server>/${ARGV0}
@@ -24,7 +22,7 @@ add_executable(server
 	src/LobbyState.cpp
 	src/Main.cpp
 	src/Missile.cpp
-	src/NetworkManager.cpp
+	src/NetworkManagerEnet.cpp
 	src/Server.cpp
 	src/spell-cast-api.cpp
 	
@@ -55,23 +53,30 @@ add_executable(server
 
 	src/content/characters/stormcaller/thunderstrike.cpp
 )
+
+target_compile_definitions(server PUBLIC NOMINMAX)
+target_precompile_headers(server PRIVATE src/platform.h)
+
+
 set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 
-target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/steam/public)
-target_link_libraries(server PUBLIC steam_api64 common)
+target_link_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
+target_include_directories(server PRIVATE src vendor/include)
+
+target_link_libraries(server PUBLIC common enet)
 
 if(WIN32)
-	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/vendor/steam/redistributable_bin/win64/steam_api64.dll $<TARGET_FILE_DIR:server>/steam_api64.dll)
+	target_link_libraries(server PUBLIC ws2_32 winmm)
 endif()
-
-add_custom_command(TARGET server
-	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
 
 pak_folder(Maps/Map1 Maps/Map1.pak)
 
 add_custom_target(server_assets
     DEPENDS ${PAK_FILES}
+)
+
+add_dependencies(server_assets
+	assets
 )
 
 add_dependencies(server server_assets)

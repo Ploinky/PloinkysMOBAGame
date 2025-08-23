@@ -15,7 +15,7 @@ LobbyState::LobbyState(IServerStateHandler* handler, ServerNetworkManager* netwo
 void LobbyState::Initialize() {
 	networkManager_->CreateListenSocket(std::to_string(DEFAULT_PORT));
 
-	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_SLOT, [this](std::vector<uint8_t> data, PlayerID playerId) {
+	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_SLOT, [this](std::vector<uint8_t> data, PlayerID idPlayer) {
 		LobbySlotCmd cmd = LobbySlotCmd();
 		cmd.Read(&data);
 
@@ -25,7 +25,7 @@ void LobbyState::Initialize() {
 		}
 
 		for (int i = 0; i < 10; i++) {
-			if (lobbySlots_[i] != nullptr && lobbySlots_[i]->steamId == playerId) {
+			if (lobbySlots_[i] != nullptr && lobbySlots_[i]->idPlayer == idPlayer) {
 				if (cmd.slot == i) {
 					// TODO client is already in requested slot?
 					return;
@@ -37,7 +37,7 @@ void LobbyState::Initialize() {
 
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = cmd.slot;
-				pck.steamId = lobbySlots_[cmd.slot]->steamId.ConvertToUint64();
+				pck.steamId = lobbySlots_[cmd.slot]->idPlayer;
 				pck.isReady = lobbySlots_[cmd.slot]->ready;
 
 				std::vector<uint8_t> data;
@@ -48,17 +48,17 @@ void LobbyState::Initialize() {
 		}
 	});
 
-	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_READY, [this](std::vector<uint8_t> data, PlayerID playerId) {
+	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_READY, [this](std::vector<uint8_t> data, PlayerID idPlayer) {
 		LobbyReadyCmd cmd = LobbyReadyCmd();
 		cmd.Read(&data);
 
 		for (int i = 0; i < 10; i++) {
-			if (lobbySlots_[i] != nullptr && lobbySlots_[i]->steamId == playerId) {
+			if (lobbySlots_[i] != nullptr && lobbySlots_[i]->idPlayer == idPlayer) {
 				lobbySlots_[i]->ready = !lobbySlots_[i]->ready;
 
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = i;
-				pck.steamId = lobbySlots_[i]->steamId.ConvertToUint64();
+				pck.steamId = lobbySlots_[i]->idPlayer;
 				pck.isReady = lobbySlots_[i]->ready;
 
 				std::vector<uint8_t> data;
@@ -71,10 +71,10 @@ void LobbyState::Initialize() {
 		printf("Got lobby ready packet from unknown client");
 	});
 
-	networkManager_->on_clientConnected = [this](PlayerID newPlayerId) {
+	networkManager_->on_clientConnected = [this](PlayerID newidPlayer) {
 		LobbyPlayer* newPlayer = new LobbyPlayer();
 		newPlayer->ready = false;
-		newPlayer->steamId = newPlayerId;
+		newPlayer->idPlayer = newidPlayer;
 
 		bool hasSlot = false;
 
@@ -85,7 +85,7 @@ void LobbyState::Initialize() {
 
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = i;
-				pck.steamId = newPlayer->steamId.ConvertToUint64();
+				pck.steamId = newPlayer->idPlayer;
 				pck.isReady = newPlayer->ready;
 
 				std::vector<uint8_t> data;
@@ -99,21 +99,21 @@ void LobbyState::Initialize() {
 			else if (lobbySlots_[i] != nullptr) {
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = i;
-				pck.steamId = lobbySlots_[i]->steamId.ConvertToUint64();
+				pck.steamId = lobbySlots_[i]->idPlayer;
 				pck.isReady = lobbySlots_[i]->ready;
 
 				std::vector<uint8_t> data;
 				pck.Write(&data);
-				networkManager_->SendToClient(newPlayerId, &pck);
+				networkManager_->SendToClient(newidPlayer, &pck);
 			}
 		}
 
 		// TODO what if we cannot connect the player?
 	};
 
-	networkManager_->on_clientDisconnected = [this](PlayerID playerId) {
+	networkManager_->on_clientDisconnected = [this](PlayerID idPlayer) {
 		for (int i = 0; i < 10; i++) {
-			if (lobbySlots_[i] != nullptr && lobbySlots_[i]->steamId == playerId) {
+			if (lobbySlots_[i] != nullptr && lobbySlots_[i]->idPlayer == idPlayer) {
 				delete lobbySlots_[i];
 				lobbySlots_[i] = nullptr;
 
@@ -125,7 +125,7 @@ void LobbyState::Initialize() {
 		printf("Player could not be disconnected, now %d players\n", GetPlayerCount());
 	};
 
-	networkManager_->on_clientMessageReceived = [this](PlayerID playerId, std::vector<uint8_t>* data) {
+	networkManager_->on_clientMessageReceived = [this](PlayerID idPlayer, std::vector<uint8_t>* data) {
 		packet_header_t header;
 		memcpy(&header, data->data(), sizeof(packet_header_t));
 
@@ -135,7 +135,7 @@ void LobbyState::Initialize() {
 			printf("Missing handler for packet!");
 			return;
 		}
-		fun(*data, playerId);
+		fun(*data, idPlayer);
 	};
 }
 void LobbyState::Update(float dt) {

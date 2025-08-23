@@ -3,7 +3,8 @@
 #include "Renderer.h"
 
 Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
-	networkManager_ = new ClientNetworkManager();
+	networkManager_ = new ClientNetworkManagerEnet();
+	HBitmap hButton = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton/MenuButton.bmp");
 
     packetManager_ = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
     // Register network packets, the fuck...
@@ -27,6 +28,7 @@ Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int he
     btnReady->m_color[0] = 0.2f;
     btnReady->m_color[1] = 0.6f;
     btnReady->m_color[2] = 0.2f;
+    btnReady->hImage = hButton;
     btnReady->e_onMousePressed = [this]() {
         LobbyReadyCmd cmd;
         networkManager_->SendPacket(&cmd);
@@ -40,6 +42,7 @@ Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int he
     btnBack->m_color[0] = 0.6f;
     btnBack->m_color[1] = 0.2f;
     btnBack->m_color[2] = 0.2f;
+    btnBack->hImage = hButton;
     btnBack->e_onMousePressed = [this]() {
         handler_->OpenMainMenu();
     };
@@ -101,7 +104,8 @@ void Lobby::HandleSlotPacket(std::vector<uint8_t> data) {
     LobbySlotPacket pck = LobbySlotPacket();
     pck.Read(&data);
 
-    if (pck.steamId == SteamUser()->GetSteamID().ConvertToUint64()) {
+    // TODO
+    if (pck.steamId == 0) {
         mySlot_ = pck.slot;
     }
 
@@ -118,9 +122,9 @@ void Lobby::HandleSlotPacket(std::vector<uint8_t> data) {
     }
 
     // must be a new player
-    CSteamID id = CSteamID(pck.steamId);
+    PlayerID id = pck.steamId;
     Player* p = new Player();
-    p->name = std::string(SteamFriends()->GetFriendPersonaName(id));
+    p->name = "A Player";
     p->steamId = pck.steamId;
     p->ready = pck.isReady;
     players_[pck.slot] = p;
@@ -156,7 +160,7 @@ void Lobby::MouseButtonPressed(int button) {
         int y = 50 + ySlot * slotHeight + ySlot * 10;
         if (mouseX_ > x && mouseX_ < x + slotWidth
             && mouseY_ > y && mouseY_ < y + slotHeight) {
-            LobbySlotPacket pck = LobbySlotPacket();
+            LobbySlotCmd pck = LobbySlotCmd();
             pck.slot = i;
 
             networkManager_->SendPacket(&pck);

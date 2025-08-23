@@ -9,7 +9,6 @@
 #include "Common/pmg_physics.h"
 #include <Common/PMG_Common.h>
 #include "IClientStateHandler.h"
-#include <steam/steam_api.h>
 #include <LoadingState.h>
 #include <CharacterSelectState.h>
 
@@ -29,7 +28,7 @@ class ClientStateHandler;
 class GuiElement;
 class GuiTextfield;
 class IClientState;
-class ClientNetworkManager;
+class ClientNetworkManagerEnet;
 
 class Client : public IClientStateHandler {
 
@@ -39,12 +38,12 @@ public:
     void Run(std::string connectString_);
 
     void NewState(IClientState* newState);
-    virtual void JoinGame(ClientNetworkManager* networkManager) override;
-    virtual void JoinLobby(servernetadr_t addr) override;
+    virtual void JoinGame(ClientNetworkManagerEnet* networkManager) override;
+    virtual void JoinLobby(std::string addr) override;
     virtual void OpenSettingsMenu() override;
     virtual void OpenMainMenu() override;
     virtual void OpenServerBrowser() override;
-    virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) override;
+    virtual void StartCharacterSelect(ClientNetworkManagerEnet* networkManager, Player** ppPlayers) override;
 
     virtual void RequestCursor(CursorId newId) override;
 
@@ -53,9 +52,6 @@ public:
 
     virtual CAudioEngine* GetAudioEngine() override;
 
-
-    STEAM_CALLBACK(Client, GameServerChangeRequested, GameServerChangeRequested_t);
-    STEAM_CALLBACK(Client, WebApiTicketReceived, GetTicketForWebApiResponse_t);
 
 private:
     IClientState* currentState_;
@@ -80,9 +76,6 @@ private:
     Settings settings_;
     CAudioEngine m_audioEngine;
     CClientAssetManager assetManager_;
-
-    // User Authentication
-    HAuthTicket authTicket_;
 
     // Mouse input
 

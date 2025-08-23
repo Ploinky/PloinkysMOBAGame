@@ -2,7 +2,7 @@
 
 #include "IClientState.h"
 #include <string>
-#include "ClientNetworkManager.h"
+#include "ClientNetworkManagerEnet.h"
 #include <string>
 #include "Gui.h"
 #include <Common/NewPackets.h>
@@ -10,7 +10,7 @@
 
 class CCharacterSelectState : public IClientState {
 public:
-	CCharacterSelectState(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height, Player** players);
+	CCharacterSelectState(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height, Player** players);
 	~CCharacterSelectState();
 
 	virtual void Update(float dt) override;
@@ -19,7 +19,7 @@ public:
 
 private:
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>> packetManager_;
-	ClientNetworkManager* networkManager_;
+	ClientNetworkManagerEnet* networkManager_;
 
 	void HandleCharacterSelectTimePacket(std::vector<uint8_t> data);
 

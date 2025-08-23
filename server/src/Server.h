@@ -1,10 +1,9 @@
-#pragma once 
+#pragma once
 
 #include <string>
 #include <list>
 #include <common/PMG_Common.h>
 #include <common/pmg_networking.h>
-#include "steam/steam_gameserver.h"
 #include "IServerState.h"
 #include "IServerStateHandler.h"
 

@@ -1,6 +1,6 @@
 #include "CharacterSelectState.h"
 
-CCharacterSelectState::CCharacterSelectState(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height, Player** players) : IClientState(handler, width, height) {
+CCharacterSelectState::CCharacterSelectState(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height, Player** players) : IClientState(handler, width, height) {
     networkManager_ = server;
 
     packetManager_ = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();

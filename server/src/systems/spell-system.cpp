@@ -22,7 +22,11 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
         for(int i = 0; i < vecSpells.size(); i++) {
             SpellSlot_t& spellSlot = vecSpells.at(i);
             if(spellSlot.fCooldownRemaining > 0.0f) {
-                spellSlot.fCooldownRemaining = std::max(spellSlot.fCooldownRemaining - fDelta, 0.0f);
+                if(spellSlot.fCooldownRemaining - fDelta > 0.0f) {
+                    spellSlot.fCooldownRemaining = spellSlot.fCooldownRemaining - fDelta;
+                } else {
+                    spellSlot.fCooldownRemaining = 0.0f;
+                }
             }
         }
 

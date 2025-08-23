@@ -2,8 +2,7 @@
 
 #include "IServerStateHandler.h"
 #include "IServerState.h"
-#include "NetworkManager.h"
-#include "steam/steam_api.h"
+#include "NetworkManagerEnet.h"
 #include "LobbyPlayer.h"
 #include "Common/pmg_networking.h"
 #include <functional>
