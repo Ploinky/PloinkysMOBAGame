@@ -5,7 +5,7 @@
 #include "ParticleSystem.h"
 #include "MainMenu.h"
 #include "../Resources/resource.h"
-#include "components/components.h"
+#include "game/components/components.h"
 #include "game/systems/animation-system.h"
 
 Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {

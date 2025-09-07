@@ -4,7 +4,7 @@
 #include "client-asset-manager.h"
 #include "ParticleEmitter.h"
 #include "ParticleSystem.h"
-#include "components/components.h"
+#include "game/components/components.h"
 
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {

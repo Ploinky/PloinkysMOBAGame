@@ -4,7 +4,7 @@
 #include <string>
 #include "Settings.h"
 #include <Common/PMG_Common.h>
-#include "components/components.h"
+#include "game/components/components.h"
 
 AudioSystem::AudioSystem(CAudioEngine* pEngine, CClientAssetManager* pAssetManager) {
     m_pEngine = pEngine;

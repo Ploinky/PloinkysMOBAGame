@@ -1,7 +1,7 @@
 #include "animation-system.h"
 
 #include "common/game/game-state.h"
-#include "components/components.h"
+#include "game/components/components.h"
 #include "Model.h"
 
 CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
