@@ -5,7 +5,7 @@
 #include "core/graphics/graphics-engine.h"
 #include "client-asset-manager.h"
 
-class ParticleSystem;
+class ParticleEffect;
 
 enum class ERenderCommandType {
     NONE,
@@ -19,7 +19,9 @@ typedef struct RenderCommand_t {
 
     BufferHandle_t hVertexBuffer;
     BufferHandle_t hIndexBuffer;
+    BufferHandle_t hInstanceBuffer;
     unsigned int uIndexCount;
+    unsigned int uInstanceCount;
 
     HTexture hTexture;
 
@@ -31,7 +33,8 @@ typedef struct RenderCommand_t {
     bool bDoLoop = false;
     Vector3 vec3Position;
     Vector3 vec3Rotation;
+    Vector3 vec3Scale;
     DirectX::XMFLOAT4X4 vecBones[256];
 
-    ParticleSystem* pSystem = nullptr;
+    const ParticleEffect* pSystem = nullptr;
 } RenderCommand_t;

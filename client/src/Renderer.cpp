@@ -3,7 +3,7 @@
 #include "common/PloinkysJSONLibrary.h"
 #include "client-asset-manager.h"
 #include "ParticleEmitter.h"
-#include "ParticleSystem.h"
+#include "ParticleEffect.h"
 #include "game/components/components.h"
 
 CRenderer::~CRenderer() {
@@ -37,6 +37,18 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetMan
 	m_hModelConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(ModelConstants_t), nullptr);
 	m_hSkinnedModelConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(SkinnedModelConstants_t), nullptr);
 	m_hBillboardFrameConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(BillboardFrameConstants_t), nullptr);
+	
+
+	ParticleShaderVertex_t vertices[6]{
+		{ {-1, 1, 0}, {0, 0} },
+		{ {1, -1, 0}, {1, 1} },
+		{ {1, 1, 0}, {1, 0} },
+		{ {-1, 1, 0}, {0, 0} },
+		{ {-1, -1, 0}, {0, 1} },
+		{ {1, -1, 0}, {1, 1} },
+	};
+	m_hParticleVertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(vertices, sizeof(ParticleShaderVertex_t) * 6, 6);
+
 }
 
 void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
@@ -132,11 +144,17 @@ void CRenderer::DrawImage(float x, float y, float w, float h, HBitmap hBitmap) {
 }
 
 void CRenderer::Draw(RenderCommand_t cmd) {
-	ModelAsset_t& modelAsset = m_pAssetManager->GetModel(cmd.hModel);
-	Model* model = modelAsset.pModel;
-
-
-	m_pGraphicsEngine->BindShaderProgram(m_hGlbShaderProgram);
+	switch(cmd.eType) {
+		case ERenderCommandType::SKINNED_MESH:
+			m_pGraphicsEngine->BindShaderProgram(m_hGlbShaderProgram);
+			break;
+		case ERenderCommandType::PARTICLE_SYSTEM:
+			m_pGraphicsEngine->BindShaderProgram(m_hParticleShaderProgram);
+			break;
+		default:
+			Logger::Err("Failed to render: invalid render command type");
+			return;
+	}
 
 	FrameConstants_t frameConstants {};
 	frameConstants.cameraMatrix = cameraMatrix;
@@ -150,17 +168,25 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 		DirectX::XMConvertToRadians(cmd.vec3Rotation.y),
 		DirectX::XMConvertToRadians(cmd.vec3Rotation.z));
 	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
-	DirectX::XMStoreFloat4x4(&modelConstants.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
+	DirectX::XMStoreFloat4x4(&modelConstants.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelConstants, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
-	SkinnedModelConstants_t skinnedModelConstants {};
-	for(int i = 0; i < 256; i++) {
-		skinnedModelConstants.boneTransforms[i] = cmd.vecBones[i];
+	if(cmd.eType == ERenderCommandType::SKINNED_MESH) {
+		SkinnedModelConstants_t skinnedModelConstants {};
+		for(int i = 0; i < 256; i++) {
+			skinnedModelConstants.boneTransforms[i] = cmd.vecBones[i];
+		}
+		
+		m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
+		m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
+	} else if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
+		BillboardFrameConstants_t bbData {};
+		DirectX::XMStoreFloat4x4(&bbData.billboardMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity()));
+		m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
+		m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hBillboardFrameConstBuffer);
 	}
-	
-	m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
-	m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 
 	if(cmd.hTexture != INVALID_ASSET_HANDLE) {
 		TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(cmd.hTexture);
@@ -170,9 +196,26 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 		m_pGraphicsEngine->BindTexture(0, textureAsset);
 	}
 
-	m_pGraphicsEngine->SetVertexBuffer(0, cmd.hVertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0); // TODO glb_shader_vertex_t ??
-	m_pGraphicsEngine->SetIndexBuffer(cmd.hIndexBuffer);
-	m_pGraphicsEngine->DrawIndexed(cmd.uIndexCount);
+	if(cmd.eType == ERenderCommandType::SKINNED_MESH) {
+		m_pGraphicsEngine->SetVertexBuffer(0, cmd.hVertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0); // TODO glb_shader_vertex_t ??
+	}
+
+	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
+		m_pGraphicsEngine->SetVertexBuffer(0, cmd.hVertexBuffer, sizeof(ParticleShaderVertex_t), 0);
+		m_pGraphicsEngine->SetVertexBuffer(1, cmd.hInstanceBuffer, sizeof(ParticleShaderVertexInstance_t), 0);
+	}
+
+	
+	if(cmd.eType == ERenderCommandType::SKINNED_MESH) {
+		m_pGraphicsEngine->SetIndexBuffer(cmd.hIndexBuffer);
+		m_pGraphicsEngine->DrawIndexed(cmd.uIndexCount);
+	} else if (cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
+		m_pGraphicsEngine->EnableAlphaBlending();
+		m_pGraphicsEngine->EnableDepthStencilState();
+		m_pGraphicsEngine->DrawInstanced(6, cmd.uInstanceCount);
+		m_pGraphicsEngine->DisableAlphaBlending();
+		m_pGraphicsEngine->DisableDepthStencilState();
+	}
 }
 
 void CRenderer::Draw(Model* model) {
@@ -562,7 +605,7 @@ bool CRenderer::InitParticleEmitter(ParticleEmitter* pEmitter) {
 }
 
 
-bool CRenderer::InitParticleSystem(ParticleSystem* pSystem) {
+bool CRenderer::InitParticleEffect(ParticleEffect* pSystem) {
 	for (ParticleEmitter* emitter : pSystem->emitters_) {
 		if (!InitParticleEmitter(emitter)) {
 			return false;
@@ -596,6 +639,81 @@ ModelNode* CRenderer::LoadNode(GLBNode* glbNode) {
 	return modelNode;
 }
 
+void CRenderer::UploadModelToGPU(ModelAsset_t& modelAsset) {
+	modelAsset.pModel = new Model();
+	for(const auto& glbNode : modelAsset.pGlbModel->Nodes) {
+		ModelNode* modelNode = LoadNode(glbNode.second);
+		modelAsset.pModel->Nodes.emplace(glbNode.first, modelNode);
+	}
+
+	for(const auto& glbMesh : modelAsset.pGlbModel->Meshes) {
+		Mesh* mesh = LoadMesh(glbMesh.second);
+		modelAsset.pModel->Meshes.emplace(glbMesh.first, mesh);
+	}
+
+	for(const auto& m : modelAsset.pGlbModel->Materials) {
+		Material* material = new Material();
+		material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
+		modelAsset.pModel->Materials.emplace(m.first, material);
+	}
+				
+	for(const auto& skin : modelAsset.pGlbModel->Skins) {
+		Armature* armature = new Armature();
+		const auto& glbSkin = skin.second;
+
+		for(int i = 0; i < glbSkin->Joints.size(); i++) {
+			const auto& joint = glbSkin->Joints[i];
+			Bone bone = Bone();
+			bone.Index = joint;
+			armature->bones.push_back(bone);
+		}
+
+		for(int i = 0; i < glbSkin->Joints.size(); i++) {
+			for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin->Joints[i]]->Children) {
+				for(int j = 0; j < armature->bones.size(); j++) {
+					if(armature->bones[j].Index == childIndex) {
+						armature->bones[j].parent_index = glbSkin->Joints[i];
+					}
+				}
+			}
+		}
+
+		armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+
+		modelAsset.pModel->Skins.emplace(skin.first, armature);
+	}
+
+	for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
+		GLBAnimation* glbAnimation = glbAnimationEntry.second;
+		Animation* animation = new Animation();
+		modelAsset.pModel->Animations.emplace(glbAnimation->Name, animation);
+
+		animation->duration = glbAnimation->Duration;
+			
+		float fMaxTime = 0;
+		for(const auto& channel : glbAnimation->Channels) {
+			AnimationTrack track;
+			track.Path = channel->Path;
+			track.NodeIndex = channel->TargetNode;
+			for(const auto& keyFrame : channel->KeyFrames) {
+				AnimationKeyFrame kf = AnimationKeyFrame();
+				BonePosition bn = BonePosition();
+				bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+				bn.translation = keyFrame.Translation;
+				kf.Position = bn;
+				kf.Time = keyFrame.Time;
+				track.Positions.push_back(kf);
+
+				if(kf.Time > fMaxTime) {
+					fMaxTime = kf.Time;
+				}
+			}
+			animation->animation_tracks.push_back(track);
+			animation->duration = fMaxTime;
+		}
+	}
+}
+
 void CRenderer::Render(CGameState* pGameState) {
 	for(UnitId idUnit : pGameState->vecUnits) {
 		if(RenderableComponent_t* pRenderable = pGameState->GetComponent<RenderableComponent_t>(idUnit)) {
@@ -604,78 +722,7 @@ void CRenderer::Render(CGameState* pGameState) {
 			ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
 
 			if(modelAsset.pModel == nullptr) {
-				modelAsset.pModel = new Model();
-				for(const auto& glbNode : modelAsset.pGlbModel->Nodes) {
-					ModelNode* modelNode = LoadNode(glbNode.second);
-					modelAsset.pModel->Nodes.emplace(glbNode.first, modelNode);
-				}
-
-				for(const auto& glbMesh : modelAsset.pGlbModel->Meshes) {
-					Mesh* mesh = LoadMesh(glbMesh.second);
-					modelAsset.pModel->Meshes.emplace(glbMesh.first, mesh);
-				}
-
-				for(const auto& m : modelAsset.pGlbModel->Materials) {
-					Material* material = new Material();
-					material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
-					modelAsset.pModel->Materials.emplace(m.first, material);
-				}
-							
-				for(const auto& skin : modelAsset.pGlbModel->Skins) {
-					Armature* armature = new Armature();
-					const auto& glbSkin = skin.second;
-
-					for(int i = 0; i < glbSkin->Joints.size(); i++) {
-						const auto& joint = glbSkin->Joints[i];
-						Bone bone = Bone();
-						bone.Index = joint;
-						armature->bones.push_back(bone);
-					}
-
-					for(int i = 0; i < glbSkin->Joints.size(); i++) {
-						for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin->Joints[i]]->Children) {
-							for(int j = 0; j < armature->bones.size(); j++) {
-								if(armature->bones[j].Index == childIndex) {
-									armature->bones[j].parent_index = glbSkin->Joints[i];
-								}
-							}
-						}
-					}
-
-					armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
-
-					modelAsset.pModel->Skins.emplace(skin.first, armature);
-				}
-
-				for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
-					GLBAnimation* glbAnimation = glbAnimationEntry.second;
-					Animation* animation = new Animation();
-					modelAsset.pModel->Animations.emplace(glbAnimation->Name, animation);
-
-					animation->duration = glbAnimation->Duration;
-						
-					float fMaxTime = 0;
-					for(const auto& channel : glbAnimation->Channels) {
-						AnimationTrack track;
-						track.Path = channel->Path;
-						track.NodeIndex = channel->TargetNode;
-						for(const auto& keyFrame : channel->KeyFrames) {
-							AnimationKeyFrame kf = AnimationKeyFrame();
-							BonePosition bn = BonePosition();
-							bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
-							bn.translation = keyFrame.Translation;
-							kf.Position = bn;
-							kf.Time = keyFrame.Time;
-							track.Positions.push_back(kf);
-
-							if(kf.Time > fMaxTime) {
-								fMaxTime = kf.Time;
-							}
-						}
-						animation->animation_tracks.push_back(track);
-						animation->duration = fMaxTime;
-					}
-				}
+				UploadModelToGPU(modelAsset);
 			}
 			
 			for(const auto& modelNode : modelAsset.pModel->Nodes) {
@@ -683,7 +730,6 @@ void CRenderer::Render(CGameState* pGameState) {
 				if(mesh == nullptr) {
 					continue;
 				}
-				
 
 				RenderCommand_t cmd {
 					.eType = ERenderCommandType::SKINNED_MESH,
@@ -699,20 +745,39 @@ void CRenderer::Render(CGameState* pGameState) {
 				cmd.hVertexBuffer = mesh->VertexBuffer;
 				cmd.hIndexBuffer = mesh->IndexBuffer;
 				cmd.uIndexCount = mesh->IndexCount;
-
+				
 				if(TransformComponent_t* pTransform = pGameState->GetComponent<TransformComponent_t>(idUnit)) {
 					cmd.vec3Position = pTransform->vec3Position;
 					cmd.vec3Rotation = pTransform->vec3Rotation;
 				}
+				cmd.vec3Scale = Vector3(1, 1, 1);
 
 				if(AnimationComponent_t* pAnim = pGameState->GetComponent<AnimationComponent_t>(idUnit)) {
 					for(int i = 0; i < 256; i++) {
 						cmd.vecBones[i] = pAnim->vecBones[i];
 					}
 				}
+
 				Submit(cmd);
 			}
+		}
 
+		if(ParticleComponent_t* pParticleComponent = pGameState->GetComponent<ParticleComponent_t>(idUnit)) {
+			for(const ParticleEffect* pParticleEffect : pParticleComponent->vecEffects) {
+				for(const ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
+					// actually render the particle
+					Logger::Msg("rendering a particle");
+					RenderCommand_t cmd{};
+					cmd.eType = ERenderCommandType::PARTICLE_SYSTEM;
+					cmd.uInstanceCount = pParticleEmitter->particle_count;
+					cmd.hInstanceBuffer = pParticleEmitter->instance_buffer_;
+					cmd.hVertexBuffer = m_hParticleVertexBuffer;
+					cmd.hTexture = m_pAssetManager->LoadTexture(pParticleEmitter->texture_name_);
+					cmd.vec3Scale = Vector3(pParticleEmitter->particle_scale.x, pParticleEmitter->particle_scale.y, pParticleEmitter->particle_scale.z);
+					cmd.vec3Position = pParticleEmitter->position;
+					Submit(cmd);
+				}
+			}
 		}
 	}
 }

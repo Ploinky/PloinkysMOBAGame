@@ -24,7 +24,7 @@
 #include "common/game/game-state.h"
 
 class GameObject;
-class ParticleSystem;
+class ParticleEffect;
 class ParticleEmitter;
 
 typedef struct FlatUnlitShaderVertex_t {
@@ -98,7 +98,7 @@ private:
     std::map<std::string, Model*> models_;
 
     bool InitParticleEmitter(ParticleEmitter* pEmitter);
-    bool InitParticleSystem(ParticleSystem* pSystem);
+    bool InitParticleEffect(ParticleEffect* pSystem);
 
     HShaderProgram m_hGlbShaderProgram;
     HShaderProgram m_hParticleShaderProgram;
@@ -108,6 +108,8 @@ private:
     BufferHandle_t m_hModelConstBuffer;
     BufferHandle_t m_hSkinnedModelConstBuffer;
     BufferHandle_t m_hBillboardFrameConstBuffer;
+
+    BufferHandle_t m_hParticleVertexBuffer;
         
     #ifdef _DEBUG
     // --- navigation grid rendering ---
@@ -119,7 +121,7 @@ private:
 
     std::vector<RenderCommand_t> m_vecCommands;
 
-    
+    void UploadModelToGPU(ModelAsset_t& modelAsset);
     Mesh* LoadMesh(GLBModelMesh* glbMesh);
     ModelNode* LoadNode(GLBNode* glbNode);
 

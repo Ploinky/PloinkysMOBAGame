@@ -11,7 +11,7 @@
 #include "Settings.h"
 #include "AudioSystem.h"
 #include "common/pmg_networking.h"
-#include "ParticleSystem.h"
+#include "ParticleEffect.h"
 #include "Gui.h"
 #include "MainMenu.h"
 #include <Game.h>

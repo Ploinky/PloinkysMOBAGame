@@ -10,12 +10,12 @@
 
 class ParticleEmitter;
 
-class ParticleSystem : public GameObject {
+class ParticleEffect : public GameObject {
 public:
-	ParticleSystem();
-	virtual ~ParticleSystem() override;
+	ParticleEffect();
+	virtual ~ParticleEffect() override;
 
-	static ParticleSystem* Load(std::string particleName, AssetManager* assetManager);
+	static ParticleEffect* Load(std::string particleName, AssetManager* assetManager);
 
 	void Render(CRenderer* renderer);
 	virtual void Update(float dt) override;

@@ -31,7 +31,7 @@ std::string GetDir() {
 #include "GameObject.h"
 #include "Camera.h"
 #include "Particle.h"
-#include "ParticleSystem.h"
+#include "ParticleEffect.h"
 
 // Main entry point into the application
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {

@@ -42,7 +42,7 @@ add_executable(client WIN32
     src/Mesh.cpp
     src/Model.cpp
     src/ParticleEmitter.cpp
-    src/ParticleSystem.cpp
+    src/ParticleEffect.cpp
     src/Renderer.cpp
     src/ServerBrowser.cpp
     src/Settings.cpp
@@ -56,6 +56,7 @@ add_executable(client WIN32
     src/core/graphics/d3d11-graphics-engine.cpp
 
     src/game/systems/animation-system.cpp
+    src/game/systems/particle-system.cpp
 
     Resources/Cursor.cur
     Resources/cursor1.cur

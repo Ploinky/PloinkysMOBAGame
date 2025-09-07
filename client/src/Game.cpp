@@ -2,11 +2,12 @@
 #include <Common/PMG_Common.h>
 #include "Renderer.h"
 #include "Camera.h"
-#include "ParticleSystem.h"
+#include "ParticleEffect.h"
 #include "MainMenu.h"
 #include "../Resources/resource.h"
 #include "game/components/components.h"
 #include "game/systems/animation-system.h"
+#include "game/systems/particle-system.h"
 
 Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
@@ -112,7 +113,7 @@ Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int w
         PlayParticlePacket part{};
         part.Read(&data);
 
-        ParticleSystem* particle_system = ParticleSystem::Load(part.particle, assetManager_);
+        ParticleEffect* particle_system = ParticleEffect::Load(part.particle, assetManager_);
 
         GameObject* go = GetGameObject(part.unit);
         if (part.unit != 0 && go != nullptr) {
@@ -234,9 +235,17 @@ Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int w
             return;
         }
 
-        ParticleSystem* particle_system = ParticleSystem::Load("characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
+        // TODO react to event instead of this?
+        ParticleEffect* particle_system = ParticleEffect::Load("characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
         // particle_system->Attach(go);
         particle_system->position = {go->position.x, 100, go->position.z};
+
+        if(!m_gameState.GetComponent<ParticleComponent_t>(go->unit_id)) {
+            m_gameState.AddComponent<ParticleComponent_t>(go->unit_id);
+        }
+
+        ParticleComponent_t* pParticleComp = m_gameState.GetComponent<ParticleComponent_t>(go->unit_id);
+        pParticleComp->vecEffects.push_back(particle_system);
 
         game_objects_.emplace(Util::GetSystemTime(), particle_system);
 
@@ -296,6 +305,7 @@ Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int w
 
     m_gameState.AddSystem(m_pAudioSystem);
     m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
+    m_gameState.AddSystem(new CParticleSystem(handler->GetAssetManager()));
 }
 
 Game::~Game() {
@@ -511,7 +521,7 @@ void Game::Update(float dt) {
             mv.y = y;
             net_manager_->SendPacket(&mv);
 
-            ParticleSystem* particle_system = ParticleSystem::Load("UI/MoveTo/move_to.pts", assetManager_);
+            ParticleEffect* particle_system = ParticleEffect::Load("UI/MoveTo/move_to.pts", assetManager_);
             particle_system->position = { x, 0, y };
 
             game_objects_.emplace(Util::GetSystemTime(), particle_system);
