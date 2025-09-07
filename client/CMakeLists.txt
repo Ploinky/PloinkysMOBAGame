@@ -55,6 +55,8 @@ add_executable(client WIN32
 
     src/core/graphics/d3d11-graphics-engine.cpp
 
+    src/game/systems/animation-system.cpp
+
     Resources/Cursor.cur
     Resources/cursor1.cur
     Resources/Hover.cur

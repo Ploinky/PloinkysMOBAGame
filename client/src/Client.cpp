@@ -93,8 +93,6 @@ void Client::Run(std::string connectString_) {
     renderer = new CRenderer();
 	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, &assetManager_, window->width_, window->height_);
 
-    IGraphicsEngine* pGraphicsEngine = IGraphicsEngine::Create(window->GetWindowHandle(), window->width_, window->height_);
-
     window->e_charTyped = [this](WORD ch) { if(currentState_) currentState_->CharTyped(ch); };
     window->e_keyPressed = [this](WORD key) { if (currentState_) currentState_->KeyPressed(key); };
     window->e_keyReleased = [this](WORD key) { if (currentState_) currentState_->KeyReleased(key); };

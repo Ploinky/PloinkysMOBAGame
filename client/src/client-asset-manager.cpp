@@ -2,6 +2,7 @@
 
 #include "wincodec.h"
 #include "common/PMG_Common.h"
+#include "Model.h"
 
 #define CLEANUP(res) if(res != nullptr) { res->Release(); res = nullptr;}
 
@@ -306,4 +307,120 @@ SoundAsset_t& CClientAssetManager::GetSound(HSound hSound) {
     throw std::exception(("Missing sound asset " + std::to_string(hSound)).c_str());
 }
 
+HModel CClientAssetManager::LoadModel(std::string strModel) {
+    if(!m_mapModels.contains(strModel)) {
+        return LoadGLBModel(strModel, strModel);
+    }
 
+    return m_mapModels.at(strModel);
+}
+
+ModelAsset_t& CClientAssetManager::GetModel(HModel hModel) {
+    if(m_vecModels.size() > hModel) {
+        return m_vecModels[hModel];
+    }
+
+    throw std::exception(("Missing model asset " + std::to_string(hModel)).c_str());
+}
+
+HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {
+	Model* model = new Model();
+	GLBModel* glbModel = GLBFileLoader::LoadModelFromGLBFile(file, this);
+
+	for(const auto& skin : glbModel->Skins) {
+		Armature* armature = new Armature();
+		const auto& glbSkin = skin.second;
+
+		for(int i = 0; i < glbSkin->Joints.size(); i++) {
+			const auto& joint = glbSkin->Joints[i];
+			Bone bone = Bone();
+			bone.Index = joint;
+			armature->bones.push_back(bone);
+		}
+
+		for(int i = 0; i < glbSkin->Joints.size(); i++) {
+			for(auto childIndex : glbModel->Nodes[glbSkin->Joints[i]]->Children) {
+				for(int j = 0; j < armature->bones.size(); j++) {
+					if(armature->bones[j].Index == childIndex) {
+						armature->bones[j].parent_index = glbSkin->Joints[i];
+					}
+				}
+			}
+		}
+
+		armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+
+		model->Skins.emplace(skin.first, armature);
+	}
+
+    for(const auto& glbAnimationEntry : glbModel->Animations) {
+        GLBAnimation* glbAnimation = glbAnimationEntry.second;
+        Animation* animation = new Animation();
+        model->Animations.emplace(glbAnimation->Name, animation);
+
+        animation->duration = glbAnimation->Duration;
+            
+		float fMaxTime = 0;
+        for(const auto& channel : glbAnimation->Channels) {
+            AnimationTrack track;
+			track.Path = channel->Path;
+            track.NodeIndex = channel->TargetNode;
+            for(const auto& keyFrame : channel->KeyFrames) {
+				AnimationKeyFrame kf = AnimationKeyFrame();
+                BonePosition bn = BonePosition();
+                bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+                bn.translation = keyFrame.Translation;
+				kf.Position = bn;
+				kf.Time = keyFrame.Time;
+                track.Positions.push_back(kf);
+
+				if(kf.Time > fMaxTime) {
+					fMaxTime = kf.Time;
+				}
+            }
+            animation->animation_tracks.push_back(track);
+			animation->duration = fMaxTime;
+        }
+    }
+
+    HModel hModel = m_vecModels.size();
+
+    ModelAsset_t asset {
+        .pGlbModel = glbModel,
+        .pModel = nullptr
+    };
+
+    m_vecModels.push_back(asset);
+    m_mapModels.emplace(name, hModel);
+
+    return hModel;
+}
+
+void CClientAssetManager::LoadCharacterManifest(std::string strCharacterId) {
+	PJL::JSONValue manifestValue = PJL::JSONParser().Parse(
+		std::string((char*) LoadFile("characters/" + strCharacterId + "/character_manifest.json").data())
+	);
+
+	if(!manifestValue.IsObject()) {
+		Logger::Err("Failed to load manifest for character " + strCharacterId);
+		return;
+	}
+
+	PJL::JSONObject manifest = manifestValue.AsObject();
+
+	if(manifest.Contains("model") && manifest.Get("model").IsString()) {
+		LoadGLBModel(strCharacterId, manifest.Get("model").AsString());
+	}
+
+	if(manifest.Contains("icons") && manifest.Get("icons").IsArray()) {
+		PJL::JSONArray arrIcons = manifest.Get("icons").AsArray();
+		for(int i = 0; i < arrIcons.Size(); i++) {
+			PJL::JSONValue val = arrIcons.Get(i);
+
+			if(val.IsString()) {
+				// TODO this moves to asset manager
+				// bitmaps_.emplace(val.AsString(), CreateBitmapFromData(pAssetManager->LoadFile(val.AsString())));
+			}
+		}
+	}
+}

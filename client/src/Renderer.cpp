@@ -55,15 +55,6 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
 	m_pAssetManager->LoadTexture("Persons/ChessPerson/particle.png");
 	m_pAssetManager->LoadTexture("characters/stormcaller/abilities/thunderstrike.png");
 
-	// ------------ GLB ------------
-	LoadGLBModel("map1", "Maps/Map1/map1.glb", pAssetManager);
-	LoadGLBModel("football_person", "Persons/ChessPerson/chess_person.glb", pAssetManager);
-	LoadGLBModel("tower", "Buildings/Tower/tower.glb", pAssetManager);
-	LoadGLBModel("missile", "Persons/ChessPerson/missile.glb", pAssetManager);
-	LoadGLBModel("minion", "Persons/Minion/minion.glb", pAssetManager);
-
-	LoadCharacterManifest("stormcaller", pAssetManager);
-
 #ifdef _DEBUG
 	FlatUnlitShaderVertex_t vertices[4] = {
 		{{0, 10, 0}, {1, 0, 0, 1}},
@@ -77,134 +68,6 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
 	m_pNavGridVertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(vertices, sizeof(FlatUnlitShaderVertex_t) * 4, 4);
 	m_pNavGridIndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(indices, 6);
 #endif
-}
-
-void CRenderer::LoadCharacterManifest(std::string strCharacterId, AssetManager* pAssetManager) {
-	PJL::JSONValue manifestValue = PJL::JSONParser().Parse(
-		std::string((char*) pAssetManager->LoadFile("characters/" + strCharacterId + "/character_manifest.json").data())
-	);
-
-	if(!manifestValue.IsObject()) {
-		Logger::Err("Failed to load manifest for character " + strCharacterId);
-		return;
-	}
-
-	PJL::JSONObject manifest = manifestValue.AsObject();
-
-	if(manifest.Contains("model") && manifest.Get("model").IsString()) {
-		LoadGLBModel(strCharacterId, manifest.Get("model").AsString(), pAssetManager);
-	}
-
-	if(manifest.Contains("icons") && manifest.Get("icons").IsArray()) {
-		PJL::JSONArray arrIcons = manifest.Get("icons").AsArray();
-		for(int i = 0; i < arrIcons.Size(); i++) {
-			PJL::JSONValue val = arrIcons.Get(i);
-
-			if(val.IsString()) {
-				// TODO this moves to asset manager
-				// bitmaps_.emplace(val.AsString(), CreateBitmapFromData(pAssetManager->LoadFile(val.AsString())));
-			}
-		}
-	}
-}
-
-Mesh* CRenderer::LoadMesh(GLBModelMesh* glbMesh) {
-	Mesh* mesh = new Mesh();
-	mesh->VertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(glbMesh->Vertices.data(), glbMesh->Vertices.size() * sizeof(SkinnnedMeshShaderVertex_t), glbMesh->Vertices.size());
-	mesh->IndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(glbMesh->Indices.data(), glbMesh->Indices.size());
-	mesh->IndexCount = glbMesh->Indices.size();
-	mesh->MaterialIndex = glbMesh->MaterialIndex;
-	return mesh;
-}
-
-ModelNode* CRenderer::LoadNode(GLBNode* glbNode) {
-	ModelNode* modelNode = new ModelNode();
-	modelNode->Mesh = glbNode->Mesh;
-	modelNode->Skin = glbNode->Skin;
-
-	for(const auto& glbChildNode : glbNode->Children) {
-		modelNode->Children.push_back(glbChildNode);
-	}
-	return modelNode;
-}
-
-void CRenderer::LoadGLBModel(std::string name, std::string file, AssetManager* assetManager) {
-	Model* model = new Model();
-	GLBModel* glbModel = GLBFileLoader::LoadModelFromGLBFile(file, assetManager);
-
-	for(const auto& glbNode : glbModel->Nodes) {
-		ModelNode* modelNode = LoadNode(glbNode.second);
-		model->Nodes.emplace(glbNode.first, modelNode);
-	}
-
-	for(const auto& glbMesh : glbModel->Meshes) {
-		Mesh* mesh = LoadMesh(glbMesh.second);
-		model->Meshes.emplace(glbMesh.first, mesh);
-	}
-
-	for(const auto& m : glbModel->Materials) {
-		Material* material = new Material();
-		material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
-		model->Materials.emplace(m.first, material);
-	}
-
-	for(const auto& skin : glbModel->Skins) {
-		Armature* armature = new Armature();
-		const auto& glbSkin = skin.second;
-
-		for(int i = 0; i < glbSkin->Joints.size(); i++) {
-			const auto& joint = glbSkin->Joints[i];
-			Bone bone = Bone();
-			bone.Index = joint;
-			armature->bones.push_back(bone);
-		}
-
-		for(int i = 0; i < glbSkin->Joints.size(); i++) {
-			for(auto childIndex : glbModel->Nodes[glbSkin->Joints[i]]->Children) {
-				for(int j = 0; j < armature->bones.size(); j++) {
-					if(armature->bones[j].Index == childIndex) {
-						armature->bones[j].parent_index = glbSkin->Joints[i];
-					}
-				}
-			}
-		}
-
-		armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
-
-		model->Skins.emplace(skin.first, armature);
-	}
-
-    for(const auto& glbAnimationEntry : glbModel->Animations) {
-        GLBAnimation* glbAnimation = glbAnimationEntry.second;
-        Animation* animation = new Animation();
-        model->Animations.emplace(glbAnimation->Name, animation);
-
-        animation->duration = glbAnimation->Duration;
-            
-		float fMaxTime = 0;
-        for(const auto& channel : glbAnimation->Channels) {
-            AnimationTrack track;
-			track.Path = channel->Path;
-            track.NodeIndex = channel->TargetNode;
-            for(const auto& keyFrame : channel->KeyFrames) {
-				AnimationKeyFrame kf = AnimationKeyFrame();
-                BonePosition bn = BonePosition();
-                bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
-                bn.translation = keyFrame.Translation;
-				kf.Position = bn;
-				kf.Time = keyFrame.Time;
-                track.Positions.push_back(kf);
-
-				if(kf.Time > fMaxTime) {
-					fMaxTime = kf.Time;
-				}
-            }
-            animation->animation_tracks.push_back(track);
-			animation->duration = fMaxTime;
-        }
-    }
-
-	models_.emplace(name, model);
 }
 
 void CRenderer::SetDimensions(int width_, int height_) {
@@ -268,49 +131,10 @@ void CRenderer::DrawImage(float x, float y, float w, float h, HBitmap hBitmap) {
 	pCanvas->DrawImage(x, y, w, h, bmp);
 }
 
-void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<DirectX::XMMATRIX>& boneTransforms) {
-	const Bone& bone = skin->bones[i];
-	BonePosition position = bonePositions[bone.Index];
-
-	DirectX::XMMATRIX localTransform = DirectX::XMMatrixAffineTransformation(
-		DirectX::XMVectorSplatOne(),
-		DirectX::XMVectorZero(),
-		position.rotation,
-		DirectX::XMLoadFloat3(&position.translation)
-	);
-
-	if (bone.parent_index == -1) {
-		boneTransforms[i] = localTransform;
-	} else {
-		for(int pi = 0; pi < skin->bones.size(); pi++) {
-			const Bone& b = skin->bones[pi];
-			if(b.Index == bone.parent_index) {
-				boneTransforms[i] = DirectX::XMMatrixMultiply(localTransform, boneTransforms[pi]);
-				break;
-			}
-		}
-	}
-
-	for(int otherBone = 0; otherBone < skin->bones.size(); otherBone++) {
-		if(skin->bones[otherBone].parent_index == bone.Index) {
-			DoThingsWithBones(skin, otherBone, bonePositions, boneTransforms);
-		}
-	}
-}
-
 void CRenderer::Draw(RenderCommand_t cmd) {
-	if(cmd.strRenderable == "") {
-		return; // nothing to draw
-	}
+	ModelAsset_t& modelAsset = m_pAssetManager->GetModel(cmd.hModel);
+	Model* model = modelAsset.pModel;
 
-	auto modelIt = models_.find(cmd.strRenderable);
-
-	if(modelIt == models_.end()) {
-		Logger::FormatErr("Unable to render object, renderable <%s> not loaded", cmd.strRenderable.c_str());
-		return;
-	}
-
-	Model* model = modelIt->second;
 
 	m_pGraphicsEngine->BindShaderProgram(m_hGlbShaderProgram);
 
@@ -331,63 +155,24 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
 	SkinnedModelConstants_t skinnedModelConstants {};
-	for(const auto& modelNode : model->Nodes) {
-		Mesh* mesh = model->Meshes.at(modelNode.second->Mesh);
-		if(mesh == nullptr) {
-			continue;
-		}
-
-		// TODO
-		if(cmd.strAnimation.length() > 0) {
-			auto animIt = model->Animations.find(cmd.strAnimation);
-
-			if(animIt != model->Animations.end() && model->Skins.find(modelNode.second->Skin) != model->Skins.end()) {
-				Animation* animation = animIt->second;
-				Armature* skin = model->Skins.at(modelNode.second->Skin);
-				std::map<int, BonePosition> bonePositions = animation->GetBonePositions(cmd.fAnimTime, cmd.bDoLoop);
-				std::vector<DirectX::XMMATRIX> boneTransforms(skin->bones.size());
-
-				for (size_t i = 0; i < skin->bones.size(); ++i) {
-					if(skin->bones[i].parent_index == -1) {
- 						DoThingsWithBones(skin, i, bonePositions, boneTransforms);
-					}
-				}
-
-				// Apply inverse bind pose to get the final bone transformation
-				for (size_t i = 0; i < skin->bones.size(); ++i) {
-  					boneTransforms[i] = DirectX::XMMatrixMultiply(skin->global_inverse_bind_poses[i], boneTransforms[i]);
-				}
-
-				for(int i = 0; i < boneTransforms.size(); i++) {
-					DirectX::XMStoreFloat4x4(&skinnedModelConstants.boneTransforms[i], DirectX::XMMatrixTranspose(boneTransforms[i]));
-				}
-				m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
-				m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
-			} else {
-				for(int i = 0; i < 256; i++) {
-					DirectX::XMStoreFloat4x4(&skinnedModelConstants.boneTransforms[i], DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity()));
-				}
-				m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
-				m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
-				// TODO Logger::FormatErr("GameObject attempting to play invalid animation <%s>", gameObject->GetCurrentAnimation().GetAnimationName());
-			}
-		}
-
-		// m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
-		// m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
-
-		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
-			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
-			if(textureAsset.pTexture == nullptr) {
-				m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
-			}
-			m_pGraphicsEngine->BindTexture(0, textureAsset);
-		}
-
-		m_pGraphicsEngine->SetVertexBuffer(0, mesh->VertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0); // TODO glb_shader_vertex_t ??
-		m_pGraphicsEngine->SetIndexBuffer(mesh->IndexBuffer);
-		m_pGraphicsEngine->DrawIndexed(mesh->IndexCount);
+	for(int i = 0; i < 256; i++) {
+		skinnedModelConstants.boneTransforms[i] = cmd.vecBones[i];
 	}
+	
+	m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinnedModelConstants, sizeof(SkinnedModelConstants_t));
+	m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
+
+	if(cmd.hTexture != INVALID_ASSET_HANDLE) {
+		TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(cmd.hTexture);
+		if(textureAsset.pTexture == nullptr) {
+			m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
+		}
+		m_pGraphicsEngine->BindTexture(0, textureAsset);
+	}
+
+	m_pGraphicsEngine->SetVertexBuffer(0, cmd.hVertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0); // TODO glb_shader_vertex_t ??
+	m_pGraphicsEngine->SetIndexBuffer(cmd.hIndexBuffer);
+	m_pGraphicsEngine->DrawIndexed(cmd.uIndexCount);
 }
 
 void CRenderer::Draw(Model* model) {
@@ -400,7 +185,7 @@ void CRenderer::Draw(Model* model) {
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
 			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
 			if(textureAsset.pTexture == nullptr) {
-				m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
+ 				m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
 			}
 			m_pGraphicsEngine->BindTexture(0, textureAsset);
 		}
@@ -523,9 +308,85 @@ void CRenderer::DrawMap() {
 	m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinConst, sizeof(SkinnedModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 
-	Model* model = models_.find("map1")->second;
+	HModel hModel = m_pAssetManager->LoadModel("map1");
+	ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
+	
+	if(modelAsset.pModel == nullptr) {
+		modelAsset.pModel = new Model();
+		for(const auto& glbNode : modelAsset.pGlbModel->Nodes) {
+			ModelNode* modelNode = LoadNode(glbNode.second);
+			modelAsset.pModel->Nodes.emplace(glbNode.first, modelNode);
+		}
 
-	Draw(model);
+		for(const auto& glbMesh : modelAsset.pGlbModel->Meshes) {
+			Mesh* mesh = LoadMesh(glbMesh.second);
+			modelAsset.pModel->Meshes.emplace(glbMesh.first, mesh);
+		}
+
+		for(const auto& m : modelAsset.pGlbModel->Materials) {
+			Material* material = new Material();
+			material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
+			modelAsset.pModel->Materials.emplace(m.first, material);
+		}
+							
+				for(const auto& skin : modelAsset.pGlbModel->Skins) {
+					Armature* armature = new Armature();
+					const auto& glbSkin = skin.second;
+
+					for(int i = 0; i < glbSkin->Joints.size(); i++) {
+						const auto& joint = glbSkin->Joints[i];
+						Bone bone = Bone();
+						bone.Index = joint;
+						armature->bones.push_back(bone);
+					}
+
+					for(int i = 0; i < glbSkin->Joints.size(); i++) {
+						for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin->Joints[i]]->Children) {
+							for(int j = 0; j < armature->bones.size(); j++) {
+								if(armature->bones[j].Index == childIndex) {
+									armature->bones[j].parent_index = glbSkin->Joints[i];
+								}
+							}
+						}
+					}
+
+					armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+
+					modelAsset.pModel->Skins.emplace(skin.first, armature);
+				}
+
+				for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
+					GLBAnimation* glbAnimation = glbAnimationEntry.second;
+					Animation* animation = new Animation();
+					modelAsset.pModel->Animations.emplace(glbAnimation->Name, animation);
+
+					animation->duration = glbAnimation->Duration;
+						
+					float fMaxTime = 0;
+					for(const auto& channel : glbAnimation->Channels) {
+						AnimationTrack track;
+						track.Path = channel->Path;
+						track.NodeIndex = channel->TargetNode;
+						for(const auto& keyFrame : channel->KeyFrames) {
+							AnimationKeyFrame kf = AnimationKeyFrame();
+							BonePosition bn = BonePosition();
+							bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+							bn.translation = keyFrame.Translation;
+							kf.Position = bn;
+							kf.Time = keyFrame.Time;
+							track.Positions.push_back(kf);
+
+							if(kf.Time > fMaxTime) {
+								fMaxTime = kf.Time;
+							}
+						}
+						animation->animation_tracks.push_back(track);
+						animation->duration = fMaxTime;
+					}
+				}
+	}
+
+	Draw(modelAsset.pModel);
 }
 
 void CRenderer::ClearScreen() {
@@ -715,28 +576,143 @@ void CRenderer::Submit(RenderCommand_t command) {
 	m_vecCommands.push_back(command);
 }
 
+Mesh* CRenderer::LoadMesh(GLBModelMesh* glbMesh) {
+	Mesh* mesh = new Mesh();
+	mesh->VertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(glbMesh->Vertices.data(), glbMesh->Vertices.size() * sizeof(SkinnnedMeshShaderVertex_t), glbMesh->Vertices.size());
+	mesh->IndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(glbMesh->Indices.data(), glbMesh->Indices.size());
+	mesh->IndexCount = glbMesh->Indices.size();
+	mesh->MaterialIndex = glbMesh->MaterialIndex;
+	return mesh;
+}
+
+ModelNode* CRenderer::LoadNode(GLBNode* glbNode) {
+	ModelNode* modelNode = new ModelNode();
+	modelNode->Mesh = glbNode->Mesh;
+	modelNode->Skin = glbNode->Skin;
+
+	for(const auto& glbChildNode : glbNode->Children) {
+		modelNode->Children.push_back(glbChildNode);
+	}
+	return modelNode;
+}
+
 void CRenderer::Render(CGameState* pGameState) {
 	for(UnitId idUnit : pGameState->vecUnits) {
 		if(RenderableComponent_t* pRenderable = pGameState->GetComponent<RenderableComponent_t>(idUnit)) {
-			RenderCommand_t cmd {
-				.eType = ERenderCommandType::SKINNED_MESH,
-				.worldMatrix = {},
-				.strRenderable = pRenderable->strRenderable,
-				.vecBones = {},
-			};
-	
-			if(TransformComponent_t* pTransform = pGameState->GetComponent<TransformComponent_t>(idUnit)) {
-				cmd.vec3Position = pTransform->vec3Position;
-				cmd.vec3Rotation = pTransform->vec3Rotation;
+			
+			HModel hModel = m_pAssetManager->LoadModel(pRenderable->strRenderable);
+			ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
+
+			if(modelAsset.pModel == nullptr) {
+				modelAsset.pModel = new Model();
+				for(const auto& glbNode : modelAsset.pGlbModel->Nodes) {
+					ModelNode* modelNode = LoadNode(glbNode.second);
+					modelAsset.pModel->Nodes.emplace(glbNode.first, modelNode);
+				}
+
+				for(const auto& glbMesh : modelAsset.pGlbModel->Meshes) {
+					Mesh* mesh = LoadMesh(glbMesh.second);
+					modelAsset.pModel->Meshes.emplace(glbMesh.first, mesh);
+				}
+
+				for(const auto& m : modelAsset.pGlbModel->Materials) {
+					Material* material = new Material();
+					material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
+					modelAsset.pModel->Materials.emplace(m.first, material);
+				}
+							
+				for(const auto& skin : modelAsset.pGlbModel->Skins) {
+					Armature* armature = new Armature();
+					const auto& glbSkin = skin.second;
+
+					for(int i = 0; i < glbSkin->Joints.size(); i++) {
+						const auto& joint = glbSkin->Joints[i];
+						Bone bone = Bone();
+						bone.Index = joint;
+						armature->bones.push_back(bone);
+					}
+
+					for(int i = 0; i < glbSkin->Joints.size(); i++) {
+						for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin->Joints[i]]->Children) {
+							for(int j = 0; j < armature->bones.size(); j++) {
+								if(armature->bones[j].Index == childIndex) {
+									armature->bones[j].parent_index = glbSkin->Joints[i];
+								}
+							}
+						}
+					}
+
+					armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+
+					modelAsset.pModel->Skins.emplace(skin.first, armature);
+				}
+
+				for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
+					GLBAnimation* glbAnimation = glbAnimationEntry.second;
+					Animation* animation = new Animation();
+					modelAsset.pModel->Animations.emplace(glbAnimation->Name, animation);
+
+					animation->duration = glbAnimation->Duration;
+						
+					float fMaxTime = 0;
+					for(const auto& channel : glbAnimation->Channels) {
+						AnimationTrack track;
+						track.Path = channel->Path;
+						track.NodeIndex = channel->TargetNode;
+						for(const auto& keyFrame : channel->KeyFrames) {
+							AnimationKeyFrame kf = AnimationKeyFrame();
+							BonePosition bn = BonePosition();
+							bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+							bn.translation = keyFrame.Translation;
+							kf.Position = bn;
+							kf.Time = keyFrame.Time;
+							track.Positions.push_back(kf);
+
+							if(kf.Time > fMaxTime) {
+								fMaxTime = kf.Time;
+							}
+						}
+						animation->animation_tracks.push_back(track);
+						animation->duration = fMaxTime;
+					}
+				}
+			}
+			
+			for(const auto& modelNode : modelAsset.pModel->Nodes) {
+				Mesh* mesh = modelAsset.pModel->Meshes.at(modelNode.second->Mesh);
+				if(mesh == nullptr) {
+					continue;
+				}
+				
+
+				RenderCommand_t cmd {
+					.eType = ERenderCommandType::SKINNED_MESH,
+					.worldMatrix = {},
+					.hModel = hModel,
+					.vecBones = {},
+				};
+		
+				if(mesh->MaterialIndex != -1 && modelAsset.pModel->Materials.size() > mesh->MaterialIndex) {
+					cmd.hTexture = modelAsset.pModel->Materials.at(mesh->MaterialIndex)->hTexture;
+				}
+
+				cmd.hVertexBuffer = mesh->VertexBuffer;
+				cmd.hIndexBuffer = mesh->IndexBuffer;
+				cmd.uIndexCount = mesh->IndexCount;
+
+				if(TransformComponent_t* pTransform = pGameState->GetComponent<TransformComponent_t>(idUnit)) {
+					cmd.vec3Position = pTransform->vec3Position;
+					cmd.vec3Rotation = pTransform->vec3Rotation;
+				}
+
+				if(AnimationComponent_t* pAnim = pGameState->GetComponent<AnimationComponent_t>(idUnit)) {
+					for(int i = 0; i < 256; i++) {
+						cmd.vecBones[i] = pAnim->vecBones[i];
+					}
+				}
+				Submit(cmd);
 			}
 
-			if(AnimationComponent_t* pAnim = pGameState->GetComponent<AnimationComponent_t>(idUnit)) {
-				cmd.strAnimation = pAnim->m_strAnimationName;
-				cmd.fAnimTime = pAnim->m_fAnimationTime;
-				cmd.bDoLoop = pAnim->m_bLoop;
-			}
-
-			Submit(cmd);
 		}
 	}
 }

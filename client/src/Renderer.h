@@ -97,10 +97,6 @@ private:
 
     std::map<std::string, Model*> models_;
 
-    void LoadGLBModel(std::string name, std::string file, AssetManager* assetManager);
-    ModelNode* LoadNode(GLBNode* glbNode);
-    Mesh* LoadMesh(GLBModelMesh* glbMesh);
-
     bool InitParticleEmitter(ParticleEmitter* pEmitter);
     bool InitParticleSystem(ParticleSystem* pSystem);
 
@@ -112,9 +108,7 @@ private:
     BufferHandle_t m_hModelConstBuffer;
     BufferHandle_t m_hSkinnedModelConstBuffer;
     BufferHandle_t m_hBillboardFrameConstBuffer;
-    
-    void LoadCharacterManifest(std::string strCharacterId, AssetManager* pAssetManager);
-    
+        
     #ifdef _DEBUG
     // --- navigation grid rendering ---
     BufferHandle_t m_pNavGridVertexBuffer;
@@ -126,6 +120,9 @@ private:
     std::vector<RenderCommand_t> m_vecCommands;
 
     
+    Mesh* LoadMesh(GLBModelMesh* glbMesh);
+    ModelNode* LoadNode(GLBNode* glbNode);
+
     void Draw(RenderCommand_t cmd);
     void Draw(Model* modelNode);
     void RenderParticle(ParticleEmitter* emitter);

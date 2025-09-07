@@ -23,6 +23,15 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 		m_pAssetManager->LoadPakFile("Generic.pak");
 		m_pAssetManager->LoadPakFile("characters/stormcaller.pak");
 
+    
+		m_pAssetManager->LoadGLBModel("map1", "Maps/Map1/map1.glb");
+		m_pAssetManager->LoadGLBModel("football_person", "Persons/ChessPerson/chess_person.glb");
+		m_pAssetManager->LoadGLBModel("tower", "Buildings/Tower/tower.glb");
+		m_pAssetManager->LoadGLBModel("missile", "Persons/ChessPerson/missile.glb");
+		m_pAssetManager->LoadGLBModel("minion", "Persons/Minion/minion.glb");
+
+		m_pAssetManager->LoadCharacterManifest("stormcaller");
+	
 		m_iLoadStep++;
 
 		m_pRenderer->LoadResources(m_pAssetManager);

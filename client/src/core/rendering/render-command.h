@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 #include "Model.h"
+#include "core/graphics/graphics-engine.h"
+#include "client-asset-manager.h"
 
 class ParticleSystem;
 
@@ -15,15 +17,21 @@ enum class ERenderCommandType {
 typedef struct RenderCommand_t {
     ERenderCommandType eType = ERenderCommandType::NONE;
 
+    BufferHandle_t hVertexBuffer;
+    BufferHandle_t hIndexBuffer;
+    unsigned int uIndexCount;
+
+    HTexture hTexture;
+
     DirectX::XMFLOAT4X4 worldMatrix;
 
-    std::string strRenderable = "";
+    HModel hModel = INVALID_ASSET_HANDLE;
     std::string strAnimation = "";
     float fAnimTime = 0.0f;
     bool bDoLoop = false;
     Vector3 vec3Position;
     Vector3 vec3Rotation;
-    std::vector<DirectX::XMFLOAT4X4>* vecBones = nullptr;
+    DirectX::XMFLOAT4X4 vecBones[256];
 
     ParticleSystem* pSystem = nullptr;
 } RenderCommand_t;

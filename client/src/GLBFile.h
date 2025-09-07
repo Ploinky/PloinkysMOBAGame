@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include <stdint.h>
+#include "Armature.h"
 
 enum GLBANIMATIONCHANNEL {
 	eGlbAnimationChannel_None,
@@ -73,6 +74,97 @@ public:
 	std::string Name;
 	float Duration;
 	std::vector<GLBAnimationChannel*> Channels;
+	
+	std::map<int, BonePosition> GetBonePositions(float time, bool bLoop) {
+		std::map<int, BonePosition> bonePositions;
+
+		time /= 1000;
+
+		while(time > Duration) {
+			if(bLoop) {
+				time -= Duration;
+			} else {
+				time = Duration;
+			}
+		}
+
+		for (const auto& track : Channels) {
+			if(!bonePositions.contains(track->TargetNode)) {
+				BonePosition pos;
+				bonePositions.emplace(track->TargetNode, pos);
+			}
+
+			BonePosition& bp = bonePositions.at(track->TargetNode);
+
+			const auto& keyframes = track->KeyFrames;
+
+			if (keyframes.empty()) {
+				continue;
+			}
+
+			// Find the right keyframes for interpolation
+			const GLBKeyFrame* prevKeyframe = nullptr;
+			const GLBKeyFrame* nextKeyframe = nullptr;
+
+			for (size_t i = 0; i < keyframes.size(); ++i) {
+				if (keyframes[i].Time >= time) {
+					nextKeyframe = &keyframes[i];
+					if (i > 0) {
+						prevKeyframe = &keyframes[i - 1];
+					}
+					break;
+				}
+			}
+
+			if(prevKeyframe == nullptr && nextKeyframe == nullptr) {
+				nextKeyframe = &keyframes.back();
+			}
+
+			// if (!prevKeyframe) {
+			// 	prevKeyframe = nextKeyframe;
+			// }
+	// 
+			// if (!nextKeyframe) {
+			// 	nextKeyframe = prevKeyframe;
+			// }
+
+			GLBKeyFrame kfbp;
+			if (prevKeyframe && nextKeyframe) {
+				float factor = (time - prevKeyframe->Time) / (nextKeyframe->Time - prevKeyframe->Time);
+
+				kfbp = InterpolateBonePosition(prevKeyframe, nextKeyframe, factor);
+			} else if (prevKeyframe) {
+				kfbp = *prevKeyframe;
+			} else if (nextKeyframe) {
+				kfbp = *nextKeyframe;
+			}
+
+			switch(track->Path) {
+				case eGlbAnimationChannel_Translation:
+					bp.translation = kfbp.Translation;
+					break;
+				case eGlbAnimationChannel_Rotation:
+					bp.rotation = DirectX::XMLoadFloat4(&kfbp.Rotation);
+					break;
+				case eGlbAnimationChannel_Scale:
+				default:
+					break;
+			}
+		}
+
+		return bonePositions;
+	}
+	
+	GLBKeyFrame InterpolateBonePosition(const GLBKeyFrame* start, const GLBKeyFrame* end, float factor) {
+		GLBKeyFrame result;
+		result.Translation = {
+			start->Translation.x + (end->Translation.x - start->Translation.x) * factor,
+			start->Translation.y + (end->Translation.y - start->Translation.y) * factor,
+			start->Translation.z + (end->Translation.z - start->Translation.z) * factor
+		};
+		DirectX::XMStoreFloat4(&result.Rotation, DirectX::XMQuaternionSlerp(DirectX::XMLoadFloat4(&start->Rotation), DirectX::XMLoadFloat4(&end->Rotation), factor));
+		return result;
+	}
 };
 
 class GLBModelSkin {

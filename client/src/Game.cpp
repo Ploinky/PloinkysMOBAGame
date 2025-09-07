@@ -6,6 +6,7 @@
 #include "MainMenu.h"
 #include "../Resources/resource.h"
 #include "components/components.h"
+#include "game/systems/animation-system.h"
 
 Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
@@ -294,6 +295,7 @@ Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int w
     m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("characters/stormcaller/attack.wav");
 
     m_gameState.AddSystem(m_pAudioSystem);
+    m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
 }
 
 Game::~Game() {

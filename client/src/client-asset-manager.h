@@ -9,12 +9,17 @@
 #include "wincodec.h"
 #include "xaudio2.h"
 
+#include "GLBFileLoader.h"
+
+class Model;
+
 typedef uint64_t ASSET_HANDLE;
 constexpr ASSET_HANDLE INVALID_ASSET_HANDLE = std::numeric_limits<uint64_t>::max();
 
 typedef ASSET_HANDLE HBitmap;
 typedef ASSET_HANDLE HTexture;
 typedef ASSET_HANDLE HSound;
+typedef ASSET_HANDLE HModel;
 
 typedef struct {
     IWICFormatConverter* pConvertedData;
@@ -33,6 +38,11 @@ typedef struct {
     WAVEFORMATEX format;
 } SoundAsset_t;
 
+typedef struct { 
+    GLBModel* pGlbModel;
+    Model* pModel;
+} ModelAsset_t;
+
 class CClientAssetManager : public AssetManager {
 public:
     CClientAssetManager();
@@ -49,6 +59,12 @@ public:
     HSound LoadSound(std::string strSound);
     SoundAsset_t& GetSound(HSound hSound);
 
+    HModel LoadModel(std::string strModel);
+    ModelAsset_t& GetModel(HModel hModel);
+
+    HModel LoadGLBModel(std::string name, std::string file);
+    void LoadCharacterManifest(std::string strCharacterId);
+
 private:
     IWICImagingFactory* m_pWicFactory;
 
@@ -60,4 +76,8 @@ private:
 
     std::unordered_map<std::string, HSound> m_mapSounds;
     std::vector<SoundAsset_t> m_vecSounds;
+
+    std::unordered_map<std::string, HModel> m_mapModels;
+    std::vector<ModelAsset_t> m_vecModels;
+    
 };
