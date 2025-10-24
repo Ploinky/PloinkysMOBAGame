@@ -11,7 +11,7 @@ CRenderer::~CRenderer() {
 		delete model_it.second;
 	}
 
-#ifdef _DEBUG
+#ifdef NAV_DEBUG
 	((ID3D11Buffer*) m_pNavGridIndexBuffer.ptr)->Release();
 	((ID3D11Buffer*) m_pNavGridVertexBuffer.ptr)->Release();
 #endif
@@ -67,7 +67,7 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
 	m_pAssetManager->LoadTexture("Persons/ChessPerson/particle.png");
 	m_pAssetManager->LoadTexture("characters/stormcaller/abilities/thunderstrike.png");
 
-#ifdef _DEBUG
+#ifdef NAV_DEBUG
 	FlatUnlitShaderVertex_t vertices[4] = {
 		{{0, 10, 0}, {1, 0, 0, 1}},
 		{{50, 10, 0}, {1, 0, 0, 1}},
@@ -167,6 +167,15 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 		DirectX::XMConvertToRadians(cmd.vec3Rotation.x),
 		DirectX::XMConvertToRadians(cmd.vec3Rotation.y),
 		DirectX::XMConvertToRadians(cmd.vec3Rotation.z));
+		
+	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z}) + 90;
+ 	float x = DirectX::XMConvertToRadians(a);
+	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
+		rotMat = DirectX::XMMatrixRotationRollPitchYaw(
+			DirectX::XMConvertToRadians(0),
+			x,
+			DirectX::XMConvertToRadians(0));
+	}
 	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
 	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
 	DirectX::XMStoreFloat4x4(&modelConstants.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
@@ -298,11 +307,11 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	if(!emitter->vertex_buffer_) {
 		ParticleShaderVertex_t vertices[6]{
 			{ {-1, 1, 0}, {0, 0} },
+			{ {1, -1, 0}, {1, 1} },
 			{ {1, 1, 0}, {1, 0} },
-			{ {1, -1, 0}, {1, 1} },
 			{ {-1, 1, 0}, {0, 0} },
-			{ {1, -1, 0}, {1, 1} },
 			{ {-1, -1, 0}, {0, 1} },
+			{ {1, -1, 0}, {1, 1} },
 		};
 		emitter->vertex_buffer_ = m_pGraphicsEngine->CreateVertexBuffer(vertices, sizeof(ParticleShaderVertex_t) * 6, 6);
 	}
@@ -534,7 +543,7 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 	}
 }
 
-#ifdef _DEBUG
+#ifdef NAV_DEBUG
 void CRenderer::RenderNavGrid(NavigationCellGrid* pNavGrid) {
 	FrameConstants_t data{};
 	data.cameraMatrix = cameraMatrix;
@@ -714,6 +723,51 @@ void CRenderer::UploadModelToGPU(ModelAsset_t& modelAsset) {
 	}
 }
 
+void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
+	if(pParticleEmitter->particles.empty()) {
+		// empty particle?
+		Logger::FormatMsg("Attempting to render empty particle");
+		return;
+	}
+
+	// actually render the particle
+	RenderCommand_t cmd{};
+	cmd.eType = ERenderCommandType::PARTICLE_SYSTEM;
+	cmd.uInstanceCount = pParticleEmitter->particle_count;
+	cmd.hInstanceBuffer = pParticleEmitter->instance_buffer_;
+	cmd.hVertexBuffer = m_hParticleVertexBuffer;
+	cmd.hTexture = m_pAssetManager->LoadTexture(pParticleEmitter->texture_name_);
+	cmd.vec3Scale = Vector3(pParticleEmitter->particle_scale.x, pParticleEmitter->particle_scale.y, pParticleEmitter->particle_scale.z);
+	cmd.vec3Position = pParticleEmitter->position;
+
+	
+	std::vector<ParticleShaderVertexInstance_t> instances;
+
+	std::sort(pParticleEmitter->particles.begin(), pParticleEmitter->particles.end(), [this, pParticleEmitter](Particle& a, Particle& b) {
+		Vector3 aVec = a.position + pParticleEmitter->position;
+		aVec.y = 0;
+		Vector3 bVec = b.position + pParticleEmitter->position;
+		bVec.y = 0;
+		return (m_camera.position - a.position).Length() > (m_camera.position - b.position).Length();
+	});
+
+	for (const Particle& particle : pParticleEmitter->particles) {
+		ParticleShaderVertexInstance_t p;
+		p.instance_position[0] = particle.position.x;
+		p.instance_position[1] = particle.position.y;
+		p.instance_position[2] = particle.position.z;
+		instances.push_back(p);
+	}
+
+	if(!pParticleEmitter->instance_buffer_) {
+		pParticleEmitter->instance_buffer_ = m_pGraphicsEngine->CreateInstanceBuffer(instances.data(), instances.size(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
+	} else {
+		m_pGraphicsEngine->UpdateBuffer(pParticleEmitter->instance_buffer_, (void*) instances.data(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
+	}
+
+	Submit(cmd);
+}
+
 void CRenderer::Render(CGameState* pGameState) {
 	for(UnitId idUnit : pGameState->vecUnits) {
 		if(RenderableComponent_t* pRenderable = pGameState->GetComponent<RenderableComponent_t>(idUnit)) {
@@ -764,18 +818,8 @@ void CRenderer::Render(CGameState* pGameState) {
 
 		if(ParticleComponent_t* pParticleComponent = pGameState->GetComponent<ParticleComponent_t>(idUnit)) {
 			for(const ParticleEffect* pParticleEffect : pParticleComponent->vecEffects) {
-				for(const ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
-					// actually render the particle
-					Logger::Msg("rendering a particle");
-					RenderCommand_t cmd{};
-					cmd.eType = ERenderCommandType::PARTICLE_SYSTEM;
-					cmd.uInstanceCount = pParticleEmitter->particle_count;
-					cmd.hInstanceBuffer = pParticleEmitter->instance_buffer_;
-					cmd.hVertexBuffer = m_hParticleVertexBuffer;
-					cmd.hTexture = m_pAssetManager->LoadTexture(pParticleEmitter->texture_name_);
-					cmd.vec3Scale = Vector3(pParticleEmitter->particle_scale.x, pParticleEmitter->particle_scale.y, pParticleEmitter->particle_scale.z);
-					cmd.vec3Position = pParticleEmitter->position;
-					Submit(cmd);
+				for(ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
+					QueueParticle(pParticleEmitter);
 				}
 			}
 		}

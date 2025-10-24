@@ -67,7 +67,7 @@ void ServerNetworkManager::Update() {
     ENetEvent event;
     NetworkPeer* pPeer = nullptr;
     uint64_t* newId = nullptr;
-    while (enet_host_service(m_pServerSocket, &event, 0) > 0) {
+    while (m_pServerSocket != nullptr && enet_host_service(m_pServerSocket, &event, 0) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT:
                 Logger::FormatMsg("A new client connected from %x:%u.\n", event.peer->address.host, event.peer->address.port);
@@ -83,8 +83,6 @@ void ServerNetworkManager::Update() {
                 on_clientConnected(pPeer->idPlayer);
                 break;
             case ENET_EVENT_TYPE_RECEIVE:
-                Logger::FormatMsg("A packet of length %u containing %s was received from %llu on channel %u.\n", event.packet->dataLength, event.packet->data, event.peer->data, event.channelID);
-        
                 for(NetworkPeer* pPeer : clients_) {
                     PlayerID receivedFrom = (*(uint64_t*)event.peer->data);
                     if(pPeer->idPlayer == receivedFrom) {

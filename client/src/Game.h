@@ -84,6 +84,7 @@ public:
     GameObject* GetGameObject(UnitId unit_id);
 
     std::map<UnitId, GameObject*> game_objects_;
+    std::vector<ParticleEffect*> m_vecGlobalParticles;
 
     CGameState m_gameState;
 

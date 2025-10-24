@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 #include "ParticleEffect.h"
+#include "ParticleEmitter.h"
 #include "MainMenu.h"
 #include "../Resources/resource.h"
 #include "game/components/components.h"
@@ -237,17 +238,15 @@ Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int w
 
         // TODO react to event instead of this?
         ParticleEffect* particle_system = ParticleEffect::Load("characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
-        // particle_system->Attach(go);
-        particle_system->position = {go->position.x, 100, go->position.z};
+        particle_system->Attach(go);
 
         if(!m_gameState.GetComponent<ParticleComponent_t>(go->unit_id)) {
             m_gameState.AddComponent<ParticleComponent_t>(go->unit_id);
+            particle_system->Attach(go);
         }
 
         ParticleComponent_t* pParticleComp = m_gameState.GetComponent<ParticleComponent_t>(go->unit_id);
         pParticleComp->vecEffects.push_back(particle_system);
-
-        game_objects_.emplace(Util::GetSystemTime(), particle_system);
 
         CSpellHitEvent* pHitEvent = new CSpellHitEvent();
         pHitEvent->idUnit = go->unit_id;
@@ -523,8 +522,7 @@ void Game::Update(float dt) {
 
             ParticleEffect* particle_system = ParticleEffect::Load("UI/MoveTo/move_to.pts", assetManager_);
             particle_system->position = { x, 0, y };
-
-            game_objects_.emplace(Util::GetSystemTime(), particle_system);
+            m_vecGlobalParticles.push_back(particle_system);
 
             last_move = 150;
         }
@@ -544,6 +542,20 @@ void Game::Update(float dt) {
     for (auto go_it : game_objects_) {
         go_it.second->Update(dt);
     }
+
+    for(ParticleEffect* pEffect : m_vecGlobalParticles) {
+        pEffect->Update(dt);
+    }
+
+    std::erase_if(m_vecGlobalParticles, [](auto p) {
+        if (p->destroy) {
+            delete p;
+            return true;
+        }
+
+        return false;
+    });
+
 
     std::erase_if(game_objects_, [](auto kv) {
         if (kv.second->destroy) {
@@ -606,29 +618,38 @@ void Game::Render(CRenderer* renderer) {
 
 	renderer->DrawMap();
     renderer->Render(&m_gameState);
+
+    // ===============================================
+    // probably should move this somewhere
+    for(const ParticleEffect* pParticleEffect : m_vecGlobalParticles) {
+        for(ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
+            renderer->QueueParticle(pParticleEmitter);
+        }
+    }
+
     RenderGameUI(renderer);
 }
 
 void Game::RenderGameUI(CRenderer* renderer) {
-#ifdef _DEBUG
+#ifdef NAV_DEBUG
     for (int c = 0; c < m_navGrid->CellCountX * m_navGrid->CellCountY; c++) {
         m_navGrid->Cells[c]->IsOpen = true;
     }
     m_navGrid->Reset();
-    for (auto& go_it : game_objects_) {
-        GameObject* go = go_it.second;
+    for (UnitId unit : m_gameState.vecUnits) {
+        TransformComponent_t* pTransform = m_gameState.GetComponent<TransformComponent_t>(unit);
 
-        if (!go->has_healthbar) {
+        if (!pTransform) {
             continue;   
         }
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z - 25)->UnitId = go->unit_id;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z - 25)->UnitId = go->unit_id;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x + 25, go->position.z + 25)->UnitId = go->unit_id;
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(go->position.x - 25, go->position.z + 25)->UnitId = go->unit_id;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z - 25)->IsOpen = false;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z - 25)->UnitId = unit;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z - 25)->IsOpen = false;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z - 25)->UnitId = unit;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z + 25)->IsOpen = false;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z + 25)->UnitId = unit;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z + 25)->IsOpen = false;
+        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z + 25)->UnitId = unit;
     }
     renderer->RenderNavGrid(m_navGrid);
 #endif
@@ -991,7 +1012,10 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
         m_gameState.AddComponent<RenderableComponent_t>(unitId);
         m_gameState.GetComponent<RenderableComponent_t>(unitId)->strRenderable = "minion";
-        go->position = pos;
+        m_gameState.AddComponent<AnimationComponent_t>(unitId);
+        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_strAnimationName = "idle";
+        m_gameState.AddComponent<TransformComponent_t>(unitId);
+        m_gameState.AddComponent<MovementComponent_t>(unitId);
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->has_healthbar = true;

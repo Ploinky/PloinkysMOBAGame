@@ -124,7 +124,7 @@ private:
     float lastTick = 0;
 
     ServerNetworkManager* networkManager_ = nullptr;
-    CWaveManager m_waveManager;
+    // CWaveManager m_waveManager;
     // LobbyPlayer* players_[10];
     std::map<PlayerID, LobbyPlayer*> players_;
 

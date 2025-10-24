@@ -86,8 +86,6 @@ bool ClientNetworkManagerEnet::ReceivePacket() {
 				m_bIsConnectedToServer = true;
 				break;
             case ENET_EVENT_TYPE_RECEIVE:
-                Logger::FormatMsg("A packet of length %u containing %s was received from %s on channel %u.", event.packet->dataLength, event.packet->data, event.peer->data, event.channelID);
-        
 				data.resize(event.packet->dataLength);
 				std::memcpy(data.data(), event.packet->data, data.size());
 

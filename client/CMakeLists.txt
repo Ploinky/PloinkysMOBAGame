@@ -67,6 +67,7 @@ add_executable(client WIN32
 )
 
 target_compile_definitions(client PUBLIC NOMINMAX)
+# target_compile_definitions(client PUBLIC NAV_DEBUG)
 target_precompile_headers(client PRIVATE src/platform.h)
 
 target_include_directories(client PRIVATE src vendor/include)

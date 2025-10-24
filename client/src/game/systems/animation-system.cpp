@@ -50,6 +50,11 @@ void CAnimationSystem::Update(CGameState* pGameState, float fDelta) {
         HModel hModel = m_pAssetManager->LoadModel(pRendercomp->strRenderable);
         ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
 
+        if(modelAsset.pModel == nullptr) {
+            Logger::Err("Failed to update animation component: model is not loaded");
+            return;
+        }
+
         for(const auto& modelNode : modelAsset.pModel->Nodes) {
             Mesh* mesh = modelAsset.pModel->Meshes.at(modelNode.second->Mesh);
             if(mesh == nullptr) {

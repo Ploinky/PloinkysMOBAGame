@@ -25,6 +25,5 @@ public:
 	void AddEmitter(ParticleEmitter* emitter);
 	std::vector<ParticleEmitter*> emitters_;
 
-private:
 	GameObject* attached_to_ = nullptr;
 };

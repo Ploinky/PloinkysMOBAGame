@@ -29,10 +29,6 @@ ParticleEffect* ParticleEffect::Load(std::string particleName, AssetManager* ass
 }
 
 void ParticleEffect::Update(float dt) {
-	if (attached_to_ != nullptr) {
-		position = attached_to_->position;
-	}
-
 	bool done = false;
 
 	// update emitters
@@ -54,11 +50,6 @@ void ParticleEffect::Update(float dt) {
 
 void ParticleEffect::Attach(GameObject* other) {
 	attached_to_ = other;
-
-	position = other->position;
-	for (ParticleEmitter* emitter : emitters_) {
-		emitter->position = position;
-	}
 }
 
 void ParticleEffect::AddEmitter(ParticleEmitter* emitter) {

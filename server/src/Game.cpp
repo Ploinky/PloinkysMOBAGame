@@ -340,7 +340,7 @@ void Client::Update(float dt) {
         m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
     }
     
-    m_waveManager.Update(&GameState, TICKRATE);
+    // m_waveManager.Update(&GameState, TICKRATE);
     for(ISystem* system : m_vecSystems) {
         system->Update(&GameState, TICKRATE);
     }

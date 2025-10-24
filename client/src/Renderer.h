@@ -83,11 +83,11 @@ public:
 
     void RenderChat(std::vector<std::string> vecMsgs);
 
-#ifdef _DEBUG
+#ifdef NAV_DEBUG
     // Renders the navigation cell grid over the map
     void RenderNavGrid(NavigationCellGrid* grid);
 #endif
-
+    void QueueParticle(ParticleEmitter* pParticleEmitter);
     void Submit(RenderCommand_t command);
 
 private:
@@ -111,7 +111,7 @@ private:
 
     BufferHandle_t m_hParticleVertexBuffer;
         
-    #ifdef _DEBUG
+    #ifdef NAV_DEBUG
     // --- navigation grid rendering ---
     BufferHandle_t m_pNavGridVertexBuffer;
     BufferHandle_t m_pNavGridIndexBuffer;
