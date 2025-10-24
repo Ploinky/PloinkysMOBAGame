@@ -28,7 +28,9 @@ void CAttackSystem::Update(CGameState* pGameState, float fDelta) {
         CTransformComponent* pTargetTransform = nullptr;
         CNavigationComponent* pNavigationComponent = nullptr;
 
-        if(pTarget == nullptr) {
+        if(pTarget == nullptr
+            || pAttacker == nullptr
+            || (pAttacker->GetComponent<CHealthComponent>() && pAttacker->GetComponent<CHealthComponent>()->bIsDead)) {
             pAttackComp->optCurrentAttack.reset();
             continue;
         }

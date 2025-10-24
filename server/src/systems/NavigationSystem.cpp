@@ -21,6 +21,11 @@ void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
         if(pNavComp == nullptr) {
             continue;
         }
+        
+        if(pGameObject->GetComponent<CHealthComponent>() && pGameObject->GetComponent<CHealthComponent>()->bIsDead) {
+            pNavComp->StopNavigation();
+            continue;
+        }
 
         CIntentComponent* pIntentComp = pGameObject->GetComponent<CIntentComponent>();
         if(pIntentComp != nullptr) {

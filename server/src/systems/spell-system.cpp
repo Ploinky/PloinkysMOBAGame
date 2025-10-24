@@ -33,11 +33,17 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
         if(!pSpellComp->optCurrentCast.has_value()) {
             continue;
         }
+        
 
         ActiveCast_t& activeCast = pSpellComp->optCurrentCast.value();
         activeCast.fTimeInState += fDelta;
 
-        CGameObject* pCaster = nullptr;
+        CGameObject* pCaster = pGameState->FindGameObjectById(activeCast.spellCtx->idCaster);
+        if(pCaster->GetComponent<CHealthComponent>() && pCaster->GetComponent<CHealthComponent>()->bIsDead) {
+            pSpellComp->optCurrentCast.reset();
+            continue;
+        }
+
         CGameObject* pTarget = nullptr;
         CTransformComponent* pCasterTransform = nullptr;
         CTransformComponent* pTargetTransform = nullptr;
@@ -46,7 +52,6 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
         switch(activeCast.eState) {
             case ESpellCastState::IDLE:
             case ESpellCastState::APPROACHING:
-                pCaster = pGameState->FindGameObjectById(activeCast.spellCtx->idCaster);
                 pTarget = pGameState->FindGameObjectById(activeCast.spellCtx->idTarget);
 
                 pCasterTransform = pCaster->GetComponent<CTransformComponent>();
