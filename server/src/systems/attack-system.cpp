@@ -28,6 +28,18 @@ void CAttackSystem::Update(CGameState* pGameState, float fDelta) {
         CTransformComponent* pTargetTransform = nullptr;
         CNavigationComponent* pNavigationComponent = nullptr;
 
+        if(pTarget == nullptr) {
+            pAttackComp->optCurrentAttack.reset();
+            continue;
+        }
+
+        if(CHealthComponent* pHealthComp = pTarget->GetComponent<CHealthComponent>()) {
+            if(pHealthComp->bIsDead) {
+                pAttackComp->optCurrentAttack.reset();
+                continue;
+            }
+        }
+
         switch(activeAttack.eState) {
             case EAttackState::IDLE:
             case EAttackState::APPROACHING:
@@ -58,11 +70,14 @@ void CAttackSystem::Update(CGameState* pGameState, float fDelta) {
             case EAttackState::BACKSWING:
                 if (activeAttack.fTimeInState >= pAttackComp->fAttackTime - pAttackComp->fAttackPoint) {
                     activeAttack.eState = EAttackState::FINISHED;
-                    pAttackComp->optCurrentAttack.reset(); // Done
+                    pAttackComp->optCurrentAttack.value().fTimeInState = 0.0f;
                 }
+                break;
             case EAttackState::FINISHED:
                 // TODO
                 pGameState->VecEvent.emplace(new CAttackFinishedEvent(pAttacker->GetId()));
+                pAttackComp->optCurrentAttack.value().eState = EAttackState::IDLE;
+                pAttackComp->optCurrentAttack.value().fTimeInState = 0.0f;
                 break;
                 case EAttackState::CANCELLED:
                 // TODO

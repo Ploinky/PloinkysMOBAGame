@@ -2,6 +2,7 @@
 
 #include "systems/system.h"
 #include "events.h"
+#include "components/Components.h"
 
 class CAttackSystem : public ISystem {
 public:
