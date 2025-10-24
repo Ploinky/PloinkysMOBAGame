@@ -21,7 +21,7 @@ class CBasicAttackComponent : public IComponent {
 public:
     CBasicAttackComponent() {};
     
-    float fRange = 100;
+    float fRange = 150;
     float fAttackTime = 304;
     float fAttackPoint = 230;
 	std::optional<ActiveAttack_t> optCurrentAttack;
