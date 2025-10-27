@@ -102,8 +102,6 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
 }
 
 void CSpellSystem::OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastEvent* pCastAttemptEvent) {
-    Logger::FormatMsg("Received cast start event, processing...");
-
     CGameObject* pCaster = pGameState->FindGameObjectById(pCastAttemptEvent->m_idCaster);
 
     if(pCaster == nullptr) {
@@ -133,8 +131,6 @@ void CSpellSystem::OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastE
 }
 
 void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent) {
-    Logger::FormatMsg("Received cast event, processing...");
-
     CGameObject* pCaster = pGameState->FindGameObjectById(pCastEvent->m_spellCtx->idCaster);
 
     if(pCaster == nullptr) {
@@ -166,8 +162,6 @@ void CSpellSystem::SpellHit(CGameState* pGameState, CSpellCastContext* pCtx) {
 }
 
 void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpellCtx) {
-    Logger::FormatMsg("casting spell no. %d", pSpellCtx->nSpellIndex);
-
     CGameObject* pCaster = pGameState->FindGameObjectById(pSpellCtx->idCaster);
     CGameObject* pTarget = pGameState->FindGameObjectById(pSpellCtx->idTarget);
 
@@ -187,12 +181,10 @@ void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpel
     }
 
     if(pCastComponent->optCurrentCast.has_value()) {
-        Logger::FormatErr("failed to cast spell %d, already casting something", pSpellCtx->nSpellIndex);
         return;
     }
 
     if(spellSlot.fCooldownRemaining > 0) {
-        Logger::FormatErr("failed to cast spell %d, cooldown", pSpellCtx->nSpellIndex);
         return;
     }
 

@@ -239,7 +239,6 @@ void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTarg
         return;
     }
 
-    Logger::FormatMsg("Player %d cast command received", playerId);
     CSpellAttemptCastEvent* pSpellEvent = new CSpellAttemptCastEvent(actor->GetId(), *target_info, spell_slot);
     GameState.VecEvent.emplace(pSpellEvent);
 }
