@@ -215,8 +215,8 @@ void Client::JoinGame(ClientNetworkManager* networkManager) {
     NewState(game);
 };
 
-void Client::JoinLobby(std::string addr) {
-    Lobby* lobby = new Lobby(addr, this, window->width_, window->height_);
+void Client::JoinLobby(servernetadr_t addr) {
+    Lobby* lobby = new Lobby(addr.GetConnectionAddressString(), this, window->width_, window->height_);
     NewState(lobby);
 }
 

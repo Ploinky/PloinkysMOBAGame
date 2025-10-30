@@ -3,6 +3,7 @@
 #include <Renderer.h>
 #include <Common/PMG_Common.h>
 #include <Player.h>
+#include <steam/steam_api.h>
 
 enum class CursorId {
     DEFAULT,
@@ -20,7 +21,7 @@ public:
     virtual void NewState(IClientState* newState) = 0;
 
     virtual void JoinGame(ClientNetworkManager* networkManager) = 0;
-    virtual void JoinLobby(std::string addr) = 0;
+    virtual void JoinLobby(servernetadr_t addr) = 0;
 
     virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) = 0;
 
