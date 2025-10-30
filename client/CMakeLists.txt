@@ -23,7 +23,7 @@ add_executable(client WIN32
     src/CharacterSelectState.cpp
     src/Client.cpp
     src/client-asset-manager.cpp
-    src/ClientNetworkManagerEnet.cpp
+    src/ClientNetworkManager.cpp
     src/ConnectingState.cpp
     src/Game.cpp
     src/GameObject.cpp
@@ -70,10 +70,10 @@ target_compile_definitions(client PUBLIC NOMINMAX)
 # target_compile_definitions(client PUBLIC NAV_DEBUG)
 target_precompile_headers(client PRIVATE src/platform.h)
 
-target_include_directories(client PRIVATE src vendor/include)
+target_include_directories(client PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include)
 target_link_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 
-target_link_libraries(client PUBLIC common d3d11 dwrite d2d1 xaudio2 enet ws2_32.lib winmm.lib)
+target_link_libraries(client PUBLIC common d3d11 dwrite d2d1 xaudio2 steam_api64 ws2_32.lib winmm.lib)
 
 pak_folder(Buildings/Tower Buildings/Tower.pak)
 pak_folder(Generic Generic.pak)

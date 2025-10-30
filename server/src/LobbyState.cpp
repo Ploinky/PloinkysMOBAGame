@@ -37,7 +37,7 @@ void LobbyState::Initialize() {
 
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = cmd.slot;
-				pck.steamId = lobbySlots_[cmd.slot]->idPlayer;
+				pck.steamId = lobbySlots_[cmd.slot]->idPlayer.ConvertToUint64();
 				pck.isReady = lobbySlots_[cmd.slot]->ready;
 
 				std::vector<uint8_t> data;
@@ -58,7 +58,7 @@ void LobbyState::Initialize() {
 
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = i;
-				pck.steamId = lobbySlots_[i]->idPlayer;
+				pck.steamId = lobbySlots_[i]->idPlayer.ConvertToUint64();
 				pck.isReady = lobbySlots_[i]->ready;
 
 				std::vector<uint8_t> data;
@@ -85,7 +85,7 @@ void LobbyState::Initialize() {
 
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = i;
-				pck.steamId = newPlayer->idPlayer;
+				pck.steamId = newPlayer->idPlayer.ConvertToUint64();
 				pck.isReady = newPlayer->ready;
 
 				std::vector<uint8_t> data;
@@ -99,7 +99,7 @@ void LobbyState::Initialize() {
 			else if (lobbySlots_[i] != nullptr) {
 				LobbySlotPacket pck = LobbySlotPacket();
 				pck.slot = i;
-				pck.steamId = lobbySlots_[i]->idPlayer;
+				pck.steamId = lobbySlots_[i]->idPlayer.ConvertToUint64();
 				pck.isReady = lobbySlots_[i]->ready;
 
 				std::vector<uint8_t> data;

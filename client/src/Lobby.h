@@ -2,7 +2,7 @@
 
 #include "IClientState.h"
 #include <string>
-#include "ClientNetworkManagerEnet.h"
+#include "ClientNetworkManager.h"
 #include <string>
 #include "Gui.h"
 #include <Common/NewPackets.h>
@@ -18,7 +18,7 @@ public:
 
 private:
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>> packetManager_;
-	ClientNetworkManagerEnet* networkManager_;
+	ClientNetworkManager* networkManager_;
 
 	void HandleSlotPacket(std::vector<uint8_t> data);
 	void HandleGameStartPacket(std::vector<uint8_t> data);

@@ -10,7 +10,7 @@
 #include "game/systems/animation-system.h"
 #include "game/systems/particle-system.h"
 
-Game::Game(ClientNetworkManagerEnet* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
     m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/Map1/map1.nvm"));
 

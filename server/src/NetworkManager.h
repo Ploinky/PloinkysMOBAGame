@@ -6,7 +6,7 @@
 #include <common/PMG_Common.h>
 #include "common/pmg_networking.h"
 
-#include "steam/isteamnetworkingsockets.h"
+#include <steam/isteamnetworkingsockets.h>
 #include "steam/steam_api.h"
 
 #include "NetworkPeer.h"

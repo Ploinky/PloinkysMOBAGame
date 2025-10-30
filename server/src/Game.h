@@ -7,7 +7,7 @@
 #include "Common/pmg_networking.h"
 #include "Components.h"
 #include "IServerState.h"
-#include "NetworkManagerEnet.h"
+#include "NetworkManager.h"
 #include "LobbyPlayer.h"
 #include "GameObject.h"
 #include <Common/PMG_Common.h>

@@ -22,7 +22,7 @@ add_executable(server
 	src/LobbyState.cpp
 	src/Main.cpp
 	src/Missile.cpp
-	src/NetworkManagerEnet.cpp
+	src/network-manager.cpp
 	src/Server.cpp
 	src/spell-cast-api.cpp
 	
@@ -57,13 +57,12 @@ add_executable(server
 target_compile_definitions(server PUBLIC NOMINMAX)
 target_precompile_headers(server PRIVATE src/platform.h)
 
-
 set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 
 target_link_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
-target_include_directories(server PRIVATE src vendor/include)
+target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include)
 
-target_link_libraries(server PUBLIC common enet)
+target_link_libraries(server PUBLIC common steam_api64)
 
 if(WIN32)
 	target_link_libraries(server PUBLIC ws2_32 winmm)

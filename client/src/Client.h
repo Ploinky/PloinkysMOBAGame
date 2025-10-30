@@ -28,7 +28,7 @@ class ClientStateHandler;
 class GuiElement;
 class GuiTextfield;
 class IClientState;
-class ClientNetworkManagerEnet;
+class ClientNetworkManager;
 
 class Client : public IClientStateHandler {
 
@@ -38,12 +38,12 @@ public:
     void Run(std::string connectString_);
 
     void NewState(IClientState* newState);
-    virtual void JoinGame(ClientNetworkManagerEnet* networkManager) override;
+    virtual void JoinGame(ClientNetworkManager* networkManager) override;
     virtual void JoinLobby(std::string addr) override;
     virtual void OpenSettingsMenu() override;
     virtual void OpenMainMenu() override;
     virtual void OpenServerBrowser() override;
-    virtual void StartCharacterSelect(ClientNetworkManagerEnet* networkManager, Player** ppPlayers) override;
+    virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) override;
 
     virtual void RequestCursor(CursorId newId) override;
 

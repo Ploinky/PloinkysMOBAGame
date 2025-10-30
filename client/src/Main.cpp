@@ -8,6 +8,7 @@
 #include <string>
 #include <locale>
 #include <codecvt>
+#include <steam/steam_api.h>
 
 std::string FromWStringToString(std::wstring stringToConvert) {
     //setup converter
@@ -35,12 +36,28 @@ std::string GetDir() {
 
 // Main entry point into the application
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
+#ifndef _DEBUG
+    if (SteamAPI_RestartAppIfNecessary(1756910)) {
+        MessageBoxA(nullptr, "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", "Error", MB_ICONERROR);
+        return 1;
+    }
+#endif
+
+     if (!SteamAPI_Init())
+    {
+        MessageBoxA(nullptr, "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", "Error", MB_ICONERROR);
+        return 1;
+    }
+
     // Initialize COM?
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     if (FAILED(hr)) {
         MessageBoxA(nullptr, "Fatal Error - failed to initialize COM\n", "Error", MB_ICONERROR);
         return 1;
     }
+
+    // This is done as early as possible because it may take a while...
+    SteamNetworkingSockets()->InitAuthentication();
 
     // Attempt to read command line arguments
     int argc;
@@ -85,6 +102,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     }
 #endif
 
+    SteamAPI_Shutdown();
     Logger::Msg("Stopping Ploinky's MOBA Game.");
 
     delete client;

@@ -133,6 +133,8 @@ void Client::Run(std::string connectString_) {
 
         m_audioEngine.Update();
 
+        SteamAPI_RunCallbacks();
+
         fps = (int)(1000.0f / dt);
     }
 
@@ -203,12 +205,12 @@ void Client::NewState(IClientState* clientState) {
     currentState_ = clientState;
 }
 
-void Client::StartCharacterSelect(ClientNetworkManagerEnet* networkManager, Player** ppPlayers) {
+void Client::StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) {
     CCharacterSelectState* select = new CCharacterSelectState(networkManager, this, window->width_, window->height_, ppPlayers);
     NewState(select);
 }
 
-void Client::JoinGame(ClientNetworkManagerEnet* networkManager) {
+void Client::JoinGame(ClientNetworkManager* networkManager) {
     Game* game = new Game(networkManager, this, window->width_, window->height_);
     NewState(game);
 };

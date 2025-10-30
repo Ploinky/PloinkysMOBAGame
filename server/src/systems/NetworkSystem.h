@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NetworkManagerEnet.h>
+#include "NetworkManager.h"
 #include <GameState.h>
 #include "system.h"
 #include "events.h"

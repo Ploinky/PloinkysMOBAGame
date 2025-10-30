@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NetworkManagerEnet.h"
+#include "NetworkManager.h"
 
 class LobbyPlayer {
 public:

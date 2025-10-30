@@ -2,7 +2,7 @@
 
 #include "IServerStateHandler.h"
 #include "IServerState.h"
-#include "NetworkManagerEnet.h"
+#include "NetworkManager.h"
 #include "LobbyPlayer.h"
 #include "Common/pmg_networking.h"
 #include <functional>

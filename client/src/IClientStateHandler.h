@@ -13,16 +13,16 @@ enum class CursorId {
 };
 class IClientState;
 class CAudioEngine;
-class ClientNetworkManagerEnet;
+class ClientNetworkManager;
 
 class IClientStateHandler {
 public:
     virtual void NewState(IClientState* newState) = 0;
 
-    virtual void JoinGame(ClientNetworkManagerEnet* networkManager) = 0;
+    virtual void JoinGame(ClientNetworkManager* networkManager) = 0;
     virtual void JoinLobby(std::string addr) = 0;
 
-    virtual void StartCharacterSelect(ClientNetworkManagerEnet* networkManager, Player** ppPlayers) = 0;
+    virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) = 0;
 
     virtual void OpenSettingsMenu() = 0;
     virtual void OpenMainMenu() = 0;

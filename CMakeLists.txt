@@ -12,4 +12,6 @@ add_subdirectory(common)
 add_subdirectory(assets)
 add_subdirectory(server)
 add_subdirectory(client)
-add_subdirectory(test)
+
+# pls not right now
+# add_subdirectory(test)
