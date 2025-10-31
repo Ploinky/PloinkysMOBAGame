@@ -1,4 +1,4 @@
-#include <Packets/ScoreUpdatePacket.h>
+#include <packets/ScoreUpdatePacket.h>
 #include <cstring>
 #include <cstdlib>
 

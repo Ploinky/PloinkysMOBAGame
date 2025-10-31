@@ -1,4 +1,4 @@
-#include <Packets/LobbySlotCommand.h>
+#include <packets/LobbySlotCommand.h>
 #include <cstring>
 
 void LobbySlotCmd::Read(std::vector<uint8_t>* data) {

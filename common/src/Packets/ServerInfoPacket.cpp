@@ -1,4 +1,4 @@
-#include <Packets/ServerInfoPacket.h>
+#include <packets/ServerInfoPacket.h>
 #include <cstring>
 #include <cstdlib>
 

@@ -1,4 +1,4 @@
-#include <Packets/AttackFinishedPacket.h>
+#include <packets/AttackFinishedPacket.h>
 #include <cstring>
 
 void CAttackFinishedPacket::Read(std::vector<uint8_t>* data) {

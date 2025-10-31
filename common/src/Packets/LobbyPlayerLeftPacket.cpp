@@ -1,4 +1,4 @@
-#include <Packets/LobbyPlayerLeftPacket.h>
+#include <packets/LobbyPlayerLeftPacket.h>
 #include <cstring>
 
 void LobbyPlayerLeftPacket::Read(std::vector<uint8_t>* data) {

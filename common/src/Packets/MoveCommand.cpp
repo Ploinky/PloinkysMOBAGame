@@ -1,4 +1,4 @@
-#include <Packets/MoveCommand.h>
+#include <packets/MoveCommand.h>
 #include <cstring>
 
 void MoveCommandPacket::Read(std::vector<uint8_t>* data) {

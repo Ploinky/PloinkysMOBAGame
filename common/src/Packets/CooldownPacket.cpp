@@ -1,4 +1,4 @@
-#include <Packets/CooldownPacket.h>
+#include <packets/CooldownPacket.h>
 #include <cstring>
 
 /*

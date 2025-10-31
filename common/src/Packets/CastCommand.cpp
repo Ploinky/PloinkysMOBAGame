@@ -1,4 +1,4 @@
-#include <Packets/CastCommand.h>
+#include <packets/CastCommand.h>
 #include <cstring>
 
 void CastCommandPacket::Read(std::vector<uint8_t>* data) {

@@ -1,4 +1,4 @@
-#include <Packets/AttackStartPacket.h>
+#include <packets/AttackStartPacket.h>
 #include <cstring>
 
 void AttackStartPacket::Read(std::vector<uint8_t>* data) {

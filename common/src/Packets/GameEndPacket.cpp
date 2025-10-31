@@ -1,4 +1,4 @@
-#include <Packets/GameEndPacket.h>
+#include <packets/GameEndPacket.h>
 #include <cstring>
 
 void GameEndPacket::Read(std::vector<uint8_t>* data) {

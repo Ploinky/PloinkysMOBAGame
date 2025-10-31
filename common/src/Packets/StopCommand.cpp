@@ -1,4 +1,4 @@
-#include <Packets/StopCommand.h>
+#include <packets/StopCommand.h>
 #include <cstring>
 
 void StopCommandPacket::Read(std::vector<uint8_t>* data) {

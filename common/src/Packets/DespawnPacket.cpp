@@ -1,4 +1,4 @@
-#include <Packets/DespawnPacket.h>
+#include <packets/DespawnPacket.h>
 #include <cstring>
 
 void DespawnPacket::Read(std::vector<uint8_t>* data) {

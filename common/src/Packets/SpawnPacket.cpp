@@ -1,4 +1,4 @@
-#include <Packets/SpawnPacket.h>
+#include <packets/SpawnPacket.h>
 #include <cstring>
 
 void SpawnPacket::Read(std::vector<uint8_t>* data) {

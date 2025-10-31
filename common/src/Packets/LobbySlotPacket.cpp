@@ -1,4 +1,4 @@
-#include <Packets/LobbySlotPacket.h>
+#include <packets/LobbySlotPacket.h>
 #include <cstring>
 
 void LobbySlotPacket::Read(std::vector<uint8_t>* data) {

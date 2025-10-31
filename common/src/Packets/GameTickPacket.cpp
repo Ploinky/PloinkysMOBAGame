@@ -1,4 +1,4 @@
-#include <Packets/GameTickPacket.h>
+#include <packets/GameTickPacket.h>
 #include <cstring>
 
 void GameTickPacket::Read(std::vector<uint8_t>* data) {

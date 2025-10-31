@@ -1,4 +1,4 @@
-#include <Packets/CharacterSelect/RemainingTimePacket.h>
+#include <packets/characterselect/RemainingTimePacket.h>
 
 void CRemainingTimePacket::Read(std::vector<uint8_t>* data) {
 	int offset = sizeof(packet_header_t);

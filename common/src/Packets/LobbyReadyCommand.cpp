@@ -1,4 +1,4 @@
-#include <Packets/LobbyReadyCommand.h>
+#include <packets/LobbyReadyCommand.h>
 #include <cstring>
 
 void LobbyReadyCmd::Read(std::vector<uint8_t>* data) {
