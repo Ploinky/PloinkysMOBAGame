@@ -80,8 +80,11 @@ add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_
 
 pak_folder(Buildings/Tower Buildings/Tower.pak)
 pak_folder(Generic Generic.pak)
-pak_folder(Shaders Shaders.pak)
-pak_folder(Maps/Map1 Maps/Map1.pak)
+if(WIN32)
+    pak_folder(Shaders Shaders.pak)
+endif()
+
+pak_folder(Maps/map1 Maps/Map1.pak)
 pak_folder(Persons/_Generic Persons/_Generic.pak)
 pak_folder(Persons/ChessPerson Persons/ChessPerson.pak)
 pak_folder(Persons/Minion Persons/Minion.pak)

@@ -97,13 +97,15 @@ export_nvm(Maps/map1/map1.blend Maps/map1/map1.nvm)
 export_glb(Buildings/Tower/tower.blend Buildings/Tower/tower.glb)
 
 # Shaders
-compile_vertex_shader(glb.vert)
-compile_pixel_shader(glb.pixel)
-compile_vertex_shader(flat_unlit.vert)
-compile_pixel_shader(flat_unlit.pixel)
-compile_vertex_shader(particle.vert)
-compile_pixel_shader(particle.pixel)
-compile_pixel_shader(texture.pixel)
+if(WIN32)
+    compile_vertex_shader(glb.vert)
+    compile_pixel_shader(glb.pixel)
+    compile_vertex_shader(flat_unlit.vert)
+    compile_pixel_shader(flat_unlit.pixel)
+    compile_vertex_shader(particle.vert)
+    compile_pixel_shader(particle.pixel)
+    compile_pixel_shader(texture.pixel)
+endif()
 
 add_custom_target(assets
     DEPENDS ${COPY_OUTPUTS} ${GLB_EXPORTS} ${NVM_EXPORTS} ${SHADER_FILES}
