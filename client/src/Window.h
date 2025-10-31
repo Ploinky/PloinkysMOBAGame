@@ -1,11 +1,13 @@
 #pragma once
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#endif
 #include <functional>
 #include <vector>
+#include <memory>
+
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+
 #include "Settings.h"
 
 // Forward declarations to avoid too many headers
@@ -14,9 +16,9 @@ class CD3D11GraphicsEngine;
 class Window {
     public:
         std::function<void()> windowResizedHandler;
-        std::function<void(char)> e_charTyped;
-        std::function<void(char)> e_keyPressed;
-        std::function<void(char)> e_keyReleased;
+        std::function<void(uint32_t)> e_charTyped;
+        std::function<void(uint32_t)> e_keyPressed;
+        std::function<void(uint32_t)> e_keyReleased;
         std::function<void(int x, int y)> e_mouseMoved = [](int x, int y){};
         std::function<void(int key)> e_mouseButtonPressed;
         std::function<void(int key)> e_mouseButtonReleased;
@@ -47,13 +49,9 @@ class Window {
         void Resized(int width_, int height_);
 
         void SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y);
-
-        LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
             
     private:
-        HWND windowHandle = nullptr;
-
-        HBRUSH m_hBrushBackground = nullptr;
+        GLFWwindow* m_pWindow = nullptr;
 
         bool shouldClose;
 };

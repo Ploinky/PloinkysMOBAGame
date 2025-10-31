@@ -99,3 +99,9 @@ void MainMenu::Update(float dt) {
 void MainMenu::MouseButtonPressed(int button) {
 	rootElement_.MousePressed(mouseX_, mouseY_);
 }
+
+void MainMenu::KeyPressed(uint32_t key) {
+	if(key == 256) {
+		handler_->NewState(nullptr);
+	}
+}

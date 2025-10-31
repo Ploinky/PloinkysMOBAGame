@@ -13,6 +13,7 @@ public:
 	void Render(CRenderer* renderer) override;
 	void Update(float dt) override;
 	void MouseButtonPressed(int button) override;
+	void KeyPressed(uint32_t key) override;
 
 private:
 	GuiElement rootElement_;

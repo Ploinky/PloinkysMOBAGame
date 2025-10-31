@@ -93,9 +93,9 @@ void Client::Run(std::string connectString_) {
     renderer = new CRenderer();
 	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, &assetManager_, window->width_, window->height_);
 
-    window->e_charTyped = [this](WORD ch) { if(currentState_) currentState_->CharTyped(ch); };
-    window->e_keyPressed = [this](WORD key) { if (currentState_) currentState_->KeyPressed(key); };
-    window->e_keyReleased = [this](WORD key) { if (currentState_) currentState_->KeyReleased(key); };
+    window->e_charTyped = [this](uint32_t ch) { if(currentState_) currentState_->CharTyped(ch); };
+    window->e_keyPressed = [this](uint32_t key) { if (currentState_) currentState_->KeyPressed(key); };
+    window->e_keyReleased = [this](uint32_t key) { if (currentState_) currentState_->KeyReleased(key); };
     window->e_mouseButtonPressed = [this](int button) { if (currentState_) currentState_->MouseButtonPressed(button); };
     window->e_mouseButtonReleased = [this](int button) { if (currentState_) currentState_->MouseButtonReleased(button); };
     window->e_mouseMoved = [this](int x, int y) { if (currentState_) currentState_->MouseMoved(x, y); };

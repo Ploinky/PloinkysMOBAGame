@@ -6,46 +6,53 @@
 #include "../Resources/resource.h"
 #include "Settings.h"
 
-LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    
-if (window == nullptr) {
-    return DefWindowProcW(hwnd, msg, wParam, lParam);
+void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, int nMods) {
+    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+
+    if (nAction == GLFW_PRESS) {
+        self->e_keyPressed(nKey);
+    } else if(nAction == GLFW_RELEASE) {
+        self->e_keyReleased(nKey);
+    }
 }
 
-return window->WndProc(hwnd, msg, wParam, lParam);
+void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int nMods) {
+    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+    if (nAction == GLFW_PRESS) {
+        self->e_mouseButtonPressed(nButton);
+    } else if (nAction == GLFW_PRESS) {
+        self->e_mouseButtonReleased(nButton);
+    } 
+}
+
+void GLFWMouseMoveCallback(GLFWwindow* pWindow, double dXPos, double dYPos) {
+    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+    self->e_mouseMoved(dXPos, dYPos);
+}
+
+void GLFWWindowFocusCallback(GLFWwindow* pWindow, int nFocused) {
+    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+
+    if(nFocused) {
+        self->FocusGained();
+    } else {
+        self->FocusLost();
+    }
 }
 
 Window::Window(int res_x, int res_y, WindowMode mode) {
     Logger::Msg("Creating window...");
 
+    if(!glfwInit()) {
+        throw std::runtime_error("Failed to initialize GLFW");
+    }
+
     this->width_ = res_x;
     this->height_ = res_y;
 
-    LPCWSTR className = L"PloinkysMOBAGameWindow";
-
     shouldClose = false;
 
-    HINSTANCE hInstance = GetModuleHandle(NULL);
-
-    m_hBrushBackground = CreateSolidBrush(RGB(0, 0, 0));
-
     // ------ Create window -----
-    WNDCLASSEXW wc{};
-    wc.cbSize = sizeof(WNDCLASSEXW);
-    wc.style = 0;
-    wc.lpfnWndProc = StaticWndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-    wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_DEFAULT));
-    wc.hbrBackground = m_hBrushBackground;
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = className;
-    wc.hIconSm = wc.hIcon;
-
-
     int posX, posY;
 
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -54,70 +61,55 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
     posX = (screenWidth - width_) / 2;
     posY = (screenHeight - height_) / 2;
 
-    RegisterClassExW(&wc);
-
-    DWORD dwStyle = WS_SYSMENU | WS_CAPTION;
-
     switch (mode) {
-    case WindowMode::WINDOWED: {
-        break;
-    }
-    case WindowMode::BORDERLESS:{
-        dwStyle = WS_POPUP;
-        width_ = screenWidth;
-        height_ = screenHeight;
-        posX = 0;
-        posY = 0;
-        break;
-    }
-    case WindowMode::FULLSCREEN:
-    default: {
-        dwStyle = WS_POPUP;
-        width_ = screenWidth;
-        height_ = screenHeight;
-        posX = 0;
-        posY = 0;
-        break;
-    }
+        case WindowMode::WINDOWED: {
+            break;
+        }
+        case WindowMode::BORDERLESS:{
+            width_ = screenWidth;
+            height_ = screenHeight;
+            posX = 0;
+            posY = 0;
+            break;
+        }
+        case WindowMode::FULLSCREEN:
+        default: {
+            width_ = screenWidth;
+            height_ = screenHeight;
+            posX = 0;
+            posY = 0;
+            break;
+        }
     }
 
-    RECT wr = {0, 0, width_, height_};       // set the size, but not the position
-    AdjustWindowRectEx(&wr, dwStyle, false, WS_EX_APPWINDOW); // adjust the window's size
 
-    std::wstring window_title = L"Ploinky's MOBA Game";
+    std::string window_title = "Ploinky's MOBA Game";
 
 #ifdef _DEBUG
-    window_title.append(L"__DEBUG BUILD__");
+    window_title.append("__DEBUG BUILD__");
 #endif
+    
+    m_pWindow = glfwCreateWindow(width_, height_, window_title.c_str(), NULL, NULL);
 
-    windowHandle = CreateWindowExW(WS_EX_APPWINDOW,
-                                    wc.lpszClassName,
-                                    window_title.c_str(),
-                                    dwStyle,
-                                    posX,
-                                    posY,
-                                    wr.right - wr.left,
-                                    wr.bottom - wr.top,
-                                    NULL,
-                                    NULL,
-                                    GetModuleHandle(NULL),
-                                    NULL);
-        
-    // Save pointer to Window for WndProc to access
-    SetWindowLongPtr(windowHandle, GWLP_USERDATA, LONG_PTR(this));
-
-    if (windowHandle == 0) {
-        Logger::Err("WindowHandle is NULL.");
-        Logger::Err(std::to_string(GetLastError()));
-        return;
+    if (m_pWindow == 0) {
+        glfwTerminate();
+        throw std::runtime_error("Failed to create GLFW window");
     }
+
+    glfwSetWindowUserPointer(m_pWindow, this);
+    glfwSetKeyCallback(m_pWindow, GLFWKeyCallback);
+    glfwSetMouseButtonCallback(m_pWindow, GLFWMouseButtonCallback);
+    glfwSetCursorPosCallback(m_pWindow, GLFWMouseMoveCallback);
+    glfwSetWindowFocusCallback(m_pWindow, GLFWWindowFocusCallback);
+
+    glfwMakeContextCurrent(m_pWindow);
 }
 
 Window::~Window() {
-    if(m_hBrushBackground != nullptr) {
-        DeleteObject(m_hBrushBackground);
-    }
+    glfwTerminate();
 }
+
+/*
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
@@ -223,22 +215,20 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
     return 0;
 }
+*/
 
 
 void Window::Show() {
     Logger::Msg("Showing window....");
-    ShowWindow(windowHandle, SW_SHOW);
+
+    // ShowWindow(windowHandle, SW_SHOW);
 }
 
 MSG msg = {};
     
 // Handle win32 window events
 void Window::HandleEvents() {
-    // Use PeekMessage, GetMessage blocks!
-    while (PeekMessage(&msg, windowHandle, 0, 0, PM_REMOVE) > 0) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+    glfwPollEvents();
 }
 
 bool Window::ShouldClose() {
@@ -250,7 +240,8 @@ void Window::SetShouldClose() {
 }
     
 HWND Window::GetWindowHandle() {
-    return windowHandle;
+    // TODO
+    return glfwGetWin32Window(m_pWindow);
 }
 
 void Window::Resized(int width_, int height_) {
@@ -267,10 +258,12 @@ void Window::FocusGained() {
 }
 
 void Window::FocusLost() {
-    ClipCursor(NULL);
+    glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
 void Window::ClipCursorToWindow() {
+    glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+    /*
     RECT rect;
     GetClientRect(windowHandle, &rect);
         
@@ -292,9 +285,12 @@ void Window::ClipCursorToWindow() {
     rect.bottom = lr.y;
 
     ClipCursor(&rect);
+    */
+
 }
 
 void Window::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y) {
+    /*
     int posX, posY = 0;
     int new_width, new_height = 0;
 
@@ -332,4 +328,6 @@ void Window::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution
     SetWindowPos(windowHandle, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
 
     ClipCursorToWindow();
+    */
+
 }
