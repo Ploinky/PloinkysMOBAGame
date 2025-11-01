@@ -2,7 +2,7 @@
 
 #include <string>
 #include <common/pmg_networking.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <functional>
 #include "enet/enet.h"
 

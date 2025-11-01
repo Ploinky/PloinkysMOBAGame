@@ -1,6 +1,6 @@
-#include "ClientNetworkManagerEnet.h"
-#include <Common/PMG_Common.h>
-#include <Common/pmg_networking.h>
+#include "ClientNetworkManager.h"
+#include <common/PMG_Common.h>
+#include <common/pmg_networking.h>
 
 #include "Game.h"
 

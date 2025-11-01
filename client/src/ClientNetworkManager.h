@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <common/pmg_networking.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <steam/steam_api.h>
 #include <functional>
 
