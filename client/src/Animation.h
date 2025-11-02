@@ -1,9 +1,8 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include <string>
 #include <vector>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <Armature.h>
 #include <GLBFileLoader.h>
 
