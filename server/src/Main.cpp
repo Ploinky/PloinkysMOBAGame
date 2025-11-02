@@ -1,6 +1,6 @@
 #include <iostream>
 #include <Server.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <steam/steam_gameserver.h>
 
 int main(int argc, char** argv) {

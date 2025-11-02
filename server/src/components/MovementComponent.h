@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/PMG_Common.h"
+#include "common/PMG_Common.h"
 #include "Components.h"
 
 class CMovementComponent : public IComponent {

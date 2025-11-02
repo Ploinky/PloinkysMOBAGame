@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
+#include <optional>
 
 enum class EAttackState {
     IDLE,

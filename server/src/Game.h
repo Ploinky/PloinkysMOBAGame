@@ -4,13 +4,13 @@
 #include <map>
 #include <functional>
 #include <string>
-#include "Common/pmg_networking.h"
+#include "common/pmg_networking.h"
 #include "Components.h"
 #include "IServerState.h"
 #include "NetworkManager.h"
 #include "LobbyPlayer.h"
 #include "GameObject.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <Buff.h>
 #include <GameState.h>
 

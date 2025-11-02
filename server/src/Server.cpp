@@ -2,7 +2,7 @@
 #include <Server.h>
 #include "NetworkManager.h"
 #include <Game.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 
 #include "LobbyState.h"
 

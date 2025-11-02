@@ -1,5 +1,5 @@
 #include <LobbyState.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <vector>
 
 LobbyState::LobbyState(IServerStateHandler* handler) : IServerState(handler) {

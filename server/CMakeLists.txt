@@ -55,7 +55,7 @@ add_executable(server
 )
 
 target_compile_definitions(server PUBLIC NOMINMAX)
-target_precompile_headers(server PRIVATE src/platform.h)
+# target_precompile_headers(server PRIVATE src/platform.h)
 
 set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 

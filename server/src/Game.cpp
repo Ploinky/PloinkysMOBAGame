@@ -1,8 +1,8 @@
 #include "Game.h"
 #include "Components.h"
-#include "Common/pmg_physics.h"
+#include "common/pmg_physics.h"
 #include "Missile.h"
-#include "Common/pmg_networking.h"
+#include "common/pmg_networking.h"
 #include "GameObject.h"
 #include <cstring>
 #include "IServerState.h"

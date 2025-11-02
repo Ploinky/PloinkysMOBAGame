@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
-#include "Common/PMG_Common.h"
+#include "common/PMG_Common.h"
 
 class CTransformComponent : public IComponent {
 public:

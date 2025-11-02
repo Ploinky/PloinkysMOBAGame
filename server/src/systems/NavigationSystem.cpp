@@ -1,7 +1,7 @@
 #include "NavigationSystem.h"
 
 #include "GameState.h"
-#include "Common/navigation.h"
+#include "common/navigation.h"
 #include "components/Components.h"
 #include "events.h"
 

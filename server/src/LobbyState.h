@@ -4,7 +4,7 @@
 #include "IServerState.h"
 #include "NetworkManager.h"
 #include "LobbyPlayer.h"
-#include "Common/pmg_networking.h"
+#include "common/pmg_networking.h"
 #include <functional>
 
 class LobbyState : public IServerState {
