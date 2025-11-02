@@ -7,13 +7,9 @@
 
 #include "GLBFileLoader.h"
 #include <core/graphics/graphics-engine.h>
+#include <core/audio/audio-engine.h>
 
 class Model;
-
-typedef struct {
-    XAUDIO2_BUFFER buffer;
-    WAVEFORMATEX format;
-} SoundAsset_t;
 
 typedef struct { 
     GLBModel* pGlbModel;
@@ -31,7 +27,6 @@ public:
     HTexture LoadTexture(std::string strTexture);
 
     HSound LoadSound(std::string strSound);
-    SoundAsset_t& GetSound(HSound hSound);
 
     HModel LoadModel(std::string strModel);
     ModelAsset_t& GetModel(HModel hModel);
@@ -41,13 +36,13 @@ public:
 
 private:
     IGraphicsEngine* m_pGraphicsEngine;
+    IAudioEngine* m_pAudioEngine;
 
     std::unordered_map<std::string, HBitmap> m_mapBitmaps;
 
     std::unordered_map<std::string, HTexture> m_mapTextures;
 
     std::unordered_map<std::string, HSound> m_mapSounds;
-    std::vector<SoundAsset_t> m_vecSounds;
 
     std::unordered_map<std::string, HModel> m_mapModels;
     std::vector<ModelAsset_t> m_vecModels;

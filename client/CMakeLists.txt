@@ -51,8 +51,6 @@ add_executable(client
     src/Vertex.cpp
     src/Window.cpp
 
-    src/core/audio/audio-engine.cpp
-
     src/game/systems/animation-system.cpp
     src/game/systems/particle-system.cpp
 
@@ -67,6 +65,7 @@ add_executable(client
 if(WIN32)
     target_sources(client PRIVATE
         src/core/graphics/d3d11-graphics-engine.cpp
+        src/core/audio/audio-engine-xaudio.cpp
     )
 endif()
 

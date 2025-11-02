@@ -14,45 +14,25 @@ const HListener INVALID_LISTENER_HANDLE = INVALID_ASSET_HANDLE;
 typedef ASSET_HANDLE HEmitter;
 const HEmitter INVALID_EMITTER_HANDLE = INVALID_ASSET_HANDLE;
 
-class CAudioEngine {
+class IAudioEngine {
 public:
-	bool Initialize(CClientAssetManager* pAssetManager);
+	virtual bool Initialize(CClientAssetManager* pAssetManager) = 0;
 
-    void Update();
+    virtual void Update() = 0;
 
-    void SetMasterVolume(float fValue);
+    virtual void SetMasterVolume(float fValue) = 0;
 
-    HVoice CreateVoice(SoundAsset_t sound);
+	virtual HSound LoadSound(std::vector<uint8_t> vecSoundData) = 0;
+    virtual HVoice CreateVoice(SoundAsset_t sound) = 0;
 
-	HEmitter CreateEmitter(Vector3 vec3InitialPos);
+	virtual HEmitter CreateEmitter(Vector3 vec3InitialPos) = 0;
 
-	void SetListenerPosition(Vector3 vec3NewPos);
+	virtual void SetListenerPosition(Vector3 vec3NewPos) = 0;
 
-	void UpdateVoicePosition(HVoice hVoice, HEmitter hEmitter, Vector3 vec3Position);
+	virtual void UpdateVoicePosition(HVoice hVoice, HEmitter hEmitter, Vector3 vec3Position) = 0;
 
 private:
     CClientAssetManager* m_pAssetManager;
-
-	X3DAUDIO_HANDLE m_h3dAudio;
-	IXAudio2* pXAudio2;
-	IXAudio2MasteringVoice* pMasterVoice;
-
-	IXAudio2SubmixVoice* music_submix_voice_;
-
-	XAUDIO2_SEND_DESCRIPTOR SFXSend{};
-	XAUDIO2_VOICE_SENDS SFXSendList{};
-    
-	std::vector<IXAudio2SourceVoice*> m_vecPlayingSounds;
-
-	X3DAUDIO_DISTANCE_CURVE_POINT volumePoints[3] = {
-		{ 0.0f, 1.0f },
-		{ 0.6f, 1.0f },
-		{ 1.0f, 0.0f }
-	};
-	X3DAUDIO_DISTANCE_CURVE volumeCurve = {volumePoints, 3};
-	X3DAUDIO_CONE m_listenerCone;
-	X3DAUDIO_LISTENER m_listener;
-	std::vector<X3DAUDIO_EMITTER> m_vecEmitters;
 
 	Vector3 m_listenerPosition;
 };
