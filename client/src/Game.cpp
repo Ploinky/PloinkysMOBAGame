@@ -297,7 +297,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     // TODO
     m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());
-    m_hGenericIcon = handler->GetAssetManager()->LoadBitmapImage("Persons/_Generic/AbilityIcon.bmp");
+    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("Persons/_Generic/AbilityIcon.bmp");
     m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("characters/stormcaller/abilities/thunderstrike.wav");
     m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("characters/stormcaller/death.wav");
     m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("characters/stormcaller/attack.wav");
@@ -883,7 +883,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
                 m_vecAbilities.resize(4);
                 m_vecAbilities[0] = {
                     .strName = "Thunderstrike",
-                    .hIcon = assetManager_->LoadBitmapImage("characters/stormcaller/abilities/thunderstrike_icon.png"),
+                    .hIcon = assetManager_->GetBitmapImage("characters/stormcaller/abilities/thunderstrike_icon.png"),
                     .eTargetType = EAbilityTargetType::UNIT,
                 };
                 break;

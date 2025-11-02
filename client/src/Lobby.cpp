@@ -4,7 +4,7 @@
 
 Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 	networkManager_ = new ClientNetworkManager();
-	HBitmap hButton = handler->GetAssetManager()->LoadBitmapImage("UI/Buttons/MenuButton/MenuButton.bmp");
+	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("UI/Buttons/MenuButton/MenuButton.bmp");
 
     packetManager_ = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
     // Register network packets, the fuck...
