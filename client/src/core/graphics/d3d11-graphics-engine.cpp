@@ -26,6 +26,9 @@ CD3D11GraphicsEngine::~CD3D11GraphicsEngine() {
     m_pDevice->QueryInterface(__uuidof(ID3D11Debug), (VOID**)(&debug));
 #endif
 
+    m_vecTextures.clear();
+    m_vecBitmaps.clear();
+
     ID3D11RenderTargetView* nullViews[] = { nullptr };
     m_pContext->OMSetRenderTargets(1, nullViews, nullptr);
 
@@ -786,13 +789,10 @@ void CD3D11GraphicsEngine::BindSampler(uint32_t slot, HSampler hSampler) {
     m_pContext->PSSetSamplers(slot, 1, &pState);
 }
 
-HShaderProgram CD3D11GraphicsEngine::LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, CClientAssetManager* pAssetManager) {
+HShaderProgram CD3D11GraphicsEngine::LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, std::vector<uint8_t> vecVsBytecode, std::vector<uint8_t> vecPsBytecode) {
     ShaderProgramD3D11_t shaderProgram;
 
-    std::vector<uint8_t> vecVsBytecode = pAssetManager->LoadFile("Shaders/" + strShaderName + ".vert.cso");
     m_pDevice->CreateVertexShader(vecVsBytecode.data(), vecVsBytecode.size(), nullptr, &shaderProgram.pVertexShader);
-
-    std::vector<uint8_t> vecPsBytecode = pAssetManager->LoadFile("Shaders/" + strShaderName + ".pixel.cso");
     m_pDevice->CreatePixelShader(vecPsBytecode.data(), vecPsBytecode.size(), nullptr, &shaderProgram.pPixelShader);
 
     InputLayoutD3D11_t layout = m_vecInputElementDescs.at(eVertexFormat);
@@ -812,16 +812,16 @@ HShaderProgram CD3D11GraphicsEngine::LoadShaderProgram(std::string strShaderName
     return m_vecShaderPrograms.size() - 1;
 }
 
-void CD3D11GraphicsEngine::LoadTextureDataToGPU(TextureAsset_t& textureAsset) {
+HTexture CD3D11GraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) {
     ID3D11Texture2D* texture = 0;
 
     D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = textureAsset.data.data();
-    initData.SysMemPitch = textureAsset.uWidth * 4;
+    initData.pSysMem = pImageData;
+    initData.SysMemPitch = uWidth * 4;
 
     D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = textureAsset.uWidth;
-    desc.Height = textureAsset.uHeight;
+    desc.Width = uWidth;
+    desc.Height = uHeight;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -835,13 +835,20 @@ void CD3D11GraphicsEngine::LoadTextureDataToGPU(TextureAsset_t& textureAsset) {
         return;
     }
 
-    m_pDevice->CreateShaderResourceView(texture, nullptr, &textureAsset.pTexture);
-
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
+    hr = m_pDevice->CreateShaderResourceView(texture, nullptr, &pShaderResourceView);
     texture->Release();
+
+    if(FAILED(hr)) {
+        return INVALID_ASSET_HANDLE;
+    }
+
+    m_vecTextures.push_back(pShaderResourceView);
+    return m_vecTextures.size() - 1;
 }
 
-void CD3D11GraphicsEngine::BindTexture(uint32_t uSlot, TextureAsset_t& textureAsset) {
-    ID3D11ShaderResourceView* pTex = textureAsset.pTexture;
+void CD3D11GraphicsEngine::BindTexture(uint32_t uSlot, HTexture hTexture) {
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pTex = m_vecTextures.at(hTexture);
     m_pContext->PSSetShaderResources(uSlot, 1, &pTex);
 }
 
@@ -1068,14 +1075,37 @@ void CD3D11GraphicsEngine::FillRect(int x, int y, int w, int h, float color[3]) 
     brush->Release();
 }
 
-void CD3D11GraphicsEngine::DrawImage(float x, float y, float w, float h, BitmapAsset_t& bmp) {
-	if(bmp.pBitmap == nullptr) {
-        // Create a Direct2D bitmap from the WIC bitmap.
-        renderTarget2D->CreateBitmapFromWicBitmap(
-            bmp.pConvertedData,
-            NULL,
-            &bmp.pBitmap
-        );
-	}
-    renderTarget2D->DrawBitmap(bmp.pBitmap, D2D1::RectF(x, y, x + w, y + h));
+void CD3D11GraphicsEngine::DrawImage(float x, float y, float w, float h, HBitmap hBmp) {
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> pBitmap = m_vecBitmaps[hBmp];
+    renderTarget2D->DrawBitmap(pBitmap, D2D1::RectF(x, y, x + w, y + h));
+}
+
+HBitmap CD3D11GraphicsEngine::LoadBitmapImage(unsigned char* pImageData, int width, int height) {
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> pBitmap = nullptr;
+
+    D2D1_BITMAP_PROPERTIES bitmapProps = {};
+    bitmapProps.pixelFormat.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    bitmapProps.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
+    bitmapProps.dpiX = 96.0f;
+    bitmapProps.dpiY = 96.0f;
+    // bitmapProps.bitmapOptions = D2D1_BITMAP_OPTIONS_NONE;
+
+    // pitch (bytes per row)
+    UINT32 stride = width * 4; // 4 bytes per pixel for RGBA8
+
+    HRESULT hr = renderTarget2D->CreateBitmap(
+        D2D1_SIZE_U{ (UINT32)width, (UINT32)height },
+        (void*) pImageData,      // unsigned char* from stbi
+        (UINT32) stride,
+        &bitmapProps,
+        &pBitmap
+    );
+
+    if (FAILED(hr)) {
+        return INVALID_ASSET_HANDLE;
+    }
+
+    m_vecBitmaps.push_back(pBitmap);
+
+    return m_vecBitmaps.size() - 1;
 }

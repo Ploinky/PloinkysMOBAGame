@@ -7,9 +7,9 @@
 
 class BonePosition {
 public:
-	DirectX::XMVECTOR rotation;
-	DirectX::XMFLOAT3 translation;
-	DirectX::XMMATRIX ToMatrix() const;
+	Quaternion rotation;
+	Vector3 translation;
+	mat ToMatrix() const;
 
 	static BonePosition Interpolate(BonePosition from, BonePosition to, float pct);
 };
@@ -23,7 +23,7 @@ public:
 class Armature {
 public:
 	std::vector<Bone> bones;
-	std::vector<DirectX::XMMATRIX> global_inverse_bind_poses;
-	std::vector<DirectX::XMMATRIX> currentPos;
-	DirectX::XMMATRIX animation_palette[256];
+	std::vector<mat> global_inverse_bind_poses;
+	std::vector<mat> currentPos;
+	mat animation_palette[256];
 };

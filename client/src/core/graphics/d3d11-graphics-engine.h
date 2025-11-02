@@ -72,11 +72,10 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         virtual void EnableDepthStencilState() override;
         virtual void DisableDepthStencilState() override;
 
-        virtual HShaderProgram LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, CClientAssetManager* pAssetManager) override;
-        virtual void LoadTextureDataToGPU(TextureAsset_t& textureAsset) override;
+        virtual HShaderProgram LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, std::vector<uint8_t> vecVsBytecode, std::vector<uint8_t> vecPsBytecode) override;
 
         virtual void BindShaderProgram(HShaderProgram hShaderProgram) override;
-        virtual void BindTexture(uint32_t uSlot, TextureAsset_t& textureAsset) override;
+        virtual void BindTexture(uint32_t uSlot, HTexture hTexture) override;
         
         virtual void SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, UINT uStride, UINT uOffset) override;
         virtual void SetIndexBuffer(BufferHandle_t& indexBuffer) override;
@@ -93,7 +92,10 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         virtual void DrawShape(Vector2* points, int pointCount, float color[3]) override;
         virtual void FillShape(Vector2* points, int pointCount, float color[3]) override;
         virtual void FillRect(int x, int y, int w, int h, float color[3]) override;
-        virtual void DrawImage(float x, float y, float w, float h, BitmapAsset_t& bmp) override;
+        virtual void DrawImage(float x, float y, float w, float h, HBitmap hBmp) override;
+        
+        virtual HBitmap LoadBitmapImage(unsigned char* pImageData, int uWidth, int uHeight) override;
+        virtual HTexture LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) override;
 
         ID3D11Device* m_pDevice;
         ID3D11DeviceContext* m_pContext;
@@ -139,4 +141,6 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         std::vector<ShaderProgramD3D11_t> m_vecShaderPrograms;
         std::vector<ID3D11SamplerState*> m_vecSamplers;
         std::unordered_map<EVertexFormat, InputLayoutD3D11_t> m_vecInputElementDescs;
+        std::vector<Microsoft::WRL::ComPtr<ID2D1Bitmap>> m_vecBitmaps;
+        std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_vecTextures;
 };

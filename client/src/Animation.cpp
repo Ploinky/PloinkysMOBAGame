@@ -90,6 +90,6 @@ BonePosition Animation::InterpolateBonePosition(const BonePosition& start, const
 		start.translation.y + (end.translation.y - start.translation.y) * factor,
 		start.translation.z + (end.translation.z - start.translation.z) * factor
 	};
-	result.rotation = DirectX::XMQuaternionSlerp(start.rotation, end.rotation, factor);
+	result.rotation = Slerp(start.rotation, end.rotation, factor);
 	return result;
 }

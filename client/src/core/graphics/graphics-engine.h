@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include <limits>
 #include <string>
-#include <client-asset-manager.h>
-#include "canvas-2d.h"
+#include <common/PMG_Common.h>
 
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
@@ -31,29 +30,51 @@ enum class EVertexFormat {
 };
 
 typedef struct {
-	DirectX::XMFLOAT4X4 projMatrix;
-	DirectX::XMFLOAT4X4 cameraMatrix;
+	mat projMatrix;
+	mat cameraMatrix;
 } FrameConstants_t;
 
 typedef struct {
-	DirectX::XMFLOAT4X4 modelMatrix;
+	mat modelMatrix;
 } ModelConstants_t;
 
 typedef struct {
-	DirectX::XMFLOAT4X4 boneTransforms[256];
+	mat boneTransforms[256];
 } SkinnedModelConstants_t;
 
 typedef struct {
-	DirectX::XMFLOAT4X4 billboardMatrix;
+	mat billboardMatrix;
 } BillboardFrameConstants_t;
+
+class CCLientAssetManager;
+
+typedef uint64_t ASSET_HANDLE;
+constexpr ASSET_HANDLE INVALID_ASSET_HANDLE = std::numeric_limits<uint64_t>::max();
+typedef ASSET_HANDLE HBitmap;
+typedef ASSET_HANDLE HTexture;
+typedef ASSET_HANDLE HSound;
+typedef ASSET_HANDLE HModel;
+
+class ICanvas2D {
+public:
+    virtual ~ICanvas2D() = default;
+
+    virtual void RenderText(int x, int y, int w, int h, float color[3], std::string strText) = 0;
+    virtual void DrawRect(int x, int y, int w, int h, float color[3]) = 0;
+    virtual void DrawShape(Vector2* points, int pointCount, float color[3]) = 0;
+    virtual void FillShape(Vector2* points, int pointCount, float color[3]) = 0;
+    virtual void FillRect(int x, int y, int w, int h, float color[3]) = 0;
+    virtual void DrawImage(float x, float y, float w, float h, HBitmap hBmp) = 0;
+};
 
 class IGraphicsEngine {
 public:
     static IGraphicsEngine* Create(HWindow hWindow, int nWidth, int nHeight);
 
     // == loading
-    virtual HShaderProgram LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, CClientAssetManager* pAssetManager) = 0;
-    virtual void LoadTextureDataToGPU(TextureAsset_t& textureAsset) = 0;
+    virtual HShaderProgram LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, std::vector<uint8_t> vecVsBytecode, std::vector<uint8_t> vecPsBytecode) = 0;
+    virtual HBitmap LoadBitmapImage(unsigned char* pImageData, int uWidth, int uHeight) = 0;
+    virtual HTexture LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) = 0;
 
     // == buffer management
     virtual BufferHandle_t CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) = 0;
@@ -80,7 +101,7 @@ public:
     
     virtual void BindShaderProgram(HShaderProgram hProgram) = 0;
     virtual void BindSampler(uint32_t uSlot, HSampler hSampler) = 0;
-    virtual void BindTexture(uint32_t uSlot, TextureAsset_t& textureAsset) = 0;
+    virtual void BindTexture(uint32_t uSlot, HTexture hTexture) = 0;
 
     virtual void SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, UINT uStride, UINT uOffset) = 0;
     virtual void SetIndexBuffer(BufferHandle_t& indexBuffer) = 0;

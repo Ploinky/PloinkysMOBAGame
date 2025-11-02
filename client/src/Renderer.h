@@ -54,8 +54,8 @@ public:
     void UpdateCameraMatrix();
 
     Camera m_camera;
-    DirectX::XMFLOAT4X4 m_projMatrix;
-    DirectX::XMFLOAT4X4 cameraMatrix;
+    mat m_projMatrix;
+    mat cameraMatrix;
 
     void RenderText(int x, int y, int w, int h, float color[3], std::string text);
     void RenderText(int x, int y, int w, int h, std::string text);

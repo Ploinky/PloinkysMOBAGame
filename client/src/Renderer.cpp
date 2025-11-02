@@ -53,9 +53,17 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetMan
 
 void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
     // ------------ NEW ------------
-	m_hGlbShaderProgram = m_pGraphicsEngine->LoadShaderProgram("glb", EVertexFormat::SKINNED_MESH, pAssetManager);
-	m_hParticleShaderProgram = m_pGraphicsEngine->LoadShaderProgram("particle", EVertexFormat::PARTICLE, pAssetManager);
-	m_hFlatUnlitShaderProgram = m_pGraphicsEngine->LoadShaderProgram("flat_unlit", EVertexFormat::STATIC_MESH, pAssetManager);
+    std::vector<uint8_t> vecVsBytecode = pAssetManager->LoadFile("Shaders/glb.vert.cso");
+    std::vector<uint8_t> vecPsBytecode = pAssetManager->LoadFile("Shaders/glb.pixel.cso");
+	m_hGlbShaderProgram = m_pGraphicsEngine->LoadShaderProgram("glb", EVertexFormat::SKINNED_MESH, vecVsBytecode, vecPsBytecode);
+
+    vecVsBytecode = pAssetManager->LoadFile("Shaders/particle.vert.cso");
+    vecPsBytecode = pAssetManager->LoadFile("Shaders/particle.pixel.cso");
+	m_hParticleShaderProgram = m_pGraphicsEngine->LoadShaderProgram("particle", EVertexFormat::PARTICLE, vecVsBytecode, vecPsBytecode);
+
+    vecVsBytecode = pAssetManager->LoadFile("Shaders/flat_unlit.vert.cso");
+    vecPsBytecode = pAssetManager->LoadFile("Shaders/flat_unlit.pixel.cso");
+	m_hFlatUnlitShaderProgram = m_pGraphicsEngine->LoadShaderProgram("flat_unlit", EVertexFormat::STATIC_MESH, vecVsBytecode, vecPsBytecode);
 
     // ------------ TEXTURES ------------
 	// TODO do we need this somewhere lelse
