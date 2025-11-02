@@ -1,10 +1,9 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include <string>
 #include <vector>
 #include <map>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 
 class BonePosition {
 public:

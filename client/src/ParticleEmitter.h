@@ -3,7 +3,7 @@
 #include <string>
 #include "common/pmg_physics.h"
 #include "Particle.h"
-#include "renderer.h"
+#include "Renderer.h"
 #include <vector>
 #include <list>
 

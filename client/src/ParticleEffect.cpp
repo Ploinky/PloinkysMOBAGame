@@ -1,8 +1,7 @@
 #include "ParticleEffect.h"
-#include "core/graphics/d3d11-graphics-engine.h"
 #include <math.h>
 #include "Camera.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "ParticleEmitter.h"
 
 ParticleEffect::ParticleEffect() {

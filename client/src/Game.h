@@ -8,7 +8,7 @@
 #include "common/pmg_physics.h"
 #include "ClientNetworkManager.h"
 #include "GameObject.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "Renderer.h"
 #include <Model.h>
 #include "client-asset-manager.h"

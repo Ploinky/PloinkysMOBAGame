@@ -3,7 +3,6 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <Windows.h>
 #include <vector>
 
 class PMGSettings {

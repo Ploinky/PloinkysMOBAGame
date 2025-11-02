@@ -1,8 +1,7 @@
 #pragma once
 
-#include <Common/PMG_Common.h>
-#include <Common/PloinkysJSONLibrary.h>
-#include <DirectXMath.h>
+#include <common/PMG_Common.h>
+#include <common/PloinkysJSONLibrary.h>
 #include <ModelNode.h>
 #include <Material.h>
 #include <Animation.h>

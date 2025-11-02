@@ -1,7 +1,5 @@
 #include <LoadingState.h>
 
-#include <Windows.h>
-
 CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int iHeight, std::string strServerAddress
 ) : IClientState(pStateHandler, iWidth, iHeight) {
 	this->m_strServerAddress = strServerAddress;

@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <limits>
 #include <string>
-#include <DirectXMath.h>
 #include <client-asset-manager.h>
 #include "canvas-2d.h"
 

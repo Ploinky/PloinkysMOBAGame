@@ -1,5 +1,5 @@
 #include "Game.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "Renderer.h"
 #include "Camera.h"
 #include "ParticleEffect.h"

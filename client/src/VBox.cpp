@@ -1,6 +1,6 @@
 #include "Gui.h"
 #include "Renderer.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 
 void VBox::LayoutChildren() {
 	if (m_children.empty()) {

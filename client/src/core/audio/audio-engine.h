@@ -1,9 +1,7 @@
 #pragma once
 
-#include <xaudio2.h>
-#include <x3daudio.h>
 #include "client-asset-manager.h"
-#include "common/pmg_common.h"
+#include "common/PMG_Common.h"
 #include <vector>
 
 // TODO copypasta?

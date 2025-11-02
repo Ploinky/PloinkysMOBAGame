@@ -1,15 +1,12 @@
 #pragma once
 
-#include <d3d11.h>
-#include <d2d1_1.h>
-#include <DirectXMath.h>
 #include <vector>
 #include <string>
 #include "common/pmg_physics.h"
 #include <map>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <Model.h>
-#include <Common/PloinkysJSONLibrary.h>
+#include <common/PloinkysJSONLibrary.h>
 #include <GLBFileLoader.h>
 #include <Camera.h>
 #include <Mesh.h>
@@ -17,8 +14,7 @@
 #include "core/graphics/graphics-engine.h"
 #include "Animation.h"
 #include "GameObject.h"
-#include "wincodec.h"
-#include <Common/navigation.h>
+#include <common/navigation.h>
 #include "client-asset-manager.h"
 #include "core/rendering/render-command.h"
 #include "common/game/game-state.h"

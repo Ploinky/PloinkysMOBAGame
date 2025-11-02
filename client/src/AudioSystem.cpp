@@ -1,9 +1,8 @@
 #include "AudioSystem.h"
 
-#include <combaseapi.h>
 #include <string>
 #include "Settings.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "game/components/components.h"
 
 AudioSystem::AudioSystem(CAudioEngine* pEngine, CClientAssetManager* pAssetManager) {

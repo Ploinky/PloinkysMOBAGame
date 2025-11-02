@@ -2,7 +2,7 @@
 #include "steam/isteamutils.h"
 #include "steam/isteamuser.h"
 #include "steam/isteamutils.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "Game.h"
 
 MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {

@@ -1,6 +1,5 @@
 #include "client-asset-manager.h"
 
-#include "wincodec.h"
 #include "common/PMG_Common.h"
 #include "Model.h"
 

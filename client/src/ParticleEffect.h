@@ -6,7 +6,7 @@
 #include "Renderer.h"
 #include "GameObject.h"
 #include <GameObject.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 
 class ParticleEmitter;
 

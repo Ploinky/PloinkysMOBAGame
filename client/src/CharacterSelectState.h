@@ -5,7 +5,7 @@
 #include "ClientNetworkManager.h"
 #include <string>
 #include "Gui.h"
-#include <Common/NewPackets.h>
+#include <common/NewPackets.h>
 #include <Lobby.h>
 
 class CCharacterSelectState : public IClientState {

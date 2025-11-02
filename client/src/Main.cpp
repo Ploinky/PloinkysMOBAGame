@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <Client.h>
-#include <Common/PMG_Common.h>
-#ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #include <Windows.h>
-#endif
+#include <common/PMG_Common.h>
+// #ifndef WIN32_LEAN_AND_MEAN
+//     #define WIN32_LEAN_AND_MEAN
+//     #include <Windows.h>
+// #endif
 #include <string>
 #include <locale>
 #include <codecvt>

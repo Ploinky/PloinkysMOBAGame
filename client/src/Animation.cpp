@@ -1,6 +1,6 @@
 #include "Animation.h"
 #include <fstream>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "Armature.h"
 
 std::map<int, BonePosition> Animation::GetBonePositions(float time, bool bLoop) {

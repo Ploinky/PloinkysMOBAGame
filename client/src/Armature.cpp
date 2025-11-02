@@ -1,6 +1,6 @@
 #include "Armature.h"
 #include <fstream>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <common/pmg_physics.h>
 
 DirectX::XMMATRIX BonePosition::ToMatrix() const {

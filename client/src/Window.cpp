@@ -1,8 +1,7 @@
 #include "Window.h"
-#include <windowsx.h>
 #include <iostream>
 #include <string>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "../Resources/resource.h"
 #include "Settings.h"
 

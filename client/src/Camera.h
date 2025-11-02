@@ -1,7 +1,6 @@
 #pragma once
 
-#include <DirectXMath.h>
-#include <Common/pmg_physics.h>
+#include <common/pmg_physics.h>
 
 class Camera {
     public:

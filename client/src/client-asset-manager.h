@@ -1,13 +1,9 @@
 #pragma once
 
-#include "Common/AssetManager.h"
+#include "common/AssetManager.h"
 #include <unordered_map>
 
 #include <limits>
-#include <d2d1.h>
-#include <d3d11.h>
-#include "wincodec.h"
-#include "xaudio2.h"
 
 #include "GLBFileLoader.h"
 

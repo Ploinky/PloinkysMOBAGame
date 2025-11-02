@@ -1,6 +1,6 @@
 #include "ServerBrowser.h"
 #include "Renderer.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };

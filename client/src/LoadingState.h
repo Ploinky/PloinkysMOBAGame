@@ -1,7 +1,7 @@
 #pragma once
 
 #include <IClientState.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <memory>
 #include <thread>
 #include <string>

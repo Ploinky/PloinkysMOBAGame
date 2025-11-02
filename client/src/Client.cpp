@@ -1,12 +1,11 @@
 #include "Client.h"
 #include <iostream>
 #include "Window.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include "Renderer.h"
-#include <directxmath.h>
 #include "Camera.h"
 #include <sstream>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <locale>
 #include "Settings.h"
 #include "AudioSystem.h"

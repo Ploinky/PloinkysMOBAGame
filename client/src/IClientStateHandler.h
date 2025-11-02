@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Renderer.h>
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <Player.h>
 #include <steam/steam_api.h>
 

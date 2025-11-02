@@ -6,8 +6,8 @@
 #include <map>
 #include "AudioSystem.h"
 #include "Settings.h"
-#include "Common/pmg_physics.h"
-#include <Common/PMG_Common.h>
+#include "common/pmg_physics.h"
+#include <common/PMG_Common.h>
 #include "IClientStateHandler.h"
 #include <LoadingState.h>
 #include <CharacterSelectState.h>

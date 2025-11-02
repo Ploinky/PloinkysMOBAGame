@@ -1,6 +1,5 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include "Model.h"
 #include "core/graphics/graphics-engine.h"
 #include "client-asset-manager.h"

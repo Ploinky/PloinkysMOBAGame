@@ -1,5 +1,5 @@
 #include "Settings.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <ranges>
 
 int Settings::GetInt(const char* setting) {

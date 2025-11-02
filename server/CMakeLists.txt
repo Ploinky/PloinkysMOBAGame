@@ -67,7 +67,7 @@ target_link_libraries(server PUBLIC common steam_api64)
 add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:server>/steam_api64.dll)
 add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
 
-pak_folder(Maps/Map1 Maps/Map1.pak)
+pak_folder(Maps/map1 Maps/Map1.pak)
 
 add_custom_target(server_assets
     DEPENDS ${PAK_FILES}

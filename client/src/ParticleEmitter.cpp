@@ -1,7 +1,6 @@
 #include "ParticleEmitter.h"
-#include "core/graphics/d3d11-graphics-engine.h"
 #include "Camera.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 #include <algorithm>
 
 ParticleEmitter::ParticleEmitter(std::string texture_name) : texture_name_(texture_name) {

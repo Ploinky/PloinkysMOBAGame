@@ -53,8 +53,6 @@ add_executable(client WIN32
 
     src/core/audio/audio-engine.cpp
 
-    src/core/graphics/d3d11-graphics-engine.cpp
-
     src/game/systems/animation-system.cpp
     src/game/systems/particle-system.cpp
 
@@ -64,6 +62,16 @@ add_executable(client WIN32
     Resources/HoverAlly.cur
     Resources/icon1.ico
     Resources/Resource.rc
+)
+
+if(WIN32)
+    target_sources(client PRIVATE
+        src/core/graphics/d3d11-graphics-engine.cpp
+    )
+endif()
+
+target_sources(client PRIVATE
+    src/core/graphics/opengl-graphics-engine.cpp
 )
 
 target_compile_definitions(client PUBLIC NOMINMAX)

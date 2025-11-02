@@ -1,5 +1,5 @@
 #include "SettingsMenu.h"
-#include <Common/PMG_Common.h>
+#include <common/PMG_Common.h>
 
 SettingsMenu::SettingsMenu(IClientStateHandler* handler, int width, int height, Settings* settings)
 	: IClientState(handler, width, height), settings_(settings) {
