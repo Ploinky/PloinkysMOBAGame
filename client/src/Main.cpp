@@ -1,32 +1,10 @@
 #include <stdio.h>
 #include <Client.h>
 #include <common/PMG_Common.h>
-// #ifndef WIN32_LEAN_AND_MEAN
-//     #define WIN32_LEAN_AND_MEAN
-//     #include <Windows.h>
-// #endif
 #include <string>
 #include <locale>
 #include <codecvt>
 #include <steam/steam_api.h>
-
-std::string FromWStringToString(std::wstring stringToConvert) {
-    //setup converter
-    using convert_type = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_type, wchar_t> converter;
-
-    //use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
-    return converter.to_bytes(stringToConvert);
-}
-
-
-std::string GetDir() {
-	char buffer[MAX_PATH];
-	GetModuleFileNameA(NULL, buffer, MAX_PATH);
-	std::string::size_type pos = std::string(buffer).find_last_of("//");
-	return std::string(buffer).substr(0, pos);
-}
-
 #include "Window.h"
 #include "Renderer.h"
 #include "GameObject.h"
@@ -35,7 +13,7 @@ std::string GetDir() {
 #include "ParticleEffect.h"
 
 // Main entry point into the application
-int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow) {
+int main(int argc, char* argv[]) {
 #ifndef _DEBUG
     if (SteamAPI_RestartAppIfNecessary(1756910)) {
         MessageBoxA(nullptr, "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", "Error", MB_ICONERROR);
@@ -43,8 +21,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     }
 #endif
 
-     if (!SteamAPI_Init())
-    {
+    if (!SteamAPI_Init()) {
         MessageBoxA(nullptr, "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", "Error", MB_ICONERROR);
         return 1;
     }
@@ -60,21 +37,19 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     SteamNetworkingSockets()->InitAuthentication();
 
     // Attempt to read command line arguments
-    int argc;
-    wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
     bool showConsole = false;
     std::string connectString;
 
     for (int i = 0; i < argc; i++) {
-        if (lstrcmpW(argv[i], L"-console") == 0) {
+        if (strcmp(argv[i], "-console") == 0) {
             showConsole = true;
         }
-        else if (lstrcmpW(argv[i], L"-connect") == 0) {
+        else if (strcmp(argv[i], "-connect") == 0) {
             if (argc < i + 1) {
                 continue;
             }
 
-            connectString.append(FromWStringToString(std::wstring(argv[i + 1])).c_str());
+            connectString.append(argv[i + 1]);
         }
     }
 

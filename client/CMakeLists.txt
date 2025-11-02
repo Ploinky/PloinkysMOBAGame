@@ -15,7 +15,7 @@ function(pak_folder)
     set(PAK_FILES ${PAK_FILES} PARENT_SCOPE)
 endfunction()
 
-add_executable(client WIN32
+add_executable(client
     src/Animation.cpp
     src/Armature.cpp
     src/AudioSystem.cpp
