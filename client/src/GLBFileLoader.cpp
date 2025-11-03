@@ -1,5 +1,23 @@
 #include <GLBFileLoader.h>
 
+#define CGLTF_IMPLEMENTATION 
+#include "vendor/cgltf.h"
+
+/*
+GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* assetManager) {
+	std::vector<uint8_t> glbFileData = assetManager->LoadFile(modelName);
+
+
+	cgltf_options options = {0};
+	cgltf_data* data = NULL;
+	cgltf_result result = cgltf_parse(&options, glbFileData.data(), glbFileData.size(), &data);
+	if (result == cgltf_result_success)
+	{
+		cgltf_free(data);
+	}
+}
+*/
+
 GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManager* assetManager) {
 	std::vector<uint8_t> glbFileData = assetManager->LoadFile(modelName);
 	if(glbFileData.size() < 20) {
@@ -111,7 +129,7 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 			const PJL::JSONArray& glbChannels = glbAnimation.Get("channels").AsArray();
 
 			std::vector<std::vector<float>> samplerInputs;
-			std::vector<std::vector<DirectX::XMFLOAT4>> samplerOutputs;
+			std::vector<std::vector<Vector4>> samplerOutputs;
 			const PJL::JSONArray glbSamplers = glbAnimation.Get("samplers").AsArray();
 			for (int samplerIndex = 0; samplerIndex < glbSamplers.Size(); samplerIndex++) {
 				const PJL::JSONObject& glbSampler = glbSamplers.Get(samplerIndex).AsObject();
@@ -119,7 +137,7 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 				uint32_t outputIndex = glbSampler.Get("output").AsInt();
 					
 				std::vector<float> inputTimes;
-				std::vector<DirectX::XMFLOAT4> outputValues;
+				std::vector<Vector4> outputValues;
 					
 				LoadAttributeData(glbHeader, binaryData, inputIndex, inputTimes);
 				LoadAttributeData(glbHeader, binaryData, outputIndex, outputValues);
@@ -143,7 +161,7 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 
 				for (size_t i = 0; i < inputTimes.size(); ++i) {
 					float time = inputTimes[i];
-					const DirectX::XMFLOAT4& value = outputValues[i];
+					const Vector4& value = outputValues[i];
 						
 					if (path == "translation") {
 						channel->Path = eGlbAnimationChannel_Translation;
@@ -237,11 +255,11 @@ GLBModelMesh* GLBFileLoader::LoadMeshFromGLBFile(int meshIndex, const PJL::JSONO
 	const auto& glbPrimitives = glbMesh.AsObject().Get("primitives").AsArray();
 
 	for(int j = 0; j < glbPrimitives.Size(); j++) {
-		std::vector<DirectX::XMFLOAT3> positions;
-		std::vector<DirectX::XMFLOAT3> normals;
-		std::vector<DirectX::XMFLOAT2> texCoords;
+		std::vector<Vector3> positions;
+		std::vector<Vector3> normals;
+		std::vector<Vector2> texCoords;
 		std::vector<UBYTE4> joints;
-		std::vector<DirectX::XMFLOAT4> weights {0};
+		std::vector<Vector4> weights {0};
 
 		const auto& glbPrimitive = glbPrimitives.Get(j).AsObject();
 
@@ -361,19 +379,19 @@ void GLBFileLoader::LoadAttributeData(const PJL::JSONObject& gltfJson, const std
 	if (componentType == 5126) {
 		if (type == "VEC4") {
 			for (uint32_t i = 0; i < count; ++i) {
-				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(DirectX::XMFLOAT4)), sizeof(DirectX::XMFLOAT4));
+				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(Vector4)), sizeof(Vector4));
 			}
 		} else if (type == "VEC3") {
 			for (uint32_t i = 0; i < count; ++i) {
-				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(DirectX::XMFLOAT3)), sizeof(DirectX::XMFLOAT3));
+				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(Vector3)), sizeof(Vector3));
 			}
 		} else if (type == "VEC2") {
 			for (uint32_t i = 0; i < count; ++i) {
-				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(DirectX::XMFLOAT2)), sizeof(DirectX::XMFLOAT2));
+				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(Vector2)), sizeof(Vector2));
 			}
 		} else if (type == "MAT4") {
 			for (uint32_t i = 0; i < count; ++i) {
-				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(DirectX::XMMATRIX)), sizeof(DirectX::XMMATRIX));
+				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(mat)), sizeof(mat));
 			}
 		} else if (type == "SCALAR") {
 			for (uint32_t i = 0; i < count; ++i) {
@@ -387,7 +405,7 @@ void GLBFileLoader::LoadAttributeData(const PJL::JSONObject& gltfJson, const std
 			}
 		} else if (type == "VEC3") {
 			for (uint32_t i = 0; i < count; ++i) {
-				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(DirectX::XMFLOAT3)), sizeof(DirectX::XMFLOAT3));
+				std::memcpy(&attributeData[i], data + i * (byteStride ? byteStride : sizeof(Vector3)), sizeof(Vector3));
 			}
 		}
 	}

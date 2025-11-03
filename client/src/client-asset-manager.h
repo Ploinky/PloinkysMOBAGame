@@ -18,8 +18,8 @@ typedef struct {
 
 class CClientAssetManager : public AssetManager {
 public:
-    CClientAssetManager(IGraphicsEngine* pGraphicsEngine);
-    
+    CClientAssetManager(IGraphicsEngine* pGraphicsEngine, IAudioEngine* pAudioEngine);
+
     void Cleanup();
 
     HBitmap GetBitmapImage(std::string strBitmap);

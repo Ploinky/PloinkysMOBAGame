@@ -4,12 +4,13 @@
 #include "Model.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "vendor/stb_image.h"
 
 #define CLEANUP(res) if(res != nullptr) { res->Release(); res = nullptr;}
 
-CClientAssetManager::CClientAssetManager(IGraphicsEngine* pGraphicsEngine) {
+CClientAssetManager::CClientAssetManager(IGraphicsEngine* pGraphicsEngine, IAudioEngine* pAudioEngine) {
     m_pGraphicsEngine = pGraphicsEngine;
+    m_pAudioEngine = pAudioEngine;
 }
 
 void CClientAssetManager::Cleanup() {
@@ -141,7 +142,7 @@ HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {
             for(const auto& keyFrame : channel->KeyFrames) {
 				AnimationKeyFrame kf = AnimationKeyFrame();
                 BonePosition bn = BonePosition();
-                bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+                bn.rotation = keyFrame.Rotation;
                 bn.translation = keyFrame.Translation;
 				kf.Position = bn;
 				kf.Time = keyFrame.Time;

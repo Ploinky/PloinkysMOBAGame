@@ -47,6 +47,7 @@ typedef struct ParticleShaderVertexInstance_t {
 
 class CRenderer {
 public:
+    CRenderer(IGraphicsEngine* pGraphicsEngine);
     ~CRenderer();
     void Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_);
     void LoadResources(CClientAssetManager* pAssetManager);

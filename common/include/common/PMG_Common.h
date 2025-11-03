@@ -23,5 +23,6 @@
 #include "vector3.h"
 #include "vector4.h"
 #include "AssetManager.h"
+#include "pmg_types.h"
 
 #endif

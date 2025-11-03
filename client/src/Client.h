@@ -50,7 +50,7 @@ public:
 	virtual CRenderer* GetRenderer() override;
 	virtual CClientAssetManager* GetAssetManager() override;
 
-    virtual CAudioEngine* GetAudioEngine() override;
+    virtual IAudioEngine* GetAudioEngine() override;
 
 
 private:
@@ -74,8 +74,9 @@ private:
     void HandleSettingChanged(std::string setting);
 
     Settings settings_;
-    CAudioEngine m_audioEngine;
-    CClientAssetManager assetManager_;
+    IAudioEngine* m_pAudioEngine;
+    IGraphicsEngine* m_pGraphicsEngine;
+    CClientAssetManager* m_pAssetManager;
 
     // Mouse input
 

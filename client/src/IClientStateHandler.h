@@ -13,7 +13,6 @@ enum class CursorId {
     ATTACK_MOVE
 };
 class IClientState;
-class CAudioEngine;
 class ClientNetworkManager;
 
 class IClientStateHandler {
@@ -34,5 +33,5 @@ public:
 	virtual CRenderer* GetRenderer() = 0;
 	virtual CClientAssetManager* GetAssetManager() = 0;
 
-    virtual CAudioEngine* GetAudioEngine() = 0;
+    virtual IAudioEngine* GetAudioEngine() = 0;
 };

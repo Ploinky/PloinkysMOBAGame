@@ -37,7 +37,7 @@ Client::Client() {
 }
 
 Client::~Client() {
-    assetManager_.Cleanup();
+    m_pAssetManager->Cleanup();
 
     if (renderer != nullptr) {
         delete renderer;
@@ -89,8 +89,9 @@ void Client::Run(std::string connectString_) {
         if (currentState_) currentState_->WindowResized(window->width_, window->height_);
     };
 
-    renderer = new CRenderer();
-	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, &assetManager_, window->width_, window->height_);
+    IGraphicsEngine* pGraphicsEngine = IGraphicsEngine::Create(window->GetWindowHandle(), window->width_, window->height_);
+    renderer = new CRenderer(pGraphicsEngine);
+	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, m_pAssetManager, window->width_, window->height_);
 
     window->e_charTyped = [this](uint32_t ch) { if(currentState_) currentState_->CharTyped(ch); };
     window->e_keyPressed = [this](uint32_t key) { if (currentState_) currentState_->KeyPressed(key); };
@@ -101,7 +102,7 @@ void Client::Run(std::string connectString_) {
 
 	currentState_ = new CLoadingState(this, window->width_, window->height_, connectString_);
         
-    m_audioEngine.Initialize(&assetManager_);
+    m_pAudioEngine->Initialize();
 
     // Main game loop
     // Keep running while both the client wants to keep runnning and the window has not been closed
@@ -130,7 +131,7 @@ void Client::Run(std::string connectString_) {
         currentState_->Render(renderer);
         FinishRender();
 
-        m_audioEngine.Update();
+        m_pAudioEngine->Update();
 
         SteamAPI_RunCallbacks();
 
@@ -159,7 +160,7 @@ void Client::FinishRender() {
 
 void Client::HandleSettingChanged(std::string setting) {
     if (setting == PMGSettings::MASTER_VOLUME) {
-        m_audioEngine.SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
+        m_pAudioEngine->SetMasterVolume(settings_.GetDouble(PMGSettings::MASTER_VOLUME));
     }
     else if (setting == PMGSettings::WINDOW_MODE) {
         auto allModes = settings_.GetAllVideoModesAndValues();
@@ -239,9 +240,9 @@ CRenderer* Client::GetRenderer() {
 }
 	
 CClientAssetManager* Client::GetAssetManager() {
-	return &assetManager_;
+	return m_pAssetManager;
 }
 
-CAudioEngine* Client::GetAudioEngine() {
-    return &m_audioEngine;
+IAudioEngine* Client::GetAudioEngine() {
+    return m_pAudioEngine;
 }

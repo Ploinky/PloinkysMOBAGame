@@ -2,6 +2,7 @@
 #define _PMG_TYPES_H_
 
 #include <stdint.h>
+#include <limits>
 
 class UnitPrefab {
 public:
@@ -20,6 +21,9 @@ enum class Team : uint8_t {
 };
 
 typedef uint64_t UnitId;
+
+typedef uint64_t ASSET_HANDLE;
+constexpr ASSET_HANDLE INVALID_ASSET_HANDLE = std::numeric_limits<uint64_t>::max();
 
 #define UNIT_ID_NONE UINT64_MAX
 

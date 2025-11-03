@@ -3,9 +3,7 @@
 #include "client-asset-manager.h"
 #include "common/PMG_Common.h"
 
-bool CAudioEngineXAudio::Initialize(CClientAssetManager* pAssetManager) {
-    m_pAssetManager = pAssetManager;
-
+bool CAudioEngineXAudio::Initialize() {
 	HRESULT hr;
 
 	pXAudio2 = nullptr;
@@ -79,7 +77,13 @@ void CAudioEngineXAudio::SetMasterVolume(float fValue) {
     pMasterVoice->SetVolume(fValue);
 }
 
-HVoice CAudioEngineXAudio::CreateVoice(SoundAsset_t sound) {
+HVoice CAudioEngineXAudio::CreateVoice(HSound hSound) {
+    if(hSound == INVALID_ASSET_HANDLE || hSound > m_vecSounds.size()) {
+        return INVALID_VOICE_HANDLE;
+    }
+
+    SoundAsset_t sound = m_vecSounds.at(hSound);
+
     IXAudio2SourceVoice* pSourceVoice = nullptr;
 
     XAUDIO2_SEND_DESCRIPTOR send{ 0, pMasterVoice };

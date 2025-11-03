@@ -10,7 +10,7 @@
 
 class AudioSystem : public IGameSystem{
 public:
-	AudioSystem(CAudioEngine* pEngine, CClientAssetManager* pAssetManager);
+	AudioSystem(IAudioEngine* pEngine, CClientAssetManager* pAssetManager);
 	virtual void Update(CGameState* pGameState, float fDelta) override;
 
 	void PlaySoundOnUnit(HSound hSound, UnitId idUnit);
@@ -21,5 +21,5 @@ public:
 
 private:
 	CClientAssetManager* m_pAssetManager;
-	CAudioEngine* m_pEngine;
+	IAudioEngine* m_pEngine;
 };

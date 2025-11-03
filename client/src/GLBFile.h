@@ -6,6 +6,7 @@
 #include <map>
 #include <stdint.h>
 #include "Armature.h"
+#include "common/PMG_Common.h"
 
 enum GLBANIMATIONCHANNEL {
 	eGlbAnimationChannel_None,
@@ -45,19 +46,19 @@ public:
 };
 
 struct GLBVertexType {
-	DirectX::XMFLOAT3 Position;
-	DirectX::XMFLOAT3 Normals;
-	DirectX::XMFLOAT2 TextureCoordinates;
+	Vector3 Position;
+	Vector3 Normals;
+	Vector2 TextureCoordinates;
 	UBYTE4 Joints;
-	DirectX::XMFLOAT4 Weights;
+	Vector4 Weights;
 };
 
 class GLBKeyFrame {
 public:
 	float Time;
-	DirectX::XMFLOAT3 Translation;
-	DirectX::XMFLOAT4 Rotation;
-	DirectX::XMFLOAT3 Scale;
+	Vector3 Translation;
+	Quaternion Rotation;
+	Vector3 Scale;
 };
 
 class GLBAnimationChannel {
@@ -142,7 +143,7 @@ public:
 					bp.translation = kfbp.Translation;
 					break;
 				case eGlbAnimationChannel_Rotation:
-					bp.rotation = DirectX::XMLoadFloat4(&kfbp.Rotation);
+					bp.rotation = kfbp.Rotation;
 					break;
 				case eGlbAnimationChannel_Scale:
 				default:
@@ -160,7 +161,7 @@ public:
 			start->Translation.y + (end->Translation.y - start->Translation.y) * factor,
 			start->Translation.z + (end->Translation.z - start->Translation.z) * factor
 		};
-		DirectX::XMStoreFloat4(&result.Rotation, DirectX::XMQuaternionSlerp(DirectX::XMLoadFloat4(&start->Rotation), DirectX::XMLoadFloat4(&end->Rotation), factor));
+		result.Rotation = Slerp(start->Rotation, end->Rotation, factor);
 		return result;
 	}
 };
@@ -168,7 +169,7 @@ public:
 class GLBModelSkin {
 public:
 	std::string Name;
-	std::vector<DirectX::XMMATRIX> InverseBindMatrices;
+	std::vector<mat> InverseBindMatrices;
 	std::vector<int> Joints;
 };
 
@@ -184,9 +185,9 @@ public:
 	int NodeIndex;
 	int Mesh;
 	int Skin;
-	DirectX::XMFLOAT4 Rotation = DirectX::XMFLOAT4(0, 0, 0, 1);
-	DirectX::XMFLOAT3 Scale = DirectX::XMFLOAT3(1, 1, 1);
-	DirectX::XMFLOAT3 Translation = DirectX::XMFLOAT3(0, 0, 0);
+	Vector4 Rotation = Vector4(0, 0, 0, 1);
+	Vector3 Scale = Vector3(1, 1, 1);
+	Vector3 Translation = Vector3(0, 0, 0);
 	std::string Name;
 	std::vector<int> Children;
 };

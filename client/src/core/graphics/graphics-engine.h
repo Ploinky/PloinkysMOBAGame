@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <limits>
 #include <string>
 #include <common/PMG_Common.h>
 
@@ -48,11 +47,8 @@ typedef struct {
 
 class CCLientAssetManager;
 
-typedef uint64_t ASSET_HANDLE;
-constexpr ASSET_HANDLE INVALID_ASSET_HANDLE = std::numeric_limits<uint64_t>::max();
 typedef ASSET_HANDLE HBitmap;
 typedef ASSET_HANDLE HTexture;
-typedef ASSET_HANDLE HSound;
 typedef ASSET_HANDLE HModel;
 
 class ICanvas2D {

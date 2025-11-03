@@ -10,13 +10,13 @@ typedef struct {
 
 class CAudioEngineXAudio : public IAudioEngine {
 public:
-	virtual bool Initialize(CClientAssetManager* pAssetManager) override;
+	virtual bool Initialize() override;
 
     virtual void Update() override;
 
     virtual void SetMasterVolume(float fValue) override;
 
-    virtual HVoice CreateVoice(SoundAsset_t sound) override;
+    virtual HVoice CreateVoice(HSound sound) override;
 
 	virtual HSound LoadSound(std::vector<uint8_t> vecSoundData) override;
 
