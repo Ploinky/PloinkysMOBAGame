@@ -147,10 +147,10 @@ typedef struct mat {
     static mat Translation(float x, float y, float z) {
         return {
             {
-            {1, 0, 0, x},
-            {0, 1, 0, y},
-            {0, 0, 1, z},
-            {0, 0, 0, 1}
+            {1, 0, 0, 0},
+            {0, 1, 0, 0},
+            {0, 0, 1, 0},
+            {x, y, z, 1}
             }
         };
     }
@@ -371,29 +371,42 @@ typedef struct mat {
         };
     }
 } mat_t;
-
-inline mat PMathMatRollPitchYaw(float fRoll, float fPitch, float fYaw) {
-    float a = fYaw;
-    float b = fPitch;
-    float y = fRoll;
-
+inline mat PMathMatRotationX(float angle) {
+    float c = cosf(angle);
+    float s = sinf(angle);
     mat m = mat::Identity();
-
-    m.m[0][0] = cos(a) * cos(b);
-    m.m[0][1] = cos(a) * sin(b) * sin(y) - sin(a) * cos(y);
-    m.m[0][2] = cos(a) * sin(b) * cos(y) + sin(a) * sin(y);
-
-    m.m[1][0] = sin(a) * cos(b);
-    m.m[1][1] = sin(a) * sin(b) * sin(y) + cos(a) * cos(y);
-    m.m[1][2] = sin(a) * sin(b) * cos(y) - cos(a) * sin(y);
-
-    m.m[2][0] = -sin(b);
-    m.m[2][1] = cos(b) * sin(y);
-    m.m[2][2] = cos(b) * cos(y);
-
+    m.m[1][1] = c;  m.m[1][2] = s;
+    m.m[2][1] = -s; m.m[2][2] = c;
     return m;
 }
 
+inline mat PMathMatRotationY(float angle) {
+    float c = cosf(angle);
+    float s = sinf(angle);
+    mat m = mat::Identity();
+    m.m[0][0] = c;  m.m[0][2] = -s;
+    m.m[2][0] = s;  m.m[2][2] = c;
+    return m;
+}
+
+inline mat PMathMatRotationZ(float angle) {
+    float c = cosf(angle);
+    float s = sinf(angle);
+    mat m = mat::Identity();
+    m.m[0][0] = c;  m.m[0][1] = s;
+    m.m[1][0] = -s; m.m[1][1] = c;
+    return m;
+}
+
+// Roll (Z) → Pitch (X) → Yaw (Y)
+inline mat PMathMatRollPitchYaw(float roll, float pitch, float yaw) {
+    mat Rz = PMathMatRotationZ(roll);
+    mat Rx = PMathMatRotationX(pitch);
+    mat Ry = PMathMatRotationY(yaw);
+
+    // Row-vector multiplication order: v * (Rz * Rx * Ry)
+    return Rz * Rx * Ry;
+}
 inline mat PMathMatRotationQuaternion(const Quaternion& q) {
     mat m = mat::Identity();
 
@@ -452,6 +465,25 @@ inline mat PMathMatPerspectiveLH(float aspect, float fov, float nearZ, float far
             {0, 0, (-nearZ * farZ) / (farZ - nearZ), 0}
         },
     };
+}
+
+inline mat PMathMatPerspectiveRH(float fov, float aspect, float nearZ, float farZ) {
+    float yScale = 1.0f / tanf(fov / 2.0f);
+    float xScale = yScale / aspect;
+
+    mat m {};
+
+    // scale
+    m.m[0][0] = xScale;
+    m.m[1][1] = yScale;
+
+    // z mapping
+    m.m[2][2] = farZ / (nearZ - farZ);         // note the negative denominator
+    m.m[2][3] = -1.0f;                         // opposite sign vs LH
+    m.m[3][2] = (nearZ * farZ) / (nearZ - farZ);  // also flips compared to LH
+    m.m[3][3] = 0.0f;
+
+    return m;
 }
 
 inline mat PMathMatAffineTransform(const Vector3& scaling, const Vector3& rotationOrigin, const Quaternion& rotationQuat, const Vector3& translation) {

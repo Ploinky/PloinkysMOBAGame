@@ -849,7 +849,7 @@ HTexture CD3D11GraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidth
 
 void CD3D11GraphicsEngine::BindTexture(uint32_t uSlot, HTexture hTexture) {
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pTex = m_vecTextures.at(hTexture);
-    m_pContext->PSSetShaderResources(uSlot, 1, &pTex);
+    m_pContext->PSSetShaderResources(uSlot, 1, pTex.GetAddressOf());
 }
 
 void CD3D11GraphicsEngine::SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, UINT uStride, UINT uOffset) {

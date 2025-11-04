@@ -396,7 +396,6 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 				
 			GLBAnimation animation = GLBAnimation();
 			animation.Name = glbAnimation.Get("name").AsString();
-			model->Animations.emplace(animation.Name, animation);
 
 			const PJL::JSONArray& glbChannels = glbAnimation.Get("channels").AsArray();
 
@@ -445,10 +444,13 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 						channel.Path = eGlbAnimationChannel_Scale;
 						channel.KeyFrames.push_back(GLBKeyFrame{time, {}, {}, {value.x, value.y, value.z}});
 					}
+					animation.Duration = std::max(animation.Duration, channel.KeyFrames[i].Time);
 				}
 
  				animation.Channels.push_back(channel);
 			}
+			
+			model->Animations.emplace(animation.Name, animation);
 		}
 	}
 

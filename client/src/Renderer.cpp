@@ -5,6 +5,7 @@
 #include "ParticleEmitter.h"
 #include "ParticleEffect.h"
 #include "game/components/components.h"
+#include <DirectXMath.h>
 
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {
@@ -28,10 +29,9 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetMan
 
     float hp = static_cast<float>(M_PI / 180.0);
 
-    m_projMatrix = PMathMatPerspectiveLH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
-
+    m_projMatrix = PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
     // Set initial constant matrix values
-    cameraMatrix = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z).inverse().Transpose();
+    cameraMatrix = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z).Transpose();
 
 	m_pAssetManager = assetManager;
 
@@ -99,13 +99,13 @@ void CRenderer::SetDimensions(int width_, int height_) {
     m_height = height_;
 
     float hp = static_cast<float>(M_PI / 180.0);
-    m_projMatrix = PMathMatPerspectiveLH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
+    m_projMatrix = PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
 }
 
 void CRenderer::UpdateCameraMatrix() {
-    mat rotMat = PMathMatRollPitchYaw(ToRadians(m_camera.rotation.x),
-        ToRadians(m_camera.rotation.y),
-        ToRadians(m_camera.rotation.z));
+    mat rotMat = PMathMatRollPitchYaw(ToRadians(m_camera.rotation.z),
+        ToRadians(m_camera.rotation.x),
+        ToRadians(m_camera.rotation.y));
 
     mat transMat = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z);
 
@@ -173,9 +173,9 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 
 	ModelConstants_t modelConstants {};
 	mat rotMat = PMathMatRollPitchYaw(
+		ToRadians(cmd.vec3Rotation.z),
 		ToRadians(cmd.vec3Rotation.x),
-		ToRadians(cmd.vec3Rotation.y),
-		ToRadians(cmd.vec3Rotation.z));
+		ToRadians(cmd.vec3Rotation.y));
 		
 	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z}) + 90;
  	float x = ToRadians(a);
@@ -261,13 +261,13 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	data.cameraMatrix = cameraMatrix;
 	data.projMatrix = m_projMatrix;
 	BillboardFrameConstants_t bbData {};
-	bbData.billboardMatrix = PMathMatRollPitchYaw(rotX, rotY, rotZ).Transpose();
+	bbData.billboardMatrix = PMathMatRollPitchYaw(rotZ, rotX, rotY).Transpose();
 
 	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
 	m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 
 	ModelConstants_t modelData {};
-	mat rotMat = PMathMatRollPitchYaw(ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y), ToRadians(emitter->rotation.z));
+	mat rotMat = PMathMatRollPitchYaw(ToRadians(emitter->rotation.z), ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y));
 	mat transMat = mat::Translation(emitter->position.x, emitter->position.y, emitter->position.z);
 	mat scaleMat = PMathMatScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
 	modelData.modelMatrix = (scaleMat * rotMat * transMat).Transpose();

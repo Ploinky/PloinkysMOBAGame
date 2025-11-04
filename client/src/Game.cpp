@@ -12,7 +12,7 @@
 
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/Map1/map1.nvm"));
+    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/map1/map1.nvm"));
 
     m_navGrid = new NavigationCellGrid(m_navMesh);
 
