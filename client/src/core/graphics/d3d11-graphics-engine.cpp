@@ -832,7 +832,7 @@ HTexture CD3D11GraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidth
     HRESULT hr = m_pDevice->CreateTexture2D(&desc, &initData, &texture);
 
     if (FAILED(hr) || texture == nullptr) {
-        return;
+        return INVALID_ASSET_HANDLE;
     }
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
@@ -1077,7 +1077,7 @@ void CD3D11GraphicsEngine::FillRect(int x, int y, int w, int h, float color[3]) 
 
 void CD3D11GraphicsEngine::DrawImage(float x, float y, float w, float h, HBitmap hBmp) {
     Microsoft::WRL::ComPtr<ID2D1Bitmap> pBitmap = m_vecBitmaps[hBmp];
-    renderTarget2D->DrawBitmap(pBitmap, D2D1::RectF(x, y, x + w, y + h));
+    renderTarget2D->DrawBitmap(pBitmap.Get(), D2D1::RectF(x, y, x + w, y + h));
 }
 
 HBitmap CD3D11GraphicsEngine::LoadBitmapImage(unsigned char* pImageData, int width, int height) {

@@ -119,8 +119,8 @@ private:
     std::vector<RenderCommand_t> m_vecCommands;
 
     void UploadModelToGPU(ModelAsset_t& modelAsset);
-    Mesh* LoadMesh(GLBModelMesh* glbMesh);
-    ModelNode* LoadNode(GLBNode* glbNode);
+    Mesh* LoadMesh(GLBModelMesh glbMesh);
+    ModelNode* LoadNode(GLBNode glbNode);
 
     void Draw(RenderCommand_t cmd);
     void Draw(Model* modelNode);

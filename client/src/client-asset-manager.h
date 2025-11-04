@@ -25,6 +25,7 @@ public:
     HBitmap GetBitmapImage(std::string strBitmap);
 
     HTexture LoadTexture(std::string strTexture);
+    HTexture LoadTextureFromData(std::vector<uint8_t> imageData);
 
     HSound LoadSound(std::string strSound);
 

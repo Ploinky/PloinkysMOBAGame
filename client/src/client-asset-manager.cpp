@@ -44,14 +44,8 @@ HBitmap CClientAssetManager::GetBitmapImage(std::string strBitmap) {
     return hBitmap;
 }
 
-
-HTexture CClientAssetManager::LoadTexture(std::string strTexture) {
-    if(m_mapTextures.contains(strTexture)) {
-        return m_mapTextures.at(strTexture);
-    }
-
+HTexture CClientAssetManager::LoadTextureFromData(std::vector<uint8_t> imageData) {
     int width, height, channels_in_file;
-    std::vector<uint8_t> imageData = LoadFile(strTexture);
     unsigned char* pImageData = stbi_load_from_memory(
         imageData.data(),
         imageData.size(),
@@ -63,6 +57,16 @@ HTexture CClientAssetManager::LoadTexture(std::string strTexture) {
 
     HTexture hTexture = m_pGraphicsEngine->LoadTexture(pImageData, width, height);
 
+    return hTexture;
+}
+
+HTexture CClientAssetManager::LoadTexture(std::string strTexture) {
+    if(m_mapTextures.contains(strTexture)) {
+        return m_mapTextures.at(strTexture);
+    }
+
+    std::vector<uint8_t> imageData = LoadFile(strTexture);
+    HTexture hTexture = LoadTextureFromData(imageData);
     m_mapTextures.emplace(strTexture, hTexture);
     return hTexture;
 }
@@ -105,41 +109,41 @@ HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {
 		Armature* armature = new Armature();
 		const auto& glbSkin = skin.second;
 
-		for(int i = 0; i < glbSkin->Joints.size(); i++) {
-			const auto& joint = glbSkin->Joints[i];
+		for(int i = 0; i < glbSkin.Joints.size(); i++) {
+			const auto& joint = glbSkin.Joints[i];
 			Bone bone = Bone();
 			bone.Index = joint;
 			armature->bones.push_back(bone);
 		}
 
-		for(int i = 0; i < glbSkin->Joints.size(); i++) {
-			for(auto childIndex : glbModel->Nodes[glbSkin->Joints[i]]->Children) {
+		for(int i = 0; i < glbSkin.Joints.size(); i++) {
+			for(auto childIndex : glbModel->Nodes[glbSkin.Joints[i]].Children) {
 				for(int j = 0; j < armature->bones.size(); j++) {
 					if(armature->bones[j].Index == childIndex) {
-						armature->bones[j].parent_index = glbSkin->Joints[i];
+						armature->bones[j].parent_index = glbSkin.Joints[i];
 					}
 				}
 			}
 		}
 
-		armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+		armature->global_inverse_bind_poses = glbSkin.InverseBindMatrices;
 
 		model->Skins.emplace(skin.first, armature);
 	}
 
     for(const auto& glbAnimationEntry : glbModel->Animations) {
-        GLBAnimation* glbAnimation = glbAnimationEntry.second;
+        GLBAnimation glbAnimation = glbAnimationEntry.second;
         Animation* animation = new Animation();
-        model->Animations.emplace(glbAnimation->Name, animation);
+        model->Animations.emplace(glbAnimation.Name, animation);
 
-        animation->duration = glbAnimation->Duration;
+        animation->duration = glbAnimation.Duration;
             
 		float fMaxTime = 0;
-        for(const auto& channel : glbAnimation->Channels) {
+        for(const auto& channel : glbAnimation.Channels) {
             AnimationTrack track;
-			track.Path = channel->Path;
-            track.NodeIndex = channel->TargetNode;
-            for(const auto& keyFrame : channel->KeyFrames) {
+			track.Path = channel.Path;
+            track.NodeIndex = channel.TargetNode;
+            for(const auto& keyFrame : channel.KeyFrames) {
 				AnimationKeyFrame kf = AnimationKeyFrame();
                 BonePosition bn = BonePosition();
                 bn.rotation = keyFrame.Rotation;

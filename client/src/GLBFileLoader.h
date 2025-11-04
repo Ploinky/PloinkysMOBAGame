@@ -6,6 +6,7 @@
 
 class GLBFileLoader {
 public:
+	static GLBModel* LoadUsingLib(std::string modelName, AssetManager* assetManager);
 	static GLBModel* LoadModelFromGLBFile(std::string modelName, AssetManager* assetManager);
 	static GLBNode* LoadNodeFromGLBFile(int nodeIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData);
 	static GLBModelMesh* LoadMeshFromGLBFile(int meshIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData);

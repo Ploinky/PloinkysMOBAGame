@@ -28,11 +28,10 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetMan
 
     float hp = static_cast<float>(M_PI / 180.0);
 
-    DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovRH(DirectX::XMConvertToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
+    DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
 
     // Set initial constant matrix values
-    DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(
-        m_camera.position.x, m_camera.position.y, m_camera.position.z))));
+    cameraMatrix = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z).inverse().Transpose();
 
 	m_pAssetManager = assetManager;
 
@@ -100,17 +99,17 @@ void CRenderer::SetDimensions(int width_, int height_) {
     m_height = height_;
 
     float hp = static_cast<float>(M_PI / 180.0);
-    DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
+    DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
 }
 
 void CRenderer::UpdateCameraMatrix() {
-    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(m_camera.rotation.x),
-        DirectX::XMConvertToRadians(m_camera.rotation.y),
-        DirectX::XMConvertToRadians(m_camera.rotation.z));
+    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(ToRadians(m_camera.rotation.x),
+        ToRadians(m_camera.rotation.y),
+        ToRadians(m_camera.rotation.z));
 
-    DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(m_camera.position.x, m_camera.position.y, m_camera.position.z);
+    mat transMat = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z);
 
-    DirectX::XMStoreFloat4x4(&cameraMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, rotMat * transMat)));
+    cameraMatrix = (rotMat * transMat).Inverse().Transpose();
 }
 
 void CRenderer::RenderText(int x, int y, int w, int h, std::string text) {
@@ -150,8 +149,7 @@ void CRenderer::DrawImage(float x, float y, float w, float h, HBitmap hBitmap) {
 	}
 
 	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	BitmapAsset_t& bmp = m_pAssetManager->GetBitmapImage(hBitmap);
-	pCanvas->DrawImage(x, y, w, h, bmp);
+	pCanvas->DrawImage(x, y, w, h, hBitmap);
 }
 
 void CRenderer::Draw(RenderCommand_t cmd) {
@@ -174,22 +172,19 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
 	ModelConstants_t modelConstants {};
-	DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(
-		DirectX::XMConvertToRadians(cmd.vec3Rotation.x),
-		DirectX::XMConvertToRadians(cmd.vec3Rotation.y),
-		DirectX::XMConvertToRadians(cmd.vec3Rotation.z));
+	mat rotMat = DirectX::XMMatrixRotationRollPitchYaw(
+		ToRadians(cmd.vec3Rotation.x),
+		ToRadians(cmd.vec3Rotation.y),
+		ToRadians(cmd.vec3Rotation.z));
 		
 	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z}) + 90;
- 	float x = DirectX::XMConvertToRadians(a);
+ 	float x = ToRadians(a);
 	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
-		rotMat = DirectX::XMMatrixRotationRollPitchYaw(
-			DirectX::XMConvertToRadians(0),
-			x,
-			DirectX::XMConvertToRadians(0));
+		rotMat = DirectX::XMMatrixRotationRollPitchYaw(ToRadians(0), x, ToRadians(0));
 	}
-	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
-	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
-	DirectX::XMStoreFloat4x4(&modelConstants.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
+	mat transMat = mat::Translation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
+	mat scaleMat = DirectX::XMMatrixScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
+	modelConstants.modelMatrix = (scaleMat * rotMat * transMat).Transpose();
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelConstants, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
@@ -203,18 +198,12 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 		m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 	} else if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
 		BillboardFrameConstants_t bbData {};
-		DirectX::XMStoreFloat4x4(&bbData.billboardMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity()));
+		bbData.billboardMatrix = mat::Identity().Transpose();
 		m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 		m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hBillboardFrameConstBuffer);
 	}
 
-	if(cmd.hTexture != INVALID_ASSET_HANDLE) {
-		TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(cmd.hTexture);
-		if(textureAsset.pTexture == nullptr) {
-			m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
-		}
-		m_pGraphicsEngine->BindTexture(0, textureAsset);
-	}
+	m_pGraphicsEngine->BindTexture(0, cmd.hTexture);
 
 	if(cmd.eType == ERenderCommandType::SKINNED_MESH) {
 		m_pGraphicsEngine->SetVertexBuffer(0, cmd.hVertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0); // TODO glb_shader_vertex_t ??
@@ -246,11 +235,7 @@ void CRenderer::Draw(Model* model) {
 		}
 
 		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
-			TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(model->Materials.at(mesh->MaterialIndex)->hTexture);
-			if(textureAsset.pTexture == nullptr) {
- 				m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
-			}
-			m_pGraphicsEngine->BindTexture(0, textureAsset);
+			m_pGraphicsEngine->BindTexture(0, model->Materials.at(mesh->MaterialIndex)->hTexture);
 		}
 
 		m_pGraphicsEngine->SetVertexBuffer(0, mesh->VertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0);
@@ -267,9 +252,9 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	float rotZ = 0; // no camera roll
 
 	if (emitter->static_angle) {
-		rotX = DirectX::XMConvertToRadians(emitter->particle_angle.x);
-		rotY = DirectX::XMConvertToRadians(emitter->particle_angle.y);
-		rotZ = DirectX::XMConvertToRadians(emitter->particle_angle.z);
+		rotX = ToRadians(emitter->particle_angle.x);
+		rotY = ToRadians(emitter->particle_angle.y);
+		rotZ = ToRadians(emitter->particle_angle.z);
 	}
 
 	FrameConstants_t data{};
@@ -282,12 +267,10 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 
 	ModelConstants_t modelData {};
-	DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(emitter->rotation.x),
-		DirectX::XMConvertToRadians(emitter->rotation.y),
-		DirectX::XMConvertToRadians(emitter->rotation.z));
-	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(emitter->position.x, emitter->position.y, emitter->position.z);
-	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
-	DirectX::XMStoreFloat4x4(&modelData.modelMatrix, DirectX::XMMatrixTranspose(scaleMat * rotMat * transMat));
+	mat rotMat = DirectX::XMMatrixRotationRollPitchYaw(ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y), ToRadians(emitter->rotation.z));
+	mat transMat = mat::Translation(emitter->position.x, emitter->position.y, emitter->position.z);
+	mat scaleMat = DirectX::XMMatrixScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
+	modelData.modelMatrix = (scaleMat * rotMat * transMat).Transpose();
 
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
 
@@ -332,13 +315,7 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	m_pGraphicsEngine->SetVertexBuffer(1, emitter->instance_buffer_, sizeof(ParticleShaderVertexInstance_t), 0);
 
 	HTexture hTexture = m_pAssetManager->LoadTexture(emitter->texture_name_);
-	TextureAsset_t& textureAsset = m_pAssetManager->GetTexture(hTexture);
-
-	if(textureAsset.pTexture == nullptr) {
-		m_pGraphicsEngine->LoadTextureDataToGPU(textureAsset);
-	}
-
-	m_pGraphicsEngine->BindTexture(0, textureAsset);
+	m_pGraphicsEngine->BindTexture(0, hTexture);
 
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
@@ -361,9 +338,9 @@ void CRenderer::DrawMap() {
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
 	ModelConstants_t modelData{};
-	DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(0, 0, 0);
-	DirectX::XMStoreFloat4x4(&modelData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+	mat rotMat = mat::Identity();
+	mat transMat = mat::Translation(0, 0, 0);
+	modelData.modelMatrix = (rotMat * transMat).Transpose();
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
@@ -388,7 +365,7 @@ void CRenderer::DrawMap() {
 
 		for(const auto& m : modelAsset.pGlbModel->Materials) {
 			Material* material = new Material();
-			material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
+			material->hTexture = m_pAssetManager->LoadTextureFromData(m.second.TextureData);
 			modelAsset.pModel->Materials.emplace(m.first, material);
 		}
 							
@@ -396,44 +373,44 @@ void CRenderer::DrawMap() {
 					Armature* armature = new Armature();
 					const auto& glbSkin = skin.second;
 
-					for(int i = 0; i < glbSkin->Joints.size(); i++) {
-						const auto& joint = glbSkin->Joints[i];
+					for(int i = 0; i < glbSkin.Joints.size(); i++) {
+						const auto& joint = glbSkin.Joints[i];
 						Bone bone = Bone();
 						bone.Index = joint;
 						armature->bones.push_back(bone);
 					}
 
-					for(int i = 0; i < glbSkin->Joints.size(); i++) {
-						for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin->Joints[i]]->Children) {
+					for(int i = 0; i < glbSkin.Joints.size(); i++) {
+						for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin.Joints[i]].Children) {
 							for(int j = 0; j < armature->bones.size(); j++) {
 								if(armature->bones[j].Index == childIndex) {
-									armature->bones[j].parent_index = glbSkin->Joints[i];
+									armature->bones[j].parent_index = glbSkin.Joints[i];
 								}
 							}
 						}
 					}
 
-					armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+					armature->global_inverse_bind_poses = glbSkin.InverseBindMatrices;
 
 					modelAsset.pModel->Skins.emplace(skin.first, armature);
 				}
 
 				for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
-					GLBAnimation* glbAnimation = glbAnimationEntry.second;
+					GLBAnimation glbAnimation = glbAnimationEntry.second;
 					Animation* animation = new Animation();
-					modelAsset.pModel->Animations.emplace(glbAnimation->Name, animation);
+					modelAsset.pModel->Animations.emplace(glbAnimation.Name, animation);
 
-					animation->duration = glbAnimation->Duration;
+					animation->duration = glbAnimation.Duration;
 						
 					float fMaxTime = 0;
-					for(const auto& channel : glbAnimation->Channels) {
+					for(const auto& channel : glbAnimation.Channels) {
 						AnimationTrack track;
-						track.Path = channel->Path;
-						track.NodeIndex = channel->TargetNode;
-						for(const auto& keyFrame : channel->KeyFrames) {
+						track.Path = channel.Path;
+						track.NodeIndex = channel.TargetNode;
+						for(const auto& keyFrame : channel.KeyFrames) {
 							AnimationKeyFrame kf = AnimationKeyFrame();
 							BonePosition bn = BonePosition();
-							bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+							bn.rotation = keyFrame.Rotation;
 							bn.translation = keyFrame.Translation;
 							kf.Position = bn;
 							kf.Time = keyFrame.Time;
@@ -639,21 +616,21 @@ void CRenderer::Submit(RenderCommand_t command) {
 	m_vecCommands.push_back(command);
 }
 
-Mesh* CRenderer::LoadMesh(GLBModelMesh* glbMesh) {
+Mesh* CRenderer::LoadMesh(GLBModelMesh glbMesh) {
 	Mesh* mesh = new Mesh();
-	mesh->VertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(glbMesh->Vertices.data(), glbMesh->Vertices.size() * sizeof(SkinnnedMeshShaderVertex_t), glbMesh->Vertices.size());
-	mesh->IndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(glbMesh->Indices.data(), glbMesh->Indices.size());
-	mesh->IndexCount = glbMesh->Indices.size();
-	mesh->MaterialIndex = glbMesh->MaterialIndex;
+	mesh->VertexBuffer = m_pGraphicsEngine->CreateVertexBuffer(glbMesh.Vertices.data(), glbMesh.Vertices.size() * sizeof(SkinnnedMeshShaderVertex_t), glbMesh.Vertices.size());
+	mesh->IndexBuffer = m_pGraphicsEngine->CreateIndexBuffer(glbMesh.Indices.data(), glbMesh.Indices.size());
+	mesh->IndexCount = glbMesh.Indices.size();
+	mesh->MaterialIndex = glbMesh.MaterialIndex;
 	return mesh;
 }
 
-ModelNode* CRenderer::LoadNode(GLBNode* glbNode) {
+ModelNode* CRenderer::LoadNode(GLBNode glbNode) {
 	ModelNode* modelNode = new ModelNode();
-	modelNode->Mesh = glbNode->Mesh;
-	modelNode->Skin = glbNode->Skin;
+	modelNode->Mesh = glbNode.Mesh;
+	modelNode->Skin = glbNode.Skin;
 
-	for(const auto& glbChildNode : glbNode->Children) {
+	for(const auto& glbChildNode : glbNode.Children) {
 		modelNode->Children.push_back(glbChildNode);
 	}
 	return modelNode;
@@ -673,7 +650,7 @@ void CRenderer::UploadModelToGPU(ModelAsset_t& modelAsset) {
 
 	for(const auto& m : modelAsset.pGlbModel->Materials) {
 		Material* material = new Material();
-		material->hTexture = m_pAssetManager->LoadTextureFromData(m.second->TextureData);
+		material->hTexture = m_pAssetManager->LoadTextureFromData(m.second.TextureData);
 		modelAsset.pModel->Materials.emplace(m.first, material);
 	}
 				
@@ -681,44 +658,44 @@ void CRenderer::UploadModelToGPU(ModelAsset_t& modelAsset) {
 		Armature* armature = new Armature();
 		const auto& glbSkin = skin.second;
 
-		for(int i = 0; i < glbSkin->Joints.size(); i++) {
-			const auto& joint = glbSkin->Joints[i];
+		for(int i = 0; i < glbSkin.Joints.size(); i++) {
+			const auto& joint = glbSkin.Joints[i];
 			Bone bone = Bone();
 			bone.Index = joint;
 			armature->bones.push_back(bone);
 		}
 
-		for(int i = 0; i < glbSkin->Joints.size(); i++) {
-			for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin->Joints[i]]->Children) {
+		for(int i = 0; i < glbSkin.Joints.size(); i++) {
+			for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin.Joints[i]].Children) {
 				for(int j = 0; j < armature->bones.size(); j++) {
 					if(armature->bones[j].Index == childIndex) {
-						armature->bones[j].parent_index = glbSkin->Joints[i];
+						armature->bones[j].parent_index = glbSkin.Joints[i];
 					}
 				}
 			}
 		}
 
-		armature->global_inverse_bind_poses = glbSkin->InverseBindMatrices;
+		armature->global_inverse_bind_poses = glbSkin.InverseBindMatrices;
 
 		modelAsset.pModel->Skins.emplace(skin.first, armature);
 	}
 
 	for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
-		GLBAnimation* glbAnimation = glbAnimationEntry.second;
+		GLBAnimation glbAnimation = glbAnimationEntry.second;
 		Animation* animation = new Animation();
-		modelAsset.pModel->Animations.emplace(glbAnimation->Name, animation);
+		modelAsset.pModel->Animations.emplace(glbAnimation.Name, animation);
 
-		animation->duration = glbAnimation->Duration;
+		animation->duration = glbAnimation.Duration;
 			
 		float fMaxTime = 0;
-		for(const auto& channel : glbAnimation->Channels) {
+		for(const auto& channel : glbAnimation.Channels) {
 			AnimationTrack track;
-			track.Path = channel->Path;
-			track.NodeIndex = channel->TargetNode;
-			for(const auto& keyFrame : channel->KeyFrames) {
+			track.Path = channel.Path;
+			track.NodeIndex = channel.TargetNode;
+			for(const auto& keyFrame : channel.KeyFrames) {
 				AnimationKeyFrame kf = AnimationKeyFrame();
 				BonePosition bn = BonePosition();
-				bn.rotation = DirectX::XMLoadFloat4(&keyFrame.Rotation);
+				bn.rotation = keyFrame.Rotation;
 				bn.translation = keyFrame.Translation;
 				kf.Position = bn;
 				kf.Time = keyFrame.Time;

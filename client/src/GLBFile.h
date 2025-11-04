@@ -8,6 +8,7 @@
 #include "Armature.h"
 #include "common/PMG_Common.h"
 
+// TODO enum class
 enum GLBANIMATIONCHANNEL {
 	eGlbAnimationChannel_None,
 	eGlbAnimationChannel_Rotation,
@@ -72,7 +73,7 @@ class GLBAnimation {
 public:
 	std::string Name;
 	float Duration;
-	std::vector<GLBAnimationChannel*> Channels;
+	std::vector<GLBAnimationChannel> Channels;
 	
 	std::map<int, BonePosition> GetBonePositions(float time, bool bLoop) {
 		std::map<int, BonePosition> bonePositions;
@@ -88,14 +89,14 @@ public:
 		}
 
 		for (const auto& track : Channels) {
-			if(!bonePositions.contains(track->TargetNode)) {
+			if(!bonePositions.contains(track.TargetNode)) {
 				BonePosition pos;
-				bonePositions.emplace(track->TargetNode, pos);
+				bonePositions.emplace(track.TargetNode, pos);
 			}
 
-			BonePosition& bp = bonePositions.at(track->TargetNode);
+			BonePosition& bp = bonePositions.at(track.TargetNode);
 
-			const auto& keyframes = track->KeyFrames;
+			const auto& keyframes = track.KeyFrames;
 
 			if (keyframes.empty()) {
 				continue;
@@ -138,7 +139,7 @@ public:
 				kfbp = *nextKeyframe;
 			}
 
-			switch(track->Path) {
+			switch(track.Path) {
 				case eGlbAnimationChannel_Translation:
 					bp.translation = kfbp.Translation;
 					break;
@@ -194,9 +195,9 @@ public:
 
 class GLBModel {
 public:
-	std::map<int, GLBNode*> Nodes;
-	std::map<int, GLBModelMesh*> Meshes;
-	std::map<int, GLBModelSkin*> Skins;
-	std::map<int, GLBModelMaterial*> Materials;
-	std::map<std::string, GLBAnimation*> Animations;
+	std::map<int, GLBNode> Nodes;
+	std::map<int, GLBModelMesh> Meshes;
+	std::map<int, GLBModelSkin> Skins;
+	std::map<int, GLBModelMaterial> Materials;
+	std::map<std::string, GLBAnimation> Animations;
 };
