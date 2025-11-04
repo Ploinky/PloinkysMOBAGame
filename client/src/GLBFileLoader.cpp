@@ -38,6 +38,7 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 	std::unordered_map<const cgltf_node*, int> nodeIndexMap;
 	std::unordered_map<const cgltf_skin*, int> skinIndexMap;
 	std::unordered_map<const cgltf_mesh*, int> meshIndexMap;
+	std::unordered_map<const cgltf_material*, int> materialIndexMap;
 
 	for (int i = 0; i < (int)data->nodes_count; ++i) {
 		nodeIndexMap[&data->nodes[i]] = i;
@@ -49,6 +50,10 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 
 	for (int i = 0; i < (int)data->meshes_count; ++i) {
 		meshIndexMap[&data->meshes[i]] = i;
+	}
+
+	for (int i = 0; i < (int)data->materials_count; ++i) {
+		materialIndexMap[&data->materials[i]] = i;
 	}
 
 
@@ -92,8 +97,7 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 		const cgltf_primitive& prim = mesh.primitives[0];
 
 		if(prim.attributes_count != 3) {
-			Logger::FormatErr("Error loading model %s; unexpected number of attributes", modelName.c_str());
-			continue;
+			Logger::FormatMsg("Warning loading model %s; unexpected number of attributes", modelName.c_str());
 		}
 
 		const cgltf_accessor* pPosAccessor = nullptr;
@@ -142,6 +146,8 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 				myMesh.Indices[c] = val;
 			}
 		}
+
+		myMesh.MaterialIndex = materialIndexMap[prim.material];
 
 		myModel.Meshes.emplace(i, myMesh);
 	}
@@ -244,7 +250,9 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 
 			const cgltf_accessor* pTimeAccessor = pSampler->input;
 			std::vector<float> times(pTimeAccessor->count);
-			cgltf_accessor_read_float(pTimeAccessor, 0, times.data(), pTimeAccessor->count);
+			for(int ac = 0; ac < pTimeAccessor->count; ac++) {
+				cgltf_accessor_read_float(pTimeAccessor, ac, times.data(), 1);
+			}
 
 			// Load values
 			const cgltf_accessor* pValueAccessor = pSampler->output;
@@ -286,8 +294,10 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 		myModel.Animations.emplace(myAnimation.Name, myAnimation);
 	}
 
-
 	cgltf_free(data);
+
+	GLBModel* pModel = new GLBModel(myModel);
+	return pModel;
 }
 
 GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManager* assetManager) {
