@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <sstream>
 #include <limits>
+#include "core/audio/audio-engine-xaudio.h"
 
 enum class GameState {
     MAIN_MENU,
@@ -56,6 +57,7 @@ void Client::Run(std::string connectString_) {
     Logger::Msg("Authenticating user session...");
 
     Logger::Msg("Loading settings...");
+
     settings_.LoadDefaults();
     settings_.LoadFromFile("./settings.cfg");
     settings_.OnSettingChanged = [this](std::string setting) {
@@ -89,8 +91,14 @@ void Client::Run(std::string connectString_) {
         if (currentState_) currentState_->WindowResized(window->width_, window->height_);
     };
 
-    IGraphicsEngine* pGraphicsEngine = IGraphicsEngine::Create(window->GetWindowHandle(), window->width_, window->height_);
-    renderer = new CRenderer(pGraphicsEngine);
+    m_pGraphicsEngine = IGraphicsEngine::Create(window->GetWindowHandle(), window->width_, window->height_);
+    
+    m_pAudioEngine = new CAudioEngineXAudio();
+    m_pAudioEngine->Initialize();
+
+    m_pAssetManager = new CClientAssetManager(m_pGraphicsEngine, m_pAudioEngine);
+
+    renderer = new CRenderer(m_pGraphicsEngine);
 	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, m_pAssetManager, window->width_, window->height_);
 
     window->e_charTyped = [this](uint32_t ch) { if(currentState_) currentState_->CharTyped(ch); };
@@ -102,7 +110,6 @@ void Client::Run(std::string connectString_) {
 
 	currentState_ = new CLoadingState(this, window->width_, window->height_, connectString_);
         
-    m_pAudioEngine->Initialize();
 
     // Main game loop
     // Keep running while both the client wants to keep runnning and the window has not been closed

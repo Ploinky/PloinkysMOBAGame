@@ -28,7 +28,7 @@ void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetMan
 
     float hp = static_cast<float>(M_PI / 180.0);
 
-    DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
+    m_projMatrix = PMathMatPerspectiveLH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
 
     // Set initial constant matrix values
     cameraMatrix = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z).inverse().Transpose();
@@ -99,17 +99,17 @@ void CRenderer::SetDimensions(int width_, int height_) {
     m_height = height_;
 
     float hp = static_cast<float>(M_PI / 180.0);
-    DirectX::XMStoreFloat4x4(&m_projMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip)));
+    m_projMatrix = PMathMatPerspectiveLH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
 }
 
 void CRenderer::UpdateCameraMatrix() {
-    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(ToRadians(m_camera.rotation.x),
+    mat rotMat = PMathMatRollPitchYaw(ToRadians(m_camera.rotation.x),
         ToRadians(m_camera.rotation.y),
         ToRadians(m_camera.rotation.z));
 
     mat transMat = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z);
 
-    cameraMatrix = (rotMat * transMat).Inverse().Transpose();
+    cameraMatrix = (rotMat * transMat).inverse().Transpose();
 }
 
 void CRenderer::RenderText(int x, int y, int w, int h, std::string text) {
@@ -172,7 +172,7 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
 	ModelConstants_t modelConstants {};
-	mat rotMat = DirectX::XMMatrixRotationRollPitchYaw(
+	mat rotMat = PMathMatRollPitchYaw(
 		ToRadians(cmd.vec3Rotation.x),
 		ToRadians(cmd.vec3Rotation.y),
 		ToRadians(cmd.vec3Rotation.z));
@@ -180,10 +180,10 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z}) + 90;
  	float x = ToRadians(a);
 	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
-		rotMat = DirectX::XMMatrixRotationRollPitchYaw(ToRadians(0), x, ToRadians(0));
+		rotMat = PMathMatRollPitchYaw(ToRadians(0), x, ToRadians(0));
 	}
 	mat transMat = mat::Translation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
-	mat scaleMat = DirectX::XMMatrixScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
+	mat scaleMat = PMathMatScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
 	modelConstants.modelMatrix = (scaleMat * rotMat * transMat).Transpose();
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelConstants, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
@@ -261,15 +261,15 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	data.cameraMatrix = cameraMatrix;
 	data.projMatrix = m_projMatrix;
 	BillboardFrameConstants_t bbData {};
-	DirectX::XMStoreFloat4x4(&bbData.billboardMatrix, DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationRollPitchYaw(rotX, rotY, rotZ)));
+	bbData.billboardMatrix = PMathMatRollPitchYaw(rotX, rotY, rotZ).Transpose();
 
 	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
 	m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 
 	ModelConstants_t modelData {};
-	mat rotMat = DirectX::XMMatrixRotationRollPitchYaw(ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y), ToRadians(emitter->rotation.z));
+	mat rotMat = PMathMatRollPitchYaw(ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y), ToRadians(emitter->rotation.z));
 	mat transMat = mat::Translation(emitter->position.x, emitter->position.y, emitter->position.z);
-	mat scaleMat = DirectX::XMMatrixScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
+	mat scaleMat = PMathMatScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
 	modelData.modelMatrix = (scaleMat * rotMat * transMat).Transpose();
 
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "audio-engine.h"
 
 #include <xaudio2.h>
@@ -49,4 +51,4 @@ private:
 	std::vector<X3DAUDIO_EMITTER> m_vecEmitters;
 	
     std::vector<SoundAsset_t> m_vecSounds;
-}
+};

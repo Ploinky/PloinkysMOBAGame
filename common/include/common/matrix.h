@@ -371,3 +371,103 @@ typedef struct mat {
         };
     }
 } mat_t;
+
+inline mat PMathMatRollPitchYaw(float fRoll, float fPitch, float fYaw) {
+    float a = fYaw;
+    float b = fPitch;
+    float y = fRoll;
+
+    mat m = mat::Identity();
+
+    m.m[0][0] = cos(a) * cos(b);
+    m.m[0][1] = cos(a) * sin(b) * sin(y) - sin(a) * cos(y);
+    m.m[0][2] = cos(a) * sin(b) * cos(y) + sin(a) * sin(y);
+
+    m.m[1][0] = sin(a) * cos(b);
+    m.m[1][1] = sin(a) * sin(b) * sin(y) + cos(a) * cos(y);
+    m.m[1][2] = sin(a) * sin(b) * cos(y) - cos(a) * sin(y);
+
+    m.m[2][0] = -sin(b);
+    m.m[2][1] = cos(b) * sin(y);
+    m.m[2][2] = cos(b) * cos(y);
+
+    return m;
+}
+
+inline mat PMathMatRotationQuaternion(const Quaternion& q) {
+    mat m = mat::Identity();
+
+    float xx = q.x * q.x;
+    float yy = q.y * q.y;
+    float zz = q.z * q.z;
+    float xy = q.x * q.y;
+    float xz = q.x * q.z;
+    float yz = q.y * q.z;
+    float wx = q.w * q.x;
+    float wy = q.w * q.y;
+    float wz = q.w * q.z;
+
+    m.m[0][0] = 1.0f - 2.0f * (yy + zz);
+    m.m[0][1] = 2.0f * (xy + wz);
+    m.m[0][2] = 2.0f * (xz - wy);
+    m.m[0][3] = 0.0f;
+
+    m.m[1][0] = 2.0f * (xy - wz);
+    m.m[1][1] = 1.0f - 2.0f * (xx + zz);
+    m.m[1][2] = 2.0f * (yz + wx);
+    m.m[1][3] = 0.0f;
+
+    m.m[2][0] = 2.0f * (xz + wy);
+    m.m[2][1] = 2.0f * (yz - wx);
+    m.m[2][2] = 1.0f - 2.0f * (xx + yy);
+    m.m[2][3] = 0.0f;
+
+    m.m[3][0] = 0.0f;
+    m.m[3][1] = 0.0f;
+    m.m[3][2] = 0.0f;
+    m.m[3][3] = 1.0f;
+
+    return m;
+}
+
+inline mat PMathMatScaling(float fScaleX, float fScaleY, float fScaleZ) {
+    mat m = mat::Identity();
+
+    m.m[0][0] = fScaleX;
+    m.m[1][1] = fScaleY;
+    m.m[2][2] = fScaleZ;
+
+    return m;
+}
+
+inline mat PMathMatPerspectiveLH(float aspect, float fov, float nearZ, float farZ) {
+    float yScale = 1.0f / tanf(fov * 0.5f);
+    float xScale = yScale / aspect;
+
+    return {
+        {
+            {xScale, 0, 0, 0},
+            {0, yScale, 0, 0},
+            {0, 0, farZ / (farZ - nearZ), 1},
+            {0, 0, (-nearZ * farZ) / (farZ - nearZ), 0}
+        },
+    };
+}
+
+inline mat PMathMatAffineTransform(const Vector3& scaling, const Vector3& rotationOrigin, const Quaternion& rotationQuat, const Vector3& translation) {
+    // 1. Scale matrix
+    mat S = PMathMatScaling(scaling.x, scaling.y, scaling.z);
+
+    // 2. Rotation matrix
+    mat R = PMathMatRotationQuaternion(rotationQuat);
+
+    // 3. Translation to/from rotation origin
+    mat T_negOrigin = mat::Translation(-rotationOrigin.x, -rotationOrigin.y, -rotationOrigin.z);
+    mat T_origin     = mat::Translation(rotationOrigin.x, rotationOrigin.y, rotationOrigin.z);
+
+    // 4. Final translation
+    mat T = mat::Translation(translation.x, translation.y, translation.z);
+
+    // Combine: T * T_origin * R * S * T_negOrigin
+    return T * T_origin * R * S * T_negOrigin;
+}

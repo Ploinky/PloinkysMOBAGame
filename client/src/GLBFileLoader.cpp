@@ -283,7 +283,7 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 			myAnimation.Channels.push_back(myChannel);
 		}
 
-		myModel.Animations.emplace(i, myAnimation);
+		myModel.Animations.emplace(myAnimation.Name, myAnimation);
 	}
 
 
@@ -348,20 +348,20 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 
 	PJL::JSONArray glbNodes = glbHeader.Get("nodes").AsArray();
 	for(int i = 0; i < glbNodes.Size(); i++) {
-		GLBNode* node = LoadNodeFromGLBFile(i, glbHeader, binaryData);
+		GLBNode node = LoadNodeFromGLBFile(i, glbHeader, binaryData);
 		model->Nodes.emplace(i, node);
 	}
 
 	PJL::JSONArray glbMeshes = glbHeader.Get("meshes").AsArray();
 	for(int i = 0; i < glbMeshes.Size(); i++) {
-		GLBModelMesh* mesh = LoadMeshFromGLBFile(i, glbHeader, binaryData);
+		GLBModelMesh mesh = LoadMeshFromGLBFile(i, glbHeader, binaryData);
 		model->Meshes.emplace(i, mesh);
 	}
 
 	if(glbHeader.Contains("skins")) {
 		PJL::JSONArray glbSkins = glbHeader.Get("skins").AsArray();
 		for(int i = 0; i < glbSkins.Size(); i++) {
-			GLBModelSkin* skin = LoadSkinFromGLBFile(i, glbHeader, binaryData);
+			GLBModelSkin skin = LoadSkinFromGLBFile(i, glbHeader, binaryData);
 			model->Skins.emplace(i, skin);
 		}
 	}
@@ -370,7 +370,7 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 		const PJL::JSONArray& glbMaterials = glbHeader.Get("materials").AsArray();
 		for(int i = 0; i < glbMaterials.Size(); i++) {
 			PJL::JSONObject glbMaterial = glbMaterials.Get(i).AsObject();
-			GLBModelMaterial* material = new GLBModelMaterial();
+			GLBModelMaterial material = GLBModelMaterial();
 
 			if (glbMaterial.Contains("pbrMetallicRoughness")) {
 				const auto& pbr = glbMaterial.Get("pbrMetallicRoughness").AsObject();
@@ -381,7 +381,7 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 
 				if (pbr.Contains("baseColorTexture")) {
 					int textureIndex = pbr.Get("baseColorTexture").AsObject().Get("index").AsInt();
-					LoadImageData(glbHeader, binaryData, textureIndex, material->TextureData);
+					LoadImageData(glbHeader, binaryData, textureIndex, material.TextureData);
 				}
 			}
 			model->Materials.emplace(i, material);
@@ -394,9 +394,9 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 		for(int animationIndex = 0; animationIndex < glbAnimations.Size(); animationIndex++) {
 			const PJL::JSONObject glbAnimation = glbAnimations.Get(animationIndex).AsObject();
 				
-			GLBAnimation* animation = new GLBAnimation();
-			animation->Name = glbAnimation.Get("name").AsString();
-			model->Animations.emplace(animation->Name, animation);
+			GLBAnimation animation = GLBAnimation();
+			animation.Name = glbAnimation.Get("name").AsString();
+			model->Animations.emplace(animation.Name, animation);
 
 			const PJL::JSONArray& glbChannels = glbAnimation.Get("channels").AsArray();
 
@@ -447,7 +447,7 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 					}
 				}
 
- 				animation->Channels.push_back(channel);
+ 				animation.Channels.push_back(channel);
 			}
 		}
 	}
@@ -458,67 +458,67 @@ GLBModel* GLBFileLoader::LoadModelFromGLBFile(std::string modelName, AssetManage
 }
 
 	
-GLBNode* GLBFileLoader::LoadNodeFromGLBFile(int nodeIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData) {
-	GLBNode* node = new GLBNode();
-	node->NodeIndex = nodeIndex;
+GLBNode GLBFileLoader::LoadNodeFromGLBFile(int nodeIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData) {
+	GLBNode node = GLBNode();
+	node.NodeIndex = nodeIndex;
 		
 	PJL::JSONObject glbNode = glbHeader.Get("nodes").AsArray().Get(nodeIndex).AsObject();
 
 	if(glbNode.Contains("name")) {
-		node->Name = glbNode.Get("name").AsString();
+		node.Name = glbNode.Get("name").AsString();
 	}
 
 	if(glbNode.Contains("children")) {
 		PJL::JSONArray childNodeIndices = glbNode.Get("children").AsArray();
 
 		for(int childIndex = 0; childIndex < childNodeIndices.Size(); childIndex++) {
-			node->Children.push_back(childNodeIndices.Get(childIndex).AsInt());
+			node.Children.push_back(childNodeIndices.Get(childIndex).AsInt());
 		}
 	}
 
 	if(glbNode.Contains("rotation")) {
 		PJL::JSONArray rotationArray = glbNode.Get("rotation").AsArray();
-		node->Rotation.x = rotationArray.Get(0).AsDouble();
-		node->Rotation.y = rotationArray.Get(1).AsDouble();
-		node->Rotation.z = rotationArray.Get(2).AsDouble();
-		node->Rotation.w = rotationArray.Get(3).AsDouble();
+		node.Rotation.x = rotationArray.Get(0).AsDouble();
+		node.Rotation.y = rotationArray.Get(1).AsDouble();
+		node.Rotation.z = rotationArray.Get(2).AsDouble();
+		node.Rotation.w = rotationArray.Get(3).AsDouble();
 	}
 
 	if(glbNode.Contains("scale")) {
 		PJL::JSONArray scaleArray = glbNode.Get("scale").AsArray();
-		node->Scale.x = scaleArray.Get(0).AsDouble();
-		node->Scale.y = scaleArray.Get(1).AsDouble();
-		node->Scale.z = scaleArray.Get(2).AsDouble();
+		node.Scale.x = scaleArray.Get(0).AsDouble();
+		node.Scale.y = scaleArray.Get(1).AsDouble();
+		node.Scale.z = scaleArray.Get(2).AsDouble();
 	}
 
 	if(glbNode.Contains("translation")) {
 		PJL::JSONArray translationArray = glbNode.Get("translation").AsArray();
-		node->Translation.x = translationArray.Get(0).AsDouble();
-		node->Translation.y = translationArray.Get(1).AsDouble();
-		node->Translation.z = translationArray.Get(2).AsDouble();
+		node.Translation.x = translationArray.Get(0).AsDouble();
+		node.Translation.y = translationArray.Get(1).AsDouble();
+		node.Translation.z = translationArray.Get(2).AsDouble();
 	}
 
 	if(!glbNode.Contains("mesh")) {
 		return node;
 	}
 
-	node->Mesh = glbNode.Get("mesh").AsInt();
+	node.Mesh = glbNode.Get("mesh").AsInt();
 
 	if(!glbNode.Contains("skin")) {
 		return node;
 	}
 
-	node->Skin = glbNode.Get("skin").AsInt();
+	node.Skin = glbNode.Get("skin").AsInt();
 
 	return node;
 }
 
-GLBModelMesh* GLBFileLoader::LoadMeshFromGLBFile(int meshIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData) {
+GLBModelMesh GLBFileLoader::LoadMeshFromGLBFile(int meshIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData) {
 	const PJL::JSONArray& glbMeshes = glbHeader.Get("meshes").AsArray();
 
 	const auto& glbMesh = glbMeshes.Get(meshIndex);
 
-	GLBModelMesh* glbM = new GLBModelMesh();
+	GLBModelMesh glbM = GLBModelMesh();
 
 	if(!glbMesh.IsObject() || !glbMesh.AsObject().Contains("primitives") || !glbMesh.AsObject().Get("primitives").IsArray()) {
 		throw new std::runtime_error("Failed to load model, found mesh without primitives");
@@ -569,38 +569,38 @@ GLBModelMesh* GLBFileLoader::LoadMeshFromGLBFile(int meshIndex, const PJL::JSONO
 		}
 
 		if (glbPrimitive.Contains("material") && glbPrimitive.Get("material").IsInt()) {
-			glbM->MaterialIndex = glbPrimitive.Get("material").AsInt();
+			glbM.MaterialIndex = glbPrimitive.Get("material").AsInt();
 		}
 
 		// Interleave vertex data
 		size_t vertexCount = positions.size();
-		glbM->Vertices.resize(vertexCount);
+		glbM.Vertices.resize(vertexCount);
 		for (size_t i = 0; i < vertexCount; ++i) {
-			glbM->Vertices[i].Position = positions[i];
+			glbM.Vertices[i].Position = positions[i];
 			if (!normals.empty()) {
-				glbM->Vertices[i].Normals = normals[i];
+				glbM.Vertices[i].Normals = normals[i];
 			}
 			if (!texCoords.empty()) {
-				glbM->Vertices[i].TextureCoordinates = texCoords[i];
+				glbM.Vertices[i].TextureCoordinates = texCoords[i];
 			}
 
 			if(!joints.empty()) {
-				glbM->Vertices[i].Joints = joints[i];
+				glbM.Vertices[i].Joints = joints[i];
 			} else {
-				glbM->Vertices[i].Joints = {0, 0, 0, 0};
+				glbM.Vertices[i].Joints = {0, 0, 0, 0};
 			}
 
 			if(!joints.empty()) {
-				glbM->Vertices[i].Weights = weights[i];
+				glbM.Vertices[i].Weights = weights[i];
 			} else {
-				glbM->Vertices[i].Weights = {0, 0, 0, 0};
+				glbM.Vertices[i].Weights = {0, 0, 0, 0};
 			}
 		}
 
 		if (glbPrimitive.Contains("indices")) {
 			int accessorIndex = glbPrimitive.Get("indices").AsInt();
 			// Load indices using the accessorIndex...
-			LoadIndexData(glbHeader, binaryData, accessorIndex, glbM->Indices);
+			LoadIndexData(glbHeader, binaryData, accessorIndex, glbM.Indices);
 		}
 	}
 
@@ -608,14 +608,14 @@ GLBModelMesh* GLBFileLoader::LoadMeshFromGLBFile(int meshIndex, const PJL::JSONO
 }
 
 
-GLBModelSkin* GLBFileLoader::LoadSkinFromGLBFile(int skinIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData) {
-	GLBModelSkin* skin = new GLBModelSkin();
+GLBModelSkin GLBFileLoader::LoadSkinFromGLBFile(int skinIndex, const PJL::JSONObject& glbHeader, const std::vector<uint8_t>& binaryData) {
+	GLBModelSkin skin = GLBModelSkin();
 
 	PJL::JSONObject glbSkin = glbHeader.Get("skins").AsArray().Get(skinIndex).AsObject();
 
 	PJL::JSONArray glbJoints = glbSkin.Get("joints").AsArray();
 	for(int i = 0; i < glbJoints.Size(); i++) {
-		skin->Joints.push_back(glbJoints.Get(i).AsInt());
+		skin.Joints.push_back(glbJoints.Get(i).AsInt());
 	}
 
 	if(!glbSkin.Contains("inverseBindMatrices")) {
@@ -625,7 +625,7 @@ GLBModelSkin* GLBFileLoader::LoadSkinFromGLBFile(int skinIndex, const PJL::JSONO
 	int glbBindMatricesIndex = glbSkin.Get("inverseBindMatrices").AsInt();
 
 	PJL::JSONValue val = glbHeader.Get("inverseBindMatrices");
-	LoadAttributeData(glbHeader, binaryData, glbBindMatricesIndex, skin->InverseBindMatrices);
+	LoadAttributeData(glbHeader, binaryData, glbBindMatricesIndex, skin.InverseBindMatrices);
 
 	return skin;
 }

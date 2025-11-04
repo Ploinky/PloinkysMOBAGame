@@ -10,7 +10,7 @@ public:
 	float w;
 };
 
-Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t)
+inline Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t)
 {
     // Compute the cosine of the angle
     float dot = q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z;

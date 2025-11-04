@@ -8,15 +8,15 @@ CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
 }
 
-void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<DirectX::XMMATRIX>& boneTransforms) {
+void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat>& boneTransforms) {
 	const Bone& bone = skin->bones[i];
 	BonePosition position = bonePositions[bone.Index];
 
-	DirectX::XMMATRIX localTransform = DirectX::XMMatrixAffineTransformation(
-		DirectX::XMVectorSplatOne(),
-		DirectX::XMVectorZero(),
+	mat localTransform = PMathMatAffineTransform(
+	    Vector3(1, 1, 1),
+		Vector3(0, 0, 0),
 		position.rotation,
-		DirectX::XMLoadFloat3(&position.translation)
+		position.translation
 	);
 
 	if (bone.parent_index == -1) {
@@ -25,7 +25,7 @@ void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& boneP
 		for(int pi = 0; pi < skin->bones.size(); pi++) {
 			const Bone& b = skin->bones[pi];
 			if(b.Index == bone.parent_index) {
-				boneTransforms[i] = DirectX::XMMatrixMultiply(localTransform, boneTransforms[pi]);
+				boneTransforms[i] = localTransform * boneTransforms[pi];
 				break;
 			}
 		}
@@ -69,7 +69,7 @@ void CAnimationSystem::Update(CGameState* pGameState, float fDelta) {
                     Animation* animation = animIt->second;
                     Armature* skin = modelAsset.pModel->Skins.at(modelNode.second->Skin);
                     std::map<int, BonePosition> bonePositions = animation->GetBonePositions(pAnimComp->m_fAnimationTime, pAnimComp->m_bLoop);
-                    std::vector<DirectX::XMMATRIX> boneTransforms(skin->bones.size());
+                    std::vector<mat> boneTransforms(skin->bones.size());
 
                     for (size_t i = 0; i < skin->bones.size(); ++i) {
                         if(skin->bones[i].parent_index == -1) {
@@ -79,15 +79,15 @@ void CAnimationSystem::Update(CGameState* pGameState, float fDelta) {
 
                     // Apply inverse bind pose to get the final bone transformation
                     for (size_t i = 0; i < skin->bones.size(); ++i) {
-                        boneTransforms[i] = DirectX::XMMatrixMultiply(skin->global_inverse_bind_poses[i], boneTransforms[i]);
+                        boneTransforms[i] = skin->global_inverse_bind_poses[i] * boneTransforms[i];
                     }
 
                     for(int i = 0; i < boneTransforms.size(); i++) {
-                        DirectX::XMStoreFloat4x4(&pAnimComp->vecBones[i], DirectX::XMMatrixTranspose(boneTransforms[i]));
+                        pAnimComp->vecBones[i] = boneTransforms[i].Transpose();
                     }
                 } else {
                     for(int i = 0; i < 256; i++) {
-                        DirectX::XMStoreFloat4x4(&pAnimComp->vecBones[i], DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity()));
+                        pAnimComp->vecBones[i] = mat::Identity().Transpose();
                     }
                 }
             }

@@ -85,13 +85,13 @@ ParticleEmitter* ParticleEmitter::Load(std::list<std::string> lines) {
 }
 
 ParticleEmitter::~ParticleEmitter() {
-	if(vertex_buffer_) {
-		((ID3D11Buffer*) vertex_buffer_.ptr)->Release();
-	}
-
-	if(instance_buffer_) {
-		((ID3D11Buffer*) instance_buffer_.ptr)->Release();
-	}
+//	if(vertex_buffer_) {
+//		((ID3D11Buffer*) vertex_buffer_.ptr)->Release();
+//	}
+//
+//	if(instance_buffer_) {
+//		((ID3D11Buffer*) instance_buffer_.ptr)->Release();
+//	}
 }
 static double test = 0;
 
