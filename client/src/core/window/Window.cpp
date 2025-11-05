@@ -4,16 +4,23 @@
 #include <common/PMG_Common.h>
 #include "../Resources/resource.h"
 #include "Settings.h"
+#include <map>
 
+static const std::map<uint64_t, EKeyCode> g_mapKeyCode = {
+    {GLFW_KEY_ESCAPE, EKeyCode::ESCAPE},
+    {GLFW_KEY_SPACE, EKeyCode::SPACE}
+};
 void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, int nMods) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
     if (nAction == GLFW_PRESS) {
-        if(nKey == GLFW_KEY_ESCAPE) {
-            self->e_keyPressed(EKeyCode::ESCAPE);
+        if(g_mapKeyCode.contains(nKey)) {
+            self->e_keyPressed(g_mapKeyCode.at(nKey));
         }
     } else if(nAction == GLFW_RELEASE) {
-        self->e_keyReleased(nKey);
+        if(g_mapKeyCode.contains(nKey)) {
+            self->e_keyReleased(g_mapKeyCode.at(nKey));
+        }
     }
 }
 

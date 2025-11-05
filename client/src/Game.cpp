@@ -567,22 +567,22 @@ void Game::Update(float dt) {
         });
 
     if (m_keys[' ']) {
-        if (unit_id_received_) {
-            // Snap to player
-            GameObject* my_unit = GetGameObject(my_unit_id_);
-
-            if (my_unit != nullptr) {
-                m_camDir[0] = 0;
-                m_camDir[1] = 0;
-                m_camPos[0] = my_unit->position.x;
-                m_camPos[1] = 1500.0f;
-                m_camPos[2] = my_unit->position.z + 800.0f;
-            }
-        }
-        else {
-            m_camPos[0] = 0;
-            m_camPos[2] = -1000;
-        }
+    //    if (unit_id_received_) {
+    //        // Snap to player
+    //        GameObject* my_unit = GetGameObject(my_unit_id_);
+    //        
+    //        if (my_unit != nullptr) {
+    //            m_camDir[0] = 0;
+    //            m_camDir[1] = 0;
+    //            m_camPos[0] = my_unit->position.x;
+    //            m_camPos[1] = 1500.0f;
+    //            m_camPos[2] = my_unit->position.z + 800.0f;
+    //        }
+    //    }
+    //    else {
+    //        m_camPos[0] = 0;
+    //        m_camPos[2] = -1000;
+    //    }
 
     }
     else {
@@ -1248,4 +1248,29 @@ void Game::HandleGameTickPacket(std::vector<uint8_t> data) {
 
 void Game::AddPacketToCurrentTick(std::vector<uint8_t> data) {
     m_receivingTick.Data.push_back(data);
+}
+
+void Game::Action(EInputAction eAction) {
+    switch(eAction) {
+        case EInputAction::GAME_FOCUS_UNIT:
+                if (unit_id_received_) {
+                    // Snap to player
+                    GameObject* my_unit = GetGameObject(my_unit_id_);
+
+                    if (my_unit != nullptr) {
+                        m_camDir[0] = 0;
+                        m_camDir[1] = 0;
+                        m_camPos[0] = my_unit->position.x;
+                        m_camPos[1] = 1500.0f;
+                        m_camPos[2] = my_unit->position.z + 800.0f;
+                    }
+                }
+                else {
+                    m_camPos[0] = 0;
+                    m_camPos[2] = -1000;
+                }
+            break;
+        default:
+            break;
+    }
 }

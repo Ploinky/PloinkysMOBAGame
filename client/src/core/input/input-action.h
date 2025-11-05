@@ -7,4 +7,5 @@ enum class EInputAction {
 
     // GAME INPUT ACTIONS
     GAME_MOVE,
+    GAME_FOCUS_UNIT
 };

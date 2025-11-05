@@ -21,6 +21,7 @@ private:
     Window* m_pWindow = nullptr;
     EInputContext m_eCurrentContext = EInputContext::MENU;
     std::map<EKeyCode, EInputAction> m_mapMenu;
+    std::map<EKeyCode, EInputAction> m_mapGame;
 
     void OnMouseButtonPressed(EMouseButton eBtn);
     void OnKeyPressed(EKeyCode eBtn);

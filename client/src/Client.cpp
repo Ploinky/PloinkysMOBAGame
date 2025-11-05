@@ -105,7 +105,7 @@ void Client::Run(std::string connectString_) {
     m_pInputManager->on_action = [this](EInputAction eAction) { if(currentState_) currentState_->Action(eAction); };
     window->e_charTyped = [this](uint32_t ch) { if(currentState_) currentState_->CharTyped(ch); };
     // window->e_keyPressed = [this](EKeyCode eKey) { if (currentState_) currentState_->KeyPressed(eKey); };
-    window->e_keyReleased = [this](uint32_t key) { if (currentState_) currentState_->KeyReleased(key); };
+    // window->e_keyReleased = [this](uint32_t key) { if (currentState_) currentState_->KeyReleased(key); };
     // window->e_mouseButtonPressed = [this](EMouseButton eBtn) { if (currentState_) currentState_->MouseButtonPressed(eBtn); };
     window->e_mouseButtonReleased = [this](int button) { if (currentState_) currentState_->MouseButtonReleased(button); };
     window->e_mouseMoved = [this](int x, int y) { if (currentState_) currentState_->MouseMoved(x, y); };
@@ -222,24 +222,29 @@ void Client::StartCharacterSelect(ClientNetworkManager* networkManager, Player**
 void Client::JoinGame(ClientNetworkManager* networkManager) {
     Game* game = new Game(networkManager, this, window->width_, window->height_);
     NewState(game);
+    m_pInputManager->SetContext(EInputContext::GAME);
 };
 
 void Client::JoinLobby(servernetadr_t addr) {
+    m_pInputManager->SetContext(EInputContext::MENU);
     Lobby* lobby = new Lobby(addr.GetConnectionAddressString(), this, window->width_, window->height_);
     NewState(lobby);
 }
 
 void Client::OpenSettingsMenu() {
+    m_pInputManager->SetContext(EInputContext::MENU);
     SettingsMenu* menu = new SettingsMenu(this, window->width_, window->height_, &settings_);
     NewState(menu);
 }
 
 void Client::OpenMainMenu() {
+    m_pInputManager->SetContext(EInputContext::MENU);
     MainMenu* mainMenu = new MainMenu(this, window->width_, window->height_);
     NewState(mainMenu);
 }
 
 void Client::OpenServerBrowser() {
+    m_pInputManager->SetContext(EInputContext::MENU);
     ServerBrowser* serverBrowser = new ServerBrowser(this, window->width_, window->height_);
     NewState(serverBrowser);
 }

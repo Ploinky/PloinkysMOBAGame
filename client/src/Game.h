@@ -81,6 +81,7 @@ public:
     virtual void MouseButtonReleased(int button) override;
     virtual void MouseMoved(int screenX, int screenY) override;
 
+    virtual void Action(EInputAction eAction) override;
     GameObject* GetGameObject(UnitId unit_id);
 
     std::map<UnitId, GameObject*> game_objects_;

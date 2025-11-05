@@ -16,6 +16,8 @@ public:
 	virtual void Render(CRenderer* renderer) override;
 	virtual void MouseButtonPressed(int button) override;
 
+	virtual void Action(EInputAction eAction) override;
+
 private:
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>> packetManager_;
 	ClientNetworkManager* networkManager_;
