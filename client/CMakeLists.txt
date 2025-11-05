@@ -49,10 +49,13 @@ add_executable(client
     src/SettingsMenu.cpp
     src/VBox.cpp
     src/Vertex.cpp
-    src/Window.cpp
-
+    
     src/game/systems/animation-system.cpp
     src/game/systems/particle-system.cpp
+    
+    src/core/input/input-manager.cpp
+    
+    src/core/window/Window.cpp
 
     Resources/Cursor.cur
     Resources/cursor1.cur

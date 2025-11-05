@@ -19,6 +19,7 @@ public:
 	virtual void Render(CRenderer* renderer) override;
 	virtual void MouseButtonPressed(int button) override;
 
+	virtual void Action(EInputAction eAction) override;
 private:
 	GuiElement rootElement_;
 	GuiButton buttonRefresh_;

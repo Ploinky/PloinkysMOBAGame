@@ -5,7 +5,7 @@
 #include <locale>
 #include <codecvt>
 #include <steam/steam_api.h>
-#include "Window.h"
+#include <core/window/Window.h>
 #include "Renderer.h"
 #include "GameObject.h"
 #include "Camera.h"

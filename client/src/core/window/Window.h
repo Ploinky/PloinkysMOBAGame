@@ -9,6 +9,7 @@
 #endif
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#include <core/input/key-code.h>
 
 #include "Settings.h"
 
@@ -19,10 +20,10 @@ class Window {
     public:
         std::function<void()> windowResizedHandler;
         std::function<void(uint32_t)> e_charTyped;
-        std::function<void(uint32_t)> e_keyPressed;
+        std::function<void(EKeyCode)> e_keyPressed;
         std::function<void(uint32_t)> e_keyReleased;
         std::function<void(int x, int y)> e_mouseMoved = [](int x, int y){};
-        std::function<void(int key)> e_mouseButtonPressed;
+        std::function<void(EMouseButton)> e_mouseButtonPressed;
         std::function<void(int key)> e_mouseButtonReleased;
 
         int width_;

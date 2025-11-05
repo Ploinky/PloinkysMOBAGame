@@ -9,7 +9,9 @@ void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, 
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
     if (nAction == GLFW_PRESS) {
-        self->e_keyPressed(nKey);
+        if(nKey == GLFW_KEY_ESCAPE) {
+            self->e_keyPressed(EKeyCode::ESCAPE);
+        }
     } else if(nAction == GLFW_RELEASE) {
         self->e_keyReleased(nKey);
     }
@@ -18,7 +20,9 @@ void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, 
 void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int nMods) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
     if (nAction == GLFW_PRESS) {
-        self->e_mouseButtonPressed(nButton);
+        if(nButton == GLFW_MOUSE_BUTTON_1) {
+            self->e_mouseButtonPressed(EMouseButton::LEFT);
+        }
     } else if (nAction == GLFW_RELEASE) {
         self->e_mouseButtonReleased(nButton);
     } 

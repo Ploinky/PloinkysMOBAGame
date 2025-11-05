@@ -18,6 +18,8 @@ public:
 
 	void OnWindowResized() override;
 
+	virtual void Action(EInputAction eAction) override;
+
 private:
 	Settings* settings_;
 

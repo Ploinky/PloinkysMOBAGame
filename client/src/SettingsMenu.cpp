@@ -112,3 +112,13 @@ void SettingsMenu::MouseButtonPressed(int button) {
 void SettingsMenu::OnWindowResized() {
 	buttonBack_.m_pos = { windowWidth_ - 400.0f, windowHeight_ - 150.0f };
 }
+
+void SettingsMenu::Action(EInputAction eAction) {
+	if(eAction == EInputAction::MENU_CLOSE) {
+		handler_->OpenMainMenu();
+	}
+
+	if(eAction == EInputAction::MENU_SELECT) {
+		rootElement_.MousePressed(mouseX_, mouseY_);
+	}
+}

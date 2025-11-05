@@ -71,6 +71,19 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 MainMenu::~MainMenu() {
 }
 
+void MainMenu::Action(EInputAction eAction) {
+	switch(eAction) {
+		case EInputAction::MENU_SELECT:
+			rootElement_.MousePressed(mouseX_, mouseY_);
+			break;
+		case EInputAction::MENU_CLOSE:
+			NewState(nullptr);
+			break;
+		default:
+			return;
+	}
+}
+
 void MainMenu::Render(CRenderer* renderer) {
 	renderer->DrawMap();
 

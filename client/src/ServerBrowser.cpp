@@ -142,3 +142,13 @@ void ServerBrowser::ServerResponded(HServerListRequest hRequest, int iServer) {
 		}
 	}
 }
+
+void ServerBrowser::Action(EInputAction eAction) {
+	if(eAction == EInputAction::MENU_CLOSE) {
+		handler_->OpenMainMenu();
+	}
+
+	if(eAction == EInputAction::MENU_SELECT) {
+		rootElement_.MousePressed(mouseX_, mouseY_);
+	}
+}

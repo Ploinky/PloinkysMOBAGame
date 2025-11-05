@@ -14,6 +14,8 @@ public:
 	void Update(float dt) override;
 	void MouseButtonPressed(int button) override;
 	void KeyPressed(uint32_t key) override;
+	
+	virtual void Action(EInputAction eAction) override;
 
 private:
 	GuiElement rootElement_;

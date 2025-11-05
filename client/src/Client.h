@@ -11,6 +11,7 @@
 #include "IClientStateHandler.h"
 #include <LoadingState.h>
 #include <CharacterSelectState.h>
+#include <core/input/input-manager.h>
 
 // Main game application
 class Mesh;
@@ -77,6 +78,7 @@ private:
     IAudioEngine* m_pAudioEngine;
     IGraphicsEngine* m_pGraphicsEngine;
     CClientAssetManager* m_pAssetManager;
+    CInputManager* m_pInputManager;
 
     // Mouse input
 

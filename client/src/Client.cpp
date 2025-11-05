@@ -1,6 +1,6 @@
 #include "Client.h"
 #include <iostream>
-#include "Window.h"
+#include <core/window/Window.h>
 #include <common/PMG_Common.h>
 #include "Renderer.h"
 #include "Camera.h"
@@ -101,10 +101,12 @@ void Client::Run(std::string connectString_) {
     renderer = new CRenderer(m_pGraphicsEngine);
 	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, m_pAssetManager, window->width_, window->height_);
 
+    m_pInputManager = new CInputManager(window);
+    m_pInputManager->on_action = [this](EInputAction eAction) { if(currentState_) currentState_->Action(eAction); };
     window->e_charTyped = [this](uint32_t ch) { if(currentState_) currentState_->CharTyped(ch); };
-    window->e_keyPressed = [this](uint32_t key) { if (currentState_) currentState_->KeyPressed(key); };
+    // window->e_keyPressed = [this](EKeyCode eKey) { if (currentState_) currentState_->KeyPressed(eKey); };
     window->e_keyReleased = [this](uint32_t key) { if (currentState_) currentState_->KeyReleased(key); };
-    window->e_mouseButtonPressed = [this](int button) { if (currentState_) currentState_->MouseButtonPressed(button); };
+    // window->e_mouseButtonPressed = [this](EMouseButton eBtn) { if (currentState_) currentState_->MouseButtonPressed(eBtn); };
     window->e_mouseButtonReleased = [this](int button) { if (currentState_) currentState_->MouseButtonReleased(button); };
     window->e_mouseMoved = [this](int x, int y) { if (currentState_) currentState_->MouseMoved(x, y); };
 

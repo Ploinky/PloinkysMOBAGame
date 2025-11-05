@@ -2,6 +2,7 @@
 
 #include "IClientStateHandler.h"
 #include <stdint.h>
+#include <core/input/input-action.h>
 
 class CRenderer;
 
@@ -10,6 +11,8 @@ public:
 	virtual ~IClientState() {};
 	virtual void Update(float dt) = 0;
 	virtual void Render(CRenderer* renderer) = 0;
+
+	virtual void Action(EInputAction eAction) {};
 		
 	// Input handling
 	virtual void CharTyped(uint32_t ch) {};
