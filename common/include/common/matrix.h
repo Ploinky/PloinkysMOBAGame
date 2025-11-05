@@ -500,6 +500,5 @@ inline mat PMathMatAffineTransform(const Vector3& scaling, const Vector3& rotati
     // 4. Final translation
     mat T = mat::Translation(translation.x, translation.y, translation.z);
 
-    // Combine: T * T_origin * R * S * T_negOrigin
-    return T * T_origin * R * S * T_negOrigin;
+    return T_origin * R * S * T_negOrigin * T;
 }
