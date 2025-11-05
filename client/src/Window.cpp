@@ -19,11 +19,11 @@ void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int 
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
     if (nAction == GLFW_PRESS) {
         self->e_mouseButtonPressed(nButton);
-    } else if (nAction == GLFW_PRESS) {
+    } else if (nAction == GLFW_RELEASE) {
         self->e_mouseButtonReleased(nButton);
     } 
-}
-
+} 
+ 
 void GLFWMouseMoveCallback(GLFWwindow* pWindow, double dXPos, double dYPos) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
     self->e_mouseMoved(dXPos, dYPos);
