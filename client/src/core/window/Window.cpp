@@ -8,7 +8,33 @@
 
 static const std::map<uint64_t, EKeyCode> g_mapKeyCode = {
     {GLFW_KEY_ESCAPE, EKeyCode::ESCAPE},
-    {GLFW_KEY_SPACE, EKeyCode::SPACE}
+    {GLFW_KEY_SPACE, EKeyCode::SPACE},
+    {GLFW_KEY_A, EKeyCode::A},
+    {GLFW_KEY_B, EKeyCode::B},
+    {GLFW_KEY_C, EKeyCode::C},
+    {GLFW_KEY_D, EKeyCode::D},
+    {GLFW_KEY_E, EKeyCode::E},
+    {GLFW_KEY_F, EKeyCode::F},
+    {GLFW_KEY_G, EKeyCode::G},
+    {GLFW_KEY_H, EKeyCode::H},
+    {GLFW_KEY_I, EKeyCode::I},
+    {GLFW_KEY_J, EKeyCode::J},
+    {GLFW_KEY_K, EKeyCode::K},
+    {GLFW_KEY_L, EKeyCode::L},
+    {GLFW_KEY_M, EKeyCode::M},
+    {GLFW_KEY_N, EKeyCode::N},
+    {GLFW_KEY_O, EKeyCode::O},
+    {GLFW_KEY_P, EKeyCode::P},
+    {GLFW_KEY_Q, EKeyCode::Q},
+    {GLFW_KEY_R, EKeyCode::R},
+    {GLFW_KEY_S, EKeyCode::S},
+    {GLFW_KEY_T, EKeyCode::T},
+    {GLFW_KEY_U, EKeyCode::U},
+    {GLFW_KEY_V, EKeyCode::V},
+    {GLFW_KEY_W, EKeyCode::W},
+    {GLFW_KEY_X, EKeyCode::X},
+    {GLFW_KEY_Y, EKeyCode::Y},
+    {GLFW_KEY_Z, EKeyCode::Z}
 };
 void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, int nMods) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
@@ -29,6 +55,9 @@ void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int 
     if (nAction == GLFW_PRESS) {
         if(nButton == GLFW_MOUSE_BUTTON_1) {
             self->e_mouseButtonPressed(EMouseButton::LEFT);
+        }
+        if(nButton == GLFW_MOUSE_BUTTON_2) {
+            self->e_mouseButtonPressed(EMouseButton::RIGHT);
         }
     } else if (nAction == GLFW_RELEASE) {
         self->e_mouseButtonReleased(nButton);

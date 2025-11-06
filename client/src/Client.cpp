@@ -103,6 +103,7 @@ void Client::Run(std::string connectString_) {
 
     m_pInputManager = new CInputManager(window);
     m_pInputManager->on_action = [this](EInputAction eAction) { if(currentState_) currentState_->Action(eAction); };
+    m_pInputManager->on_action_released = [this](EInputAction eAction) { if(currentState_) currentState_->ActionReleased(eAction); };
     window->e_charTyped = [this](uint32_t ch) { if(currentState_) currentState_->CharTyped(ch); };
     // window->e_keyPressed = [this](EKeyCode eKey) { if (currentState_) currentState_->KeyPressed(eKey); };
     // window->e_keyReleased = [this](uint32_t key) { if (currentState_) currentState_->KeyReleased(key); };

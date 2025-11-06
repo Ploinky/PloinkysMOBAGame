@@ -82,6 +82,8 @@ public:
     virtual void MouseMoved(int screenX, int screenY) override;
 
     virtual void Action(EInputAction eAction) override;
+    virtual void ActionReleased(EInputAction eAction) override;
+
     GameObject* GetGameObject(UnitId unit_id);
 
     std::map<UnitId, GameObject*> game_objects_;
@@ -130,4 +132,7 @@ public:
     HSound m_hThunderstrikeSound = INVALID_ASSET_HANDLE;
     HSound m_hStormcallerDeath = INVALID_ASSET_HANDLE;
     HSound m_hStormcallerAttack = INVALID_ASSET_HANDLE;
+
+	GameObject* pObjectUnderCursor = nullptr;
+    bool m_bFocusUnit = false;
 };

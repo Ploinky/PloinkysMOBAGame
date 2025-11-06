@@ -49,6 +49,8 @@ add_library(common
 	src/Packets/UnitStatsPacket.cpp
 	
 	src/Packets/CharacterSelect/RemainingTimePacket.cpp
+
+	src/vendor/pugixml.cpp
 )
 
 target_include_directories(common PUBLIC include)

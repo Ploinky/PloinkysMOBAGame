@@ -13,6 +13,7 @@ public:
 	virtual void Render(CRenderer* renderer) = 0;
 
 	virtual void Action(EInputAction eAction) {};
+	virtual void ActionReleased(EInputAction eAction) {};
 		
 	// Input handling
 	virtual void CharTyped(uint32_t ch) {};

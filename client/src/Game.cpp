@@ -344,6 +344,40 @@ void Game::MouseButtonReleased(int button) {
 void Game::MouseMoved(int screenX, int screenY) {
     m_mousePos[0] = screenX;
     m_mousePos[1] = screenY;
+
+    pObjectUnderCursor = nullptr;
+	float hp = static_cast<float>(M_PI / 180.0);
+	Ray ray = ScreenToRay({ static_cast<float>(screenX), static_cast<float>(screenY) },
+		{ renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z },
+		{ renderer->m_camera.rotation.x, renderer->m_camera.rotation.y, renderer->m_camera.rotation.z },
+		(float)windowWidth_ / (float)windowHeight_,
+		renderer->m_camera.fov * hp,
+		renderer->m_camera.nearClip,
+		renderer->m_camera.farClip,
+		windowWidth_,
+		windowHeight_);
+
+    for(auto go_it : game_objects_) {
+        GameObject* go = go_it.second;
+        Capsule_t capsule = Capsule_t {
+            .vec3Start = Vector3(go->position.x, 0, go->position.z),
+            .vec3End = Vector3(go->position.x, 200, go->position.z),
+            .fRadius = 50,
+        };
+
+		if (TestCollision(ray, capsule)) {
+			// TODO does this work for multiple objects right behind each other?
+			pObjectUnderCursor = go;
+			break;
+		}
+    }
+    
+    if(pObjectUnderCursor && m_gameState.GetComponent<TargetableComponent_t>(pObjectUnderCursor->unit_id)) {
+        handler_->RequestCursor(CursorId::ATTACK_MOVE);
+    } else {
+        handler_->RequestCursor(CursorId::DEFAULT);
+    }
+
 }
 
 void Game::Update(float dt) {
@@ -365,24 +399,6 @@ void Game::Update(float dt) {
         m_mouseClicked[1] = m_mousePos[1];
         m_mouseClicked[2] = 1;
     }
-
-    if (m_keys['s']) {
-        StopCommandPacket stop = StopCommandPacket();
-
-        net_manager_->SendPacket(&stop);
-    }
-
-	GameObject* pObjectUnderCursor = nullptr;
-	float hp = static_cast<float>(M_PI / 180.0);
-	Ray ray = ScreenToRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) },
-		{ renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z },
-		{ renderer->m_camera.rotation.x, renderer->m_camera.rotation.y, renderer->m_camera.rotation.z },
-		(float)windowWidth_ / (float)windowHeight_,
-		renderer->m_camera.fov * hp,
-		renderer->m_camera.nearClip,
-		renderer->m_camera.farClip,
-		windowWidth_,
-		windowHeight_);
 
 	for (auto& go_it : game_objects_) {
 		GameObject* go = go_it.second;
@@ -416,22 +432,6 @@ void Game::Update(float dt) {
         } else if (pAnimComp) {
             pAnimComp->m_fAnimationTime += dt;
         }
-
-        if(go->dead) {
-            continue;
-        }
-
-        Capsule_t capsule = Capsule_t {
-            .vec3Start = Vector3(go->position.x, 0, go->position.z),
-            .vec3End = Vector3(go->position.x, 200, go->position.z),
-            .fRadius = 50,
-        };
-
-		if (TestCollision(ray, capsule)) {
-			// TODO does this work for multiple objects right behind each other?
-			pObjectUnderCursor = go;
-			break;
-		}
 	}
 
     if (m_keys['q']) {
@@ -502,7 +502,6 @@ void Game::Update(float dt) {
 
     if (last_move == 0 && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
 		if (pObjectUnderCursor && pObjectUnderCursor->has_healthbar) {
-			SetCursor(LoadCursor(NULL, IDC_HAND));
 			last_move = 150;
 
 			if (m_mouseButtons[2]) {
@@ -528,11 +527,6 @@ void Game::Update(float dt) {
         }
     }
 
-    if (m_keys[VK_ESCAPE]) {
-        handler_->OpenMainMenu();
-        return;
-    }
-
     // Network handling
     while (net_manager_->ReceivePacket()) {
     }
@@ -545,6 +539,25 @@ void Game::Update(float dt) {
 
     for(ParticleEffect* pEffect : m_vecGlobalParticles) {
         pEffect->Update(dt);
+    }
+    
+    if(m_bFocusUnit) {
+        if (unit_id_received_) {
+            // Snap to player
+            GameObject* my_unit = GetGameObject(my_unit_id_);
+    
+            if (my_unit != nullptr) {
+                m_camDir[0] = 0;
+                m_camDir[1] = 0;
+                m_camPos[0] = my_unit->position.x;
+                m_camPos[1] = 1500.0f;
+                m_camPos[2] = my_unit->position.z + 800.0f;
+            }
+        }
+        else {
+            m_camPos[0] = 0;
+            m_camPos[2] = -1000;
+        }
     }
 
     std::erase_if(m_vecGlobalParticles, [](auto p) {
@@ -593,10 +606,6 @@ void Game::Update(float dt) {
     // clamp camera position to avoid scrolling off map
     m_camPos[0] = std::min(std::max(m_camPos[0], 0.0f), 9000.0f);
     m_camPos[2] = std::max(std::min(m_camPos[2], 1000.0f), -4400.0f);
-
-    if(pObjectUnderCursor && m_gameState.GetComponent<TargetableComponent_t>(pObjectUnderCursor->unit_id)) {
-        handler_->RequestCursor(CursorId::ATTACK_MOVE);
-    }
 
     m_pAudioSystem->SetListenerPosition({m_camPos[0], m_camPos[1], m_camPos[2]});
     for(IGameSystem* pSystem : m_gameState.m_vecGameSystems) {
@@ -1251,26 +1260,73 @@ void Game::AddPacketToCurrentTick(std::vector<uint8_t> data) {
 }
 
 void Game::Action(EInputAction eAction) {
-    switch(eAction) {
-        case EInputAction::GAME_FOCUS_UNIT:
-                if (unit_id_received_) {
-                    // Snap to player
-                    GameObject* my_unit = GetGameObject(my_unit_id_);
+    if(eAction == EInputAction::GAME_ESCAPE) {
+        handler_->OpenMainMenu();
+    }
 
-                    if (my_unit != nullptr) {
-                        m_camDir[0] = 0;
-                        m_camDir[1] = 0;
-                        m_camPos[0] = my_unit->position.x;
-                        m_camPos[1] = 1500.0f;
-                        m_camPos[2] = my_unit->position.z + 800.0f;
-                    }
+    if(eAction == EInputAction::GAME_FOCUS_UNIT) {
+        m_bFocusUnit = true;
+    }
+
+    if(eAction == EInputAction::GAME_STOP) {
+        StopCommandPacket stop = StopCommandPacket();
+
+        net_manager_->SendPacket(&stop);
+    }
+
+    if(eAction == EInputAction::GAME_SECONDARY) {
+        if (pObjectUnderCursor && pObjectUnderCursor->has_healthbar) {
+			last_move = 150;
+
+            AttackCommandPacket atk_pk = AttackCommandPacket();
+            atk_pk.target_unit = pObjectUnderCursor->unit_id;
+
+            net_manager_->SendPacket(&atk_pk);
+		} else if (!pObjectUnderCursor) {
+            float x, y;
+            TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+
+            MoveCommandPacket mv = MoveCommandPacket();
+            mv.x = x;
+            mv.y = y;
+            net_manager_->SendPacket(&mv);
+
+            ParticleEffect* particle_system = ParticleEffect::Load("UI/MoveTo/move_to.pts", assetManager_);
+            particle_system->position = { x, 0, y };
+            m_vecGlobalParticles.push_back(particle_system);
+
+            last_move = 150;
+        }
+    }
+
+    if(eAction == EInputAction::GAME_CAST_SPELL_1) {
+        switch(m_vecAbilities[0].eTargetType) {
+            case EAbilityTargetType::UNIT:
+                if (pObjectUnderCursor) {
+                    CastTargetCommandPacket cmd = CastTargetCommandPacket();
+                    cmd.spell_slot = 0;
+                    cmd.target = pObjectUnderCursor->unit_id;
+                    net_manager_->SendPacket(&cmd);
                 }
-                else {
-                    m_camPos[0] = 0;
-                    m_camPos[2] = -1000;
-                }
-            break;
-        default:
-            break;
+                break;
+            default:
+                float x, y;
+                TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+                
+                CastCommandPacket cast = CastCommandPacket();
+                cast.spell_slot = 0;
+                cast.x = x;
+                cast.y = 0;
+                cast.z = y;
+                net_manager_->SendPacket(&cast);
+                break;
+        }
+    }
+}
+
+
+void Game::ActionReleased(EInputAction eAction) {
+    if(eAction == EInputAction::GAME_FOCUS_UNIT) {
+        m_bFocusUnit = false;
     }
 }

@@ -6,6 +6,11 @@ enum class EInputAction {
     MENU_SELECT,
 
     // GAME INPUT ACTIONS
+    GAME_ESCAPE,
     GAME_MOVE,
-    GAME_FOCUS_UNIT
+    GAME_FOCUS_UNIT,
+    GAME_PRIMARY,
+    GAME_SECONDARY,
+    GAME_CAST_SPELL_1,
+    GAME_STOP
 };

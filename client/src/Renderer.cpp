@@ -180,7 +180,7 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z}) + 90;
  	float x = ToRadians(a);
 	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
-		rotMat = PMathMatRollPitchYaw(ToRadians(0), x, ToRadians(0));
+		rotMat = PMathMatRollPitchYaw(ToRadians(0), ToRadians(0), x);
 	}
 	mat transMat = mat::Translation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
 	mat scaleMat = PMathMatScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
