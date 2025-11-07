@@ -5,7 +5,6 @@
 #include "ParticleEmitter.h"
 #include "ParticleEffect.h"
 #include "game/components/components.h"
-#include <DirectXMath.h>
 
 CRenderer::~CRenderer() {
 	for (auto model_it : models_) {

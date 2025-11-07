@@ -65,6 +65,12 @@ add_executable(client
     Resources/Resource.rc
 )
 
+if(UNIX)
+    target_sources(client PRIVATE
+        src/core/audio/audio-engine-minaudio.cpp
+    )
+endif()
+
 if(WIN32)
     target_sources(client PRIVATE
         src/core/graphics/d3d11-graphics-engine.cpp

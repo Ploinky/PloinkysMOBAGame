@@ -62,9 +62,19 @@ set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 target_link_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include)
 
-target_link_libraries(server PUBLIC common steam_api64)
+target_link_libraries(server PUBLIC common)
 
-add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:server>/steam_api64.dll)
+if(WIN32)
+	target_link_libraries(server PUBLIC steam_api64)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:server>/steam_api64.dll)
+endif()
+
+if(UNIX)
+	target_link_libraries(server PUBLIC steam_api)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so $<TARGET_FILE_DIR:server>/libsteam_api.so)
+
+endif()
+
 add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
 
 pak_folder(Maps/map1 Maps/Map1.pak)

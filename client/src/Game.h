@@ -99,7 +99,7 @@ public:
     NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>> packet_manager;
 
     UnitId my_unit_id_;
-    bool unit_id_received_ = FALSE;
+    bool unit_id_received_ = false;
 
     float m_fCurrentFrameDelta = 0;
     uint64_t current_tick_ = 0;

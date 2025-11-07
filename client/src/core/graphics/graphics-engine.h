@@ -99,11 +99,11 @@ public:
     virtual void BindSampler(uint32_t uSlot, HSampler hSampler) = 0;
     virtual void BindTexture(uint32_t uSlot, HTexture hTexture) = 0;
 
-    virtual void SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, UINT uStride, UINT uOffset) = 0;
+    virtual void SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, unsigned int uStride, unsigned int uOffset) = 0;
     virtual void SetIndexBuffer(BufferHandle_t& indexBuffer) = 0;
 
-    virtual void DrawIndexed(UINT indices) = 0;
-    virtual void DrawInstanced(UINT uVertexCountPerInstance, UINT uInstanceCount) = 0;
+    virtual void DrawIndexed(unsigned int indices) = 0;
+    virtual void DrawInstanced(unsigned int uVertexCountPerInstance, unsigned int uInstanceCount) = 0;
 
     virtual bool Present() = 0;
 
