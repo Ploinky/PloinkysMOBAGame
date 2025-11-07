@@ -672,15 +672,18 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         Vector3 point_above = Vector3{ 0, -450, 0 };
 
-        float hp = static_cast<float>(M_PI / 180.0);
-        mat_t persp = mat_t::Perspective((float)windowWidth_ / (float)windowHeight_, renderer->m_camera.fov * hp, renderer->m_camera.nearClip, renderer->m_camera.farClip);
+        mat_t persp = PMathMatPerspectiveRH(ToRadians(renderer->m_camera.fov), (float)windowWidth_ / (float)windowHeight_, renderer->m_camera.nearClip, renderer->m_camera.farClip);
 
-        mat_t view = mat_t::Rotation(-renderer->m_camera.rotation.z, -renderer->m_camera.rotation.y, -renderer->m_camera.rotation.x) * mat_t::Translation(renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z);
+        mat_t view = PMathMatRollPitchYaw(ToRadians(-renderer->m_camera.rotation.z), ToRadians(-renderer->m_camera.rotation.x), ToRadians(-renderer->m_camera.rotation.y)) * mat_t::Translation(-renderer->m_camera.position.x, -renderer->m_camera.position.y, -renderer->m_camera.position.z) ;
 
-        mat_t transMat = mat_t::Translation(go->position.x, go->position.y, go->position.z);
+        mat_t transMat = mat_t::Translation(go->position.x, go->position.y, go->position.z).Transpose();
 
         Vector2 screen_point_above = WorldToScreen(point_above, transMat.inverse(), persp, view);
+        
+        Vector4 worldPos = {renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z, 1.0f};
+        Vector4 eyePos = view * worldPos;
 
+        printf("Camera-space pos: x=%f y=%f z=%f w=%f\n", eyePos.x, eyePos.y, eyePos.z, eyePos.w);
         double x = (1.0f + screen_point_above.x) * 0.5 * windowWidth_;
         double y = (1.0f - screen_point_above.y) * 0.5 * windowHeight_;
         double health_bar_height = 5;

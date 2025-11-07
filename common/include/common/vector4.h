@@ -2,6 +2,11 @@
 
 #include "calculation.h"
 
+struct mat_s {
+    // m[row][column]
+    float m[4][4] = { 0 };
+};
+
 class Vector4 {
 public:
 	Vector4();

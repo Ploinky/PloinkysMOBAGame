@@ -1,6 +1,11 @@
 #ifndef PMG_COMMON_H
 #define PMG_COMMON_H
 
+// all math is
+// right hand coordinates
+// row major matrices
+// (x, y, z, w) quaternions
+// row-vector
 #include "calculation.h"
 #include "circle.h"
 #include "collision.h"
