@@ -99,7 +99,7 @@ void Client::Run(std::string connectString_) {
     m_pAssetManager = new CClientAssetManager(m_pGraphicsEngine, m_pAudioEngine);
 
     renderer = new CRenderer(m_pGraphicsEngine);
-	renderer->Initialize(window->GetWindowHandle(), settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, m_pAssetManager, window->width_, window->height_);
+	renderer->Initialize(settings_.GetInt(PMGSettings::WINDOW_MODE) == (int)WindowMode::FULLSCREEN, m_pAssetManager, window->width_, window->height_);
 
     m_pInputManager = new CInputManager(window);
     m_pInputManager->on_action = [this](EInputAction eAction) { if(currentState_) currentState_->Action(eAction); };

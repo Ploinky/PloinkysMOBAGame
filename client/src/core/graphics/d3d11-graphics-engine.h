@@ -33,7 +33,7 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         // After this is done, Direct3D will be ready to use
         // Returns false (and logs the error) if initialization fails
         // Engine should immediately in this case
-        bool Initialize(HWND windowHandle, bool full_screen);
+        bool Initialize(HWindow windowHandle, bool full_screen);
         
         // Sets the native window's dimensions
         // This will resize swap chain buffers and recreate render target and depth view

@@ -3,14 +3,7 @@
 #include <stdint.h>
 #include <string>
 #include <common/PMG_Common.h>
-
-#ifdef WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-    typedef HWND HWindow;
-#else
-    typedef void* HWindow;
-#endif
+#include <core/window/h-window.h>
 
 typedef struct BufferHandle_t {
     void* ptr = nullptr;

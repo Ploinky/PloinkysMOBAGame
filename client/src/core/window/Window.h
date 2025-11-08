@@ -11,6 +11,7 @@
 #include <GLFW/glfw3native.h>
 #include <core/input/key-code.h>
 
+#include <core/window/h-window.h>
 #include "Settings.h"
 
 // Forward declarations to avoid too many headers
@@ -32,7 +33,7 @@ class Window {
         Window(int res_x, int res_y, WindowMode mode);
         ~Window();
 
-        HWND GetWindowHandle();
+        HWindow GetWindowHandle();
             
         // Show window on screen
         void Show();

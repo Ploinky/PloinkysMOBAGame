@@ -21,8 +21,7 @@ CRenderer::CRenderer(IGraphicsEngine* pGraphicsEngine) {
 	m_pGraphicsEngine = pGraphicsEngine;
 }
 
-void CRenderer::Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_) {
-	
+void CRenderer::Initialize(bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_) {
     m_width = width_;
     m_height = height_;
 

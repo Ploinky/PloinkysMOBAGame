@@ -49,7 +49,7 @@ class CRenderer {
 public:
     CRenderer(IGraphicsEngine* pGraphicsEngine);
     ~CRenderer();
-    void Initialize(HWND hWindowHandle, bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_);
+    void Initialize(bool bFullScreen, CClientAssetManager* assetManager, int width_, int height_);
     void LoadResources(CClientAssetManager* pAssetManager);
     void SetDimensions(int width_, int height_);
     void UpdateCameraMatrix();

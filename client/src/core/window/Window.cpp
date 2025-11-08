@@ -282,7 +282,7 @@ void Window::SetShouldClose() {
     shouldClose = true;
 }
     
-HWND Window::GetWindowHandle() {
+HWindow Window::GetWindowHandle() {
     // TODO
     return glfwGetWin32Window(m_pWindow);
 }
