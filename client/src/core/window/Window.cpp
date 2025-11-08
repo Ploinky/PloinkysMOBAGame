@@ -34,7 +34,11 @@ static const std::map<uint64_t, EKeyCode> g_mapKeyCode = {
     {GLFW_KEY_W, EKeyCode::W},
     {GLFW_KEY_X, EKeyCode::X},
     {GLFW_KEY_Y, EKeyCode::Y},
-    {GLFW_KEY_Z, EKeyCode::Z}
+    {GLFW_KEY_Z, EKeyCode::Z},
+    {GLFW_KEY_LEFT, EKeyCode::LEFT_ARROW},
+    {GLFW_KEY_RIGHT, EKeyCode::RIGHT_ARROW},
+    {GLFW_KEY_UP, EKeyCode::UP_ARROW},
+    {GLFW_KEY_DOWN, EKeyCode::DOWN_ARROW}
 };
 void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, int nMods) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));

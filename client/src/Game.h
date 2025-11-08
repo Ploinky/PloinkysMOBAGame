@@ -35,6 +35,14 @@ typedef struct {
     EAbilityTargetType eTargetType;
 } UIAbility_t;
 
+typedef struct {
+    bool bKeyScrollLeft;
+    bool bKeyScrollRight;
+    bool bKeyScrollUp;
+    bool bKeyScrollDown;
+    bool bFocusUnit;
+} PlayerInput_t;
+
 class Game : public IClientState {
     typedef struct {
         unsigned long long received;
@@ -134,5 +142,5 @@ public:
     HSound m_hStormcallerAttack = INVALID_ASSET_HANDLE;
 
 	GameObject* pObjectUnderCursor = nullptr;
-    bool m_bFocusUnit = false;
+    PlayerInput_t m_playerInput;
 };

@@ -15,6 +15,10 @@ CInputManager::CInputManager(Window* pWindow) {
     m_mapGame.emplace(EKeyCode::SPACE, EInputAction::GAME_FOCUS_UNIT);
     m_mapGame.emplace(EKeyCode::Q, EInputAction::GAME_CAST_SPELL_1);
     m_mapGame.emplace(EKeyCode::S, EInputAction::GAME_STOP);
+    m_mapGame.emplace(EKeyCode::LEFT_ARROW, EInputAction::GAME_SCROLL_LEFT);
+    m_mapGame.emplace(EKeyCode::RIGHT_ARROW, EInputAction::GAME_SCROLL_RIGHT);
+    m_mapGame.emplace(EKeyCode::UP_ARROW, EInputAction::GAME_SCROLL_UP);
+    m_mapGame.emplace(EKeyCode::DOWN_ARROW, EInputAction::GAME_SCROLL_DOWN);
 }
 
 void CInputManager::SetContext(EInputContext eInputContext) {

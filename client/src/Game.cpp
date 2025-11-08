@@ -305,6 +305,14 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     m_gameState.AddSystem(m_pAudioSystem);
     m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
     m_gameState.AddSystem(new CParticleSystem(handler->GetAssetManager()));
+
+    m_playerInput = {
+        .bKeyScrollLeft = false,
+        .bKeyScrollRight = false,
+        .bKeyScrollUp = false,
+        .bKeyScrollDown = false,
+        .bFocusUnit = false
+    };
 }
 
 Game::~Game() {
@@ -386,9 +394,9 @@ void Game::Update(float dt) {
         return;
     }
 
-    int keysX = m_keys[VK_RIGHT] - m_keys[VK_LEFT];
+    int keysX = m_playerInput.bKeyScrollRight - m_playerInput.bKeyScrollLeft;
     int mouseX = (m_mousePos[0] >= (short)windowWidth_ - 1) - (m_mousePos[0] == 0);
-    int keysZ = m_keys[VK_DOWN] - m_keys[VK_UP];
+    int keysZ = m_playerInput.bKeyScrollDown - m_playerInput.bKeyScrollUp;
     int mouseZ = (m_mousePos[1] >= (short)windowHeight_ - 1) - (m_mousePos[1] == 0);
 
     m_camDir[0] = keysX + mouseX;
@@ -541,7 +549,7 @@ void Game::Update(float dt) {
         pEffect->Update(dt);
     }
     
-    if(m_bFocusUnit) {
+    if(m_playerInput.bFocusUnit) {
         if (unit_id_received_) {
             // Snap to player
             GameObject* my_unit = GetGameObject(my_unit_id_);
@@ -1268,7 +1276,7 @@ void Game::Action(EInputAction eAction) {
     }
 
     if(eAction == EInputAction::GAME_FOCUS_UNIT) {
-        m_bFocusUnit = true;
+        m_playerInput.bFocusUnit = true;
     }
 
     if(eAction == EInputAction::GAME_STOP) {
@@ -1325,11 +1333,43 @@ void Game::Action(EInputAction eAction) {
                 break;
         }
     }
+    
+    if(eAction == EInputAction::GAME_SCROLL_LEFT) {
+        m_playerInput.bKeyScrollLeft = true;
+    }
+    
+    if(eAction == EInputAction::GAME_SCROLL_RIGHT) {
+        m_playerInput.bKeyScrollRight = true;
+    }
+    
+    if(eAction == EInputAction::GAME_SCROLL_UP) {
+        m_playerInput.bKeyScrollUp = true;
+    }
+    
+    if(eAction == EInputAction::GAME_SCROLL_DOWN) {
+        m_playerInput.bKeyScrollDown = true;
+    }
 }
 
 
 void Game::ActionReleased(EInputAction eAction) {
+    if(eAction == EInputAction::GAME_SCROLL_LEFT) {
+        m_playerInput.bKeyScrollLeft = false;
+    }
+    
+    if(eAction == EInputAction::GAME_SCROLL_RIGHT) {
+        m_playerInput.bKeyScrollRight = false;
+    }
+    
+    if(eAction == EInputAction::GAME_SCROLL_UP) {
+        m_playerInput.bKeyScrollUp = false;
+    }
+    
+    if(eAction == EInputAction::GAME_SCROLL_DOWN) {
+        m_playerInput.bKeyScrollDown = false;
+    }
+
     if(eAction == EInputAction::GAME_FOCUS_UNIT) {
-        m_bFocusUnit = false;
+        m_playerInput.bFocusUnit = false;
     }
 }

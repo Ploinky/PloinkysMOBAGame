@@ -28,7 +28,11 @@ enum class EKeyCode {
     Y,
     Z,
     ESCAPE,
-    SPACE
+    SPACE,
+    LEFT_ARROW,
+    RIGHT_ARROW,
+    UP_ARROW,
+    DOWN_ARROW
 };
 
 enum class EMouseButton {
