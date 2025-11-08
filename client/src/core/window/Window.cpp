@@ -96,6 +96,7 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
     shouldClose = false;
 
     // ------ Create window -----
+    /*
     int posX, posY;
 
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -125,6 +126,7 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
         }
     }
 
+    */
 
     std::string window_title = "Ploinky's MOBA Game";
 
@@ -267,8 +269,6 @@ void Window::Show() {
     // ShowWindow(windowHandle, SW_SHOW);
 }
 
-MSG msg = {};
-    
 // Handle win32 window events
 void Window::HandleEvents() {
     glfwPollEvents();
@@ -284,7 +284,12 @@ void Window::SetShouldClose() {
     
 HWindow Window::GetWindowHandle() {
     // TODO
-    return glfwGetWin32Window(m_pWindow);
+    #ifdef WIN32
+        return glfwGetWin32Window(m_pWindow);
+    #else
+        throw std::runtime_error("not implemented");
+    #endif
+    
 }
 
 void Window::Resized(int width_, int height_) {

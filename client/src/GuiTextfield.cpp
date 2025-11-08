@@ -7,10 +7,13 @@ void GuiTextfield::Render(CRenderer* renderer) {
 }
 
 void GuiTextfield::CharTyped(char c) {
-	if (!m_text.empty() && c == VK_BACK) {
+	throw std::runtime_error("this is broken right now");
+	/*
+	if (!m_text.empty() && c == ' ') {
 		m_text.pop_back();
 		return;
 	}
-
+	
 	m_text.push_back(c);
+	*/
 }
