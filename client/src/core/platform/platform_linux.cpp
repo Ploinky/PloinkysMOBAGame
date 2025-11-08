@@ -18,7 +18,7 @@ void CPlatform::Alert(std::string strTitle, std::string strText, EAlertType eTyp
     switch(eType) {
         case EAlertType::INFO:
             Logger::FormatMsg("%s - %s", strTitle.c_str(), strText.c_str());
-        case EAlertType::ERROR:
+        case EAlertType::ERR:
         default:
             Logger::FormatErr("%s - %s", strTitle.c_str(), strText.c_str());
     }
