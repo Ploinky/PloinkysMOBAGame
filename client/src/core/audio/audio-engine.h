@@ -17,6 +17,7 @@ typedef ASSET_HANDLE HSound;
 
 class IAudioEngine {
 public:
+	static IAudioEngine* Create();
 	virtual bool Initialize() = 0;
 
     virtual void Update() = 0;

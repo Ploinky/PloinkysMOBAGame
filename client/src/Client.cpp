@@ -93,7 +93,7 @@ void Client::Run(std::string connectString_) {
 
     m_pGraphicsEngine = IGraphicsEngine::Create(window->GetWindowHandle(), window->width_, window->height_);
     
-    m_pAudioEngine = new CAudioEngineXAudio();
+    m_pAudioEngine = IAudioEngine::Create();
     m_pAudioEngine->Initialize();
 
     m_pAssetManager = new CClientAssetManager(m_pGraphicsEngine, m_pAudioEngine);

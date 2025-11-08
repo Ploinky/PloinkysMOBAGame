@@ -3,6 +3,10 @@
 #include "client-asset-manager.h"
 #include "common/PMG_Common.h"
 
+IAudioEngine* IAudioEngine::Create() {
+    return new CAudioEngineXAudio();
+}
+
 bool CAudioEngineXAudio::Initialize() {
 	HRESULT hr;
 

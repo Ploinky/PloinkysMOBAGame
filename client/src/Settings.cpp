@@ -46,7 +46,7 @@ void Settings::LoadDefaults() {
 	
 	deviceModes_.clear();
 	for(VideoMode_t& vidMode : CPlatform::GetAllVideoModes()) {
-		std::string strName = std::to_string(vidMode.uWidth) + "x" + std::to_string(vidMode.uHeight);
+		std::string strName = std::to_string(vidMode.uWidth) + "x" + std::to_string(vidMode.uHeight) + "-" + std::to_string(vidMode.uColorDepth);
 		deviceModes_.emplace(strName, vidMode);
 	}
 

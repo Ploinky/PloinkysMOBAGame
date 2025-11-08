@@ -9,7 +9,8 @@ std::vector<VideoMode_t> CPlatform::GetAllVideoModes() {
         VideoMode_t vidMode{};
         vidMode.uWidth = devMode.dmPelsWidth;
         vidMode.uHeight = devMode.dmPelsHeight;
-        deviceModes.emplace(vidMode);
+        vidMode.uColorDepth = devMode.dmBitsPerPel;
+        deviceModes.push_back(vidMode);
 	}
 
     return deviceModes;
