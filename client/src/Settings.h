@@ -8,9 +8,9 @@
 
 class PMGSettings {
 public:
-	static constexpr const char* WINDOW_MODE = "window_mode";
-	static constexpr const char* MASTER_VOLUME = "master_volume";
-	static constexpr const char* VIDEO_MODE = "video_mode";
+	static constexpr std::string WINDOW_MODE = "window_mode";
+	static constexpr std::string MASTER_VOLUME = "master_volume";
+	static constexpr std::string VIDEO_MODE = "video_mode";
 };
 
 enum class WindowMode {
@@ -21,15 +21,15 @@ enum class WindowMode {
 
 class Settings {
 public:
-	int GetInt(const char* setting);
-	bool GetBool(const char* setting);
-	double GetDouble(const char* setting);
-	std::string GetString(const char* setting);
+	int GetInt(std::string setting);
+	bool GetBool(std::string setting);
+	double GetDouble(std::string setting);
+	std::string GetString(std::string setting);
 
-	void SetInt(const char* setting, int value);
-	void SetBool(const char* setting, bool value);
-	void SetDouble(const char* setting, double value);
-	void SetString(const char* setting, std::string value);
+	void SetInt(std::string setting, int value);
+	void SetBool(std::string setting, bool value);
+	void SetDouble(std::string setting, double value);
+	void SetString(std::string setting, std::string value);
 
 	void LoadDefaults();
 	void LoadFromFile(std::string fileName);
@@ -43,7 +43,7 @@ public:
 
 private:
 
-	std::map<const char*, std::string> settings_;
+	std::map<std::string, std::string> settings_;
 
 	std::map<std::string, VideoMode_t> deviceModes_;
 };

@@ -3,38 +3,38 @@
 #include <ranges>
 #include <core/platform/platform.h>
 
-int Settings::GetInt(const char* setting) {
+int Settings::GetInt(std::string setting) {
 	return std::stoi(settings_[setting]);
 }
 
-bool Settings::GetBool(const char* setting) {
+bool Settings::GetBool(std::string setting) {
 	return std::stoi(settings_[setting]);
 }
 
-double Settings::GetDouble(const char* setting) {
+double Settings::GetDouble(std::string setting) {
 	return std::stod(settings_[setting]);
 }
 
-std::string Settings::GetString(const char* setting) {
+std::string Settings::GetString(std::string setting) {
 	return settings_[setting];
 }
 
-void Settings::SetInt(const char* setting, int value) {
+void Settings::SetInt(std::string setting, int value) {
 	settings_[setting] = std::to_string(value);
 	OnSettingChanged(setting);
 }
 
-void Settings::SetBool(const char* setting, bool value) {
+void Settings::SetBool(std::string setting, bool value) {
 	settings_[setting] = std::to_string(value);
 	OnSettingChanged(setting);
 }
 
-void Settings::SetDouble(const char* setting, double value) {
+void Settings::SetDouble(std::string setting, double value) {
 	settings_[setting] = std::to_string(value);
 	OnSettingChanged(setting);
 }
 
-void Settings::SetString(const char* setting, std::string value) {
+void Settings::SetString(std::string setting, std::string value) {
 	settings_[setting] = value;
 	OnSettingChanged(setting);
 }
@@ -67,11 +67,11 @@ void Settings::LoadFromFile(std::string fileName) {
 			continue;
 		}
 
-		if (!std::strcmp(tokens.front().c_str(), PMGSettings::WINDOW_MODE)) {
+		if (!tokens.front().compare(PMGSettings::WINDOW_MODE)) {
 			SetInt(PMGSettings::WINDOW_MODE, std::stoi(tokens.back()));
-		} else if (!std::strcmp(tokens.front().c_str(), PMGSettings::VIDEO_MODE)) {
+		} else if (!tokens.front().compare(PMGSettings::VIDEO_MODE)) {
 			SetString(PMGSettings::VIDEO_MODE, tokens.back());
-		} else if (!std::strcmp(tokens.front().c_str(), PMGSettings::MASTER_VOLUME)) {
+		} else if (!tokens.front().compare(PMGSettings::MASTER_VOLUME)) {
 			SetInt(PMGSettings::MASTER_VOLUME, std::stod(tokens.back()));
 		}
 	}
