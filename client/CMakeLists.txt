@@ -68,6 +68,7 @@ add_executable(client
 if(UNIX)
     target_sources(client PRIVATE
         src/core/audio/audio-engine-minaudio.cpp
+        src/core/graphics/opengl-graphics-engine.cpp
         src/core/platform/platform_linux.cpp
     )
 endif()
@@ -79,10 +80,6 @@ if(WIN32)
         src/core/platform/platform_win32.cpp
     )
 endif()
-
-target_sources(client PRIVATE
-    src/core/graphics/opengl-graphics-engine.cpp
-)
 
 target_compile_definitions(client PUBLIC NOMINMAX)
 # target_compile_definitions(client PUBLIC NAV_DEBUG)

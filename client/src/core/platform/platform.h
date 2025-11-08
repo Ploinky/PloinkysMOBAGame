@@ -7,7 +7,7 @@
 #include <core/platform/cursor-id.h>
 
 enum class EAlertType {
-    ERROR,
+    ERR,
     INFO
 };
 

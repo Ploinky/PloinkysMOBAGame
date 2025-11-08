@@ -17,18 +17,18 @@
 int main(int argc, char* argv[]) {
 #ifndef _DEBUG
     if (SteamAPI_RestartAppIfNecessary(1756910)) {
-        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERROR);
+        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERR);
         return 1;
     }
 #endif
 
     if (!SteamAPI_Init()) {
-        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERROR);
+        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERR);
         return 1;
     }
 
     if (!CPlatform::Initialize()) {
-        CPlatform::Alert("Error", "Fatal Error - failed to initialize platform\n", EAlertType::ERROR);
+        CPlatform::Alert("Error", "Fatal Error - failed to initialize platform\n", EAlertType::ERR);
         return 1;
     }
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     catch (std::exception  e) {
         std::string msg = "An error occured and the application is quitting:\r\n";
         msg.append(e.what());
-        CPlatform::Alert("Fatal Error", msg.c_str(), EAlertType::ERROR);
+        CPlatform::Alert("Fatal Error", msg.c_str(), EAlertType::ERR);
     }
 #endif
 

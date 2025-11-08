@@ -8,8 +8,9 @@
 bool CPlatform::Initialize() {
     // Initialize COM?
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-    return FAILED(hr)
+    return SUCCEEDED(hr);
 }
+
 std::vector<VideoMode_t> CPlatform::GetAllVideoModes() {
     std::vector<VideoMode_t> deviceModes;
 
@@ -48,9 +49,9 @@ void CPlatform::Alert(std::string strTitle, std::string strText, EAlertType eTyp
 
     switch(eType) {
         case EAlertType::INFO:
-            nIcon = MB_ICONINFO;
+            nIcon = MB_ICONINFORMATION;
             break;
-        case EAlertType::ERROR:
+        case EAlertType::ERR:
         default:
             break;
     }
