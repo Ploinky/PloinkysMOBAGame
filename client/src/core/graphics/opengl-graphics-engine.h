@@ -2,7 +2,7 @@
 
 class COpenGLGraphicsEngine : public IGraphicsEngine, ICanvas2D {
 public:
-
+    COpenGLGraphicsEngine(HWindow hWindow);
     virtual HShaderProgram LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, std::vector<uint8_t> vecVsBytecode, std::vector<uint8_t> vecPsBytecode) override;
     virtual HBitmap LoadBitmapImage(unsigned char* pImageData, int uWidth, int uHeight) override;
     virtual HTexture LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) override;
@@ -51,4 +51,7 @@ public:
     virtual void FillShape(Vector2* points, int pointCount, float color[3]) override;
     virtual void FillRect(int x, int y, int w, int h, float color[3]) override;
     virtual void DrawImage(float x, float y, float w, float h, HBitmap hBmp) override;
+
+private:
+    HWindow m_hWindow;
 };

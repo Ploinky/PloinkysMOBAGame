@@ -1,9 +1,13 @@
 #include "opengl-graphics-engine.h"
+#include <GL/glut.h>
 
 IGraphicsEngine* IGraphicsEngine::Create(HWindow hWindow, int nWidth, int nHeight) {
-    return new COpenGLGraphicsEngine();
+    return new COpenGLGraphicsEngine(hWindow);
 }
 
+COpenGLGraphicsEngine::COpenGLGraphicsEngine(HWindow hWindow) {
+    m_hWindow = hWindow;
+}
 
 HShaderProgram COpenGLGraphicsEngine::LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, std::vector<uint8_t> vecVsBytecode, std::vector<uint8_t> vecPsBytecode) {
     return INVALID_HANDLE;
@@ -89,6 +93,7 @@ void COpenGLGraphicsEngine::DrawInstanced(unsigned int uVertexCountPerInstance, 
 }
 
 bool COpenGLGraphicsEngine::Present() {
+    glfwSwapBuffers(m_hWindow);
     return true;
 }
 

@@ -148,6 +148,8 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
     glfwSetWindowFocusCallback(m_pWindow, GLFWWindowFocusCallback);
 
     glfwMakeContextCurrent(m_pWindow);
+
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 Window::~Window() {
@@ -287,7 +289,7 @@ HWindow Window::GetWindowHandle() {
     #ifdef WIN32
         return glfwGetWin32Window(m_pWindow);
     #else
-        return nullptr;
+        return m_pWindow;
     #endif
     
 }

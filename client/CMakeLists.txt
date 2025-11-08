@@ -97,7 +97,7 @@ endif()
 
 if(UNIX)
     add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so $<TARGET_FILE_DIR:client>/libsteam_api.so)
-    target_link_libraries(client PUBLIC common steam_api glfw)
+    target_link_libraries(client PUBLIC common steam_api glfw GL glut)
 endif()
     
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:client>/steam_appid.txt)

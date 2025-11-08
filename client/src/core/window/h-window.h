@@ -5,5 +5,6 @@
     #include <windows.h>
     typedef HWND HWindow;
 #else
-    typedef void* HWindow;
+    #include <GLFW/glfw3.h>
+    typedef GLFWwindow* HWindow;
 #endif
