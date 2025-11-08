@@ -1,5 +1,9 @@
 #include <core/platform/platform.h>
-
+#include "../Resources/resource.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 std::vector<VideoMode_t> CPlatform::GetAllVideoModes() {
     std::vector<VideoMode_t> deviceModes;
 
@@ -14,4 +18,21 @@ std::vector<VideoMode_t> CPlatform::GetAllVideoModes() {
 	}
 
     return deviceModes;
+}
+
+void CPlatform::RequestCursor(CursorId idCursor) {
+    switch (idCursor) {
+    case CursorId::BUTTON_HOVER: {
+        SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_HOVER_BUTTON)));
+        break;
+    }
+    case CursorId::ATTACK_MOVE: {
+        SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_ATTACK)));
+        break;
+    }
+    case CursorId::DEFAULT:
+    default: {
+        SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_DEFAULT)));
+    }
+    }
 }

@@ -4,14 +4,8 @@
 #include <common/PMG_Common.h>
 #include <Player.h>
 #include <steam/steam_api.h>
+#include <core/platform/cursor-id.h>
 
-enum class CursorId {
-    DEFAULT,
-    BUTTON_HOVER,
-
-    // INGAME
-    ATTACK_MOVE
-};
 class IClientState;
 class ClientNetworkManager;
 

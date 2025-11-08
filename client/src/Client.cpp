@@ -17,13 +17,13 @@
 #include "SettingsMenu.h"
 #include "ServerBrowser.h"
 #include "Lobby.h"
-#include "../Resources/resource.h"
 #include <string>
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
 #include <limits>
 #include "core/audio/audio-engine.h"
+#include <core/platform/platform.h>
 
 enum class GameState {
     MAIN_MENU,
@@ -194,20 +194,7 @@ void Client::HandleSettingChanged(std::string setting) {
 }
 
 void Client::RequestCursor(CursorId newCursor) {
-    switch (newCursor) {
-    case CursorId::BUTTON_HOVER: {
-        SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_HOVER_BUTTON)));
-        break;
-    }
-    case CursorId::ATTACK_MOVE: {
-        SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_ATTACK)));
-        break;
-    }
-    case CursorId::DEFAULT:
-    default: {
-        SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_DEFAULT)));
-    }
-    }
+    CPlatform::RequestCursor(newCursor);
 }
 
 void Client::NewState(IClientState* clientState) {
