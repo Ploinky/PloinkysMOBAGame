@@ -55,8 +55,6 @@ add_executable(client
     
     src/core/input/input-manager.cpp
     
-    src/core/window/Window.cpp
-
     Resources/Cursor.cur
     Resources/cursor1.cur
     Resources/Hover.cur
@@ -70,6 +68,7 @@ if(UNIX)
         src/core/audio/audio-engine-minaudio.cpp
         src/core/graphics/opengl-graphics-engine.cpp
         src/core/platform/platform_linux.cpp
+        src/core/window/window-glfw.cpp
     )
 endif()
 
@@ -78,6 +77,7 @@ if(WIN32)
         src/core/graphics/d3d11-graphics-engine.cpp
         src/core/audio/audio-engine-xaudio.cpp
         src/core/platform/platform_win32.cpp
+        src/core/window/window-win32.cpp
     )
 endif()
 

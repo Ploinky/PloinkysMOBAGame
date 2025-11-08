@@ -1,45 +1,52 @@
-#include "Window.h"
+#include "window-win32.h"
 #include <iostream>
 #include <string>
 #include <common/PMG_Common.h>
 #include "../Resources/resource.h"
 #include "Settings.h"
 #include <map>
+#include <windowsx.h>
 
 static const std::map<uint64_t, EKeyCode> g_mapKeyCode = {
-    {GLFW_KEY_ESCAPE, EKeyCode::ESCAPE},
-    {GLFW_KEY_SPACE, EKeyCode::SPACE},
-    {GLFW_KEY_A, EKeyCode::A},
-    {GLFW_KEY_B, EKeyCode::B},
-    {GLFW_KEY_C, EKeyCode::C},
-    {GLFW_KEY_D, EKeyCode::D},
-    {GLFW_KEY_E, EKeyCode::E},
-    {GLFW_KEY_F, EKeyCode::F},
-    {GLFW_KEY_G, EKeyCode::G},
-    {GLFW_KEY_H, EKeyCode::H},
-    {GLFW_KEY_I, EKeyCode::I},
-    {GLFW_KEY_J, EKeyCode::J},
-    {GLFW_KEY_K, EKeyCode::K},
-    {GLFW_KEY_L, EKeyCode::L},
-    {GLFW_KEY_M, EKeyCode::M},
-    {GLFW_KEY_N, EKeyCode::N},
-    {GLFW_KEY_O, EKeyCode::O},
-    {GLFW_KEY_P, EKeyCode::P},
-    {GLFW_KEY_Q, EKeyCode::Q},
-    {GLFW_KEY_R, EKeyCode::R},
-    {GLFW_KEY_S, EKeyCode::S},
-    {GLFW_KEY_T, EKeyCode::T},
-    {GLFW_KEY_U, EKeyCode::U},
-    {GLFW_KEY_V, EKeyCode::V},
-    {GLFW_KEY_W, EKeyCode::W},
-    {GLFW_KEY_X, EKeyCode::X},
-    {GLFW_KEY_Y, EKeyCode::Y},
-    {GLFW_KEY_Z, EKeyCode::Z},
-    {GLFW_KEY_LEFT, EKeyCode::LEFT_ARROW},
-    {GLFW_KEY_RIGHT, EKeyCode::RIGHT_ARROW},
-    {GLFW_KEY_UP, EKeyCode::UP_ARROW},
-    {GLFW_KEY_DOWN, EKeyCode::DOWN_ARROW}
+    {VK_ESCAPE, EKeyCode::ESCAPE},
+    {VK_SPACE, EKeyCode::SPACE},
+    {'a', EKeyCode::A},
+    {'b', EKeyCode::B},
+    {'c', EKeyCode::C},
+    {'d', EKeyCode::D},
+    {'e', EKeyCode::E},
+    {'f', EKeyCode::F},
+    {'g', EKeyCode::G},
+    {'h', EKeyCode::H},
+    {'i', EKeyCode::I},
+    {'j', EKeyCode::J},
+    {'k', EKeyCode::K},
+    {'l', EKeyCode::L},
+    {'m', EKeyCode::M},
+    {'n', EKeyCode::N},
+    {'o', EKeyCode::O},
+    {'p', EKeyCode::P},
+    {'q', EKeyCode::Q},
+    {'r', EKeyCode::R},
+    {'s', EKeyCode::S},
+    {'t', EKeyCode::T},
+    {'y', EKeyCode::U},
+    {'v', EKeyCode::V},
+    {'w', EKeyCode::W},
+    {'x', EKeyCode::X},
+    {'y', EKeyCode::Y},
+    {'z', EKeyCode::Z},
+    {VK_LEFT, EKeyCode::LEFT_ARROW},
+    {VK_RIGHT, EKeyCode::RIGHT_ARROW},
+    {VK_UP, EKeyCode::UP_ARROW},
+    {VK_DOWN, EKeyCode::DOWN_ARROW}
 };
+
+Window* Window::Create(int res_x, int res_y, WindowMode mode) {
+    return new CWindowWin32(res_x, res_y, mode);
+}
+
+/*
 void GLFWKeyCallback(GLFWwindow* pWindow, int nKey, int nScanCode, int nAction, int nMods) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
@@ -69,12 +76,12 @@ void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int 
 } 
  
 void GLFWMouseMoveCallback(GLFWwindow* pWindow, double dXPos, double dYPos) {
-    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+    CWindowWin32* self = static_cast<CWindowWin32*>(glfwGetWindowUserPointer(pWindow));
     self->e_mouseMoved(dXPos, dYPos);
 }
 
 void GLFWWindowFocusCallback(GLFWwindow* pWindow, int nFocused) {
-    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+    CWindowWin32* self = static_cast<CWindowWin32*>(glfwGetWindowUserPointer(pWindow));
 
     if(nFocused) {
         self->FocusGained();
@@ -82,21 +89,47 @@ void GLFWWindowFocusCallback(GLFWwindow* pWindow, int nFocused) {
         self->FocusLost();
     }
 }
+*/
 
-Window::Window(int res_x, int res_y, WindowMode mode) {
-    Logger::Msg("Creating window...");
-
-    if(!glfwInit()) {
-        throw std::runtime_error("Failed to initialize GLFW");
+LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    CWindowWin32* window = (CWindowWin32*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        
+    if (window == nullptr) {
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
     }
+
+    return window->WndProc(hwnd, msg, wParam, lParam);
+}
+
+CWindowWin32::CWindowWin32(int res_x, int res_y, WindowMode mode) {
+    Logger::Msg("Creating window...");
 
     this->width_ = res_x;
     this->height_ = res_y;
 
+    LPCSTR className = "PloinkysMOBAGameWindow";
+
     shouldClose = false;
 
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+
+    m_hBrushBackground = CreateSolidBrush(RGB(0, 0, 0));
+
     // ------ Create window -----
-    /*
+    WNDCLASSEXA wc{};
+    wc.cbSize = sizeof(WNDCLASSEXA);
+    wc.style = 0;
+    wc.lpfnWndProc = StaticWndProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
+    wc.hInstance = hInstance;
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+    wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_DEFAULT));
+    wc.hbrBackground = m_hBrushBackground;
+    wc.lpszMenuName = NULL;
+    wc.lpszClassName = className;
+    wc.hIconSm = wc.hIcon;
+
     int posX, posY;
 
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -105,60 +138,69 @@ Window::Window(int res_x, int res_y, WindowMode mode) {
     posX = (screenWidth - width_) / 2;
     posY = (screenHeight - height_) / 2;
 
+    RegisterClassExA(&wc);
+
+    DWORD dwStyle = WS_SYSMENU | WS_CAPTION;
+
     switch (mode) {
-        case WindowMode::WINDOWED: {
-            break;
-        }
-        case WindowMode::BORDERLESS:{
-            width_ = screenWidth;
-            height_ = screenHeight;
-            posX = 0;
-            posY = 0;
-            break;
-        }
-        case WindowMode::FULLSCREEN:
-        default: {
-            width_ = screenWidth;
-            height_ = screenHeight;
-            posX = 0;
-            posY = 0;
-            break;
-        }
+    case WindowMode::WINDOWED: {
+        break;
+    }
+    case WindowMode::BORDERLESS:{
+        dwStyle = WS_POPUP;
+        width_ = screenWidth;
+        height_ = screenHeight;
+        posX = 0;
+        posY = 0;
+        break;
+    }
+    case WindowMode::FULLSCREEN:
+    default: {
+        dwStyle = WS_POPUP;
+        width_ = screenWidth;
+        height_ = screenHeight;
+        posX = 0;
+        posY = 0;
+        break;
+    }
     }
 
-    */
+    RECT wr = {0, 0, width_, height_};       // set the size, but not the position
+    AdjustWindowRectEx(&wr, dwStyle, false, WS_EX_APPWINDOW); // adjust the window's size
 
     std::string window_title = "Ploinky's MOBA Game";
 
 #ifdef _DEBUG
     window_title.append("__DEBUG BUILD__");
 #endif
-    
-    m_pWindow = glfwCreateWindow(width_, height_, window_title.c_str(), NULL, NULL);
 
-    if (m_pWindow == 0) {
-        glfwTerminate();
-        throw std::runtime_error("Failed to create GLFW window");
+    m_hWnd = CreateWindowExA(WS_EX_APPWINDOW,
+                                    wc.lpszClassName,
+                                    window_title.c_str(),
+                                    dwStyle,
+                                    posX,
+                                    posY,
+                                    wr.right - wr.left,
+                                    wr.bottom - wr.top,
+                                    NULL,
+                                    NULL,
+                                    GetModuleHandle(NULL),
+                                    NULL);
+        
+    // Save pointer to Window for WndProc to access
+    SetWindowLongPtr(m_hWnd, GWLP_USERDATA, LONG_PTR(this));
+
+    if (m_hWnd == 0) {
+        Logger::Err("WindowHandle is NULL.");
+        Logger::Err(std::to_string(GetLastError()));
+        return;
     }
-
-    glfwSetWindowUserPointer(m_pWindow, this);
-    glfwSetKeyCallback(m_pWindow, GLFWKeyCallback);
-    glfwSetMouseButtonCallback(m_pWindow, GLFWMouseButtonCallback);
-    glfwSetCursorPosCallback(m_pWindow, GLFWMouseMoveCallback);
-    glfwSetWindowFocusCallback(m_pWindow, GLFWWindowFocusCallback);
-
-    glfwMakeContextCurrent(m_pWindow);
-
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
-Window::~Window() {
-    glfwTerminate();
+CWindowWin32::~CWindowWin32() {
 }
 
-/*
-
-LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK CWindowWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
     case WM_QUIT:
     case WM_DESTROY: {
@@ -182,7 +224,7 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         if (GetKeyboardState(keyboardState)) {
             const int keyboardScanCode = (lParam >> 16) & 0x00ff;
             ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
-            e_keyPressed(static_cast<char>(ascii));
+            e_keyPressed(g_mapKeyCode.at(ascii));
         }
         break;
     }
@@ -192,7 +234,7 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         if (GetKeyboardState(keyboardState)) {
             const int keyboardScanCode = (lParam >> 16) & 0x00ff;
             ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
-            e_keyReleased(static_cast<char>(ascii));
+            e_keyReleased(g_mapKeyCode.at(ascii));
         }
         break;
     }
@@ -201,27 +243,27 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         break;
     }
     case WM_LBUTTONDOWN: {
-        e_mouseButtonPressed(0);
+        e_mouseButtonPressed(EMouseButton::LEFT);
         break;
     }
     case WM_MBUTTONDOWN: {
-        e_mouseButtonPressed(1);
+        e_mouseButtonPressed(EMouseButton::MIDDLE);
         break;
     }
     case WM_RBUTTONDOWN: {
-        e_mouseButtonPressed(2);
+        e_mouseButtonPressed(EMouseButton::RIGHT);
         break;
     }
     case WM_LBUTTONUP: {
-        e_mouseButtonReleased(0);
+        e_mouseButtonReleased(EMouseButton::LEFT);
         break;
     }
     case WM_MBUTTONUP: {
-        e_mouseButtonReleased(1);
+        e_mouseButtonReleased(EMouseButton::MIDDLE);
         break;
     }
     case WM_RBUTTONUP: {
-        e_mouseButtonReleased(2);
+        e_mouseButtonReleased(EMouseButton::RIGHT);
         break;
     }
     case WM_ACTIVATE: {
@@ -262,39 +304,29 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
     return 0;
 }
-*/
 
 
-void Window::Show() {
+void CWindowWin32::Show() {
     Logger::Msg("Showing window....");
 
-    // ShowWindow(windowHandle, SW_SHOW);
+    ShowWindow(m_hWnd, SW_SHOW);
 }
 
 // Handle win32 window events
-void Window::HandleEvents() {
-    glfwPollEvents();
+void CWindowWin32::HandleEvents() {
+    // Use PeekMessage, GetMessage blocks!
+    MSG msg = {};
+    while (PeekMessage(&msg, m_hWnd, 0, 0, PM_REMOVE) > 0) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
 }
 
-bool Window::ShouldClose() {
-    return shouldClose;
+HWindow CWindowWin32::GetWindowHandle() {
+    return m_hWnd;
 }
 
-void Window::SetShouldClose() {
-    shouldClose = true;
-}
-    
-HWindow Window::GetWindowHandle() {
-    // TODO
-    #ifdef WIN32
-        return glfwGetWin32Window(m_pWindow);
-    #else
-        return m_pWindow;
-    #endif
-    
-}
-
-void Window::Resized(int width_, int height_) {
+void CWindowWin32::Resized(int width_, int height_) {
     this->width_ = width_;
     this->height_ = height_;
 
@@ -303,19 +335,17 @@ void Window::Resized(int width_, int height_) {
     }
 }
 
-void Window::FocusGained() {
+void CWindowWin32::FocusGained() {
     ClipCursorToWindow();
 }
 
-void Window::FocusLost() {
-    glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+void CWindowWin32::FocusLost() {
+    ClipCursor(NULL);
 }
 
-void Window::ClipCursorToWindow() {
-    glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
-    /*
+void CWindowWin32::ClipCursorToWindow() {
     RECT rect;
-    GetClientRect(windowHandle, &rect);
+    GetClientRect(m_hWnd, &rect);
         
     POINT ul{};
     ul.x = rect.left;
@@ -325,8 +355,8 @@ void Window::ClipCursorToWindow() {
     lr.x = rect.right;
     lr.y = rect.bottom;
 
-    MapWindowPoints(windowHandle, nullptr, &ul, 1);
-    MapWindowPoints(windowHandle, nullptr, &lr, 1);
+    MapWindowPoints(m_hWnd, nullptr, &ul, 1);
+    MapWindowPoints(m_hWnd, nullptr, &lr, 1);
 
     rect.left = ul.x;
     rect.top = ul.y;
@@ -335,12 +365,9 @@ void Window::ClipCursorToWindow() {
     rect.bottom = lr.y;
 
     ClipCursor(&rect);
-    */
-
 }
 
-void Window::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y) {
-    /*
+void CWindowWin32::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution_y) {
     int posX, posY = 0;
     int new_width, new_height = 0;
 
@@ -373,11 +400,9 @@ void Window::SetWindowMode(WindowMode new_mode, int resolution_x, int resolution
         }
     }
 
-    SetWindowLongPtr(windowHandle, GWL_STYLE, dwStyle);
+    SetWindowLongPtr(m_hWnd, GWL_STYLE, dwStyle);
     Logger::Msg(std::string("setting new mode: ").append(std::to_string(static_cast<int>(new_mode))).append(";").append(std::to_string(new_width).append("-").append(std::to_string(new_height))));
-    SetWindowPos(windowHandle, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
+    SetWindowPos(m_hWnd, NULL, posX, posY, new_width, new_height, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
 
     ClipCursorToWindow();
-    */
-
 }

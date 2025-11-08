@@ -75,11 +75,7 @@ void Client::Run(std::string connectString_) {
         height = devModeIt->second.uHeight;
     }
     // Create and show window
-    window = new Window(
-        width,
-        height,
-        (WindowMode)settings_.GetInt(PMGSettings::WINDOW_MODE)
-    );
+    window = Window::Create(width, height, (WindowMode)settings_.GetInt(PMGSettings::WINDOW_MODE));
     window->Show();
 
     window->windowResizedHandler = [this]() {
@@ -108,7 +104,7 @@ void Client::Run(std::string connectString_) {
     // window->e_keyPressed = [this](EKeyCode eKey) { if (currentState_) currentState_->KeyPressed(eKey); };
     // window->e_keyReleased = [this](uint32_t key) { if (currentState_) currentState_->KeyReleased(key); };
     // window->e_mouseButtonPressed = [this](EMouseButton eBtn) { if (currentState_) currentState_->MouseButtonPressed(eBtn); };
-    window->e_mouseButtonReleased = [this](int button) { if (currentState_) currentState_->MouseButtonReleased(button); };
+    // window->e_mouseButtonReleased = [this](int button) { if (currentState_) currentState_->MouseButtonReleased(button); };
     window->e_mouseMoved = [this](int x, int y) { if (currentState_) currentState_->MouseMoved(x, y); };
 
 	currentState_ = new CLoadingState(this, window->width_, window->height_, connectString_);

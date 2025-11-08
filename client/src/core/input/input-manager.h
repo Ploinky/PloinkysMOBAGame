@@ -27,6 +27,7 @@ private:
     std::map<EInputAction, bool> m_mapAction;
 
     void OnMouseButtonPressed(EMouseButton eBtn);
+    void OnMouseButtonReleased(EMouseButton eBtn);
     void OnKeyPressed(EKeyCode eBtn);
     void OnKeyReleased(EKeyCode eBtn);
 };

@@ -8,9 +8,9 @@
 
 class PMGSettings {
 public:
-	static constexpr std::string WINDOW_MODE = "window_mode";
-	static constexpr std::string MASTER_VOLUME = "master_volume";
-	static constexpr std::string VIDEO_MODE = "video_mode";
+	inline static std::string WINDOW_MODE = "window_mode";
+	inline static std::string MASTER_VOLUME = "master_volume";
+	inline static std::string VIDEO_MODE = "video_mode";
 };
 
 enum class WindowMode {

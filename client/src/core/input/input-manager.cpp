@@ -5,6 +5,7 @@ CInputManager::CInputManager(Window* pWindow) {
     m_pWindow = pWindow;
 
     m_pWindow->e_mouseButtonPressed = [this](EMouseButton eBtn){this->OnMouseButtonPressed(eBtn);};
+    m_pWindow->e_mouseButtonReleased = [this](EMouseButton eBtn){this->OnMouseButtonReleased(eBtn);};
     m_pWindow->e_keyPressed = [this](EKeyCode eKeyCode){this->OnKeyPressed(eKeyCode);};
     m_pWindow->e_keyReleased = [this](EKeyCode eKeyCode){this->OnKeyReleased(eKeyCode);};
 
@@ -51,6 +52,20 @@ void CInputManager::OnMouseButtonPressed(EMouseButton eBtn) {
     if(m_eCurrentContext == EInputContext::GAME) {
         if(eBtn == EMouseButton::RIGHT) {
             on_action(EInputAction::GAME_SECONDARY);
+        }
+    }
+}
+
+void CInputManager::OnMouseButtonReleased(EMouseButton eBtn) {
+    if(m_eCurrentContext == EInputContext::MENU) {
+        if(eBtn == EMouseButton::LEFT) {
+            on_action_released(EInputAction::MENU_SELECT);
+        }
+    }
+
+    if(m_eCurrentContext == EInputContext::GAME) {
+        if(eBtn == EMouseButton::RIGHT) {
+            on_action_released(EInputAction::GAME_SECONDARY);
         }
     }
 }
