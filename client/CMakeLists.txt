@@ -91,16 +91,16 @@ target_precompile_headers(client PRIVATE src/platform.h)
 target_include_directories(client PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include)
 target_link_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 
-target_link_libraries(client PUBLIC common glfw3)
+target_link_libraries(client PUBLIC common)
 
 if(WIN32)
     add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:client>/steam_api64.dll)
-    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64)
+    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64 glfw3)
 endif()
 
 if(UNIX)
     add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so $<TARGET_FILE_DIR:client>/libsteam_api.so)
-    target_link_libraries(client PUBLIC common steam_api)
+    target_link_libraries(client PUBLIC common steam_api glfw)
 endif()
     
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:client>/steam_appid.txt)

@@ -11,25 +11,24 @@
 #include "Camera.h"
 #include "Particle.h"
 #include "ParticleEffect.h"
+#include <core/platform/platform.h>
 
 // Main entry point into the application
 int main(int argc, char* argv[]) {
 #ifndef _DEBUG
     if (SteamAPI_RestartAppIfNecessary(1756910)) {
-        MessageBoxA(nullptr, "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", "Error", MB_ICONERROR);
+        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERROR);
         return 1;
     }
 #endif
 
     if (!SteamAPI_Init()) {
-        MessageBoxA(nullptr, "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", "Error", MB_ICONERROR);
+        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERROR);
         return 1;
     }
 
-    // Initialize COM?
-    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-    if (FAILED(hr)) {
-        MessageBoxA(nullptr, "Fatal Error - failed to initialize COM\n", "Error", MB_ICONERROR);
+    if (!CPlatform::Initialize()) {
+        CPlatform::Alert("Error", "Fatal Error - failed to initialize platform\n", EAlertType::ERROR);
         return 1;
     }
 
@@ -54,9 +53,7 @@ int main(int argc, char* argv[]) {
     }
 
     if(showConsole) {
-        AllocConsole();
-        freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
-        freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
+        CPlatform::ShowConsole();
     }
 
     Logger::Msg("Starting Ploinky's MOBA Game...");
@@ -73,7 +70,7 @@ int main(int argc, char* argv[]) {
     catch (std::exception  e) {
         std::string msg = "An error occured and the application is quitting:\r\n";
         msg.append(e.what());
-        MessageBox(NULL, msg.c_str(), "Fatal Error", MB_ICONERROR);
+        CPlatform::Alert("Fatal Error", msg.c_str(), EAlertType::ERROR);
     }
 #endif
 

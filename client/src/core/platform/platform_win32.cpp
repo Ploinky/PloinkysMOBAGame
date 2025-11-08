@@ -4,6 +4,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
+
+bool CPlatform::Initialize() {
+    // Initialize COM?
+    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    return FAILED(hr)
+}
 std::vector<VideoMode_t> CPlatform::GetAllVideoModes() {
     std::vector<VideoMode_t> deviceModes;
 
@@ -35,4 +41,26 @@ void CPlatform::RequestCursor(CursorId idCursor) {
         SetCursor(LoadCursor(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDC_DEFAULT)));
     }
     }
+}
+
+void CPlatform::Alert(std::string strTitle, std::string strText, EAlertType eType) {
+    int nIcon = MB_ICONERROR;
+
+    switch(eType) {
+        case EAlertType::INFO:
+            nIcon = MB_ICONINFO;
+            break;
+        case EAlertType::ERROR:
+        default:
+            break;
+    }
+
+    MessageBoxA(nullptr, strText.c_str(), strText.c_str(), MB_ICONERROR);
+}
+
+
+void CPlatform::ShowConsole() {
+    AllocConsole();
+    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+    freopen_s((FILE**)stderr, "CONOUT$", "w", stderr);
 }
