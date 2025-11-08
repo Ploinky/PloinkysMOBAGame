@@ -5,6 +5,7 @@
 #include <exception>
 #include <memory.h>
 #include <cstdint>
+#include "logger.h"
 
 AssetManager::AssetManager() {
 }
@@ -26,8 +27,8 @@ std::vector<uint8_t> AssetManager::LoadFile(std::string fileName) {
 			return pakFile->GetFileData(fileName);
 		}
 	}
-
-	throw std::runtime_error(std::string("Failed to load asset <").append(fileName).append(">").c_str());
+	Logger::FormatErr("Failed to load asset <%s>", fileName.c_str());
+	return {};
 }
 
 std::list<std::string> AssetManager::LoadPlainFile(std::string fileName) {

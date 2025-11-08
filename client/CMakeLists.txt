@@ -68,6 +68,7 @@ add_executable(client
 if(UNIX)
     target_sources(client PRIVATE
         src/core/audio/audio-engine-minaudio.cpp
+        src/core/platform/platform_linux.cpp
     )
 endif()
 
@@ -75,6 +76,7 @@ if(WIN32)
     target_sources(client PRIVATE
         src/core/graphics/d3d11-graphics-engine.cpp
         src/core/audio/audio-engine-xaudio.cpp
+        src/core/platform/platform_win32.cpp
     )
 endif()
 
@@ -89,13 +91,23 @@ target_precompile_headers(client PRIVATE src/platform.h)
 target_include_directories(client PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include)
 target_link_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 
-target_link_libraries(client PUBLIC common d3d11 dwrite d2d1 xaudio2 steam_api64 glfw3)
+target_link_libraries(client PUBLIC common glfw3)
 
-add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:client>/steam_api64.dll)
+if(WIN32)
+    add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:client>/steam_api64.dll)
+    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64)
+endif()
+
+if(UNIX)
+    add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so $<TARGET_FILE_DIR:client>/libsteam_api.so)
+    target_link_libraries(client PUBLIC common steam_api)
+endif()
+    
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:client>/steam_appid.txt)
 
 pak_folder(Buildings/Tower Buildings/Tower.pak)
 pak_folder(Generic Generic.pak)
+
 if(WIN32)
     pak_folder(Shaders Shaders.pak)
 endif()

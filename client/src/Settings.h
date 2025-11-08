@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <core/platform/video_mode.h>
 #include <vector>
 
 class PMGSettings {
@@ -36,7 +37,7 @@ public:
 	Settings() {};
 
 	std::vector<std::string> GetAllVideoModes();
-	std::map<std::string, DEVMODEA>* GetAllVideoModesAndValues();
+	std::map<std::string, VideoMode_t>* GetAllVideoModesAndValues();
 
 	std::function<void(std::string)> OnSettingChanged = std::bind([] {});
 
@@ -44,6 +45,6 @@ private:
 
 	std::map<const char*, std::string> settings_;
 
-	std::map<std::string, DEVMODEA> deviceModes_;
+	std::map<std::string, VideoMode_t> deviceModes_;
 };
 

@@ -71,8 +71,8 @@ void Client::Run(std::string connectString_) {
         
     if (devModeIt != settings_.GetAllVideoModesAndValues()->end()) {
 
-        width = devModeIt->second.dmPelsWidth;
-        height = devModeIt->second.dmPelsHeight;
+        width = devModeIt->second.uWidth;
+        height = devModeIt->second.uHeight;
     }
     // Create and show window
     window = new Window(
@@ -180,15 +180,15 @@ void Client::HandleSettingChanged(std::string setting) {
             selectedMode = allModes->begin();
         }
 
-        DEVMODEA mode = selectedMode->second;
+        VideoMode_t mode = selectedMode->second;
         renderer->SetFullscreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
-        window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.dmPelsWidth, mode.dmPelsHeight);
+        window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.uWidth, mode.uHeight);
         renderer->SetDimensions(window->width_, window->height_);
     }
     else if (setting == PMGSettings::VIDEO_MODE) {
-        DEVMODEA mode = settings_.GetAllVideoModesAndValues()->find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
+        VideoMode_t mode = settings_.GetAllVideoModesAndValues()->find(settings_.GetString(PMGSettings::VIDEO_MODE))->second;
         renderer->SetFullscreen(settings_.GetInt(PMGSettings::WINDOW_MODE) == static_cast<int>(WindowMode::FULLSCREEN));
-        window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.dmPelsWidth, mode.dmPelsHeight);
+        window->SetWindowMode(static_cast<WindowMode>(settings_.GetInt(PMGSettings::WINDOW_MODE)), mode.uWidth, mode.uHeight);
         renderer->SetDimensions(window->width_, window->height_);
     }
 }

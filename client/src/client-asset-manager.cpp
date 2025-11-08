@@ -37,10 +37,11 @@ HBitmap CClientAssetManager::GetBitmapImage(std::string strBitmap) {
     HBitmap hBitmap = m_pGraphicsEngine->LoadBitmapImage(image, width, height);
 
     if(hBitmap == INVALID_ASSET_HANDLE) {
-        throw std::exception(("Bitmap asset <" + strBitmap + "> missing").c_str());
+        Logger::FormatErr("Missing asset %s", strBitmap.c_str());
+    } else {
+        m_mapBitmaps.emplace(strBitmap, hBitmap);
     }
 
-    m_mapBitmaps.emplace(strBitmap, hBitmap);
     return hBitmap;
 }
 
@@ -98,7 +99,7 @@ ModelAsset_t& CClientAssetManager::GetModel(HModel hModel) {
         return m_vecModels[hModel];
     }
 
-    throw std::exception(("Missing model asset " + std::to_string(hModel)).c_str());
+    throw std::runtime_error(("Missing model asset " + std::to_string(hModel)).c_str());
 }
 
 HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {

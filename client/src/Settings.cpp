@@ -1,6 +1,7 @@
 #include "Settings.h"
 #include <common/PMG_Common.h>
 #include <ranges>
+#include <core/platform/platform.h>
 
 int Settings::GetInt(const char* setting) {
 	return std::stoi(settings_[setting]);
@@ -42,24 +43,11 @@ void Settings::LoadDefaults() {
 	SetString(PMGSettings::VIDEO_MODE, "1024x768");
 	SetInt(PMGSettings::WINDOW_MODE, (int) WindowMode::BORDERLESS);
 	SetInt(PMGSettings::MASTER_VOLUME, 1.0);
-		
-	DEVMODEA devMode{};
-	devMode.dmSize = sizeof(DEVMODE);
-	for (int i = 0; EnumDisplaySettingsA(NULL, i, &devMode) != 0; i++) {
-		printf("%d-%d\n", devMode.dmPelsWidth, devMode.dmPelsHeight);
-
-		std::string newMode = std::to_string(devMode.dmPelsWidth).append("x").append(std::to_string(devMode.dmPelsHeight));
-
-		bool exists = false;
-		for (auto mode : deviceModes_) {
-			if (std::strcmp(mode.first.c_str(), newMode.c_str()) == 0) {
-				exists = true;
-			}
-		}
-
-		if (!exists) {
-			deviceModes_.emplace(newMode, devMode);
-		}
+	
+	deviceModes_.clear();
+	for(VideoMode_t& vidMode : CPlatform::GetAllVideoModes()) {
+		std::string strName = std::to_string(vidMode.uWidth) + "x" + std::to_string(vidMode.uHeight);
+		deviceModes_.emplace(strName, vidMode);
 	}
 
 	printf("==============\n");
@@ -99,7 +87,7 @@ void Settings::SaveToFile(std::string fileName) {
 	Util::WriteLinesToFile(fileName, content);
 }
 
-std::map<std::string, DEVMODEA>* Settings::GetAllVideoModesAndValues() {
+std::map<std::string, VideoMode_t>* Settings::GetAllVideoModesAndValues() {
 	return &deviceModes_;
 }
 
