@@ -287,7 +287,7 @@ HWindow Window::GetWindowHandle() {
     #ifdef WIN32
         return glfwGetWin32Window(m_pWindow);
     #else
-        throw std::runtime_error("not implemented");
+        return nullptr;
     #endif
     
 }
