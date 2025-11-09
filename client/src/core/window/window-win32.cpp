@@ -95,7 +95,7 @@ LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     CWindowWin32* window = (CWindowWin32*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
         
     if (window == nullptr) {
-        return DefWindowProcW(hwnd, msg, wParam, lParam);
+        return DefWindowProcA(hwnd, msg, wParam, lParam);
     }
 
     return window->WndProc(hwnd, msg, wParam, lParam);
@@ -298,7 +298,7 @@ LRESULT CALLBACK CWindowWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
         break;
     }
     default: {
-        return DefWindowProcW(hwnd, msg, wParam, lParam);        
+        return DefWindowProcA(hwnd, msg, wParam, lParam);        
     }
     }
 
@@ -316,9 +316,9 @@ void CWindowWin32::Show() {
 void CWindowWin32::HandleEvents() {
     // Use PeekMessage, GetMessage blocks!
     MSG msg = {};
-    while (PeekMessage(&msg, m_hWnd, 0, 0, PM_REMOVE) > 0) {
+    while (PeekMessageA(&msg, m_hWnd, 0, 0, PM_REMOVE) > 0) {
         TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        DispatchMessageA(&msg);
     }
 }
 
