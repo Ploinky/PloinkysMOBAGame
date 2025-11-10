@@ -6,7 +6,13 @@
 
 #include "LobbyState.h"
 
+#include <data/server-data-loader.h>
+
 void Server::Start() {
+    assetManager_. LoadPakFile("mnf.pak");
+
+    m_gameData = CServerDataLoader::LoadManifest(std::make_shared<AssetManager>(assetManager_));
+
 #ifndef DEBUG
     // assetManager_. LoadPakFile("Maps/Map1.pak");
 #endif

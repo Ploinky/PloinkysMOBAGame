@@ -96,6 +96,8 @@ export_nvm(Maps/map1/map1.blend Maps/map1/map1.nvm)
 # Tower
 export_glb(Buildings/Tower/tower.blend Buildings/Tower/tower.glb)
 
+copy_file(mnf.xml)
+
 # Shaders
 if(WIN32)
     compile_vertex_shader(glb.vert)

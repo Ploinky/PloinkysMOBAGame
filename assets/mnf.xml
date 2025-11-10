@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- All game data -->
+<game_data>
+    <!-- Playable characters -->
+    <characters>
+        <character id="stormcaller" />
+    </characters>
+</game_data>
+

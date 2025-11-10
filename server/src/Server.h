@@ -6,6 +6,7 @@
 #include <common/pmg_networking.h>
 #include "IServerState.h"
 #include "IServerStateHandler.h"
+#include <data/server-game-data.h>
 
 class ServerNetworkManager;
 class Client;
@@ -20,6 +21,7 @@ public:
 private:
     IServerState* currentState_;
     AssetManager assetManager_;
+    CServerGameData m_gameData;
 
     long long GetSystemTime();
 };

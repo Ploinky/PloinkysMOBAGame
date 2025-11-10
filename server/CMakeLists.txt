@@ -32,6 +32,8 @@ add_executable(server
 	src/components/NavigationComponent.cpp
 	src/components/SpellCastComponent.cpp
 	src/components/TransformComponent.cpp
+
+	src/data/server-data-loader.cpp
 	
 	src/events/damage-event.cpp
 	src/events/heal-event.cpp
@@ -78,6 +80,7 @@ endif()
 add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
 
 pak_folder(Maps/map1 Maps/Map1.pak)
+pak_folder(mnf.xml mnf.pak)
 
 add_custom_target(server_assets
     DEPENDS ${PAK_FILES}
