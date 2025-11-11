@@ -84,7 +84,7 @@ if(WIN32)
     target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64 glfw3)
 
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/data)
-        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/assets_raw\")
+        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
     endif()
 endif()
 
@@ -94,3 +94,4 @@ if(UNIX)
 endif()
     
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${client_out_dir}/steam_appid.txt)
+add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different  ${CMAKE_SOURCE_DIR}/resources/config_client/ ${client_out_dir}/cfg/)

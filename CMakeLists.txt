@@ -12,7 +12,6 @@ set_property(GLOBAL PROPERTY out_dir ${CMAKE_SOURCE_DIR}/"_out")
 project(PloinkysMOBAGame)
 
 # add projects, common first since the others need it'
-add_subdirectory(common)
-add_subdirectory(server)
-add_subdirectory(client)
-add_subdirectory(test)
+add_subdirectory(packages/common)
+add_subdirectory(apps/server)
+add_subdirectory(apps/client)
