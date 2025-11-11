@@ -10,6 +10,7 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 	m_iLoadStep = 0;
 	m_loadingThread = std::thread([this]() {
 
+#ifndef _DEBUG
 		m_pAssetManager->LoadPakFile("Persons/ChessPerson.pak");
 		m_pAssetManager->LoadPakFile("Buildings/Tower.pak");
 		m_pAssetManager->LoadPakFile("Persons/Minion.pak");
@@ -20,15 +21,15 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 		m_pAssetManager->LoadPakFile("Shaders.pak");
 		m_pAssetManager->LoadPakFile("Generic.pak");
 		m_pAssetManager->LoadPakFile("characters/stormcaller.pak");
-
+#endif
     
-		m_pAssetManager->LoadGLBModel("map1", "Maps/map1/map1.glb");
-		m_pAssetManager->LoadGLBModel("football_person", "Persons/ChessPerson/chess_person.glb");
-		m_pAssetManager->LoadGLBModel("tower", "Buildings/Tower/tower.glb");
-		m_pAssetManager->LoadGLBModel("missile", "Persons/ChessPerson/missile.glb");
-		m_pAssetManager->LoadGLBModel("minion", "Persons/Minion/minion.glb");
+		m_pAssetManager->LoadGLBModel("map1", "data/Maps/map1/map1.glb");
+		m_pAssetManager->LoadGLBModel("football_person", "data/Persons/chess_person/chess_person.glb");
+		m_pAssetManager->LoadGLBModel("tower", "data/Buildings/Tower/tower.glb");
+		m_pAssetManager->LoadGLBModel("missile", "data/Persons/chess_person/missile.glb");
+		m_pAssetManager->LoadGLBModel("minion", "data/Persons/Minion/minion.glb");
 
-		m_pAssetManager->LoadCharacterManifest("stormcaller");
+		// m_pAssetManager->LoadCharacterManifest("stormcaller");
 	
 		m_iLoadStep++;
 

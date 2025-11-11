@@ -1,7 +1,28 @@
 # collect paths
 get_property(dist_dir GLOBAL PROPERTY dist_dir)
 get_property(out_dir GLOBAL PROPERTY out_dir)
-set(client_out_dir ${out_dir}/"client")
+set(client_out_dir ${out_dir}/client)
+
+
+# shader compilation functions
+function(compile_vertex_shader)
+    add_custom_command(OUTPUT ${client_out_dir}/shaders/${ARGV0}.cso
+        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/shaders/${ARGV0}.hlsl /T vs_5_0 /Fo ${client_out_dir}/shaders/${ARGV0}.cso /Zi
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/${ARGV0}.hlsl
+    )
+    list(APPEND SHADER_FILES ${client_out_dir}/shaders/${ARGV0}.cso)
+    set(SHADER_FILES ${SHADER_FILES} PARENT_SCOPE)
+endfunction()
+
+function(compile_pixel_shader)
+    add_custom_command(OUTPUT ${client_out_dir}/shaders/${ARGV0}.cso
+        COMMAND FXC ${CMAKE_CURRENT_SOURCE_DIR}/shaders/${ARGV0}.hlsl /T ps_5_0 /Fo ${client_out_dir}/shaders/${ARGV0}.cso /Zi
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/${ARGV0}.hlsl
+    )
+    list(APPEND SHADER_FILES ${client_out_dir}/shaders/${ARGV0}.cso)
+    set(SHADER_FILES ${SHADER_FILES} PARENT_SCOPE)
+endfunction()
+
 
 add_executable(client
     src/Animation.cpp
@@ -95,3 +116,20 @@ endif()
     
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${client_out_dir}/steam_appid.txt)
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different  ${CMAKE_SOURCE_DIR}/resources/config_client/ ${client_out_dir}/cfg/)
+
+# shaders
+if(WIN32)
+    compile_vertex_shader(glb.vert)
+    compile_pixel_shader(glb.pixel)
+    compile_vertex_shader(flat_unlit.vert)
+    compile_pixel_shader(flat_unlit.pixel)
+    compile_vertex_shader(particle.vert)
+    compile_pixel_shader(particle.pixel)
+    compile_pixel_shader(texture.pixel)
+endif()
+
+add_custom_target(shader_target
+    DEPENDS ${SHADER_FILES}
+)
+add_dependencies(client 
+shader_target)

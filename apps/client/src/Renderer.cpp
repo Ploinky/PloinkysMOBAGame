@@ -70,10 +70,10 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
 	// bitmaps_.emplace("MissingTexture", CreateBitmapFromData(pAssetManager->LoadFile("Generic/missing_texture.bmp")));
 
 	// ------------ IMAGES ------------
-	m_pAssetManager->LoadTexture("UI/MoveTo/move_to.png");
-	m_pAssetManager->LoadTexture("Persons/ChessPerson/blast_area.png");
-	m_pAssetManager->LoadTexture("Persons/ChessPerson/particle.png");
-	m_pAssetManager->LoadTexture("characters/stormcaller/abilities/thunderstrike.png");
+	m_pAssetManager->LoadTexture("data/UI/move-to/move_to.png");
+	m_pAssetManager->LoadTexture("data/Persons/chess_person/blast_area.png");
+	m_pAssetManager->LoadTexture("data/Persons/chess_person/particle.png");
+	m_pAssetManager->LoadTexture("data/characters/stormcaller/abilities/thunderstrike.png");
 
 #ifdef NAV_DEBUG
 	FlatUnlitShaderVertex_t vertices[4] = {

@@ -21,12 +21,27 @@ void AssetManager::LoadPakFile(std::string fileName) {
 }
 
 std::vector<uint8_t> AssetManager::LoadFile(std::string fileName) {
+#ifdef _DEBUG
+	std::ifstream inputFile(fileName, std::ios_base::binary);
+
+    inputFile.seekg(0, std::ios_base::end);
+    auto length = inputFile.tellg();
+    inputFile.seekg(0, std::ios_base::beg);
+
+    // Make a buffer of the exact size of the file and read the data into it.
+    std::vector<uint8_t> buffer(length);
+    inputFile.read(reinterpret_cast<char*>(buffer.data()), length);
+
+    inputFile.close();
+    return buffer;
+#else
 	// check if any of our paks have the file
 	for (paklib::PakFile* pakFile : files) {
 		if (pakFile->HasFile(fileName)) {
 			return pakFile->GetFileData(fileName);
 		}
 	}
+#endif
 	Logger::FormatErr("Failed to load asset <%s>", fileName.c_str());
 	return {};
 }

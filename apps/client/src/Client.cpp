@@ -59,7 +59,7 @@ void Client::Run(std::string connectString_) {
     Logger::Msg("Loading settings...");
 
     settings_.LoadDefaults();
-    settings_.LoadFromFile("./settings.cfg");
+    settings_.LoadFromFile("./cfg/settings.cfg");
     settings_.OnSettingChanged = [this](std::string setting) {
         HandleSettingChanged(setting);
     };

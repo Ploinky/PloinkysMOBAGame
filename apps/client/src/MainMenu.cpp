@@ -8,7 +8,7 @@
 MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
-	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("UI/Buttons/MenuButton/MenuButton.bmp");
+	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("data/ui/buttons/menu-button/menu-button.bmp");
 
 	// Server browser button
 	buttonServerBrowser_.m_text = "Server Browser";

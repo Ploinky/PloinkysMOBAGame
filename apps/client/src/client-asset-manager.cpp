@@ -177,7 +177,7 @@ HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {
 
 void CClientAssetManager::LoadCharacterManifest(std::string strCharacterId) {
 	PJL::JSONValue manifestValue = PJL::JSONParser().Parse(
-		std::string((char*) LoadFile("characters/" + strCharacterId + "/character_manifest.json").data())
+		std::string((char*) LoadFile("data/characters/" + strCharacterId + "/character_manifest.json").data())
 	);
 
 	if(!manifestValue.IsObject()) {
