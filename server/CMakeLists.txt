@@ -1,19 +1,7 @@
-function(copy_asset_folder)
-    add_custom_command(TARGET server POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different $<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0} $<TARGET_FILE_DIR:server>/${ARGV0}
-    )
-endfunction()
-
-function(pak_folder)
-    file(GLOB PAK_SOURCE "$<TARGET_PROPERTY:assets,BINARY_DIR>/${ARGV0}/**")
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
-        COMMAND pakr ${ARGV0} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1}
-        DEPENDS ${PAK_SOURCE}
-        WORKING_DIRECTORY $<TARGET_PROPERTY:assets,BINARY_DIR>
-    )
-    list(APPEND PAK_FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${ARGV1})
-    set(PAK_FILES ${PAK_FILES} PARENT_SCOPE)
-endfunction()
+# collect paths
+get_property(dist_dir GLOBAL PROPERTY dist_dir)
+get_property(out_dir GLOBAL PROPERTY out_dir)
+set(server_out_dir ${out_dir}/"server")
 
 add_executable(server
 	src/Buff.cpp
@@ -68,27 +56,17 @@ target_link_libraries(server PUBLIC common)
 
 if(WIN32)
 	target_link_libraries(server PUBLIC steam_api64)
-	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll $<TARGET_FILE_DIR:server>/steam_api64.dll)
+    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/server/data)
+        add_custom_command(TARGET server POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/server/data\" \"${CMAKE_SOURCE_DIR}/assets_raw\")
+	endif()
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll ${server_out_dir}/steam_api64.dll)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:server>/server.exe ${server_out_dir}/server.exe)
 endif()
 
 if(UNIX)
 	target_link_libraries(server PUBLIC steam_api)
-	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so $<TARGET_FILE_DIR:server>/libsteam_api.so)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so ${server_out_dir}/libsteam_api.so)
 
 endif()
 
-add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt $<TARGET_FILE_DIR:server>/steam_appid.txt)
-
-pak_folder(Maps/map1 Maps/Map1.pak)
-pak_folder(mnf.xml mnf.pak)
-pak_folder(characters/stormcaller characters/stormcaller.pak)
-
-add_custom_target(server_assets
-    DEPENDS ${PAK_FILES}
-)
-
-add_dependencies(server_assets
-	assets
-)
-
-add_dependencies(server server_assets)
+add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${server_out_dir}/steam_appid.txt)
