@@ -1,4 +1,4 @@
-texture_file=characters/stormcaller/abilities/thunderstrike.png
+texture_file=data/characters/stormcaller/abilities/stormbolt.png
 particle_velocity_x=0
 particle_velocity_y=1
 particle_velocity_z=0

@@ -73,7 +73,7 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
 	m_pAssetManager->LoadTexture("data/UI/move-to/move_to.png");
 	m_pAssetManager->LoadTexture("data/Persons/chess_person/blast_area.png");
 	m_pAssetManager->LoadTexture("data/Persons/chess_person/particle.png");
-	m_pAssetManager->LoadTexture("data/characters/stormcaller/abilities/thunderstrike.png");
+	m_pAssetManager->LoadTexture("data/characters/stormcaller/abilities/stormbolt.png");
 
 #ifdef NAV_DEBUG
 	FlatUnlitShaderVertex_t vertices[4] = {

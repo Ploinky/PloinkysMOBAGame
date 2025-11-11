@@ -34,11 +34,24 @@ public:
     ImpactEffect_t effect;
 };
 
+class CAnimationData {
+public:
+    std::string name;
+    float fDuration;
+};
+
+class CModelData {
+public:
+    std::string id;
+    std::map<std::string, CAnimationData> mapAnimations;
+};
+
 class CCharacterData {
 public:
     std::string strId;
     std::string strName;
     std::map<int, CAbilityData> mapAbilities;
+    CModelData model;
 };
 
 class CClientGameData {

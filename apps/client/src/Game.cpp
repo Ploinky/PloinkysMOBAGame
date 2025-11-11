@@ -237,7 +237,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
 
         // TODO react to event instead of this?
-        ParticleEffect* particle_system = ParticleEffect::Load("characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
+        ParticleEffect* particle_system = ParticleEffect::Load("data/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
         particle_system->Attach(go);
 
         if(!m_gameState.GetComponent<ParticleComponent_t>(go->unit_id)) {
@@ -1302,7 +1302,7 @@ void Game::Action(EInputAction eAction) {
             mv.y = y;
             net_manager_->SendPacket(&mv);
 
-            ParticleEffect* particle_system = ParticleEffect::Load("UI/MoveTo/move_to.pts", assetManager_);
+            ParticleEffect* particle_system = ParticleEffect::Load("data/UI/move-to/move_to.pts", assetManager_);
             particle_system->position = { x, 0, y };
             m_vecGlobalParticles.push_back(particle_system);
 

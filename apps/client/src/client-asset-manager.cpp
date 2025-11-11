@@ -314,5 +314,41 @@ CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& characterNode)
         }
     }
 
+    if(charDataNode.attribute("model")) {
+        CModelData model{};
+
+        std::string modelName = charDataNode.attribute("model").as_string();
+        pugi::xml_document doc = LoadXMLFile("data/characters/" + charData.strId + "/" + modelName + ".xml");
+
+        if(!doc) {
+            Logger::FormatErr("Failed to load character data file for %s: missing model", modelName);
+            return {};
+        }
+
+        pugi::xml_node modelNode = doc.child("model");
+        std::string modelId = modelNode.attribute("id").as_string();
+        
+        if(!m_mapModels.contains(modelId)) {
+            std::string modelFileName = modelNode.attribute("model").as_string();
+            LoadGLBModel(modelId, "data/characters/" + charData.strId + "/" + modelFileName);
+        }
+
+
+        pugi::xml_node animationsNode = modelNode.child("animations");
+
+        for(pugi::xml_node animationNode : animationsNode.children()) {
+            if(!animationNode || strcmp(animationNode.name(), "animation")) {
+                continue;
+            }
+
+            CAnimationData animData{};
+            animData.name = animationNode.attribute("name").as_string();
+            animData.fDuration = animationNode.attribute("duration").as_int();
+            model.mapAnimations.emplace(animData.name, animData);
+        }
+
+        charData.model = model;
+    }
+
     return charData;
 }
