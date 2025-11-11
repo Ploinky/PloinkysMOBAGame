@@ -40,8 +40,6 @@ add_executable(server
 	src/systems/respawn-system.cpp
 	src/systems/spell-system.cpp
 	src/systems/system.cpp
-
-	src/content/characters/stormcaller/thunderstrike.cpp
 )
 
 target_compile_definitions(server PUBLIC NOMINMAX)

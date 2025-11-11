@@ -58,11 +58,12 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
                 pTargetTransform = pTarget->GetComponent<CTransformComponent>();
 
                 pNavigationComponent = pCaster->GetComponent<CNavigationComponent>();
-                if(vecSpells[activeCast.nIndex].pSpell->fCastRange > (pCasterTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
+                if(vecSpells[activeCast.nIndex].data.fCastRange > (pCasterTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
                     activeCast.eState = ESpellCastState::CASTING;
                     activeCast.fTimeInState = 0.0f;
                     
-                    vecSpells[activeCast.nIndex].pSpell->OnCastStart(CSpellCastApi(pGameState), activeCast.spellCtx);
+                    // TODO
+                    // vecSpells[activeCast.nIndex].pSpell->OnCastStart(CSpellCastApi(pGameState), activeCast.spellCtx);
 
                     CSpellCastStartEvent* pStartEvt = new CSpellCastStartEvent(activeCast.spellCtx);
                     pGameState->VecEvent.emplace(pStartEvt);
@@ -75,7 +76,7 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
 
                 break;
             case ESpellCastState::CASTING:
-                if(activeCast.fTimeInState >= vecSpells[activeCast.nIndex].pSpell->fCastPoint) {
+                if(activeCast.fTimeInState >= vecSpells[activeCast.nIndex].data.fCastPoint) {
                     pGameState->VecEvent.emplace(new CSpellCastEvent(activeCast.spellCtx));
                     activeCast.eState = ESpellCastState::BACKSWING;
                     activeCast.fTimeInState = 0.0f;
@@ -83,13 +84,13 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
                 break;
             case ESpellCastState::CAST_POINT_REACHED:
             case ESpellCastState::BACKSWING:
-                if (activeCast.fTimeInState >= vecSpells[activeCast.nIndex].pSpell->fCastTime - vecSpells[activeCast.nIndex].pSpell->fCastPoint) {
+                if (activeCast.fTimeInState >= vecSpells[activeCast.nIndex].data.fCastTime - vecSpells[activeCast.nIndex].data.fCastPoint) {
                     activeCast.eState = ESpellCastState::FINISHED;
                     pSpellComp->optCurrentCast.reset(); // Done
                 }
             case ESpellCastState::FINISHED:
-                vecSpells[activeCast.nIndex].fCooldownRemaining = vecSpells[activeCast.nIndex].pSpell->fCooldown;
-                pGameState->VecEvent.emplace(new CCooldownStartedEvent(pGameObj.first, activeCast.nIndex, vecSpells[activeCast.nIndex].pSpell->fCooldown));
+                vecSpells[activeCast.nIndex].fCooldownRemaining = vecSpells[activeCast.nIndex].data.fCooldown;
+                pGameState->VecEvent.emplace(new CCooldownStartedEvent(pGameObj.first, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
                 pSpellComp->optCurrentCast.reset();
                 break;
             case ESpellCastState::CANCELLED:
@@ -145,9 +146,10 @@ void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEve
         return;
     }
 
-    pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).pSpell->OnCast(CSpellCastApi(pGameState), pCastEvent->m_spellCtx);
+    // TODO
+    // pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).pSpell->OnCast(CSpellCastApi(pGameState), pCastEvent->m_spellCtx);
 
-    if(pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).pSpell->eTargetType == ETargetingType::UNIT_INSTANT) {
+    if(pSpellComp->vecSpellSlots.at(pCastEvent->m_spellCtx->nSpellIndex).data.eTargetType == EAbilityTargetType::UNIT) {
         SpellHit(pGameState, pCastEvent->m_spellCtx);
     }
 }
@@ -156,9 +158,14 @@ void CSpellSystem::SpellHit(CGameState* pGameState, CSpellCastContext* pCtx) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pCtx->idCaster);
 
     CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
-    pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).pSpell->ApplyEffects(CSpellCastApi(pGameState), pCtx);
+    SpellSlot_t spell = pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex);
 
-    pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).pSpell->idSpell));
+    for(ImpactEffectDamage_t damageEffect : spell.data.effect.vecDamageEffects) {
+        CSpellCastApi api = CSpellCastApi(pGameState);
+        api.ApplyDamage(pCtx->idCaster, pCtx->idTarget, damageEffect.vecDamage[0]);
+    }
+
+    pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));
 }
 
 void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpellCtx) {
@@ -175,7 +182,7 @@ void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpel
 
     SpellSlot_t& spellSlot = pCastComponent->vecSpellSlots.at(pSpellCtx->nSpellIndex);
     
-    if(spellSlot.pSpell == nullptr) {
+    if(spellSlot.data.strId == "") {
         Logger::FormatErr("failed to cast spell %d, invalid spell pointer", pSpellCtx->nSpellIndex);
         return;
     }

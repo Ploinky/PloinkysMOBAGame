@@ -23,7 +23,7 @@ void CWaveManager::Update(CGameState* pGameState, float fDelta) {
     pGo->AddComponent(new CCharacterComponent(UnitPrefab::MINION));
     pGo->AddComponent(new CTransformComponent());
     pGo->GetComponent<CTransformComponent>()->SetPosition({2000, 0, -3000});
-    pGo->AddComponent(new CNetworkComponent());
+    pGo->AddComponent(new CNetworkComponent(true));
     pGo->AddComponent(new CHealthComponent(50));
     pGo->AddComponent(new CTeamComponent(Team::TEAM_1));
     pGo->AddComponent(new CIntentComponent());

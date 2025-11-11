@@ -18,6 +18,7 @@ public:
     virtual void StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) override;
     virtual void StartLobby(ServerNetworkManager* manager) override;
 
+	virtual CServerGameData* GetGameData() override;
 private:
     IServerState* currentState_;
     AssetManager assetManager_;

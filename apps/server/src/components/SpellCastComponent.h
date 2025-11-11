@@ -5,6 +5,7 @@
 #include "SpellTargetInfo.h"
 #include "components/Components.h"
 #include <optional>
+#include <data/server-game-data.h>
 
 enum class ESpellCastState {
 	IDLE,
@@ -18,7 +19,8 @@ enum class ESpellCastState {
 
 typedef struct SpellSlot_s {
 	float fCooldownRemaining = 0.0f;
-	ISpell* pSpell = nullptr;
+	int level = 0;
+	CAbilityData data;
 } SpellSlot_t;
 
 typedef struct ActiveCast_s {

@@ -59,10 +59,10 @@ add_executable(client
     src/VBox.cpp
     src/Vertex.cpp
     
+    src/core/input/input-manager.cpp
+
     src/game/systems/animation-system.cpp
     src/game/systems/particle-system.cpp
-    
-    src/core/input/input-manager.cpp
     
     Resources/Cursor.cur
     Resources/cursor1.cur

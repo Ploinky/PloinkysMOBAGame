@@ -29,7 +29,7 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 		m_pAssetManager->LoadGLBModel("missile", "data/Persons/chess_person/missile.glb");
 		m_pAssetManager->LoadGLBModel("minion", "data/Persons/Minion/minion.glb");
 
-		// m_pAssetManager->LoadCharacterManifest("stormcaller");
+		m_pAssetManager->LoadManifest();
 	
 		m_iLoadStep++;
 

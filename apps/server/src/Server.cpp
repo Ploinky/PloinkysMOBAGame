@@ -9,8 +9,10 @@
 #include <data/server-data-loader.h>
 
 void Server::Start() {
+#ifndef _DEBUG
     assetManager_. LoadPakFile("mnf.pak");
     assetManager_. LoadPakFile("characters/stormcaller.pak");
+#endif
 
     {
         CServerDataLoader dataLoader = CServerDataLoader(std::make_shared<AssetManager>(assetManager_));
@@ -66,4 +68,8 @@ void Server::StartLobby(ServerNetworkManager* manager) {
     }
 
     currentState_ = lobby;
+}
+
+CServerGameData* Server::GetGameData() {
+    return &m_gameData;
 }

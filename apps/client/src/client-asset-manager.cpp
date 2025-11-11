@@ -175,31 +175,144 @@ HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {
     return hModel;
 }
 
-void CClientAssetManager::LoadCharacterManifest(std::string strCharacterId) {
-	PJL::JSONValue manifestValue = PJL::JSONParser().Parse(
-		std::string((char*) LoadFile("data/characters/" + strCharacterId + "/character_manifest.json").data())
-	);
+pugi::xml_document CClientAssetManager::LoadXMLFile(std::string strFileName) {
+    std::vector<uint8_t> mnfData = LoadFile(strFileName);
 
-	if(!manifestValue.IsObject()) {
-		Logger::Err("Failed to load manifest for character " + strCharacterId);
-		return;
-	}
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_buffer(mnfData.data(), mnfData.size(), 116u, pugi::encoding_utf8);
 
-	PJL::JSONObject manifest = manifestValue.AsObject();
+    if(result.status != pugi::xml_parse_status::status_ok) {
+        return {};
+    }
 
-	if(manifest.Contains("model") && manifest.Get("model").IsString()) {
-		LoadGLBModel(strCharacterId, manifest.Get("model").AsString());
-	}
+    return doc;
+}
 
-	if(manifest.Contains("icons") && manifest.Get("icons").IsArray()) {
-		PJL::JSONArray arrIcons = manifest.Get("icons").AsArray();
-		for(int i = 0; i < arrIcons.Size(); i++) {
-			PJL::JSONValue val = arrIcons.Get(i);
+CClientGameData CClientAssetManager::LoadManifest() {
+    CClientGameData gameData{};
 
-			if(val.IsString()) {
-				// TODO this moves to asset manager
-				// bitmaps_.emplace(val.AsString(), CreateBitmapFromData(pAssetManager->LoadFile(val.AsString())));
-			}
-		}
-	}
+    pugi::xml_document doc = LoadXMLFile("data/mnf.xml");
+    if(!doc) {
+        Logger::FormatErr("Failed to load data manifest file");
+        return {};
+    }
+
+    pugi::xml_node gameDataNode = doc.child("game_data");
+
+    if(!gameDataNode) {
+        Logger::FormatErr("Failed to load data manifest file: missing game_data node");
+        return {};
+    }
+
+    pugi::xml_node characters = gameDataNode.child("characters");
+
+    if(characters) {
+        for(pugi::xml_node character : characters.children()) {
+            CCharacterData charData = LoadCharacter(character);
+            gameData.mapCharacterData.emplace(charData.strId, charData);
+        }
+    }
+    
+    return gameData;
+}
+
+std::vector<float> CClientAssetManager::ParseFloatVec(std::string str) {
+    std::vector<float> result;
+    std::stringstream ss(str);
+    std::string item;
+    while (std::getline(ss, item, ',')) {
+        result.push_back(std::stof(item));
+    }
+    return result;
+}
+CAbilityData CClientAssetManager::LoadAbility(std::string charId, pugi::xml_node& abilityNode) {
+    CAbilityData abilityData{};
+    abilityData.strId = abilityNode.attribute("id").as_string();
+    pugi::xml_document doc = LoadXMLFile("data/characters/" + charId + "/abilities/" + abilityData.strId + "/" + abilityData.strId + ".xml");
+    
+    if(!doc) {
+        Logger::FormatErr("Failed to load ability data file for %s", abilityData.strId);
+        return {};
+    }
+
+    pugi::xml_node abilityDataNode = doc.child("ability_data");
+    abilityData.strName = abilityDataNode.attribute("name").as_string();
+
+    pugi::xml_node targetInfoNode = abilityDataNode.child("targeting_info");
+
+    if(!targetInfoNode) {
+        Logger::FormatErr("Failed to load ability %s: missing targeting info", abilityData.strId);
+        return {};
+    }
+
+    std::string targetingType = targetInfoNode.attribute("type").as_string();
+
+    if(targetingType == "unit") {
+        abilityData.eTargetType = EAbilityTargetType::UNIT;
+    } else {
+        Logger::FormatErr("Failed to load ability %s: invalid targeting type", targetingType);
+        return {};
+    }
+
+    abilityData.fCastRange = targetInfoNode.attribute("cast_range").as_int();
+    abilityData.fCastTime = targetInfoNode.attribute("cast_time").as_int();
+    abilityData.fCastPoint = targetInfoNode.attribute("cast_point").as_int();
+    abilityData.fCooldown = targetInfoNode.attribute("fCooldown").as_int();
+
+    pugi::xml_node onImpactNode = abilityDataNode.child("on_impact");
+
+    if(onImpactNode) {
+        for(pugi::xml_node onImpactEffectNode : onImpactNode.children()) {
+            if(!strcmp(onImpactEffectNode.name(), "damage")) {
+                ImpactEffectDamage_t effect{};
+
+                if(strcmp(onImpactEffectNode.attribute("target").as_string(), "target_unit")) {
+                    effect.eAffects = EImpactEffectAffects::TARGET_UNIT;
+                }
+
+                effect.vecDamage = ParseFloatVec(onImpactEffectNode.attribute("amount").as_string());
+
+                abilityData.effect.vecDamageEffects.push_back(effect);
+            }
+        }
+    }
+
+    return abilityData;
+}
+
+CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& characterNode) {
+    CCharacterData charData{};
+    charData.strId = characterNode.attribute("id").as_string();
+    
+    pugi::xml_document doc = LoadXMLFile("data/characters/" + charData.strId + "/" + charData.strId + ".xml");
+
+    if(!doc) {
+        Logger::FormatErr("Failed to load character data file for %s", charData.strId);
+        return {};
+    }
+
+    pugi::xml_node charDataNode = doc.child("character_data");
+    
+    if(!charDataNode) {
+        Logger::FormatErr("Failed to load character data file for %s: missing character_data node", charData.strId);
+        return {};
+    }
+
+    charData.strName = charDataNode.attribute("name").as_string();
+
+    pugi::xml_node abilitiesNode = charDataNode.child("abilities");
+
+    if(abilitiesNode) {
+        for(pugi::xml_node abilityNode : abilitiesNode.children()) {
+            if(strcmp(abilityNode.name(), "ability") != 0) {
+                continue;
+            }
+
+            int slot = abilityNode.attribute("slot").as_int();
+            CAbilityData ability = LoadAbility(charData.strId, abilityNode);
+            charData.mapAbilities.emplace(slot, ability);
+        }
+    }
+
+    return charData;
 }

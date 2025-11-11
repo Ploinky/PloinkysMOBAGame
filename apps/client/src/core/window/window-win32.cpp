@@ -224,7 +224,10 @@ LRESULT CALLBACK CWindowWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
         if (GetKeyboardState(keyboardState)) {
             const int keyboardScanCode = (lParam >> 16) & 0x00ff;
             ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
-            e_keyPressed(g_mapKeyCode.at(ascii));
+            
+            if(g_mapKeyCode.contains(ascii)) {
+                e_keyPressed(g_mapKeyCode.at(ascii));
+            }
         }
         break;
     }
@@ -234,7 +237,10 @@ LRESULT CALLBACK CWindowWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
         if (GetKeyboardState(keyboardState)) {
             const int keyboardScanCode = (lParam >> 16) & 0x00ff;
             ToAscii(static_cast<UINT>(wParam), keyboardScanCode, keyboardState, &ascii, 0);
-            e_keyReleased(g_mapKeyCode.at(ascii));
+
+            if(g_mapKeyCode.contains(ascii)) {
+                e_keyReleased(g_mapKeyCode.at(ascii));
+            }
         }
         break;
     }

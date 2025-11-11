@@ -17,7 +17,7 @@
 #include "systems/respawn-system.h"
 #include "systems/attack-system.h"
 #include "systems/ai-system.h"
-#include "content/characters/stormcaller/thunderstrike.h"
+#include <data/server-game-data.h>
 
 uint64_t g_unitId = 0;
 
@@ -28,9 +28,12 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
         }
     }
     
-    assetManager->LoadPakFile("Maps/map1.pak");
+#ifndef _DEBUG
+    assetManager->LoadPakFile("data/maps/map1.pak");
+#endif
+
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(assetManager->LoadPlainFile("Maps/map1/map1.nvm"));
+    m_navMesh->LoadFromData(assetManager->LoadPlainFile("data/maps/map1/map1.nvm"));
 
     m_navGrid = new NavigationCellGrid(m_navMesh);
     m_navMap = new NavigationMap();
@@ -125,68 +128,37 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
         SendMessageToClient(player->idPlayer, &tick);
     }
 
+    CCharacterData charData = handler_->GetGameData()->mapCharacterData.at("stormcaller");
+
     CGameObject* pGameObject = new CGameObject();
-    CNetworkComponent* pNetComponent = new CNetworkComponent();
-    pNetComponent->SetSyncMovement(true);
+
+    // always present
     pGameObject->AddComponent(new CTransformComponent());
-    pGameObject->AddComponent(pNetComponent);
-
-    CMovementComponent* pMoveComponent = new CMovementComponent();
-    pGameObject->AddComponent(pMoveComponent);
+    pGameObject->AddComponent(new CNetworkComponent(true));
+    pGameObject->AddComponent(new CMovementComponent());
     pGameObject->AddComponent(new CNavigationComponent());
-
-    std::vector<SpellSlot_t> vecSpells;
-    SpellSlot_t spell1;
-    spell1.pSpell = new CThunderstrike();
-    vecSpells.push_back(spell1);
-    CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
-    pGameObject->AddComponent(pSpellCast);
-
-    CHealthComponent* health = new CHealthComponent(200);
-    pGameObject->AddComponent(health);
-
+    pGameObject->AddComponent(new CHealthComponent(200));
     pGameObject->AddComponent(new CTeamComponent(Team::TEAM_1));
     pGameObject->AddComponent(new CCharacterComponent(UnitPrefab::STORMCALLER));
     pGameObject->AddComponent(new CBasicAttackComponent());
 
+    std::vector<SpellSlot_t> vecSpells;
+    SpellSlot_t spell1;
+    spell1.data = charData.mapAbilities.at(0);
+    vecSpells.push_back(spell1);
+    CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
+    pGameObject->AddComponent(pSpellCast);
+
     AddGameObject(pGameObject);
 
+    
+    // inform everybody TODO prettify
     UnitIdPacket packet = UnitIdPacket();
     packet.unit_id = pGameObject->GetId();
     std::vector<uint8_t> data;
     packet.Write(&data);
     player->unit = pGameObject->GetId();
     SendMessageToClient(player->idPlayer, &data);
-
-    /*
-    sol::table personTable = m_luaState.script_file("./Scripts/Person/football-person.lua");
-    CGameObject* game_object = new CGameObject();
-    game_object->current_action_ = nullptr;
-    game_object->unit_id = id;
-    game_object->nav_agent.UnitId = id;
-    game_object->stats.health = personTable.get<int>("hp");
-    game_object->stats.max_health = game_object->stats.health;
-    game_object->stats.health_regen = personTable.get<float>("hpreg");
-    game_object->stats.move_speed = personTable.get<int>("ms");
-    game_object->prefab = UnitPrefab::FOOTBALL_PERSON;
-
-    sol::table abilitiesTable = personTable.get<sol::table>("abilities");
-    CScriptedSpell* spell1 = new CScriptedSpell(abilitiesTable.get<std::string>(1));
-    game_object->spells.push_back(spell1);
-    CScriptedSpell* spell2 = new CScriptedSpell(abilitiesTable.get<std::string>(2));
-    game_object->spells.push_back(spell2);
-
-    if (index % 2 == 0) {
-        game_object->team = Team::TEAM_1;
-        game_object->position = { 1000, 0 , -2500};
-    }
-    else {
-        game_object->team = Team::TEAM_2;
-        game_object->position = { 4000, 0 , -2500};
-    }
-
-    AddGameObject(game_object);
-    */
 }
 
 void Client::AddGameObject(CGameObject* game_object) {
@@ -253,7 +225,7 @@ void Client::Start() {
     pDummy->GetComponent<CTransformComponent>()->SetPosition({2000, 0, -2000});
     pDummy->AddComponent(new CMovementComponent());
     pDummy->GetComponent<CMovementComponent>()->ClearTarget();
-    pDummy->AddComponent(new CNetworkComponent());
+    pDummy->AddComponent(new CNetworkComponent(true));
     pDummy->GetComponent<CNetworkComponent>()->SetSyncMovement(true);
     pDummy->AddComponent(new CHealthComponent(100));
     pDummy->AddComponent(new CTeamComponent(Team::TEAM_2));

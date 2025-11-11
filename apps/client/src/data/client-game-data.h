@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <map>
 
 enum class EAbilityTargetType {
@@ -40,7 +41,7 @@ public:
     std::map<int, CAbilityData> mapAbilities;
 };
 
-class CServerGameData {
+class CClientGameData {
 public:
     std::map<std::string, CCharacterData> mapCharacterData;
 };

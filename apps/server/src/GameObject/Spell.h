@@ -4,11 +4,6 @@
 #include "GameState.h"
 #include "spell-cast-api.h"
 
-enum class ETargetingType {
-    UNIT,
-    UNIT_INSTANT,
-    POINT
-};
 
 class CSpellCastContext {
 public:
@@ -26,19 +21,4 @@ public:
     
     private:
     CGameState* m_pGameState = nullptr;
-};
-
-class ISpell {
-public:
-    ISpell(std::string idSpell) : idSpell(idSpell) {};
-    virtual void OnCastStart(CSpellCastApi api, CSpellCastContext* ctx) {};
-    virtual void OnCast(CSpellCastApi api, CSpellCastContext* ctx) {};
-    virtual void ApplyEffects(CSpellCastApi api, CSpellCastContext* ctx) {};
-    
-    float fCastPoint = 1000;
-    float fCastTime = 2000;
-    float fCooldown = 5000;
-    float fCastRange = 500;
-    std::string idSpell;
-    ETargetingType eTargetType = ETargetingType::UNIT_INSTANT;
 };

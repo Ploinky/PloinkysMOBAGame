@@ -12,7 +12,7 @@
 
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("Maps/map1/map1.nvm"));
+    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("data/Maps/map1/map1.nvm"));
 
     m_navGrid = new NavigationCellGrid(m_navMesh);
 
@@ -297,10 +297,10 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     // TODO
     m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());
-    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("Persons/_Generic/AbilityIcon.bmp");
-    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("characters/stormcaller/abilities/thunderstrike.wav");
-    m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("characters/stormcaller/death.wav");
-    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("characters/stormcaller/attack.wav");
+    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("data/persons/shared/ability-icon.bmp");
+    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("data/characters/stormcaller/abilities/thunderstrike.wav");
+    m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("data/characters/stormcaller/death.wav");
+    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("data/characters/stormcaller/attack.wav");
 
     m_gameState.AddSystem(m_pAudioSystem);
     m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
@@ -903,7 +903,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
                 m_vecAbilities.resize(4);
                 m_vecAbilities[0] = {
                     .strName = "Thunderstrike",
-                    .hIcon = assetManager_->GetBitmapImage("characters/stormcaller/abilities/thunderstrike_icon.png"),
+                    .hIcon = assetManager_->GetBitmapImage("data/characters/stormcaller/abilities/thunderstrike_icon.png"),
                     .eTargetType = EAbilityTargetType::UNIT,
                 };
                 break;

@@ -9,6 +9,10 @@
 #include <core/graphics/graphics-engine.h>
 #include <core/audio/audio-engine.h>
 
+#include <data/client-game-data.h>
+
+#include <common/vendor/pugixml.hpp>
+
 class Model;
 
 typedef struct { 
@@ -33,11 +37,18 @@ public:
     ModelAsset_t& GetModel(HModel hModel);
 
     HModel LoadGLBModel(std::string name, std::string file);
-    void LoadCharacterManifest(std::string strCharacterId);
+
+    pugi::xml_document LoadXMLFile(std::string strFileName);
+    CClientGameData LoadManifest();
+    std::vector<float> ParseFloatVec(std::string str);
+    CAbilityData LoadAbility(std::string charId, pugi::xml_node& abilityNode);
+    CCharacterData LoadCharacter(pugi::xml_node& characterNode);
 
 private:
     IGraphicsEngine* m_pGraphicsEngine;
     IAudioEngine* m_pAudioEngine;
+
+    CClientGameData m_gameData;
 
     std::unordered_map<std::string, HBitmap> m_mapBitmaps;
 

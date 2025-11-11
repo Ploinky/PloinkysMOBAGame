@@ -25,10 +25,6 @@ typedef struct {
     uint64_t unitId;
 } unit_t;
 
-enum class EAbilityTargetType {
-    UNIT
-};
-
 typedef struct {
     std::string strName;
     HBitmap hIcon;
