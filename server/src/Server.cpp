@@ -10,8 +10,12 @@
 
 void Server::Start() {
     assetManager_. LoadPakFile("mnf.pak");
+    assetManager_. LoadPakFile("characters/stormcaller.pak");
 
-    m_gameData = CServerDataLoader::LoadManifest(std::make_shared<AssetManager>(assetManager_));
+    {
+        CServerDataLoader dataLoader = CServerDataLoader(std::make_shared<AssetManager>(assetManager_));
+        m_gameData = dataLoader.LoadManifest();
+    }
 
 #ifndef DEBUG
     // assetManager_. LoadPakFile("Maps/Map1.pak");

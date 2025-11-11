@@ -81,6 +81,7 @@ add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_
 
 pak_folder(Maps/map1 Maps/Map1.pak)
 pak_folder(mnf.xml mnf.pak)
+pak_folder(characters/stormcaller characters/stormcaller.pak)
 
 add_custom_target(server_assets
     DEPENDS ${PAK_FILES}

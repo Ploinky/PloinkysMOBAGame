@@ -74,6 +74,7 @@ copy_file(characters/stormcaller/abilities/thunderstrike.pts)
 copy_file(characters/stormcaller/abilities/thunderstrike.wav)
 copy_file(characters/stormcaller/death.wav)
 copy_file(characters/stormcaller/attack.wav)
+copy_file(characters/stormcaller/stormcaller.xml)
 
 # Chess person
 copy_file(Persons/ChessPerson/blast_area_2.pte)

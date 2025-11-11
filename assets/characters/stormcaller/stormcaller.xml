@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- All character data -->
+<character_data
+    name="stormcaller"
+>
+    <abilities>
+        <ability
+            id="stormbolt"
+            slot="0"
+        />
+    </abilities>
+</character_data>
+
