@@ -6,7 +6,7 @@
 #include <common/pmg_networking.h>
 #include "IServerState.h"
 #include "IServerStateHandler.h"
-#include <data/server-game-data.h>
+#include <common/data/game-data.h>
 #include <data/server-data-loader.h>
 
 class ServerNetworkManager;
@@ -19,11 +19,11 @@ public:
     virtual void StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) override;
     virtual void StartLobby(ServerNetworkManager* manager) override;
 
-	virtual CServerGameData* GetGameData() override;
+	virtual CGameData* GetGameData() override;
 private:
     IServerState* currentState_;
     CServerDataLoader assetManager_;
-    CServerGameData m_gameData;
+    CGameData m_gameData;
 
     long long GetSystemTime();
 };

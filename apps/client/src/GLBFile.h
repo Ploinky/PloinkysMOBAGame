@@ -187,7 +187,7 @@ public:
 	int Mesh;
 	int Skin;
 	Vector4 Rotation = Vector4(0, 0, 0, 1);
-	Vector3 Scale = Vector3(1, 1, 1);
+	Vector3 Scale = Vector3(0.0, 0.0, 0.0);
 	Vector3 Translation = Vector3(0, 0, 0);
 	std::string Name;
 	std::vector<int> Children;

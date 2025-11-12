@@ -5,7 +5,7 @@
 #include "SpellTargetInfo.h"
 #include "components/Components.h"
 #include <optional>
-#include <data/server-game-data.h>
+#include <common/data/game-data.h>
 
 enum class ESpellCastState {
 	IDLE,

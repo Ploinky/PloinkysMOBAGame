@@ -2,12 +2,12 @@
 
 class ServerNetworkManager;
 class LobbyPlayer;
-class CServerGameData;
+class CGameData;
 
 class IServerStateHandler {
 public:
 	virtual void StartGame(ServerNetworkManager* networkManager, LobbyPlayer* players[10]) = 0;
 	virtual void StartLobby(ServerNetworkManager* networkManager) = 0;
 
-	virtual CServerGameData* GetGameData() = 0;
+	virtual CGameData* GetGameData() = 0;
 };

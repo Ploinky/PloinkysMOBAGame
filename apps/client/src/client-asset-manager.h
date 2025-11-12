@@ -9,7 +9,7 @@
 #include <core/graphics/graphics-engine.h>
 #include <core/audio/audio-engine.h>
 
-#include <data/client-game-data.h>
+#include <common/data/game-data.h>
 
 #include <common/vendor/pugixml.hpp>
 
@@ -39,17 +39,14 @@ public:
     HModel LoadGLBModel(std::string name, std::string file);
 
     pugi::xml_document LoadXMLFile(std::string strFileName);
-    CClientGameData LoadManifest();
+    CGameData LoadManifest();
     std::vector<float> ParseFloatVec(std::string str);
-    CAbilityData LoadAbility(pugi::xml_node& abilityNode);
-    CCharacterData LoadCharacter(pugi::xml_node& characterNode);
-    CModelData LoadModelData(pugi::xml_node& modelNode);
 
 private:
     IGraphicsEngine* m_pGraphicsEngine;
     IAudioEngine* m_pAudioEngine;
 
-    CClientGameData m_gameData;
+    CGameData m_gameData;
 
     std::unordered_map<std::string, HBitmap> m_mapBitmaps;
 
@@ -60,4 +57,5 @@ private:
     std::unordered_map<std::string, HModel> m_mapModels;
     std::vector<ModelAsset_t> m_vecModels;
     
+    CModelData LoadModelData(pugi::xml_node& modelNode);
 };

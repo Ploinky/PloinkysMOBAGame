@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <map>
 
 enum class EAbilityTargetType {
@@ -33,15 +34,29 @@ public:
     ImpactEffect_t effect;
 };
 
+class CAnimationData {
+public:
+    std::string name;
+    float fDuration;
+};
+
+class CModelData {
+public:
+    std::string id;
+    std::map<std::string, CAnimationData> mapAnimations;
+};
+
 class CCharacterData {
 public:
     std::string strId;
     std::string strName;
     std::map<int, std::string> mapAbilityIds;
+    std::string modelId;
 };
 
-class CServerGameData {
+class CGameData {
 public:
     std::map<std::string, CCharacterData> mapCharacterData;
+    std::map<std::string, CModelData> mapModelData;
     std::map<std::string, CAbilityData> mapAbilityData;
 };

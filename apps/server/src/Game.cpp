@@ -17,7 +17,7 @@
 #include "systems/respawn-system.h"
 #include "systems/attack-system.h"
 #include "systems/ai-system.h"
-#include <data/server-game-data.h>
+#include <common/data/game-data.h>
 
 uint64_t g_unitId = 0;
 

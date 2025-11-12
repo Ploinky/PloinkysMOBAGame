@@ -449,7 +449,7 @@ void CRenderer::Present() {
 		}
 	}
 
-	m_vecCommands.clear();
+ 	m_vecCommands.clear();
 
 	m_pGraphicsEngine->Present();
 }
@@ -765,8 +765,9 @@ void CRenderer::Render(CGameState* pGameState) {
 				UploadModelToGPU(modelAsset);
 			}
 			
-			for(const auto& modelNode : modelAsset.pModel->Nodes) {
-				Mesh* mesh = modelAsset.pModel->Meshes.at(modelNode.second->Mesh);
+			for(const auto& meshPair : modelAsset.pModel->Meshes) {
+				Mesh* mesh = meshPair.second;
+
 				if(mesh == nullptr) {
 					continue;
 				}

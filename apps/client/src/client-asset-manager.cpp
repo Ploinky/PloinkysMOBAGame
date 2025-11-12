@@ -188,8 +188,8 @@ pugi::xml_document CClientAssetManager::LoadXMLFile(std::string strFileName) {
     return doc;
 }
 
-CClientGameData CClientAssetManager::LoadManifest() {
-    CClientGameData gameData{};
+CGameData CClientAssetManager::LoadManifest() {
+    CGameData gameData{};
     
     for(std::string chrFileName : GetFileNamesByExtension("data", ".chr")) {
         pugi::xml_document doc = LoadXMLFile(chrFileName);
@@ -215,62 +215,6 @@ CClientGameData CClientAssetManager::LoadManifest() {
     return gameData;
 }
 
-std::vector<float> CClientAssetManager::ParseFloatVec(std::string str) {
-    std::vector<float> result;
-    std::stringstream ss(str);
-    std::string item;
-    while (std::getline(ss, item, ',')) {
-        result.push_back(std::stof(item));
-    }
-    return result;
-}
-
-CAbilityData CClientAssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
-    CAbilityData abilityData{};
-    abilityData.strName = abilityDataNode.attribute("name").as_string();
-
-    pugi::xml_node targetInfoNode = abilityDataNode.child("targeting_info");
-
-    if(!targetInfoNode) {
-        Logger::FormatErr("Failed to load ability %s: missing targeting info", abilityData.strId);
-        return {};
-    }
-
-    std::string targetingType = targetInfoNode.attribute("type").as_string();
-
-    if(targetingType == "unit") {
-        abilityData.eTargetType = EAbilityTargetType::UNIT;
-    } else {
-        Logger::FormatErr("Failed to load ability %s: invalid targeting type", targetingType);
-        return {};
-    }
-
-    abilityData.fCastRange = targetInfoNode.attribute("cast_range").as_int();
-    abilityData.fCastTime = targetInfoNode.attribute("cast_time").as_int();
-    abilityData.fCastPoint = targetInfoNode.attribute("cast_point").as_int();
-    abilityData.fCooldown = targetInfoNode.attribute("fCooldown").as_int();
-
-    pugi::xml_node onImpactNode = abilityDataNode.child("on_impact");
-
-    if(onImpactNode) {
-        for(pugi::xml_node onImpactEffectNode : onImpactNode.children()) {
-            if(!strcmp(onImpactEffectNode.name(), "damage")) {
-                ImpactEffectDamage_t effect{};
-
-                if(strcmp(onImpactEffectNode.attribute("target").as_string(), "target_unit")) {
-                    effect.eAffects = EImpactEffectAffects::TARGET_UNIT;
-                }
-
-                effect.vecDamage = ParseFloatVec(onImpactEffectNode.attribute("amount").as_string());
-
-                abilityData.effect.vecDamageEffects.push_back(effect);
-            }
-        }
-    }
-
-    return abilityData;
-}
-
 CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {
     CModelData model{};
 
@@ -291,36 +235,4 @@ CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {
         model.mapAnimations.emplace(animData.name, animData);
     }
     return model;
-}
-
-CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
-    CCharacterData charData{};
-    
-    if(!charDataNode) {
-        Logger::FormatErr("Failed to load character data file for %s: missing character_data node", charData.strId);
-        return {};
-    }
-
-    charData.strName = charDataNode.attribute("name").as_string();
-
-    pugi::xml_node abilitiesNode = charDataNode.child("abilities");
-
-    if(abilitiesNode) {
-        for(pugi::xml_node abilityNode : abilitiesNode.children()) {
-            if(strcmp(abilityNode.name(), "ability") != 0) {
-                continue;
-            }
-
-            int slot = abilityNode.attribute("slot").as_int();
-            std::string abilityId = abilityNode.attribute("id").as_string();
-            charData.mapAbilityIds.emplace(slot, abilityId);
-        }
-    }
-
-    if(charDataNode.attribute("model")) {
-        std::string modelId = charDataNode.attribute("model").as_string();
-        charData.modelId = modelId;
-    }
-
-    return charData;
 }
