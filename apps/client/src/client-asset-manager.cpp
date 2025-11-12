@@ -6,6 +6,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
 
+#include <filesystem>
+
 #define CLEANUP(res) if(res != nullptr) { res->Release(); res = nullptr;}
 
 CClientAssetManager::CClientAssetManager(IGraphicsEngine* pGraphicsEngine, IAudioEngine* pAudioEngine) {
@@ -190,6 +192,15 @@ pugi::xml_document CClientAssetManager::LoadXMLFile(std::string strFileName) {
 
 CClientGameData CClientAssetManager::LoadManifest() {
     CClientGameData gameData{};
+    
+    for(std::string chrFileName : GetFileNamesByExtension("data", ".chr")) {
+        pugi::xml_document doc = LoadXMLFile(chrFileName);
+        pugi::xml_node rootNode = doc.child("character_data");
+        CCharacterData charData = LoadCharacter(rootNode);
+        gameData.mapCharacterData.emplace(charData.strId, charData);
+    }
+
+    return gameData;
 
     pugi::xml_document doc = LoadXMLFile("data/mnf.xml");
     if(!doc) {
@@ -351,4 +362,24 @@ CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& characterNode)
     }
 
     return charData;
+}
+
+
+std::vector<std::string> CClientAssetManager::GetFileNamesByExtension(const std::string strPathToSearch, const std::string strFileEnding) {
+    std::vector<std::string> vecFileNames;
+
+    for(std::filesystem::directory_entry entry : std::filesystem::directory_iterator(strPathToSearch)) {
+        if(entry.is_directory()) {
+            std::vector<std::string> vecFoundInDir = GetFileNamesByExtension(entry.path().string(), strFileEnding);
+            if(!vecFoundInDir.empty()) {
+                vecFileNames.insert(vecFileNames.end(), vecFoundInDir.begin(), vecFoundInDir.end());
+            }
+        }
+
+        if(entry.is_regular_file() && !entry.path().extension().string().compare(strFileEnding)) {
+            vecFileNames.push_back(strPathToSearch + entry.path().filename().string());
+        }
+    }
+
+    return vecFileNames;
 }
