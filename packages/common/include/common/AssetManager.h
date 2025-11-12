@@ -15,6 +15,10 @@ public:
 
 	std::vector<uint8_t> LoadFile(std::string fileName);
 	std::list<std::string> LoadPlainFile(std::string fileName);
+	
+    // finds all files with the specified extension
+    // searches plain files in debug and .pak files in release
+    std::vector<std::string> GetFileNamesByExtension(const std::string strPathToSearch, const std::string strFileEnding);
 private:
 	void LoadPakFiles();
 };

@@ -6,16 +6,15 @@
 #include <data/server-game-data.h>
 #include <common/vendor/pugixml.hpp>
 
-class CServerDataLoader {
+class CServerDataLoader : public AssetManager {
 public:
-    CServerDataLoader(std::shared_ptr<AssetManager> pAssetManager);
     CServerGameData LoadManifest();
 
 private:
     std::shared_ptr<AssetManager> m_pAssetManager;
 
-    pugi::xml_document LoadFile(std::string strFileName);
+    pugi::xml_document LoadXMLFile(std::string strFileName);
 
     CCharacterData LoadCharacter(pugi::xml_node& characterNode);
-    CAbilityData LoadAbility(std::string charId, pugi::xml_node& abilityNode);
+    CAbilityData LoadAbility(pugi::xml_node& abilityNode);
 };

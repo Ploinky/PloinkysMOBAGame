@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model
+<model_data
     id="stormcaller"
-    model="stormcaller.glb"
+    model="data/characters/stormcaller/stormcaller.glb"
 >
     <animations>
         <animation
@@ -9,4 +9,4 @@
             duration="272"
         />
     </animations>
-</model>
+</model_data>

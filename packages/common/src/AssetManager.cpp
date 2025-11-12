@@ -6,6 +6,7 @@
 #include <memory.h>
 #include <cstdint>
 #include "logger.h"
+#include <filesystem>
 
 AssetManager::AssetManager() {
 }
@@ -71,4 +72,24 @@ std::list<std::string> AssetManager::LoadPlainFile(std::string fileName) {
 	}
 
 	return content;
+}
+
+
+std::vector<std::string> AssetManager::GetFileNamesByExtension(const std::string strPathToSearch, const std::string strFileEnding) {
+    std::vector<std::string> vecFileNames;
+
+    for(std::filesystem::directory_entry entry : std::filesystem::directory_iterator(strPathToSearch)) {
+        if(entry.is_directory()) {
+            std::vector<std::string> vecFoundInDir = GetFileNamesByExtension(entry.path().string(), strFileEnding);
+            if(!vecFoundInDir.empty()) {
+                vecFileNames.insert(vecFileNames.end(), vecFoundInDir.begin(), vecFoundInDir.end());
+            }
+        }
+
+        if(entry.is_regular_file() && !entry.path().extension().string().compare(strFileEnding)) {
+            vecFileNames.push_back(strPathToSearch + "/" + entry.path().filename().string());
+        }
+    }
+
+    return vecFileNames;
 }

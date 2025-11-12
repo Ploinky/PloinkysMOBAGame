@@ -3,7 +3,7 @@
 <character_data
     id="stormcaller"
     name="stormcaller"
-    model="stormcaller_model"
+    model="stormcaller"
 >
     <abilities>
         <ability

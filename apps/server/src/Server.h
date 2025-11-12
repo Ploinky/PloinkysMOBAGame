@@ -7,6 +7,7 @@
 #include "IServerState.h"
 #include "IServerStateHandler.h"
 #include <data/server-game-data.h>
+#include <data/server-data-loader.h>
 
 class ServerNetworkManager;
 class Client;
@@ -21,7 +22,7 @@ public:
 	virtual CServerGameData* GetGameData() override;
 private:
     IServerState* currentState_;
-    AssetManager assetManager_;
+    CServerDataLoader assetManager_;
     CServerGameData m_gameData;
 
     long long GetSystemTime();

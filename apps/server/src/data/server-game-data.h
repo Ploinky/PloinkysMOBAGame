@@ -37,10 +37,11 @@ class CCharacterData {
 public:
     std::string strId;
     std::string strName;
-    std::map<int, CAbilityData> mapAbilities;
+    std::map<int, std::string> mapAbilityIds;
 };
 
 class CServerGameData {
 public:
     std::map<std::string, CCharacterData> mapCharacterData;
+    std::map<std::string, CAbilityData> mapAbilityData;
 };

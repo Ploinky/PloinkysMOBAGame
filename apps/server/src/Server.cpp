@@ -15,8 +15,7 @@ void Server::Start() {
 #endif
 
     {
-        CServerDataLoader dataLoader = CServerDataLoader(std::make_shared<AssetManager>(assetManager_));
-        m_gameData = dataLoader.LoadManifest();
+        m_gameData = assetManager_.LoadManifest();
     }
 
 #ifndef DEBUG

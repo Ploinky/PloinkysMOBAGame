@@ -50,11 +50,13 @@ class CCharacterData {
 public:
     std::string strId;
     std::string strName;
-    std::map<int, CAbilityData> mapAbilities;
-    CModelData model;
+    std::map<int, std::string> mapAbilityIds;
+    std::string modelId;
 };
 
 class CClientGameData {
 public:
     std::map<std::string, CCharacterData> mapCharacterData;
+    std::map<std::string, CModelData> mapModelData;
+    std::map<std::string, CAbilityData> mapAbilityData;
 };

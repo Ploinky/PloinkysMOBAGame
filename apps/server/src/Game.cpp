@@ -144,7 +144,7 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
 
     std::vector<SpellSlot_t> vecSpells;
     SpellSlot_t spell1;
-    spell1.data = charData.mapAbilities.at(0);
+    spell1.data = handler_->GetGameData()->mapAbilityData.at(charData.mapAbilityIds.at(0));
     vecSpells.push_back(spell1);
     CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
     pGameObject->AddComponent(pSpellCast);

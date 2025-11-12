@@ -41,12 +41,9 @@ public:
     pugi::xml_document LoadXMLFile(std::string strFileName);
     CClientGameData LoadManifest();
     std::vector<float> ParseFloatVec(std::string str);
-    CAbilityData LoadAbility(std::string charId, pugi::xml_node& abilityNode);
+    CAbilityData LoadAbility(pugi::xml_node& abilityNode);
     CCharacterData LoadCharacter(pugi::xml_node& characterNode);
-
-    // finds all files with the specified extension
-    // searches plain files in debug and .pak files in release
-    std::vector<std::string> GetFileNamesByExtension(const std::string strPathToSearch, const std::string strFileEnding);
+    CModelData LoadModelData(pugi::xml_node& modelNode);
 
 private:
     IGraphicsEngine* m_pGraphicsEngine;

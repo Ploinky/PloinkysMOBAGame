@@ -6,8 +6,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
 
-#include <filesystem>
-
 #define CLEANUP(res) if(res != nullptr) { res->Release(); res = nullptr;}
 
 CClientAssetManager::CClientAssetManager(IGraphicsEngine* pGraphicsEngine, IAudioEngine* pAudioEngine) {
@@ -106,7 +104,7 @@ ModelAsset_t& CClientAssetManager::GetModel(HModel hModel) {
 
 HModel CClientAssetManager::LoadGLBModel(std::string name, std::string file) {
 	Model* model = new Model();
-	GLBModel* glbModel = GLBFileLoader::LoadModelFromGLBFile(file, this);
+	GLBModel* glbModel = GLBFileLoader::LoadUsingLib(file, this);
 
 	for(const auto& skin : glbModel->Skins) {
 		Armature* armature = new Armature();
@@ -200,30 +198,20 @@ CClientGameData CClientAssetManager::LoadManifest() {
         gameData.mapCharacterData.emplace(charData.strId, charData);
     }
 
-    return gameData;
-
-    pugi::xml_document doc = LoadXMLFile("data/mnf.xml");
-    if(!doc) {
-        Logger::FormatErr("Failed to load data manifest file");
-        return {};
+    for(std::string mdlFileName : GetFileNamesByExtension("data", ".mdl")) {
+        pugi::xml_document doc = LoadXMLFile(mdlFileName);
+        pugi::xml_node rootNode = doc.child("model_data");
+        CModelData modelData = LoadModelData(rootNode);
+        gameData.mapModelData.emplace(modelData.id, modelData);
     }
 
-    pugi::xml_node gameDataNode = doc.child("game_data");
-
-    if(!gameDataNode) {
-        Logger::FormatErr("Failed to load data manifest file: missing game_data node");
-        return {};
+    for(std::string ablFileName : GetFileNamesByExtension("data", ".abl")) {
+        pugi::xml_document doc = LoadXMLFile(ablFileName);
+        pugi::xml_node rootNode = doc.child("ability_data");
+        CAbilityData abilityData = LoadAbility(rootNode);
+        gameData.mapAbilityData.emplace(abilityData.strId, abilityData);
     }
 
-    pugi::xml_node characters = gameDataNode.child("characters");
-
-    if(characters) {
-        for(pugi::xml_node character : characters.children()) {
-            CCharacterData charData = LoadCharacter(character);
-            gameData.mapCharacterData.emplace(charData.strId, charData);
-        }
-    }
-    
     return gameData;
 }
 
@@ -236,17 +224,9 @@ std::vector<float> CClientAssetManager::ParseFloatVec(std::string str) {
     }
     return result;
 }
-CAbilityData CClientAssetManager::LoadAbility(std::string charId, pugi::xml_node& abilityNode) {
-    CAbilityData abilityData{};
-    abilityData.strId = abilityNode.attribute("id").as_string();
-    pugi::xml_document doc = LoadXMLFile("data/characters/" + charId + "/abilities/" + abilityData.strId + "/" + abilityData.strId + ".xml");
-    
-    if(!doc) {
-        Logger::FormatErr("Failed to load ability data file for %s", abilityData.strId);
-        return {};
-    }
 
-    pugi::xml_node abilityDataNode = doc.child("ability_data");
+CAbilityData CClientAssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
+    CAbilityData abilityData{};
     abilityData.strName = abilityDataNode.attribute("name").as_string();
 
     pugi::xml_node targetInfoNode = abilityDataNode.child("targeting_info");
@@ -291,18 +271,30 @@ CAbilityData CClientAssetManager::LoadAbility(std::string charId, pugi::xml_node
     return abilityData;
 }
 
-CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& characterNode) {
-    CCharacterData charData{};
-    charData.strId = characterNode.attribute("id").as_string();
-    
-    pugi::xml_document doc = LoadXMLFile("data/characters/" + charData.strId + "/" + charData.strId + ".xml");
+CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {
+    CModelData model{};
 
-    if(!doc) {
-        Logger::FormatErr("Failed to load character data file for %s", charData.strId);
-        return {};
+    std::string modelId = modelNode.attribute("id").as_string();
+    std::string modelPath = modelNode.attribute("model").as_string();
+    LoadGLBModel(modelId, modelPath);
+
+    pugi::xml_node animationsNode = modelNode.child("animations");
+
+    for(pugi::xml_node animationNode : animationsNode.children()) {
+        if(!animationNode || strcmp(animationNode.name(), "animation")) {
+            continue;
+        }
+
+        CAnimationData animData{};
+        animData.name = animationNode.attribute("name").as_string();
+        animData.fDuration = animationNode.attribute("duration").as_int();
+        model.mapAnimations.emplace(animData.name, animData);
     }
+    return model;
+}
 
-    pugi::xml_node charDataNode = doc.child("character_data");
+CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
+    CCharacterData charData{};
     
     if(!charDataNode) {
         Logger::FormatErr("Failed to load character data file for %s: missing character_data node", charData.strId);
@@ -320,66 +312,15 @@ CCharacterData CClientAssetManager::LoadCharacter(pugi::xml_node& characterNode)
             }
 
             int slot = abilityNode.attribute("slot").as_int();
-            CAbilityData ability = LoadAbility(charData.strId, abilityNode);
-            charData.mapAbilities.emplace(slot, ability);
+            std::string abilityId = abilityNode.attribute("id").as_string();
+            charData.mapAbilityIds.emplace(slot, abilityId);
         }
     }
 
     if(charDataNode.attribute("model")) {
-        CModelData model{};
-
-        std::string modelName = charDataNode.attribute("model").as_string();
-        pugi::xml_document doc = LoadXMLFile("data/characters/" + charData.strId + "/" + modelName + ".xml");
-
-        if(!doc) {
-            Logger::FormatErr("Failed to load character data file for %s: missing model", modelName);
-            return {};
-        }
-
-        pugi::xml_node modelNode = doc.child("model");
-        std::string modelId = modelNode.attribute("id").as_string();
-        
-        if(!m_mapModels.contains(modelId)) {
-            std::string modelFileName = modelNode.attribute("model").as_string();
-            LoadGLBModel(modelId, "data/characters/" + charData.strId + "/" + modelFileName);
-        }
-
-
-        pugi::xml_node animationsNode = modelNode.child("animations");
-
-        for(pugi::xml_node animationNode : animationsNode.children()) {
-            if(!animationNode || strcmp(animationNode.name(), "animation")) {
-                continue;
-            }
-
-            CAnimationData animData{};
-            animData.name = animationNode.attribute("name").as_string();
-            animData.fDuration = animationNode.attribute("duration").as_int();
-            model.mapAnimations.emplace(animData.name, animData);
-        }
-
-        charData.model = model;
+        std::string modelId = charDataNode.attribute("model").as_string();
+        charData.modelId = modelId;
     }
 
     return charData;
-}
-
-
-std::vector<std::string> CClientAssetManager::GetFileNamesByExtension(const std::string strPathToSearch, const std::string strFileEnding) {
-    std::vector<std::string> vecFileNames;
-
-    for(std::filesystem::directory_entry entry : std::filesystem::directory_iterator(strPathToSearch)) {
-        if(entry.is_directory()) {
-            std::vector<std::string> vecFoundInDir = GetFileNamesByExtension(entry.path().string(), strFileEnding);
-            if(!vecFoundInDir.empty()) {
-                vecFileNames.insert(vecFileNames.end(), vecFoundInDir.begin(), vecFoundInDir.end());
-            }
-        }
-
-        if(entry.is_regular_file() && !entry.path().extension().string().compare(strFileEnding)) {
-            vecFileNames.push_back(strPathToSearch + entry.path().filename().string());
-        }
-    }
-
-    return vecFileNames;
 }
