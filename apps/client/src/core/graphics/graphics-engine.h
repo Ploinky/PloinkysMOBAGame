@@ -22,20 +22,20 @@ enum class EVertexFormat {
 };
 
 typedef struct {
-	mat projMatrix;
-	mat cameraMatrix;
+	mat_t projMatrix;
+	mat_t cameraMatrix;
 } FrameConstants_t;
 
 typedef struct {
-	mat modelMatrix;
+	mat_t modelMatrix;
 } ModelConstants_t;
 
 typedef struct {
-	mat boneTransforms[256];
+	mat_t boneTransforms[256];
 } SkinnedModelConstants_t;
 
 typedef struct {
-	mat billboardMatrix;
+	mat_t billboardMatrix;
 } BillboardFrameConstants_t;
 
 class CCLientAssetManager;

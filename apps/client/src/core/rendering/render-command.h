@@ -24,7 +24,7 @@ typedef struct RenderCommand_t {
 
     HTexture hTexture;
 
-    mat worldMatrix;
+    mat_t worldMatrix;
 
     HModel hModel = INVALID_ASSET_HANDLE;
     std::string strAnimation = "";
@@ -33,7 +33,7 @@ typedef struct RenderCommand_t {
     Vector3 vec3Position;
     Vector3 vec3Rotation;
     Vector3 vec3Scale;
-    mat vecBones[256];
+    mat_t vecBones[256];
 
     const ParticleEffect* pSystem = nullptr;
 } RenderCommand_t;

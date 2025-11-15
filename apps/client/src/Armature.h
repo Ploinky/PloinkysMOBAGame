@@ -9,7 +9,7 @@ class BonePosition {
 public:
 	Quaternion rotation;
 	Vector3 translation;
-	mat ToMatrix() const;
+	mat_t ToMatrix() const;
 
 	static BonePosition Interpolate(BonePosition from, BonePosition to, float pct);
 };
@@ -23,7 +23,7 @@ public:
 class Armature {
 public:
 	std::vector<Bone> bones;
-	std::vector<mat> global_inverse_bind_poses;
-	std::vector<mat> currentPos;
-	mat animation_palette[256];
+	std::vector<mat_t> global_inverse_bind_poses;
+	std::vector<mat_t> currentPos;
+	mat_t animation_palette[256];
 };

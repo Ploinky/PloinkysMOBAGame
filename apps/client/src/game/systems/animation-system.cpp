@@ -8,11 +8,11 @@ CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
 }
 
-void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat>& boneTransforms) {
+void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat_t>& boneTransforms) {
 	const Bone& bone = skin->bones[i];
 	BonePosition position = bonePositions[bone.Index];
 
-	mat localTransform = PMathMatAffineTransform(
+	mat_t localTransform = PMathMatAffineTransform(
 	    Vector3(1, 1, 1),
 		Vector3(0, 0, 0),
 		position.rotation,
@@ -25,7 +25,7 @@ void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& boneP
 		for(int pi = 0; pi < skin->bones.size(); pi++) {
 			const Bone& b = skin->bones[pi];
 			if(b.Index == bone.parent_index) {
-				boneTransforms[i] = localTransform * boneTransforms[pi];
+				boneTransforms[i] = boneTransforms[pi] * localTransform;
 				break;
 			}
 		}
@@ -69,7 +69,7 @@ void CAnimationSystem::Update(CGameState* pGameState, float fDelta) {
                     Animation* animation = animIt->second;
                     Armature* skin = modelAsset.pModel->Skins.at(modelNode.second->Skin);
                     std::map<int, BonePosition> bonePositions = animation->GetBonePositions(pAnimComp->m_fAnimationTime, pAnimComp->m_bLoop);
-                    std::vector<mat> boneTransforms(skin->bones.size());
+                    std::vector<mat_t> boneTransforms(skin->bones.size());
 
                     for (size_t i = 0; i < skin->bones.size(); ++i) {
                         if(skin->bones[i].parent_index == -1) {
@@ -79,15 +79,15 @@ void CAnimationSystem::Update(CGameState* pGameState, float fDelta) {
 
                     // Apply inverse bind pose to get the final bone transformation
                     for (size_t i = 0; i < skin->bones.size(); ++i) {
-                        boneTransforms[i] = skin->global_inverse_bind_poses[i] * boneTransforms[i];
+                        boneTransforms[i] = boneTransforms[i] * PMathMatTranspose(skin->global_inverse_bind_poses[i]);
                     }
 
                     for(int i = 0; i < boneTransforms.size(); i++) {
-                        pAnimComp->vecBones[i] = boneTransforms[i].Transpose();
+                        pAnimComp->vecBones[i] = boneTransforms[i];
                     }
                 } else {
                     for(int i = 0; i < 256; i++) {
-                        pAnimComp->vecBones[i] = mat::Identity().Transpose();
+                        pAnimComp->vecBones[i] = PMathMatIdentity();
                     }
                 }
             }

@@ -3,8 +3,8 @@
 #include <common/PMG_Common.h>
 #include <common/pmg_physics.h>
 
-mat BonePosition::ToMatrix() const {
-    return mat::Rotation(rotation) * mat::Translation(translation.x, translation.y, translation.z);
+mat_t BonePosition::ToMatrix() const {
+    return PMathMatRotationQuaternion(rotation) * PMathMatTranslation(translation.x, translation.y, translation.z);
 };
 
 BonePosition BonePosition::Interpolate(BonePosition from, BonePosition to, float pct) {

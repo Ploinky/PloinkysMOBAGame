@@ -55,8 +55,8 @@ public:
     void UpdateCameraMatrix();
 
     Camera m_camera;
-    mat m_projMatrix;
-    mat cameraMatrix;
+    mat_t m_projMatrix;
+    mat_t cameraMatrix;
 
     void RenderText(int x, int y, int w, int h, float color[3], std::string text);
     void RenderText(int x, int y, int w, int h, std::string text);

@@ -27,9 +27,9 @@ void CRenderer::Initialize(bool bFullScreen, CClientAssetManager* assetManager, 
 
     float hp = static_cast<float>(M_PI / 180.0);
 
-    m_projMatrix = PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
+    m_projMatrix = PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip);
     // Set initial constant matrix values
-    cameraMatrix = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z).Transpose();
+    cameraMatrix = PMathMatTranspose(PMathMatTranslation(m_camera.position.x, m_camera.position.y, m_camera.position.z));
 
 	m_pAssetManager = assetManager;
 
@@ -97,17 +97,17 @@ void CRenderer::SetDimensions(int width_, int height_) {
     m_height = height_;
 
     float hp = static_cast<float>(M_PI / 180.0);
-    m_projMatrix = PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip).Transpose();
+    m_projMatrix = PMathMatTranspose(PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip));
 }
 
 void CRenderer::UpdateCameraMatrix() {
-    mat rotMat = PMathMatRollPitchYaw(ToRadians(m_camera.rotation.z),
-        ToRadians(m_camera.rotation.x),
-        ToRadians(m_camera.rotation.y));
+	mat_t rotMat = PMathMatTranspose(PMathMatRollPitchYaw(ToRadians(m_camera.rotation.z),
+		ToRadians(m_camera.rotation.x),
+		ToRadians(m_camera.rotation.y)));
 
-    mat transMat = mat::Translation(m_camera.position.x, m_camera.position.y, m_camera.position.z);
+	mat_t transMat = PMathMatTranslation(-m_camera.position.x, -m_camera.position.y, -m_camera.position.z);
 
-    cameraMatrix = (rotMat * transMat).inverse().Transpose();
+	cameraMatrix = rotMat * transMat;
 }
 
 void CRenderer::RenderText(int x, int y, int w, int h, std::string text) {
@@ -170,7 +170,7 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
 	ModelConstants_t modelConstants {};
-	mat rotMat = PMathMatRollPitchYaw(
+	mat_t rotMat = PMathMatRollPitchYaw(
 		ToRadians(cmd.vec3Rotation.z),
 		ToRadians(cmd.vec3Rotation.x),
 		ToRadians(cmd.vec3Rotation.y));
@@ -180,9 +180,9 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
 		rotMat = PMathMatRollPitchYaw(ToRadians(0), ToRadians(0), x);
 	}
-	mat transMat = mat::Translation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
-	mat scaleMat = PMathMatScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
-	modelConstants.modelMatrix = (scaleMat * rotMat * transMat).Transpose();
+	mat_t transMat = PMathMatTranslation(cmd.vec3Position.x, cmd.vec3Position.y, cmd.vec3Position.z);
+	mat_t scaleMat = PMathMatScaling(cmd.vec3Scale.x, cmd.vec3Scale.y, cmd.vec3Scale.z);
+	modelConstants.modelMatrix = (transMat * rotMat * scaleMat);
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelConstants, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 
@@ -196,7 +196,7 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 		m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 	} else if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
 		BillboardFrameConstants_t bbData {};
-		bbData.billboardMatrix = mat::Identity().Transpose();
+		bbData.billboardMatrix = PMathMatTranspose(PMathMatIdentity());
 		m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 		m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hBillboardFrameConstBuffer);
 	}
@@ -259,16 +259,16 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 	data.cameraMatrix = cameraMatrix;
 	data.projMatrix = m_projMatrix;
 	BillboardFrameConstants_t bbData {};
-	bbData.billboardMatrix = PMathMatRollPitchYaw(rotZ, rotX, rotY).Transpose();
+	bbData.billboardMatrix = PMathMatTranspose(PMathMatRollPitchYaw(rotZ, rotX, rotY));
 
 	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
 	m_pGraphicsEngine->UpdateBuffer(m_hBillboardFrameConstBuffer, &bbData, sizeof(BillboardFrameConstants_t));
 
 	ModelConstants_t modelData {};
-	mat rotMat = PMathMatRollPitchYaw(ToRadians(emitter->rotation.z), ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y));
-	mat transMat = mat::Translation(emitter->position.x, emitter->position.y, emitter->position.z);
-	mat scaleMat = PMathMatScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
-	modelData.modelMatrix = (scaleMat * rotMat * transMat).Transpose();
+	mat_t rotMat = PMathMatRollPitchYaw(ToRadians(emitter->rotation.z), ToRadians(emitter->rotation.x), ToRadians(emitter->rotation.y));
+	mat_t transMat = PMathMatTranslation(emitter->position.x, emitter->position.y, emitter->position.z);
+	mat_t scaleMat = PMathMatScaling(emitter->particle_scale.x, emitter->particle_scale.y, emitter->particle_scale.z);
+	modelData.modelMatrix = (scaleMat * rotMat * transMat);
 
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
 
@@ -336,9 +336,7 @@ void CRenderer::DrawMap() {
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
 
 	ModelConstants_t modelData{};
-	mat rotMat = mat::Identity();
-	mat transMat = mat::Translation(0, 0, 0);
-	modelData.modelMatrix = (rotMat * transMat).Transpose();
+	modelData.modelMatrix = PMathMatIdentity();
 	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
 	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 

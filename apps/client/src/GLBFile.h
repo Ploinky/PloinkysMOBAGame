@@ -170,7 +170,7 @@ public:
 class GLBModelSkin {
 public:
 	std::string Name;
-	std::vector<mat> InverseBindMatrices;
+	std::vector<mat_t> InverseBindMatrices;
 	std::vector<int> Joints;
 };
 

@@ -7,5 +7,5 @@ typedef struct {
     std::string m_strAnimationName;
     bool m_bLoop;
     float m_fAnimationTime;
-    mat vecBones[256];
+    mat_t vecBones[256];
 } AnimationComponent_t;

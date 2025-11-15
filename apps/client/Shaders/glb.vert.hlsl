@@ -1,16 +1,16 @@
 #include <glb.hlsli>
 
 cbuffer perFrameBuffer {
-	float4x4 projMatrix;
-	float4x4 cameraMatrix;
+	row_major float4x4 projMatrix;
+	row_major float4x4 cameraMatrix;
 };
 
 cbuffer perObjectBuffer {
-	float4x4 modelMatrix;
+	row_major float4x4 modelMatrix;
 }
 
 cbuffer perMeshBuffer {
-    matrix boneTransforms[256];
+    row_major float4x4 boneTransforms[256];
 };
 
 struct VertexInputType {
@@ -44,19 +44,19 @@ GLBPixelShaderInputType main(VertexInputType input) {
     float3 skinnedNormal = float3(0.0, 0.0, 0.0);
     
 	if(input.weights.x + input.weights.y + input.weights.z + input.weights.w > 0) {
-    	skinnedPosition += input.weights.x * mul(inputPosition, boneTransforms[input.joints.x]).xyz;
-		skinnedPosition += input.weights.y * mul(inputPosition, boneTransforms[input.joints.y]).xyz;
-		skinnedPosition += input.weights.z * mul(inputPosition, boneTransforms[input.joints.z]).xyz;
-		skinnedPosition += input.weights.w * mul(inputPosition, boneTransforms[input.joints.w]).xyz;
+    	skinnedPosition += input.weights.x * mul(boneTransforms[input.joints.x], inputPosition).xyz;
+		skinnedPosition += input.weights.y * mul(boneTransforms[input.joints.y], inputPosition).xyz;
+		skinnedPosition += input.weights.z * mul(boneTransforms[input.joints.z], inputPosition).xyz;
+		skinnedPosition += input.weights.w * mul(boneTransforms[input.joints.w], inputPosition).xyz;
 	} else {
 		skinnedPosition = input.position.xyz;
 	}
 
 	inputPosition = float4(skinnedPosition, 1);
 
-	output.position = mul(inputPosition, modelMatrix);
-	output.position = mul(output.position, cameraMatrix);
-	output.position = mul(output.position, projMatrix);
+	output.position = mul(modelMatrix, inputPosition);
+	output.position = mul(cameraMatrix, output.position);
+	output.position = mul(projMatrix, output.position);
 
     output.tex = input.tex;
 

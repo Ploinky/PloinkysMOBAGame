@@ -13,6 +13,8 @@
 #include "ParticleEffect.h"
 #include <core/platform/platform.h>
 
+#include <DirectXMath.h>
+
 // Main entry point into the application
 int main(int argc, char* argv[]) {
 #ifndef _DEBUG

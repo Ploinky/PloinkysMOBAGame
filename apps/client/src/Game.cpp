@@ -678,15 +678,47 @@ void Game::RenderGameUI(CRenderer* renderer) {
             continue;
         }
 
+        /*
+        Vector3 point_above = Vector3{ 0, 450, 0 };
+        
+        float hp = static_cast<float>(M_PI / 180.0);
+        mat_t persp = PMathMatPerspectiveRH(renderer->m_camera.fov, (float)windowWidth_ / (float)windowHeight_, renderer->m_camera.nearClip, renderer->m_camera.farClip);
+        
+        mat_t view = PMathMatRotation(renderer->m_camera.rotation.z, renderer->m_camera.rotation.y, renderer->m_camera.rotation.x) * PMathMatTranslation(renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z);
+        
+        mat_t transMat = PMathMatTranslation(0, 0, 0);
+        
+        Vector2 screen_point_above = WorldToScreen(point_above, transMat, persp, PMathMatTranspose(PMathMatInverse(view)));
+        
+        double x = (1.0f + screen_point_above.x) * 0.5 * windowWidth_;
+        double y = (1.0f - screen_point_above.y) * 0.5 * windowHeight_;
+        */
+       double health_bar_height = 5;
+       
+        mat_t persp = PMathMatPerspectiveRH(59, 1024.0f / 768.0f, 0.1f, 10000.0f);
+
+        mat_t view = PMathMatRotation(0, 0, -60) * PMathMatTranslation(0, 1500, 800);
+
+        mat_t transMat = PMathMatTranslation(0, 0, 0);
+
+        Vector4 point = Vector4(0, 0, 0, 1);
+        point = transMat * point;
+        point = PMathMatTranspose(PMathMatInverse(view)) * point; // now in camera space
+        point = persp * point;
+        point = Vector4(point.x / point.w, point.y / point.w, point.z / point.w, 0);
+        double x = (1.0f + point.x) * 0.5 * windowWidth_;
+        double y = (1.0f + point.y) * 0.5 * windowHeight_;
+
+        /*
         Vector3 point_above = Vector3{ 0, -450, 0 };
 
         mat_t persp = PMathMatPerspectiveRH(ToRadians(renderer->m_camera.fov), (float)windowWidth_ / (float)windowHeight_, renderer->m_camera.nearClip, renderer->m_camera.farClip);
 
-        mat_t view = PMathMatRollPitchYaw(ToRadians(-renderer->m_camera.rotation.z), ToRadians(-renderer->m_camera.rotation.x), ToRadians(-renderer->m_camera.rotation.y)) * mat_t::Translation(-renderer->m_camera.position.x, -renderer->m_camera.position.y, -renderer->m_camera.position.z) ;
+        mat_t view = PMathMatRollPitchYaw(ToRadians(-renderer->m_camera.rotation.z), ToRadians(-renderer->m_camera.rotation.x), ToRadians(-renderer->m_camera.rotation.y)) * PMathMatTranslation(-renderer->m_camera.position.x, -renderer->m_camera.position.y, -renderer->m_camera.position.z) ;
+        view = view.inverse();
+        mat_t transMat = PMathMatTranslation(go->position.x, go->position.y, go->position.z).Transpose();
 
-        mat_t transMat = mat_t::Translation(go->position.x, go->position.y, go->position.z).Transpose();
-
-        Vector2 screen_point_above = WorldToScreen(point_above, transMat.inverse(), persp, view);
+        Vector2 screen_point_above = WorldToScreen(point_above, transMat, persp, view);
         
         Vector4 worldPos = {renderer->m_camera.position.x, renderer->m_camera.position.y, renderer->m_camera.position.z, 1.0f};
         Vector4 eyePos = view * worldPos;
@@ -695,6 +727,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
         double x = (1.0f + screen_point_above.x) * 0.5 * windowWidth_;
         double y = (1.0f - screen_point_above.y) * 0.5 * windowHeight_;
         double health_bar_height = 5;
+        */
 
         if (go->has_title) {
             renderer->RenderText(x - 50, y - 50, 100, 50, "Ploinky");
@@ -849,9 +882,9 @@ void Game::TestIntersect(CRenderer* renderer, int mx, int my, float* x, float* y
 
     Vector2 screenCoord = { static_cast<float>(mx), static_cast<float>(my) };
     Vector3 rayOrigin = renderer->m_camera.position;
-    mat_t persp = mat_t::Perspective((float)windowWidth_ / (float)windowHeight_, renderer->m_camera.fov * hp, renderer->m_camera.nearClip, renderer->m_camera.farClip);
-    mat_t view = mat_t::Rotation(renderer->m_camera.rotation.z, renderer->m_camera.rotation.y, renderer->m_camera.rotation.x) *
-        mat_t::Translation(rayOrigin.x, rayOrigin.y, rayOrigin.z);
+    mat_t persp = PMathMatPerspectiveRH(renderer->m_camera.fov * hp, (float)windowWidth_ / (float)windowHeight_, renderer->m_camera.nearClip, renderer->m_camera.farClip);
+    mat_t view = PMathMatRotation(renderer->m_camera.rotation.z, renderer->m_camera.rotation.y, renderer->m_camera.rotation.x) *
+        PMathMatTranslation(rayOrigin.x, rayOrigin.y, rayOrigin.z);
 
 
     Vector3 relScreen = {
@@ -867,7 +900,7 @@ void Game::TestIntersect(CRenderer* renderer, int mx, int my, float* x, float* y
         1.0f
     };
 
-    mat_t perspInverse = persp.inverse();
+    mat_t perspInverse = PMathMatInverse(persp);
 
     Vector4 rayEye = perspInverse * rayClip;
 

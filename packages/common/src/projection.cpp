@@ -3,11 +3,11 @@
 #include "vector4.h"
 
 Ray ScreenToRay(Vector2 screen_coords, Vector3 camera_position, Vector3 camera_rotation, float aspect_ratio, float fov, float near_clip, float far_clip, float scene_width, float scene_height) {
-    //mat_t persp = mat_t::Perspective((float)m_sceneWidth / (float)m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
-    mat_t persp = mat_t::Perspective(aspect_ratio, fov, near_clip, far_clip);
-    mat_t view = mat_t::Rotation(camera_rotation.z, camera_rotation.y, camera_rotation.x) *
-        mat_t::Translation(camera_position.x, camera_position.y, camera_position.z);
-    view = view.inverse().Transpose();
+    //mat_t persp = PMathMatPerspectiveRH((float)m_sceneWidth / (float)m_sceneHeight, renderer->camera->fov * hp, renderer->camera->nearClip, renderer->camera->farClip);
+    mat_t persp = PMathMatPerspectiveRH(fov, aspect_ratio, near_clip, far_clip);
+    mat_t view = PMathMatRotation(camera_rotation.z, camera_rotation.y, camera_rotation.x) *
+        PMathMatTranslation(camera_position.x, camera_position.y, camera_position.z);
+    view = PMathMatTranspose(PMathMatInverse(view));
 
 
     Vector3 relScreen = {
@@ -23,7 +23,7 @@ Ray ScreenToRay(Vector2 screen_coords, Vector3 camera_position, Vector3 camera_r
         1.0f
     };
 
-    mat_t perspInverse = persp.inverse();
+    mat_t perspInverse = PMathMatInverse(persp);
 
     Vector4 rayEye = perspInverse * rayClip;
 
