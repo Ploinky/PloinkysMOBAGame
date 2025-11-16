@@ -11,14 +11,9 @@ CSpellSystem::CSpellSystem() {
 }
 
 void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(std::pair<UnitId, CGameObject*> pGameObj : pGameState->GameObjects) {
-        CSpellCastComponent* pSpellComp = pGameObj.second->GetComponent<CSpellCastComponent>();
+    for(CSpellCastComponent& spellComp : pGameState->GetAllSpellCast()) {
 
-        if(pSpellComp == nullptr) {
-            continue;
-        }
-
-        std::vector<SpellSlot_t>& vecSpells = pSpellComp->vecSpellSlots;
+        std::vector<SpellSlot_t>& vecSpells = spellComp.vecSpellSlots;
 
         for(int i = 0; i < vecSpells.size(); i++) {
             SpellSlot_t& spellSlot = vecSpells.at(i);
@@ -31,17 +26,17 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
             }
         }
 
-        if(!pSpellComp->optCurrentCast.has_value()) {
+        if(!spellComp.optCurrentCast.has_value()) {
             continue;
         }
         
 
-        ActiveCast_t& activeCast = pSpellComp->optCurrentCast.value();
+        ActiveCast_t& activeCast = spellComp.optCurrentCast.value();
         activeCast.fTimeInState += fDelta;
 
         CGameObject* pCaster = pGameState->FindGameObjectById(activeCast.spellCtx->idCaster);
-        if(pCaster->GetComponent<CHealthComponent>() && pCaster->GetComponent<CHealthComponent>()->bIsDead) {
-            pSpellComp->optCurrentCast.reset();
+        if(pGameState->GetHealth(pCaster->GetId()) && pGameState->GetHealth(pCaster->GetId())->bIsDead) {
+            spellComp.optCurrentCast.reset();
             continue;
         }
 
@@ -55,10 +50,10 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
             case ESpellCastState::APPROACHING:
                 pTarget = pGameState->FindGameObjectById(activeCast.spellCtx->idTarget);
 
-                pCasterTransform = pCaster->GetComponent<CTransformComponent>();
-                pTargetTransform = pTarget->GetComponent<CTransformComponent>();
+                pCasterTransform = pGameState->GetTransform(pCaster->GetId());
+                pTargetTransform = pGameState->GetTransform(pTarget->GetId());
 
-                pNavigationComponent = pCaster->GetComponent<CNavigationComponent>();
+                pNavigationComponent = pGameState->GetNavigation(pCaster->GetId());
                 if(vecSpells[activeCast.nIndex].data.fCastRange > (pCasterTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
                     activeCast.eState = ESpellCastState::CASTING;
                     activeCast.fTimeInState = 0.0f;
@@ -71,8 +66,9 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
                     break;
                 }
 
-                if(pNavigationComponent->m_vec3Destination != pTargetTransform->GetPosition()) {
-                    pNavigationComponent->NavigateTo(pTargetTransform->GetPosition());
+                if(pNavigationComponent->vec3Destination != pTargetTransform->GetPosition()) {
+                    pNavigationComponent->vec3Destination = pTargetTransform->GetPosition();
+                    pNavigationComponent->bIsNavigating = true;
                 }
 
                 break;
@@ -87,15 +83,15 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
             case ESpellCastState::BACKSWING:
                 if (activeCast.fTimeInState >= vecSpells[activeCast.nIndex].data.fCastTime - vecSpells[activeCast.nIndex].data.fCastPoint) {
                     activeCast.eState = ESpellCastState::FINISHED;
-                    pSpellComp->optCurrentCast.reset(); // Done
+                    spellComp.optCurrentCast.reset(); // Done
                 }
             case ESpellCastState::FINISHED:
                 vecSpells[activeCast.nIndex].fCooldownRemaining = vecSpells[activeCast.nIndex].data.fCooldown;
-                pGameState->VecEvent.emplace(new CCooldownStartedEvent(pGameObj.first, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
-                pSpellComp->optCurrentCast.reset();
+                pGameState->VecEvent.emplace(new CCooldownStartedEvent(spellComp.idUnit, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
+                spellComp.optCurrentCast.reset();
                 break;
             case ESpellCastState::CANCELLED:
-                pSpellComp->optCurrentCast.reset(); // Done
+                spellComp.optCurrentCast.reset(); // Done
                 break;
             default:
                 break;
@@ -118,7 +114,7 @@ void CSpellSystem::OnSpellAttemptCast(CServerGameState* pGameState, CSpellAttemp
         return;
     }
 
-    CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
 
     if(pSpellComp == nullptr) {
         Logger::FormatErr("Invalid cast start event: caster with id %d does not not have a spell cast component", pCastAttemptEvent->m_idCaster);
@@ -140,7 +136,7 @@ void CSpellSystem::OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pC
         return;
     }
 
-    CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
 
     if(pSpellComp == nullptr) {
         Logger::FormatErr("Invalid cast event: caster with id %d does not not have a spell cast component", pCastEvent->m_spellCtx->idCaster);
@@ -158,7 +154,7 @@ void CSpellSystem::OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pC
 void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCtx) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pCtx->idCaster);
 
-    CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
     SpellSlot_t spell = pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex);
 
     for(ImpactEffectDamage_t damageEffect : spell.data.effect.vecDamageEffects) {
@@ -173,7 +169,7 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
     CGameObject* pCaster = pGameState->FindGameObjectById(pSpellCtx->idCaster);
     CGameObject* pTarget = pGameState->FindGameObjectById(pSpellCtx->idTarget);
 
-    CSpellCastComponent* pCastComponent = pCaster->GetComponent<CSpellCastComponent>();
+    CSpellCastComponent* pCastComponent = pGameState->GetSpellCast(pCaster->GetId());
 
     if(pSpellCtx->nSpellIndex >= pCastComponent->vecSpellSlots.size()) {
         // TODO ?
@@ -197,9 +193,15 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
     }
 
     // TODO stop movement
-    pCaster->GetComponent<CNavigationComponent>()->StopNavigation();
-    pCaster->GetComponent<CMovementComponent>()->ClearTarget();
-    Vector3 pos = pCaster->GetComponent<CTransformComponent>()->GetPosition();
+
+    pGameState->GetNavigation(pCaster->GetId())->bIsNavigating = false;
+    pGameState->GetNavigation(pCaster->GetId())->vec3Destination = Vector3::ZERO;
+    if(CMovementComponent* pMovement = pGameState->GetMovement(pGameState->GetNavigation(pCaster->GetId())->idUnit)) {
+        if(CTransformComponent* pTransform = pGameState->GetTransform(pGameState->GetNavigation(pCaster->GetId())->idUnit)) {
+            pMovement->vec3Target = pTransform->GetPosition();
+        }
+    }
+    Vector3 pos = pGameState->GetTransform(pCaster->GetId())->GetPosition();
     pGameState->VecEvent.emplace(new CMoveIntentionEvent(pCaster->GetId(), pos, 0));
 
     ActiveCast_t cast;
@@ -219,7 +221,7 @@ void CSpellSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntent
         return;
     }
 
-    CSpellCastComponent* pSpellComp = pAttacker->GetComponent<CSpellCastComponent>();
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pAttacker->GetId());
 
     if(pSpellComp == nullptr) {
         return;
@@ -237,7 +239,7 @@ void CSpellSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEven
         return;
     }
 
-    CSpellCastComponent* pSpellComp = pDead->GetComponent<CSpellCastComponent>();
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pDead->GetId());
 
     if(pSpellComp == nullptr) {
         return;

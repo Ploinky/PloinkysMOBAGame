@@ -32,6 +32,7 @@ typedef struct ActiveCast_s {
 
 class CSpellCastComponent : public IComponent {
 public:
+	CSpellCastComponent() : CSpellCastComponent(std::vector<SpellSlot_t>()) {};
 	CSpellCastComponent(std::vector<SpellSlot_t> vecSpells);
 
 	std::vector<SpellSlot_t> vecSpellSlots;

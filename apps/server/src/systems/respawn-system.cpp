@@ -5,40 +5,35 @@ CRespawnSystem::CRespawnSystem() {
 }
 
 void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
-        CGameObject* pGameObject = goPair.second;
+    for(CHealthComponent& health : pGameState->GetAllHealth()) {
+        if(health.bIsDead) {
+            health.fTimeSinceDeath += fDelta;
 
-        CHealthComponent* pHealthComp = pGameObject->GetComponent<CHealthComponent>();
+            if(health.fTimeSinceDeath >= 3000.0f) {
+                health.nHealth = health.nMaxHealth;
+                health.bIsDead = false;
+                health.fTimeSinceDeath = 0.0f;
 
-        if(pHealthComp == nullptr) {
-            continue;
-        }
-
-        if(pHealthComp->bIsDead) {
-            pHealthComp->fTimeSinceDeath += fDelta;
-
-            if(pHealthComp->fTimeSinceDeath >= 3000.0f) {
-                pHealthComp->nHealth = pHealthComp->nMaxHealth;
-                pHealthComp->bIsDead = false;
-                pHealthComp->fTimeSinceDeath = 0.0f;
-
-                CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>();
-                CTeamComponent* pTeam = pGameObject->GetComponent<CTeamComponent>();
+                CTransformComponent* pTransform = pGameState->GetTransform(health.idUnit);
+                CTeamComponent* pTeam = pGameState->GetTeam(health.idUnit);
 
                 if(pTeam != nullptr && pTransform != nullptr) {
                     SpawnPoint_t spawn = pGameState->mapTeamSpawnPoints[pTeam->eTeam].at(0);
                     pTransform->SetPosition({spawn.vec2Pos.x, 0, spawn.vec2Pos.y});
                     pTransform->SetRotation({0, spawn.fAngle, 0});
 
-                    if(pGameObject->GetComponent<CMovementComponent>()) {
-                        pGameObject->GetComponent<CMovementComponent>()->ClearTarget();
+                    if(pGameState->GetMovement(health.idUnit)) {
+                        if(CTransformComponent* pTransform =pGameState->GetTransform(health.idUnit)) {
+                            pGameState->GetMovement(health.idUnit)->vec3Target = pTransform->GetPosition();
+
+                        }
                     }
 
-                    pGameState->VecEvent.emplace(new CMoveEvent(pGameObject->GetId(), pTransform->GetPosition(), pTransform->GetRotation().y));
+                    pGameState->VecEvent.emplace(new CMoveEvent(health.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
                 }
 
 
-                pGameState->VecEvent.emplace(new CRespawnEvent(pGameObject->GetId()));
+                pGameState->VecEvent.emplace(new CRespawnEvent(health.idUnit));
             }
         }
     }

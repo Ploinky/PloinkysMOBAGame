@@ -5,25 +5,17 @@
 #include "components/Components.h"
 
 void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(auto goPair : pGameState->GameObjects) {
-        CGameObject* go = goPair.second;
-
-        CAiComponent* aiComp = go->GetComponent<CAiComponent>();
-
-        if(aiComp == nullptr) {
-            continue;
-        }
-
-        CIntentComponent* pIntentComp = nullptr;
-        switch(aiComp->eType) {
+    CIntentComponent* pIntentComp = nullptr;
+    for(CAiComponent& aiComp : pGameState->GetAllAi()) {
+        switch(aiComp.eType) {
             case EAiType::MINION:
-                pIntentComp = go->GetComponent<CIntentComponent>();
+                pIntentComp = pGameState->GetIntent(aiComp.idUnit);
                 if(pIntentComp == nullptr) {
-                    return;
+                    continue;
                 }
 
                 if(pIntentComp->eType == EIntentType::NONE) {
-                    Vector3 vec3Wp = aiComp->vecWaypoints.front();
+                    Vector3 vec3Wp = aiComp.vecWaypoints.front();
                     pIntentComp->eType = EIntentType::MOVE;
                     pIntentComp->vec3Target = vec3Wp;
                 }

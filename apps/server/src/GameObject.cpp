@@ -9,16 +9,3 @@ CGameObject::CGameObject() {
 UnitId CGameObject::GetId() {
     return m_idUnit;
 }
-
-void CGameObject::AddComponent(IComponent* pComponent) {
-    if(pComponent == nullptr) {
-        // TODO this seem overzealous
-        return;
-    }
-    pComponent->SetGameObject(this);
-    m_vecComponents.push_back(pComponent);
-}
-
-void IComponent::SetGameObject(CGameObject* pGameObject) {
-    m_pGameObject = pGameObject;
-}

@@ -27,19 +27,13 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
     tickPck.tick = pGameState->CurrentTick++;
     m_pNetworkManager->SendToAllClients(tickPck);
 
-    for(std::pair<unsigned int, CGameObject*> entry : pGameState->GameObjects) {
-        CGameObject* pGameObject = entry.second;
-        CNetworkComponent* pNetComponent = pGameObject->GetComponent<CNetworkComponent>();
-        if(pNetComponent == nullptr) {
-            continue;
-        }
-
-        if(!pNetComponent->IsSpawnSynced()) {
+    for(CNetworkComponent& networkComp : pGameState->GetAllNetwork()) {
+        if(!networkComp.IsSpawnSynced()) {
             SpawnPacket spawn;
-            spawn.unit_type = pGameObject->GetComponent<CCharacterComponent>()->prefab;
+            spawn.unit_type = pGameState->GetCharacter(networkComp.idUnit)->prefab;
             spawn.team = Team::TEAM_1;
-            spawn.unit = pGameObject->GetId();
-            if(CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>()) {
+            spawn.unit = networkComp.idUnit;
+            if(CTransformComponent* pTransform = pGameState->GetTransform(networkComp.idUnit)) {
                 spawn.x = pTransform->GetPosition().x;
                 spawn.y = pTransform->GetPosition().y;
                 spawn.z = pTransform->GetPosition().z;
@@ -50,18 +44,17 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
             }
             m_pNetworkManager->SendToAllClients(spawn);
 
-            pNetComponent->SetSpawnSynced();
+            networkComp.SetSpawnSynced();
         }
-
-        if(CHealthComponent* pHealth = pGameObject->GetComponent<CHealthComponent>()) {
+        if(CHealthComponent* pHealth = pGameState->GetHealth(networkComp.idUnit)) {
             UnitStatsPacket pck = UnitStatsPacket();
             pck.max_health = pHealth->nMaxHealth;
             pck.health = pHealth->nHealth;
-            pck.unit = pGameObject->GetId();
+            pck.unit = networkComp.idUnit;
             m_pNetworkManager->SendToAllClients(pck);
         }
 
-        if(CSpellCastComponent* pSpellCast = pGameObject->GetComponent<CSpellCastComponent>()) {
+        if(CSpellCastComponent* pSpellCast = pGameState->GetSpellCast(networkComp.idUnit)) {
         }
     }
 

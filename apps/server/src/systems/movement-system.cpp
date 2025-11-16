@@ -10,21 +10,14 @@ CMovementSystem::CMovementSystem() {
 }
 
 void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
-        CGameObject* pGameObject = goPair.second;
+    for(CMovementComponent& move : pGameState->GetAllMovement()) {
 
-        CHealthComponent* pHealthComp = pGameObject->GetComponent<CHealthComponent>();
+        CHealthComponent* pHealthComp = pGameState->GetHealth(move.idUnit);
         if(pHealthComp != nullptr && pHealthComp->bIsDead) {
             continue;
         }
 
-        CMovementComponent* pMoveComp = pGameObject->GetComponent<CMovementComponent>();
-
-        if(pMoveComp == nullptr) {
-            continue;
-        }
-
-        CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>();
+        CTransformComponent* pTransform = pGameState->GetTransform(move.idUnit);
         if(!pTransform) {
             // TODO we can't move
             continue;
@@ -32,37 +25,37 @@ void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         Vector3 vec3OldPosition = pTransform->GetPosition();
 
-        if(CompareFloat((pMoveComp->GetTarget() - vec3OldPosition).Length(), 0 )) {
+        if(CompareFloat((move.vec3Target - vec3OldPosition).Length(), 0 )) {
             // TODO we're at our target
-            pMoveComp->ClearTarget();
+            move.vec3Target = pTransform->GetPosition();
             continue;
         }
 
-        Vector3 vec3Move = pMoveComp->GetTarget() - vec3OldPosition;
+        Vector3 vec3Move = move.vec3Target - vec3OldPosition;
 
         if(vec3Move.Length() < 10) {
-            pTransform->SetPosition(pMoveComp->GetTarget());
-            pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {pMoveComp->GetTarget().x, pMoveComp->GetTarget().z}), 0});
+            pTransform->SetPosition(move.vec3Target);
+            pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
             return;
         }
 
         vec3Move = vec3Move.ScaleToLength(10);
 
         pTransform->SetPosition(vec3OldPosition + vec3Move);
-        pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {pMoveComp->GetTarget().x, pMoveComp->GetTarget().z}), 0});
+        pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
 
-        pGameState->VecEvent.emplace(new CMoveEvent(goPair.first, pTransform->GetPosition(), pTransform->GetRotation().y));
+        pGameState->VecEvent.emplace(new CMoveEvent(move.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
     }
 }
 
 void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pDeathEvt->idTarget);
 
-    CMovementComponent* pMoveComp = pGameObject->GetComponent<CMovementComponent>();
-
+    CMovementComponent* pMoveComp = pGameState->GetMovement(pGameObject->GetId());
+    CTransformComponent* pTransformComp = pGameState->GetTransform(pGameObject->GetId());
     if(pMoveComp == nullptr) {
         return;
     }
 
-    pMoveComp->ClearTarget();
+    pMoveComp->vec3Target = pTransformComp->GetPosition();
 }

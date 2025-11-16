@@ -131,23 +131,23 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     CCharacterData charData = handler_->GetGameData()->mapCharacterData.at("stormcaller");
 
     CGameObject* pGameObject = new CGameObject();
+    UnitId id = pGameObject->GetId();
 
     // always present
-    pGameObject->AddComponent(new CTransformComponent());
-    pGameObject->AddComponent(new CNetworkComponent(true));
-    pGameObject->AddComponent(new CMovementComponent());
-    pGameObject->AddComponent(new CNavigationComponent());
-    pGameObject->AddComponent(new CHealthComponent(200));
-    pGameObject->AddComponent(new CTeamComponent(Team::TEAM_1));
-    pGameObject->AddComponent(new CCharacterComponent(UnitPrefab::STORMCALLER));
-    pGameObject->AddComponent(new CBasicAttackComponent());
+    GameState.AddTransform(id);
+    GameState.AddNetwork(id, CNetworkComponent(true));
+    GameState.AddMovement(id);
+    GameState.AddNavigation(id);
+    GameState.AddHealth(id, CHealthComponent(200));
+    GameState.AddTeam(id, CTeamComponent(Team::TEAM_1));
+    GameState.AddCharacter(id, CCharacterComponent(UnitPrefab::STORMCALLER));
+    GameState.AddBasicAttack(id, CBasicAttackComponent());
 
     std::vector<SpellSlot_t> vecSpells;
     SpellSlot_t spell1;
     spell1.data = handler_->GetGameData()->mapAbilityData.at(charData.mapAbilityIds.at(0));
     vecSpells.push_back(spell1);
-    CSpellCastComponent* pSpellCast = new CSpellCastComponent(vecSpells);
-    pGameObject->AddComponent(pSpellCast);
+    GameState.AddSpellCast(id, CSpellCastComponent(vecSpells));
 
     AddGameObject(pGameObject);
 
@@ -183,10 +183,17 @@ void Client::PlayerStopCommand(PlayerID playerId) {
         LobbyPlayer* player = players_.find(playerId)->second;
         CGameObject* person = GameState.GameObjects.find(player->unit)->second;
 
-        if(CNavigationComponent* pNavComp = person->GetComponent<CNavigationComponent>()) {
-            pNavComp->StopNavigation();
+        if(CMovementComponent* pMovement = GameState.GetMovement(person->GetId())) {
+            if(CTransformComponent* pTransform = GameState.GetTransform(person->GetId())) {
+                pMovement->vec3Target = pTransform->GetPosition();
+            }
+        }
+        if(CNavigationComponent* pNavComp = GameState.GetNavigation(person->GetId())) {
+            pNavComp->bIsNavigating = false;
+            pNavComp->vec3Destination = Vector3::ZERO;
+            
             // TODO this belongsn't here
-            Vector3 pos = person->GetComponent<CTransformComponent>()->GetPosition();
+            Vector3 pos = GameState.GetTransform(person->GetId())->GetPosition();
             GameState.VecEvent.emplace(new CMoveIntentionEvent(person->GetId(), pos, 0));
         }
     }
@@ -221,15 +228,16 @@ void Client::Start() {
         AddPlayerForNetworkId(playerIt.second->slot, playerIt.second);
     }
     CGameObject* pDummy = new CGameObject();
-    pDummy->AddComponent(new CTransformComponent());
-    pDummy->GetComponent<CTransformComponent>()->SetPosition({2000, 0, -2000});
-    pDummy->AddComponent(new CMovementComponent());
-    pDummy->GetComponent<CMovementComponent>()->ClearTarget();
-    pDummy->AddComponent(new CNetworkComponent(true));
-    pDummy->GetComponent<CNetworkComponent>()->SetSyncMovement(true);
-    pDummy->AddComponent(new CHealthComponent(100));
-    pDummy->AddComponent(new CTeamComponent(Team::TEAM_2));
-    pDummy->AddComponent(new CCharacterComponent(UnitPrefab::FOOTBALL_PERSON));
+    UnitId id = pDummy->GetId();
+    GameState.AddTransform(id);
+    GameState.GetTransform(id)->SetPosition({2000, 0, -2000});
+    GameState.AddMovement(id);
+    GameState.GetMovement(id)->vec3Target = {2000, 0, -2000};
+    GameState.AddNetwork(id, CNetworkComponent(true));
+    GameState.GetNetwork(id)->SetSyncMovement(true);
+    GameState.AddHealth(id, CHealthComponent(100));
+    GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
+    GameState.AddCharacter(id, CCharacterComponent(UnitPrefab::FOOTBALL_PERSON));
     AddGameObject(pDummy);// TODO need to add him again
 }
 
@@ -292,23 +300,15 @@ void Client::Update(float dt) {
         m_navGrid->Cells[index]->IsOpen = true;
     }
 
-    for(auto go_it : GameState.GameObjects) {
-        CGameObject* go = go_it.second;
-
-        CTransformComponent* pTransform = go->GetComponent<CTransformComponent>();
-
-        if(pTransform == nullptr) {
-            continue;
-        }
-
-        m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z - 25)->UnitId = go->GetId();
-        m_navGrid->GetCellAt(pTransform->GetPosition().x + 25, pTransform->GetPosition().z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->GetPosition().x + 25, pTransform->GetPosition().z - 25)->UnitId = go->GetId();
-        m_navGrid->GetCellAt(pTransform->GetPosition().x + 25, pTransform->GetPosition().z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->GetPosition().x + 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
-        m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->GetPosition().x - 25, pTransform->GetPosition().z + 25)->UnitId = go->GetId();
+    for(CTransformComponent& transform : GameState.GetAllTransform()) {
+        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z - 25)->IsOpen = false;
+        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z - 25)->UnitId = transform.idUnit;
+        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z - 25)->IsOpen = false;
+        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z - 25)->UnitId = transform.idUnit;
+        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z + 25)->IsOpen = false;
+        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z + 25)->UnitId = transform.idUnit;
+        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z + 25)->IsOpen = false;
+        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z + 25)->UnitId = transform.idUnit;
     }
     
     // m_waveManager.Update(&GameState, TICKRATE);

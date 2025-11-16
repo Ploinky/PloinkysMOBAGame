@@ -21,18 +21,18 @@ void CWaveManager::Update(CServerGameState* pGameState, float fDelta) {
     fTimeSinceLastSpawn = 0.0f;
 
     CGameObject* pGo = new CGameObject();
-    pGo->AddComponent(new CCharacterComponent(UnitPrefab::MINION));
-    pGo->AddComponent(new CTransformComponent());
-    pGo->GetComponent<CTransformComponent>()->SetPosition({2000, 0, -3000});
-    pGo->AddComponent(new CNetworkComponent(true));
-    pGo->AddComponent(new CHealthComponent(50));
-    pGo->AddComponent(new CTeamComponent(Team::TEAM_1));
-    pGo->AddComponent(new CIntentComponent());
-    pGo->AddComponent(new CAiComponent());
-    pGo->AddComponent(new CNavigationComponent());
-    pGo->AddComponent(new CMovementComponent());
-    pGo->GetComponent<CNetworkComponent>()->SetSyncMovement(true);
-    pGo->GetComponent<CAiComponent>()->eType = EAiType::MINION;
-    pGo->GetComponent<CAiComponent>()->vecWaypoints.push_back({3000, 0, -2000});
+    UnitId id = pGo->GetId();
+    pGameState->AddMovement(id);
+    pGameState->AddCharacter(id, CCharacterComponent(UnitPrefab::MINION));
+    pGameState->AddTransform(id);
+    pGameState->GetTransform(id)->SetPosition({2000, 0, -3000});
+    pGameState->AddNetwork(id, CNetworkComponent(true));
+    pGameState->AddHealth(id, CHealthComponent(50));
+    pGameState->AddTeam(id, CTeamComponent(Team::TEAM_1));
+    pGameState->AddIntent(id);
+    pGameState->AddAi(id);
+    pGameState->AddNavigation(id);
+    pGameState->GetAi(id)->eType = EAiType::MINION;
+    pGameState->GetAi(id)->vecWaypoints.push_back({3000, 0, -2000});
     pGameState->GameObjects.emplace(pGo->GetId(), pGo);
 }

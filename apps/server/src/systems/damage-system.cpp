@@ -19,26 +19,18 @@ void CDamageSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CDamageSystem::Finalize(CServerGameState* pGameState) {
-    for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
-        CGameObject* pGameObject = goPair.second;
-
-        CHealthComponent* pHealthComp = pGameObject->GetComponent<CHealthComponent>();
-
-        if(pHealthComp == nullptr) {
-            continue;
-        }
-
-        if(!pHealthComp->bIsDead) {
-            if(pHealthComp->nHealth <= 0) {
-                pHealthComp->nHealth = 0;
-                pHealthComp->bIsDead = true;
-                pHealthComp->fTimeSinceDeath = 0.0f;
+    for(CHealthComponent& health : pGameState->GetAllHealth()) {
+        if(!health.bIsDead) {
+            if(health.nHealth <= 0) {
+                health.nHealth = 0;
+                health.bIsDead = true;
+                health.fTimeSinceDeath = 0.0f;
     
-                pGameState->VecEvent.emplace(new CDeathEvent(pGameObject->GetId()));
+                pGameState->VecEvent.emplace(new CDeathEvent(health.idUnit));
             }
 
-            if(pHealthComp->nHealth > pHealthComp->nMaxHealth) {
-                pHealthComp->nHealth = pHealthComp->nMaxHealth;
+            if(health.nHealth > health.nMaxHealth) {
+                health.nHealth = health.nMaxHealth;
             }
         }
 
@@ -54,7 +46,7 @@ void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dm
         return;
     }
 
-    CHealthComponent* pHealthComponent = pTarget->GetComponent<CHealthComponent>();
+    CHealthComponent* pHealthComponent = pGameState->GetHealth(pTarget->GetId());
 
     if(pHealthComponent == nullptr) {
         Logger::FormatErr("Invalid damage event: target unit (%d) does nmot have a health component", dmgEvt->m_idTarget);
@@ -77,7 +69,7 @@ void CDamageSystem::OnUnitHealed(CServerGameState* pGameState, CHealEvent* healE
         return;
     }
 
-    CHealthComponent* pHealthComponent = pTarget->GetComponent<CHealthComponent>();
+    CHealthComponent* pHealthComponent = pGameState->GetHealth(pTarget->GetId());
 
     pHealthComponent->nHealth += healEvt->m_nHeal;
 }

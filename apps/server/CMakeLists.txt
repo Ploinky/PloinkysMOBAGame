@@ -15,8 +15,6 @@ add_executable(server
 	
 	src/GameObject.cpp
 	
-	src/components/MovementComponent.cpp
-	src/components/NavigationComponent.cpp
 	src/components/SpellCastComponent.cpp
 	src/components/TransformComponent.cpp
 

@@ -4,6 +4,7 @@
 
 class CHealthComponent : public IComponent{
 public:
+    CHealthComponent() : CHealthComponent(100) {};
     CHealthComponent(int nMaxHealth) : nMaxHealth(nMaxHealth), nHealth(nMaxHealth) {};
 
     int nMaxHealth = 100;

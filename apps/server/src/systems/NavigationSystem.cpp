@@ -13,123 +13,136 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 }
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
-        CGameObject* pGameObject = goPair.second;
-
-        CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
-
-        if(pNavComp == nullptr) {
+    for(CNavigationComponent& nav : pGameState->GetAllNavigation()) {
+        if(pGameState->GetHealth(nav.idUnit) && pGameState->GetHealth(nav.idUnit)->bIsDead) {
+            nav.bIsNavigating = false;
+            nav.vec3Destination = Vector3::ZERO;
+            if(CMovementComponent* pMovement = pGameState->GetMovement(nav.idUnit)) {
+                if(CTransformComponent* pTransform = pGameState->GetTransform(nav.idUnit)) {
+                    pMovement->vec3Target = pTransform->GetPosition();
+                }
+            }
             continue;
         }
-        
-        if(pGameObject->GetComponent<CHealthComponent>() && pGameObject->GetComponent<CHealthComponent>()->bIsDead) {
-            pNavComp->StopNavigation();
-            continue;
-        }
 
-        CIntentComponent* pIntentComp = pGameObject->GetComponent<CIntentComponent>();
+        CIntentComponent* pIntentComp = pGameState->GetIntent(nav.idUnit);
         if(pIntentComp != nullptr) {
             if(pIntentComp->eType == EIntentType::MOVE) {
-                if(pIntentComp->vec3Target != pNavComp->m_vec3Destination) {
-                    pNavComp->NavigateTo(pIntentComp->vec3Target);
+                if(pIntentComp->vec3Target != nav.vec3Destination) {
+                    nav.vec3Destination = pIntentComp->vec3Target;
+                    nav.bIsNavigating = true;
                 }
             }
         }
 
-        if(!pNavComp->m_bIsNavigating) {
+        if(!nav.bIsNavigating) {
             continue;
         }
 
         NavigationMap* pNavMap = pGameState->GetNavMap();
 
-        CTransformComponent* pTransform = pGameObject->GetComponent<CTransformComponent>();
-        CMovementComponent* pMovement = pGameObject->GetComponent<CMovementComponent>();
+        CTransformComponent* pTransform = pGameState->GetTransform(nav.idUnit);
+        CMovementComponent* pMovement = pGameState->GetMovement(nav.idUnit);
 
         if(pTransform == nullptr || pMovement == nullptr) {
             return;
         }
         
-        if((pNavComp->m_vec3Destination - pTransform->GetPosition()).Length() < 10) {
+        if((nav.vec3Destination - pTransform->GetPosition()).Length() < 10) {
             return;
         }
 
-        if(pNavComp->m_pNavGridAgent->path.size() == 0) {
-            pNavComp->m_pNavGridAgent->path = pNavMap->GetPath(pNavComp->m_pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNavComp->m_vec3Destination.x, pNavComp->m_vec3Destination.z});
+        if(nav.pNavGridAgent->path.size() == 0) {
+            nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
             
-            if(pNavComp->m_pNavGridAgent->path.size() == 0) {
+            if(nav.pNavGridAgent->path.size() == 0) {
                 // TODO this needs to be handled
                 return;
             }
         }
 
-        Vector2 vec2IntermediateTarget = pNavComp->m_pNavGridAgent->path.at(0);
+        Vector2 vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
         Vector3 vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
 
         // TODO magic number
         if((vec3IntermediateTarget - pTransform->GetPosition()).Length() < 10) {
-            pNavComp->m_pNavGridAgent->path.erase(pNavComp->m_pNavGridAgent->path.begin());
+            nav.pNavGridAgent->path.erase(nav.pNavGridAgent->path.begin());
 
-            if(pNavComp->m_pNavGridAgent->path.size() == 0) {
+            if(nav.pNavGridAgent->path.size() == 0) {
                 return;
             }
-            vec2IntermediateTarget = pNavComp->m_pNavGridAgent->path.at(0);
+            vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
             vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
-            pMovement->SetTarget({pNavComp->m_pNavGridAgent->path.at(0).x, 0, pNavComp->m_pNavGridAgent->path.at(0).y});
-            pGameState->VecEvent.emplace(new CMoveIntentionEvent(goPair.first, pMovement->GetTarget(), 0));
+            pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
+            pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
             return;
         }
 
-        pNavComp->m_pNavGridAgent->path = pNavMap->GetPath(pNavComp->m_pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNavComp->m_vec3Destination.x, pNavComp->m_vec3Destination.z});
+        nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
-        if(pNavComp->m_pNavGridAgent->path.size() == 0) {
+        if(nav.pNavGridAgent->path.size() == 0) {
             // TODO this needs to be handled
             return;
         }
 
-        pMovement->SetTarget({pNavComp->m_pNavGridAgent->path.at(0).x, 0, pNavComp->m_pNavGridAgent->path.at(0).y});
-        pGameState->VecEvent.emplace(new CMoveIntentionEvent(goPair.first, pMovement->GetTarget(), 0));
+        pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
+        pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
     }
 }
 
 void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pCastStartEvent->pCtx->idCaster);
 
-    CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
-    CTransformComponent* pTransformComp = pGameObject->GetComponent<CTransformComponent>();
+    CNavigationComponent* pNavComp = pGameState->GetNavigation(pGameObject->GetId());
+    CTransformComponent* pTransformComp = pGameState->GetTransform(pGameObject->GetId());
 
     if(pNavComp == nullptr) {
         return;
     }
 
-    pNavComp->StopNavigation();
+    pNavComp->bIsNavigating = false;
+    pNavComp->vec3Destination = Vector3::ZERO;
+    if(CMovementComponent* pMovement = pGameState->GetMovement(pNavComp->idUnit)) {
+        if(CTransformComponent* pTransform = pGameState->GetTransform(pNavComp->idUnit)) {
+            pMovement->vec3Target = pTransform->GetPosition();
+        }
+    }
 }
 
 
 void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pEvt->idAttacker);
 
-    CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
+    CNavigationComponent* pNavComp = pGameState->GetNavigation(pGameObject->GetId());
 
     if(pNavComp == nullptr) {
         return;
     }
 
-    pNavComp->StopNavigation();
+
+    pNavComp->bIsNavigating = false;
+    pNavComp->vec3Destination = Vector3::ZERO;
+    if(CMovementComponent* pMovement = pGameState->GetMovement(pNavComp->idUnit)) {
+        if(CTransformComponent* pTransform = pGameState->GetTransform(pNavComp->idUnit)) {
+            pMovement->vec3Target = pTransform->GetPosition();
+        }
+    }
 }
 void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pMoveAttemptEvent->idUnit);
-    CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
+    CNavigationComponent* pNavComp = pGameState->GetNavigation(pGameObject->GetId());
 
     if(pNavComp == nullptr) {
         return;
     }
 
-    pNavComp->NavigateTo(pMoveAttemptEvent->vec3Position);
+    pNavComp->vec3Destination = pMoveAttemptEvent->vec3Position;
+    pNavComp->bIsNavigating = true;
 
-    if(CSpellCastComponent* pSpellCastComp = pGameObject->GetComponent<CSpellCastComponent>()) {
+    if(CSpellCastComponent* pSpellCastComp = pGameState->GetSpellCast(pGameObject->GetId())) {
         pSpellCastComp->optCurrentCast.reset();
     }
-    if(CBasicAttackComponent* pAtkComp = pGameObject->GetComponent<CBasicAttackComponent>()) {
+    if(CBasicAttackComponent* pAtkComp = pGameState->GetBasicAttack(pGameObject->GetId())) {
         pAtkComp->optCurrentAttack.reset();
     }
 }

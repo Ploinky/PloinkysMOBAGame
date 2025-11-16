@@ -4,6 +4,7 @@
 
 class CNetworkComponent : public IComponent {
 public:
+    CNetworkComponent() : CNetworkComponent(false) {};
     CNetworkComponent(bool bSyncMovement) : m_bSyncMovement(bSyncMovement) {};
     bool SyncMovement() { return m_bSyncMovement; };
     void SetSyncMovement(bool bSyncMovement) { m_bSyncMovement = bSyncMovement; };

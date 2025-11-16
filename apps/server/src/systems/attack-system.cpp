@@ -10,21 +10,15 @@ CAttackSystem::CAttackSystem() {
 }
 
 void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(std::pair<UnitId, CGameObject*> pGameObj : pGameState->GameObjects) {
-        CBasicAttackComponent* pAttackComp = pGameObj.second->GetComponent<CBasicAttackComponent>();
-
-        if(pAttackComp == nullptr) {
+    for(CBasicAttackComponent& attackComp : pGameState->GetAllBasicAttack()) {
+        if(!attackComp.optCurrentAttack.has_value()) {
             continue;
         }
 
-        if(!pAttackComp->optCurrentAttack.has_value()) {
-            continue;
-        }
-
-        ActiveAttack_t& activeAttack = pAttackComp->optCurrentAttack.value();
+        ActiveAttack_t& activeAttack = attackComp.optCurrentAttack.value();
         activeAttack.fTimeInState += fDelta;
 
-        CGameObject* pAttacker = pGameObj.second;
+        CGameObject* pAttacker = pGameState->FindGameObjectById(attackComp.idUnit);
         CGameObject* pTarget = pGameState->FindGameObjectById(activeAttack.idTarget);
         CTransformComponent* pAttackerTransform = nullptr;
         CTransformComponent* pTargetTransform = nullptr;
@@ -32,14 +26,14 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         if(pTarget == nullptr
             || pAttacker == nullptr
-            || (pAttacker->GetComponent<CHealthComponent>() && pAttacker->GetComponent<CHealthComponent>()->bIsDead)) {
-            pAttackComp->optCurrentAttack.reset();
+            || (pGameState->GetHealth(pAttacker->GetId()) && pGameState->GetHealth(pAttacker->GetId())->bIsDead)) {
+            attackComp.optCurrentAttack.reset();
             continue;
         }
 
-        if(CHealthComponent* pHealthComp = pTarget->GetComponent<CHealthComponent>()) {
+        if(CHealthComponent* pHealthComp = pGameState->GetHealth(pTarget->GetId())) {
             if(pHealthComp->bIsDead) {
-                pAttackComp->optCurrentAttack.reset();
+                attackComp.optCurrentAttack.reset();
                 continue;
             }
         }
@@ -47,11 +41,11 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         switch(activeAttack.eState) {
             case EAttackState::IDLE:
             case EAttackState::APPROACHING:
-                pAttackerTransform = pAttacker->GetComponent<CTransformComponent>();
-                pTargetTransform = pTarget->GetComponent<CTransformComponent>();
+                pAttackerTransform = pGameState->GetTransform(pAttacker->GetId());
+                pTargetTransform = pGameState->GetTransform(pTarget->GetId());
 
-                pNavigationComponent = pAttacker->GetComponent<CNavigationComponent>();
-                if(pAttackComp->fRange > (pAttackerTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
+                pNavigationComponent = pGameState->GetNavigation(pAttacker->GetId());
+                if(attackComp.fRange > (pAttackerTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
                     activeAttack.eState = EAttackState::ATTACKING;
                     activeAttack.fTimeInState = 0.0f;
 
@@ -59,34 +53,35 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                     break;
                 }
 
-                if(pNavigationComponent->m_vec3Destination != pTargetTransform->GetPosition()) {
-                    pNavigationComponent->NavigateTo(pTargetTransform->GetPosition());
+                if(pNavigationComponent->vec3Destination != pTargetTransform->GetPosition()) {
+                    pNavigationComponent->vec3Destination = pTargetTransform->GetPosition();
+                    pNavigationComponent->bIsNavigating = true;
                 }
 
                 break;
             case EAttackState::ATTACKING:
-                if(activeAttack.fTimeInState >= pAttackComp->fAttackPoint) {
+                if(activeAttack.fTimeInState >= attackComp.fAttackPoint) {
                     pGameState->VecEvent.emplace(new CAttackHitEvent(pAttacker->GetId(), pTarget->GetId()));
                     activeAttack.eState = EAttackState::BACKSWING;
                     activeAttack.fTimeInState = 0.0f;
                 }
                 break;
             case EAttackState::BACKSWING:
-                if (activeAttack.fTimeInState >= pAttackComp->fAttackTime - pAttackComp->fAttackPoint) {
+                if (activeAttack.fTimeInState >= attackComp.fAttackTime - attackComp.fAttackPoint) {
                     activeAttack.eState = EAttackState::FINISHED;
-                    pAttackComp->optCurrentAttack.value().fTimeInState = 0.0f;
+                    attackComp.optCurrentAttack.value().fTimeInState = 0.0f;
                 }
                 break;
             case EAttackState::FINISHED:
                 // TODO
                 pGameState->VecEvent.emplace(new CAttackFinishedEvent(pAttacker->GetId()));
-                pAttackComp->optCurrentAttack.value().eState = EAttackState::IDLE;
-                pAttackComp->optCurrentAttack.value().fTimeInState = 0.0f;
+                attackComp.optCurrentAttack.value().eState = EAttackState::IDLE;
+                attackComp.optCurrentAttack.value().fTimeInState = 0.0f;
                 break;
                 case EAttackState::CANCELLED:
                 // TODO
                 pGameState->VecEvent.emplace(new CAttackFinishedEvent(pAttacker->GetId()));
-                pAttackComp->optCurrentAttack.reset(); // Done
+                attackComp.optCurrentAttack.reset(); // Done
                 break;
             default:
                 break;
@@ -107,15 +102,15 @@ void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackInten
         return;
     }
 
-    CBasicAttackComponent* pAttackComp = pAttacker->GetComponent<CBasicAttackComponent>();
+    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pAttacker->GetId());
 
-    if(pAttackComp == nullptr) {
+    if(attackComp == nullptr) {
         Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idUnit, pEvt->idTarget);
         return;
     }
 
-    if(pAttackComp->optCurrentAttack.has_value()) {
-        ActiveAttack_t& atk = pAttackComp->optCurrentAttack.value();
+    if(attackComp->optCurrentAttack.has_value()) {
+        ActiveAttack_t& atk = attackComp->optCurrentAttack.value();
         if(atk.idTarget == pEvt->idTarget) {
             return;
         }
@@ -126,7 +121,7 @@ void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackInten
         .eState = EAttackState::IDLE,
         .fTimeInState = 0.0f
     };
-    pAttackComp->optCurrentAttack.emplace(activeAttack);
+    attackComp->optCurrentAttack.emplace(activeAttack);
 }
 
 void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt) {
@@ -144,9 +139,9 @@ void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* p
         .fTimeInState = 0.0f
     };
 
-    CBasicAttackComponent* pAttackComp = pAttacker->GetComponent<CBasicAttackComponent>();
+    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pAttacker->GetId());
 
-    if(pAttackComp == nullptr) {
+    if(attackComp == nullptr) {
         Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idAttacker, pEvt->idTarget);
         return;
     }
@@ -156,19 +151,19 @@ void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* p
 }
 
 void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt) {
-    // CBasicAttackComponent* pAttackComp = pGameState->FindGameObjectById(pEvt->idUnit)->GetComponent<CBasicAttackComponent>();
+    // CBasicAttackComponent* attackComp = pGameState->FindGameObjectById(pEvt->idUnit)->GetComponent<CBasicAttackComponent>();
     // 
-    // if(pAttackComp && pAttackComp->optCurrentAttack.has_value()) {
-    //     ActiveAttack_t& atk = pAttackComp->optCurrentAttack.value();
+    // if(attackComp && attackComp.optCurrentAttack.has_value()) {
+    //     ActiveAttack_t& atk = attackComp.optCurrentAttack.value();
     //     atk.eState = EAttackState::CANCELLED;
     // }
 }
 
 void CAttackSystem::OnSpellCastAttempt(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt) {
-    CBasicAttackComponent* pAttackComp = pGameState->FindGameObjectById(pEvt->m_idCaster)->GetComponent<CBasicAttackComponent>();
+    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pEvt->m_idCaster);
     
-    if(pAttackComp && pAttackComp->optCurrentAttack.has_value()) {
-        ActiveAttack_t& atk = pAttackComp->optCurrentAttack.value();
+    if(attackComp->optCurrentAttack.has_value()) {
+        ActiveAttack_t& atk = attackComp->optCurrentAttack.value();
         atk.eState = EAttackState::CANCELLED;
     }
 }

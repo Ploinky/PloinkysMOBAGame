@@ -5,13 +5,7 @@ CPointsSystem::CPointsSystem() {
 }
 
 void CPointsSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
-    CGameObject* pObj = pGameState->FindGameObjectById(pDeathEvt->idTarget);
-
-    if(pObj == nullptr) {
-        return;
-    }
-
-    if(CTeamComponent* pTeam = pObj->GetComponent<CTeamComponent>()) {
+    if(CTeamComponent* pTeam = pGameState->GetTeam(pDeathEvt->idTarget)) {
         switch(pTeam->eTeam) {
             case Team::TEAM_1:
                 pGameState->uTeam2Points += 1;
