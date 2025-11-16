@@ -61,6 +61,8 @@ add_executable(client
     
     src/core/input/input-manager.cpp
 
+    src/game/client-game-state.cpp
+
     src/game/systems/animation-system.cpp
     src/game/systems/particle-system.cpp
     

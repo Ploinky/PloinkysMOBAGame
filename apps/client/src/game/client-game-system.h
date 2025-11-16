@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <functional>
 #include <typeindex>
-#include <common/game/game-system.h>
+
 
 #ifndef REGISTER_EVENT_HANDLER
 #define REGISTER_EVENT_HANDLER(EventType, Method) \
@@ -13,8 +13,7 @@
 class CClientGameState;
 class IGameEvent;
 
-
-class ISystem : public IGameSystem {
+class ISystem {
 public:
     virtual ~ISystem() = default;
 

@@ -40,8 +40,8 @@ void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& boneP
 
 void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
     for(const UnitId& id : pGameState->vecUnits) {
-        AnimationComponent_t* pAnimComp = pGameState->GetComponent<AnimationComponent_t>(id);
-        RenderableComponent_t* pRendercomp = pGameState->GetComponent<RenderableComponent_t>(id);
+        AnimationComponent_t* pAnimComp = pGameState->GetAnimation(id);
+        RenderableComponent_t* pRendercomp = pGameState->GetRenderable(id);
 
         if(pAnimComp == nullptr || pRendercomp == nullptr) {
             return;

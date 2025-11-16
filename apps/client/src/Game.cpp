@@ -34,7 +34,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         GameObject* go = GetGameObject(pck.content.unit);
         go->bIsAttacking = true;
         
-        if(MovementComponent_t* pMoveComp = m_gameState.GetComponent<MovementComponent_t>(go->unit_id)) {
+        if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
             pMoveComp->vec3Target = Vector3::ZERO;
             pMoveComp->bIsMoving = false;
         }
@@ -97,7 +97,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
-        if(MovementComponent_t* pMoveComp = m_gameState.GetComponent<MovementComponent_t>(go->unit_id)) {
+        if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
             pMoveComp->vec3Target = Vector3::ZERO;
             pMoveComp->bIsMoving = false;
         }
@@ -143,7 +143,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 	
-	HealthComponent_t* pHealthComp = m_gameState.GetComponent<HealthComponent_t>(go->unit_id);
+	HealthComponent_t* pHealthComp = m_gameState.GetHealth(go->unit_id);
 	
 	if(pHealthComp) {
 		pHealthComp->nHealth = stats.health;
@@ -180,7 +180,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
             return;
         }
 
-        MovementComponent_t* pMovementComponent = m_gameState.GetComponent<MovementComponent_t>(go->unit_id);
+        MovementComponent_t* pMovementComponent = m_gameState.GetMovement(go->unit_id);
 
         if(pMovementComponent == nullptr) {
             Logger::FormatErr("Received unit move intention for unit %u which has no move component", go->unit_id);
@@ -219,7 +219,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
         go->bIsCasting = true;
 
-        if(MovementComponent_t* pMoveComp = m_gameState.GetComponent<MovementComponent_t>(go->unit_id)) {
+        if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
             pMoveComp->vec3Target = Vector3::ZERO;
             pMoveComp->bIsMoving = false;
         }
@@ -240,12 +240,12 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
         particle_system->Attach(go);
 
-        if(!m_gameState.GetComponent<ParticleComponent_t>(go->unit_id)) {
-            m_gameState.AddComponent<ParticleComponent_t>(go->unit_id);
+        if(!m_gameState.GetParticle(go->unit_id)) {
+            m_gameState.AddParticle(go->unit_id);
             particle_system->Attach(go);
         }
 
-        ParticleComponent_t* pParticleComp = m_gameState.GetComponent<ParticleComponent_t>(go->unit_id);
+        ParticleComponent_t* pParticleComp = m_gameState.GetParticle(go->unit_id);
         pParticleComp->vecEffects.push_back(particle_system);
 
         CSpellHitEvent* pHitEvent = new CSpellHitEvent();
@@ -372,7 +372,7 @@ void Game::MouseMoved(int screenX, int screenY) {
 		}
     }
     
-    if(pObjectUnderCursor && m_gameState.GetComponent<TargetableComponent_t>(pObjectUnderCursor->unit_id)) {
+    if(pObjectUnderCursor && m_gameState.GetTargetable(pObjectUnderCursor->unit_id)) {
         handler_->RequestCursor(CursorId::ATTACK_MOVE);
     } else {
         handler_->RequestCursor(CursorId::DEFAULT);
@@ -408,7 +408,7 @@ void Game::Update(float dt) {
         if (go->dead) {
             desiredAnim = "death";
             bLoop = false;
-        } else if (m_gameState.GetComponent<MovementComponent_t>(go->unit_id) && m_gameState.GetComponent<MovementComponent_t>(go->unit_id)->bIsMoving) {
+        } else if (m_gameState.GetMovement(go->unit_id) && m_gameState.GetMovement(go->unit_id)->bIsMoving) {
             desiredAnim = "run";
             bLoop = true;
         } else if(go->bIsCasting) {
@@ -423,7 +423,7 @@ void Game::Update(float dt) {
             bLoop = true;
         }
 
-        AnimationComponent_t* pAnimComp = m_gameState.GetComponent<AnimationComponent_t>(go->unit_id);
+        AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(go->unit_id);
         if (pAnimComp && pAnimComp->m_strAnimationName != desiredAnim) {
             Logger::FormatMsg("Playing animation %s", desiredAnim.c_str());
             pAnimComp->m_strAnimationName = desiredAnim;
@@ -608,7 +608,7 @@ void Game::Update(float dt) {
     m_camPos[2] = std::max(std::min(m_camPos[2], 1000.0f), -4400.0f);
 
     m_pAudioSystem->SetListenerPosition({m_camPos[0], m_camPos[1], m_camPos[2]});
-    for(IGameSystem* pSystem : m_gameState.m_vecGameSystems) {
+    for(ISystem* pSystem : m_gameState.m_vecGameSystems) {
         pSystem->Update(&m_gameState, dt);
     }
 }
@@ -646,7 +646,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
     }
     m_navGrid->Reset();
     for (UnitId unit : m_gameState.vecUnits) {
-        TransformComponent_t* pTransform = m_gameState.GetComponent<TransformComponent_t>(unit);
+        TransformComponent_t* pTransform = m_gameState.GetTransform(unit);
 
         if (!pTransform) {
             continue;   
@@ -692,7 +692,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
             color[2] = 0;
         }
 
-        renderer->FillRect(x - 50, y - 10, ((float)m_gameState.GetComponent<HealthComponent_t>(go->unit_id)->nHealth / (float)m_gameState.GetComponent<HealthComponent_t>(go->unit_id)->nMaxHealth) * 100.0f, health_bar_height, color);
+        renderer->FillRect(x - 50, y - 10, ((float)m_gameState.GetHealth(go->unit_id)->nHealth / (float)m_gameState.GetHealth(go->unit_id)->nMaxHealth) * 100.0f, health_bar_height, color);
         renderer->DrawRect(x - 51, y - 11, 102, health_bar_height + 2, new float[3] { 0.0f, 0.0f, 0 });
     }
 
@@ -738,7 +738,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
     int y = windowHeight_ - 50;
     int x = windowWidth_ / 2 - 200;
 
-    if(HealthComponent_t* pHealthComp = m_gameState.GetComponent<HealthComponent_t>(my_go->unit_id)) {
+    if(HealthComponent_t* pHealthComp = m_gameState.GetHealth(my_go->unit_id)) {
         int nPercentageHealth = (float)pHealthComp->nHealth / (float)pHealthComp->nMaxHealth * 400.0f;
 
         renderer->FillRect(x - 1, y - 1, 402, 27, black);
@@ -894,11 +894,11 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
     if (unit_type == UnitPrefab::THROW_FOOTBALL) {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
-        m_gameState.AddComponent<HealthComponent_t>(unitId);
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nHealth = 50;
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
-        m_gameState.AddComponent<RenderableComponent_t>(unitId);
-        m_gameState.GetComponent<RenderableComponent_t>(unitId)->strRenderable = "missile";
+        m_gameState.AddHealth(unitId);
+        m_gameState.GetHealth(unitId)->nHealth = 50;
+        m_gameState.GetHealth(unitId)->nMaxHealth = 100;
+        m_gameState.AddRenderable(unitId);
+        m_gameState.GetRenderable(unitId)->strRenderable = "missile";
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->has_healthbar = false;
@@ -911,24 +911,24 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
     if (unit_type == UnitPrefab::FOOTBALL_PERSON) {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
-        m_gameState.AddComponent<HealthComponent_t>(unitId);
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nHealth = 50;
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
+        m_gameState.AddHealth(unitId);
+        m_gameState.GetHealth(unitId)->nHealth = 50;
+        m_gameState.GetHealth(unitId)->nMaxHealth = 100;
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->team = team;
         go->uPrefab = unit_type;
-        m_gameState.AddComponent<TargetableComponent_t>(unitId);
-        m_gameState.AddComponent<TransformComponent_t>(unitId);
-        m_gameState.AddComponent<MovementComponent_t>(unitId);
-        m_gameState.AddComponent<AudioEmitterComponent_t>(unitId);
-        m_gameState.GetComponent<AudioEmitterComponent_t>(unitId)->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
-        m_gameState.AddComponent<AnimationComponent_t>(unitId);
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_strAnimationName = "idle";
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_bLoop = true;
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_fAnimationTime = 0.0f;
-        m_gameState.AddComponent<RenderableComponent_t>(unitId);
-        m_gameState.GetComponent<RenderableComponent_t>(unitId)->strRenderable = "football_person";
+        m_gameState.AddTargetable(unitId);
+        m_gameState.AddTransform(unitId);
+        m_gameState.AddMovement(unitId);
+        m_gameState.AddAudioEmitter(unitId);
+        m_gameState.GetAudioEmitter(unitId)->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
+        m_gameState.AddAnimation(unitId);
+        m_gameState.GetAnimation(unitId)->m_strAnimationName = "idle";
+        m_gameState.GetAnimation(unitId)->m_bLoop = true;
+        m_gameState.GetAnimation(unitId)->m_fAnimationTime = 0.0f;
+        m_gameState.AddRenderable(unitId);
+        m_gameState.GetRenderable(unitId)->strRenderable = "football_person";
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -936,25 +936,25 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
     if (unit_type == UnitPrefab::STORMCALLER) {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
-        m_gameState.AddComponent<HealthComponent_t>(unitId);
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nHealth = 50;
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
+        m_gameState.AddHealth(unitId);
+        m_gameState.GetHealth(unitId)->nHealth = 50;
+        m_gameState.GetHealth(unitId)->nMaxHealth = 100;
         go->position = pos;
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->team = team;
         go->uPrefab = unit_type;
-        m_gameState.AddComponent<TargetableComponent_t>(unitId);
-        m_gameState.AddComponent<TransformComponent_t>(unitId);
-        m_gameState.AddComponent<MovementComponent_t>(unitId);
-        m_gameState.AddComponent<AudioEmitterComponent_t>(unitId);
-        m_gameState.GetComponent<AudioEmitterComponent_t>(unitId)->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
-        m_gameState.AddComponent<AnimationComponent_t>(unitId);
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_strAnimationName = "idle";
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_bLoop = true;
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_fAnimationTime = 0.0f;
-        m_gameState.AddComponent<RenderableComponent_t>(unitId);
-        m_gameState.GetComponent<RenderableComponent_t>(unitId)->strRenderable = "stormcaller";
+        m_gameState.AddTargetable(unitId);
+        m_gameState.AddTransform(unitId);
+        m_gameState.AddMovement(unitId);
+        m_gameState.AddAudioEmitter(unitId);
+        m_gameState.GetAudioEmitter(unitId)->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
+        m_gameState.AddAnimation(unitId);
+        m_gameState.GetAnimation(unitId)->m_strAnimationName = "idle";
+        m_gameState.GetAnimation(unitId)->m_bLoop = true;
+        m_gameState.GetAnimation(unitId)->m_fAnimationTime = 0.0f;
+        m_gameState.AddRenderable(unitId);
+        m_gameState.GetRenderable(unitId)->strRenderable = "stormcaller";
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -963,11 +963,11 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         go->position = pos;
-        m_gameState.AddComponent<HealthComponent_t>(unitId);
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nHealth = 50;
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
-        m_gameState.AddComponent<RenderableComponent_t>(unitId);
-        m_gameState.GetComponent<RenderableComponent_t>(unitId)->strRenderable = "tower";
+        m_gameState.AddHealth(unitId);
+        m_gameState.GetHealth(unitId)->nHealth = 50;
+        m_gameState.GetHealth(unitId)->nMaxHealth = 100;
+        m_gameState.AddRenderable(unitId);
+        m_gameState.GetRenderable(unitId)->strRenderable = "tower";
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->has_healthbar = true;
@@ -981,9 +981,9 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
     if (unit_type == UnitPrefab::GENERIC_EMPTY) {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
-        m_gameState.AddComponent<HealthComponent_t>(unitId);
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nHealth = 50;
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
+        m_gameState.AddHealth(unitId);
+        m_gameState.GetHealth(unitId)->nHealth = 50;
+        m_gameState.GetHealth(unitId)->nMaxHealth = 100;
         go->position = pos;
         go->position = pos;
         go->rotation = { 0, 0, 0 };
@@ -998,22 +998,22 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
     if (unit_type == UnitPrefab::MINION) {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
-        m_gameState.AddComponent<HealthComponent_t>(unitId);
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nHealth = 50;
-        m_gameState.GetComponent<HealthComponent_t>(unitId)->nMaxHealth = 100;
-        m_gameState.AddComponent<RenderableComponent_t>(unitId);
-        m_gameState.GetComponent<RenderableComponent_t>(unitId)->strRenderable = "minion";
-        m_gameState.AddComponent<AnimationComponent_t>(unitId);
-        m_gameState.GetComponent<AnimationComponent_t>(unitId)->m_strAnimationName = "idle";
-        m_gameState.AddComponent<TransformComponent_t>(unitId);
-        m_gameState.AddComponent<MovementComponent_t>(unitId);
+        m_gameState.AddHealth(unitId);
+        m_gameState.GetHealth(unitId)->nHealth = 50;
+        m_gameState.GetHealth(unitId)->nMaxHealth = 100;
+        m_gameState.AddRenderable(unitId);
+        m_gameState.GetRenderable(unitId)->strRenderable = "minion";
+        m_gameState.AddAnimation(unitId);
+        m_gameState.GetAnimation(unitId)->m_strAnimationName = "idle";
+        m_gameState.AddTransform(unitId);
+        m_gameState.AddMovement(unitId);
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->has_healthbar = true;
         go->has_title = false;
         go->team = team;
         go->uPrefab = unit_type;
-        m_gameState.AddComponent<TargetableComponent_t>(unitId);
+        m_gameState.AddTargetable(unitId);
         game_objects_.emplace(unitId, go);
         return;
     }
@@ -1035,13 +1035,13 @@ void Game::HandleTicks(float dt) {
     for (auto go_it : game_objects_) {
         GameObject* pGameObject = go_it.second;
 
-        TransformComponent_t* pTransformComp = m_gameState.GetComponent<TransformComponent_t>(pGameObject->unit_id);
+        TransformComponent_t* pTransformComp = m_gameState.GetTransform(pGameObject->unit_id);
         if(pTransformComp) {
             pTransformComp->vec3Position = pGameObject->position;
             pTransformComp->vec3Rotation = pGameObject->rotation;
         }
 
-        MovementComponent_t* pMovementComponent = m_gameState.GetComponent<MovementComponent_t>(pGameObject->unit_id);
+        MovementComponent_t* pMovementComponent = m_gameState.GetMovement(pGameObject->unit_id);
         if (!pMovementComponent || !pMovementComponent->bIsMoving) {
             continue;
         }

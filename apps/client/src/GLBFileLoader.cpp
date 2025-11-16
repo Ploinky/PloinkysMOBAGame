@@ -96,7 +96,7 @@ GLBModel* GLBFileLoader::LoadUsingLib(std::string modelName, AssetManager* asset
 		// TODO: we assume one primitive per mesh
 		const cgltf_primitive& prim = mesh.primitives[0];
 
-		if(prim.attributes_count != 3) {
+		if(prim.attributes_count != 5) {
 			Logger::FormatMsg("Warning loading model %s; unexpected number of attributes", modelName.c_str());
 		}
 

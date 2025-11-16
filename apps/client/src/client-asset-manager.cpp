@@ -191,25 +191,32 @@ pugi::xml_document CClientAssetManager::LoadXMLFile(std::string strFileName) {
 CGameData CClientAssetManager::LoadManifest() {
     CGameData gameData{};
     
-    for(std::string chrFileName : GetFileNamesByExtension("data", ".chr")) {
-        pugi::xml_document doc = LoadXMLFile(chrFileName);
-        pugi::xml_node rootNode = doc.child("character_data");
-        CCharacterData charData = LoadCharacter(rootNode);
-        gameData.mapCharacterData.emplace(charData.strId, charData);
-    }
+    for(std::string xmlFileName : GetFileNamesByExtension("data", ".xml")) {
+        pugi::xml_document doc = LoadXMLFile(xmlFileName);
+        pugi::xml_node entityNode = doc.child("entity");
 
-    for(std::string mdlFileName : GetFileNamesByExtension("data", ".mdl")) {
-        pugi::xml_document doc = LoadXMLFile(mdlFileName);
-        pugi::xml_node rootNode = doc.child("model_data");
-        CModelData modelData = LoadModelData(rootNode);
-        gameData.mapModelData.emplace(modelData.id, modelData);
-    }
+        if(entityNode) {
+            CCharacterData charData = LoadCharacter(entityNode);
+            gameData.mapCharacterData.emplace(charData.strId, charData);
+            Logger::FormatMsg("Loaded entity %s from %s", charData.strId.c_str(), xmlFileName.c_str());
+            continue;
+        }
 
-    for(std::string ablFileName : GetFileNamesByExtension("data", ".abl")) {
-        pugi::xml_document doc = LoadXMLFile(ablFileName);
-        pugi::xml_node rootNode = doc.child("ability_data");
-        CAbilityData abilityData = LoadAbility(rootNode);
-        gameData.mapAbilityData.emplace(abilityData.strId, abilityData);
+        pugi::xml_node modelNode = doc.child("model_data");
+        if(modelNode) {
+            CModelData modelData = LoadModelData(modelNode);
+            gameData.mapModelData.emplace(modelData.id, modelData);
+            Logger::FormatMsg("Loaded model %s from %s", modelData.id.c_str(), xmlFileName.c_str());
+            continue;
+        }
+
+        pugi::xml_node abilityNode = doc.child("ability");
+        if(abilityNode) {
+            CAbilityData abilityData = LoadAbility(abilityNode);
+            gameData.mapAbilityData.emplace(abilityData.strId, abilityData);
+            Logger::FormatMsg("Loaded ability %s from %s", abilityData.strId.c_str(), xmlFileName.c_str());
+            continue;
+        }
     }
 
     return gameData;
@@ -221,6 +228,8 @@ CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {
     std::string modelId = modelNode.attribute("id").as_string();
     std::string modelPath = modelNode.attribute("model").as_string();
     LoadGLBModel(modelId, modelPath);
+
+    model.id = modelId;
 
     pugi::xml_node animationsNode = modelNode.child("animations");
 

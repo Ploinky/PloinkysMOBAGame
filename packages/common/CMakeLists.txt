@@ -15,8 +15,6 @@ add_library(common
 	src/vector3.cpp
 	src/vector4.cpp
 
-	src/game/game-system.cpp
-
 	src/Packets/AttackCommand.cpp
 	src/Packets/AttackFinishedPacket.cpp
 	src/Packets/AttackStartPacket.cpp

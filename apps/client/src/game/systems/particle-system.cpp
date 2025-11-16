@@ -12,7 +12,7 @@ CParticleSystem::CParticleSystem(CClientAssetManager* pAssetManager) {
 
 void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
     for(const UnitId& id : pGameState->vecUnits) {
-        ParticleComponent_t* pParticleComp = pGameState->GetComponent<ParticleComponent_t>(id);
+        ParticleComponent_t* pParticleComp = pGameState->GetParticle(id);
 
         if(pParticleComp == nullptr) {
             return;
@@ -23,7 +23,7 @@ void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
             ParticleEffect* pEffect = *it;
 
             if(pEffect->attached_to_ != nullptr) {
-                TransformComponent_t* pAttachedToTransform = pGameState->GetComponent<TransformComponent_t>(pEffect->attached_to_->unit_id);
+                TransformComponent_t* pAttachedToTransform = pGameState->GetTransform(pEffect->attached_to_->unit_id);
 
                 pEffect->position = pAttachedToTransform->vec3Position;
                 pEffect->position.y += 100.0f;
@@ -52,7 +52,7 @@ void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
         for(int i = 0; i < pParticleComp->vecEffects.size(); i++) {
             ParticleEffect* pEffect = pParticleComp->vecEffects[i];
             if(pEffect->attached_to_ != nullptr) {
-                TransformComponent_t* pAttachedToTransform = pGameState->GetComponent<TransformComponent_t>(pEffect->attached_to_->unit_id);
+                TransformComponent_t* pAttachedToTransform = pGameState->GetTransform(pEffect->attached_to_->unit_id);
 
                 pEffect->position = pAttachedToTransform->vec3Position;
             }

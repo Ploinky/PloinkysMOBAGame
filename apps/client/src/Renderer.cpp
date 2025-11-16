@@ -754,7 +754,7 @@ void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
 
 void CRenderer::Render(CClientGameState* pGameState) {
 	for(UnitId idUnit : pGameState->vecUnits) {
-		if(RenderableComponent_t* pRenderable = pGameState->GetComponent<RenderableComponent_t>(idUnit)) {
+		if(RenderableComponent_t* pRenderable = pGameState->GetRenderable(idUnit)) {
 			
 			HModel hModel = m_pAssetManager->LoadModel(pRenderable->strRenderable);
 			ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
@@ -785,13 +785,13 @@ void CRenderer::Render(CClientGameState* pGameState) {
 				cmd.hIndexBuffer = mesh->IndexBuffer;
 				cmd.uIndexCount = mesh->IndexCount;
 				
-				if(TransformComponent_t* pTransform = pGameState->GetComponent<TransformComponent_t>(idUnit)) {
+				if(TransformComponent_t* pTransform = pGameState->GetTransform(idUnit)) {
 					cmd.vec3Position = pTransform->vec3Position;
 					cmd.vec3Rotation = pTransform->vec3Rotation;
 				}
 				cmd.vec3Scale = Vector3(1, 1, 1);
 
-				if(AnimationComponent_t* pAnim = pGameState->GetComponent<AnimationComponent_t>(idUnit)) {
+				if(AnimationComponent_t* pAnim = pGameState->GetAnimation(idUnit)) {
 					for(int i = 0; i < 256; i++) {
 						cmd.vecBones[i] = pAnim->vecBones[i];
 					}
@@ -801,7 +801,7 @@ void CRenderer::Render(CClientGameState* pGameState) {
 			}
 		}
 
-		if(ParticleComponent_t* pParticleComponent = pGameState->GetComponent<ParticleComponent_t>(idUnit)) {
+		if(ParticleComponent_t* pParticleComponent = pGameState->GetParticle(idUnit)) {
 			for(const ParticleEffect* pParticleEffect : pParticleComponent->vecEffects) {
 				for(ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
 					QueueParticle(pParticleEmitter);
