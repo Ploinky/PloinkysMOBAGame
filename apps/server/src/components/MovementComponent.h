@@ -1,0 +1,15 @@
+#pragma once
+
+#include "common/PMG_Common.h"
+#include "Components.h"
+
+class CMovementComponent : public IComponent {
+public:
+    Vector3 GetTarget() const;
+    void SetTarget(Vector3 vec3Target);
+    void ClearTarget();
+
+private:
+    Vector3 m_vec3Target;
+
+};

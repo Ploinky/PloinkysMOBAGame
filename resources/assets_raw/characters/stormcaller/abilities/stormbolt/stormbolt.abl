@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ability_data
+    id="stormbolt"
+    name="stormbolt"
+>
+    <targeting_info
+        type="unit"
+        cast_range="800"
+        cast_time="200"
+        cast_point="100"
+        cooldown="5000"
+    />
+
+    <on_impact>
+        <damage amount="10, 20, 30, 40" target="target_entity" />
+    </on_impact>
+</ability_data>

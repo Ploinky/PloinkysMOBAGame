@@ -1,0 +1,9 @@
+texture_file=data/UI/move-to/move_to.png
+particle_velocity_x=0
+particle_velocity_y=30
+particle_velocity_z=0
+particle_scale_x=20
+particle_scale_y=20
+particle_scale_z=20
+particle_count=1
+emitter_lifetime=300
