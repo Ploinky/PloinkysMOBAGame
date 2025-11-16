@@ -39,7 +39,8 @@ public:
     HModel LoadGLBModel(std::string name, std::string file);
 
     pugi::xml_document LoadXMLFile(std::string strFileName);
-    CGameData LoadManifest();
+    const CGameData& LoadManifest();
+    const CGameData& GetGameData();
     std::vector<float> ParseFloatVec(std::string str);
 
 private:

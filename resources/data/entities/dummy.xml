@@ -4,18 +4,12 @@
     xmlns="https://ploinky.de/mySchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="https://ploinky.de/mySchema _entity.xsd"
-    id="stormcaller"
-    name="stormcaller"
-    model="stormcaller"
+    id="dummy"
+    name="dummy"
+    model="dummy"
 >
-    <abilities>
-        <ability
-            id="stormbolt"
-            slot="3"
-        />
-    </abilities>
     <transform collision_radius="100" />
     <network sync_movement="true" />
     <movement speed="300" />
-    <health max_health="200" />
+    <health max_health="100" />
 </entity>

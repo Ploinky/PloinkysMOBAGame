@@ -6,4 +6,5 @@
 class CMovementComponent : public IComponent {
 public:
     Vector3 vec3Target;
+    float fSpeed;
 };

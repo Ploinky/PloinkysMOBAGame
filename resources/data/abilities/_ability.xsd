@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="https://ploinky.de/mySchema"
+    elementFormDefault="qualified"
+> 
+<xs:element name="ability">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="targeting_info" minOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                    <xs:attribute name="cast_range" type="xs:int" use="required" />
+                    <xs:attribute name="cast_time" type="xs:int" use="required" />
+                    <xs:attribute name="cast_point" type="xs:int" use="required" />
+                    <xs:attribute name="cooldown" type="xs:int" use="required" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="on_impact">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="damage" minOccurs="1">
+                            <xs:complexType>
+                                <xs:attribute name="amount" type="xs:string" use="required"/>
+                                <xs:attribute name="target" type="xs:string" use="required" />
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="icon" type="xs:string" use="required"/>
+    </xs:complexType>
+</xs:element>
+
+</xs:schema>

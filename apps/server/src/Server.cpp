@@ -69,6 +69,6 @@ void Server::StartLobby(ServerNetworkManager* manager) {
     currentState_ = lobby;
 }
 
-CGameData* Server::GetGameData() {
-    return &m_gameData;
+const CGameData& Server::GetGameData() {
+    return m_gameData;
 }

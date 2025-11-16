@@ -100,6 +100,7 @@ CAbilityData AssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
 
     abilityData.strName = abilityDataNode.attribute("name").as_string();
     abilityData.strId = abilityDataNode.attribute("id").as_string();
+    abilityData.iconId = abilityDataNode.attribute("icon").as_string();
 
     pugi::xml_node targetInfoNode = abilityDataNode.child("targeting_info");
 
@@ -168,8 +169,12 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
 
     charData.strName = charDataNode.attribute("name").as_string();
 
-    pugi::xml_node abilitiesNode = charDataNode.child("abilities");
+    if(charDataNode.attribute("model")) {
+        std::string modelId = charDataNode.attribute("model").as_string();
+        charData.modelId = modelId;
+    }
 
+    pugi::xml_node abilitiesNode = charDataNode.child("abilities");
     if(abilitiesNode) {
         for(pugi::xml_node abilityNode : abilitiesNode.children()) {
             if(strcmp(abilityNode.name(), "ability") != 0) {
@@ -181,10 +186,35 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
             charData.mapAbilityIds.emplace(slot, abilityId);
         }
     }
-    
-    if(charDataNode.attribute("model")) {
-        std::string modelId = charDataNode.attribute("model").as_string();
-        charData.modelId = modelId;
+
+    pugi::xml_node transformNode = charDataNode.child("transform");
+    if(transformNode) {
+        CTransformData transformData{};
+        int nCollisionRadius = transformNode.attribute("collision_radius").as_int();
+        transformData.nCollisionRadius = nCollisionRadius;
+        charData.optTransformData.emplace(transformData);
+    }
+
+    pugi::xml_node networkNode = charDataNode.child("network");
+    if(networkNode) {
+        CNetworkData networkData{};
+        bool bSyncMovement = networkNode.attribute("sync_movement").as_bool();
+        networkData.bSyncMovement = bSyncMovement;
+        charData.optNetworkData.emplace(networkData);
+    }
+
+    pugi::xml_node movementNode = charDataNode.child("movement");
+    if(movementNode) {
+        CMovementData movementData{};
+        movementData.nSpeed = movementNode.attribute("speed").as_int();
+        charData.optMovementData.emplace(movementData);
+    }
+
+    pugi::xml_node healthNode = charDataNode.child("health");
+    if(healthNode) {
+        CHealthData healthData{};
+        healthData.nMaxHealth = healthNode.attribute("max_health").as_int();
+        charData.optHealthData.emplace(healthData);
     }
 
     return charData;

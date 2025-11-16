@@ -4,16 +4,6 @@
 #include <stdint.h>
 #include <limits>
 
-class UnitPrefab {
-public:
-    static const uint64_t GENERIC_EMPTY = 0;
-    static const uint64_t TOWER = 1;
-    static const uint64_t FOOTBALL_PERSON = 2;
-    static const uint64_t THROW_FOOTBALL = 3;
-    static const uint64_t MINION = 4;
-    static const uint64_t STORMCALLER = 5;
-};
-
 enum class Team : uint8_t {
     TEAM_1,
     TEAM_2,

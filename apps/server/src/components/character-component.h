@@ -1,11 +1,13 @@
 #pragma once
 
+#include <string>
+
 #include "GameObject.h"
 
-class CCharacterComponent : public IComponent{
+class CCharacterComponent : public IComponent {
 public:
-    CCharacterComponent() : prefab(UnitPrefab::GENERIC_EMPTY) {};
-    CCharacterComponent(uint64_t prefab) : prefab(prefab) {};
+    CCharacterComponent() : prefab("") {};
+    CCharacterComponent(std::string prefab) : prefab(prefab) {};
 
-    uint64_t prefab = UnitPrefab::GENERIC_EMPTY;
+    std::string prefab = "";
 };

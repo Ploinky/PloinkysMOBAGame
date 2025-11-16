@@ -188,8 +188,11 @@ pugi::xml_document CClientAssetManager::LoadXMLFile(std::string strFileName) {
     return doc;
 }
 
-CGameData CClientAssetManager::LoadManifest() {
-    CGameData gameData{};
+const CGameData& CClientAssetManager::GetGameData() {
+    return m_gameData;
+}
+
+const CGameData& CClientAssetManager::LoadManifest() {
     
     for(std::string xmlFileName : GetFileNamesByExtension("data", ".xml")) {
         pugi::xml_document doc = LoadXMLFile(xmlFileName);
@@ -197,7 +200,7 @@ CGameData CClientAssetManager::LoadManifest() {
 
         if(entityNode) {
             CCharacterData charData = LoadCharacter(entityNode);
-            gameData.mapCharacterData.emplace(charData.strId, charData);
+            m_gameData.mapCharacterData.emplace(charData.strId, charData);
             Logger::FormatMsg("Loaded entity %s from %s", charData.strId.c_str(), xmlFileName.c_str());
             continue;
         }
@@ -205,7 +208,7 @@ CGameData CClientAssetManager::LoadManifest() {
         pugi::xml_node modelNode = doc.child("model_data");
         if(modelNode) {
             CModelData modelData = LoadModelData(modelNode);
-            gameData.mapModelData.emplace(modelData.id, modelData);
+            m_gameData.mapModelData.emplace(modelData.id, modelData);
             Logger::FormatMsg("Loaded model %s from %s", modelData.id.c_str(), xmlFileName.c_str());
             continue;
         }
@@ -213,13 +216,13 @@ CGameData CClientAssetManager::LoadManifest() {
         pugi::xml_node abilityNode = doc.child("ability");
         if(abilityNode) {
             CAbilityData abilityData = LoadAbility(abilityNode);
-            gameData.mapAbilityData.emplace(abilityData.strId, abilityData);
+            m_gameData.mapAbilityData.emplace(abilityData.strId, abilityData);
             Logger::FormatMsg("Loaded ability %s from %s", abilityData.strId.c_str(), xmlFileName.c_str());
             continue;
         }
     }
 
-    return gameData;
+    return GetGameData();
 }
 
 CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {

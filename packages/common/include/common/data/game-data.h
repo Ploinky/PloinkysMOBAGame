@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <optional>
 
 enum class EAbilityTargetType {
     UNIT
@@ -32,6 +33,7 @@ public:
     float fCastPoint;
     float fCooldown;
     ImpactEffect_t effect;
+    std::string iconId;
 };
 
 class CAnimationData {
@@ -46,12 +48,36 @@ public:
     std::map<std::string, CAnimationData> mapAnimations;
 };
 
+class CTransformData {
+public:
+    int nCollisionRadius;
+};
+
+class CNetworkData {
+public:
+    bool bSyncMovement;
+};
+
+class CMovementData {
+public:
+    int nSpeed;
+};
+
+class CHealthData {
+public:
+    int nMaxHealth;
+};
+
 class CCharacterData {
 public:
     std::string strId;
     std::string strName;
     std::map<int, std::string> mapAbilityIds;
     std::string modelId;
+    std::optional<CTransformData> optTransformData;
+    std::optional<CNetworkData> optNetworkData;
+    std::optional<CMovementData> optMovementData;
+    std::optional<CHealthData> optHealthData;
 };
 
 class CGameData {

@@ -862,25 +862,20 @@ void Game::TestIntersect(CRenderer* renderer, int mx, int my, float* x, float* y
 }
 
 void Game::SpawnUnit(uint64_t unitId) {
-    SpawnUnit(unitId, 0, Team::TEAM_1, Vector3(0, 0, 0));
+    SpawnUnit(unitId, "", Team::TEAM_1, Vector3(0, 0, 0));
 }
 
-void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos) {
+void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos) {
     if(unitId == my_unit_id_) {
-
-        switch(unit_type) {
-            case UnitPrefab::FOOTBALL_PERSON:
-            case UnitPrefab::STORMCALLER:
-                m_vecAbilities.resize(4);
-                m_vecAbilities[0] = {
-                    .strName = "Thunderstrike",
-                    .hIcon = assetManager_->GetBitmapImage("assets/characters/stormcaller/abilities/thunderstrike_icon.png"),
-                    .eTargetType = EAbilityTargetType::UNIT,
-                };
-                break;
-                break;
-            default:
-                break;
+        const CCharacterData entityData = assetManager_->GetGameData().mapCharacterData.at(entityId);
+        m_vecAbilities.resize(entityData.mapAbilityIds.size());
+        for(auto it : entityData.mapAbilityIds) {
+            const CAbilityData& abilityData = assetManager_->GetGameData().mapAbilityData.at(it.second);
+            m_vecAbilities[it.first] = {
+                .strName = abilityData.strName,
+                .hIcon = assetManager_->GetBitmapImage(abilityData.iconId),
+                .eTargetType = abilityData.eTargetType,
+            }
         }
     }
 

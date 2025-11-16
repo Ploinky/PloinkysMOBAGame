@@ -28,6 +28,26 @@
                     <xs:attribute name="move_speed" type="xs:float" use="optional" />
                 </xs:complexType>
             </xs:element>
+            <xs:element name="transform" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="collision_radius" type="xs:int" use="required" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="network" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="sync_movement" type="xs:boolean" use="required" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="movement" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="speed" type="xs:int" use="required" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="health" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="max_health" type="xs:int" use="required" />
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="id" type="xs:string" use="required"/>
         <xs:attribute name="name" type="xs:string" use="required"/>

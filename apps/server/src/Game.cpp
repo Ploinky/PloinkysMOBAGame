@@ -128,43 +128,19 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
         SendMessageToClient(player->idPlayer, &tick);
     }
 
-    CCharacterData charData = handler_->GetGameData()->mapCharacterData.at("stormcaller");
-
-    CGameObject* pGameObject = new CGameObject();
-    UnitId id = pGameObject->GetId();
-
     // always present
-    GameState.AddTransform(id);
-    GameState.AddNetwork(id, CNetworkComponent(true));
-    GameState.AddMovement(id);
+    UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "stormcaller");
+
     GameState.AddNavigation(id);
-    GameState.AddHealth(id, CHealthComponent(200));
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_1));
-    GameState.AddCharacter(id, CCharacterComponent(UnitPrefab::STORMCALLER));
     GameState.AddBasicAttack(id, CBasicAttackComponent());
 
-    std::vector<SpellSlot_t> vecSpells;
-    vecSpells.resize(4); // TODO this seems like a sane default...
-    for(auto it : charData.mapAbilityIds) {
-        SpellSlot_t spell1;
-        spell1.data = handler_->GetGameData()->mapAbilityData.at(it.second);
-        int index = it.first;
-        if(vecSpells.size() < it.first + 1) {
-            vecSpells.resize(it.first + 1);
-        }
-        vecSpells[it.first] = spell1;
-    }
-    GameState.AddSpellCast(id, CSpellCastComponent(vecSpells));
-
-    AddGameObject(pGameObject);
-
-    
     // inform everybody TODO prettify
     UnitIdPacket packet = UnitIdPacket();
-    packet.unit_id = pGameObject->GetId();
+    packet.unit_id = id;
     std::vector<uint8_t> data;
     packet.Write(&data);
-    player->unit = pGameObject->GetId();
+    player->unit = id;
     SendMessageToClient(player->idPlayer, &data);
 }
 
@@ -234,18 +210,12 @@ void Client::Start() {
         // TODO slot as well!
         AddPlayerForNetworkId(playerIt.second->slot, playerIt.second);
     }
-    CGameObject* pDummy = new CGameObject();
-    UnitId id = pDummy->GetId();
-    GameState.AddTransform(id);
+
+    UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "dummy");
     GameState.GetTransform(id)->SetPosition({2000, 0, -2000});
-    GameState.AddMovement(id);
+    
     GameState.GetMovement(id)->vec3Target = {2000, 0, -2000};
-    GameState.AddNetwork(id, CNetworkComponent(true));
-    GameState.GetNetwork(id)->SetSyncMovement(true);
-    GameState.AddHealth(id, CHealthComponent(100));
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
-    GameState.AddCharacter(id, CCharacterComponent(UnitPrefab::FOOTBALL_PERSON));
-    AddGameObject(pDummy);// TODO need to add him again
 }
 
 void Client::CheckCollision(CGameObject* collider) {

@@ -81,7 +81,7 @@ public:
         {Team::TEAM_2, {{Vector2 {2000, -1000}, 180.0f}}},
     };
 
-
+    UnitId SpawnUnit(const CGameData& gameData, std::string strId);
 private:
     NavigationMap* m_pNavMap;
 };

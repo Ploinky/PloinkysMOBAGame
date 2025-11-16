@@ -75,7 +75,7 @@ public:
     void TestIntersect(CRenderer* renderer, int mx, int my, float* x, float* y);
 
     void SpawnUnit(UnitId id);
-    void SpawnUnit(UnitId unitId, uint64_t unit_type, Team team, Vector3 pos);
+    void SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos);
     void DespawnUnit(UnitId id);
 
     virtual void CharTyped(uint32_t ch) override;
