@@ -2,7 +2,7 @@
 
 #include "common/game/game-state.h"
 
-void IGameSystem::Process(CGameState* pGameState, IGameEvent* pGameEvent) {
+void IGameSystem::Process(IGameState* pGameState, IGameEvent* pGameEvent) {
     auto it = handlers.find(pGameEvent->GetType());
     if (it != handlers.end()) {
         for(auto evtHandler : it->second) {

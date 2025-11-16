@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "SpellTargetInfo.h"
 #include "components/SpellCastComponent.h"
 

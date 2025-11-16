@@ -6,7 +6,6 @@ set(server_out_dir ${out_dir}/"server")
 add_executable(server
 	src/Buff.cpp
 	src/Game.cpp
-	src/GameState.cpp
 	src/LobbyState.cpp
 	src/Main.cpp
 	src/Missile.cpp
@@ -29,6 +28,7 @@ add_executable(server
 	src/events/spell-cast-start-event.cpp
 
 	src/game/wave-manager.cpp
+	src/game/server-game-state.cpp
 
 	src/systems/ai-system.cpp
 	src/systems/attack-system.cpp

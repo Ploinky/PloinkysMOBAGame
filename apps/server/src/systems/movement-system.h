@@ -7,7 +7,7 @@ class CMovementSystem : public ISystem {
 public:
     CMovementSystem();
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
+    virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
-    void OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvt);
+    void OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt);
 };

@@ -3,8 +3,9 @@
 #include "GameObject.h"
 #include "components/Components.h"
 #include "events.h"
+#include "game/server-game-state.h"
 
-CSpellCastApi::CSpellCastApi(CGameState* pGameState) {
+CSpellCastApi::CSpellCastApi(CServerGameState* pGameState) {
     m_pGameState = pGameState;
 }
 

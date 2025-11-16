@@ -1,7 +1,8 @@
 #include "spell-system.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "SpellTargetInfo.h"
+#include "spell-cast-api.h"
 
 CSpellSystem::CSpellSystem() {
     REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellAttemptCast);
@@ -9,7 +10,7 @@ CSpellSystem::CSpellSystem() {
     REGISTER_EVENT_HANDLER(CAttackIntentionEvent, OnAttackIntention);
 }
 
-void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
+void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> pGameObj : pGameState->GameObjects) {
         CSpellCastComponent* pSpellComp = pGameObj.second->GetComponent<CSpellCastComponent>();
 
@@ -102,7 +103,7 @@ void CSpellSystem::Update(CGameState* pGameState, float fDelta) {
     }
 }
 
-void CSpellSystem::OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastEvent* pCastAttemptEvent) {
+void CSpellSystem::OnSpellAttemptCast(CServerGameState* pGameState, CSpellAttemptCastEvent* pCastAttemptEvent) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pCastAttemptEvent->m_idCaster);
 
     if(pCaster == nullptr) {
@@ -124,14 +125,14 @@ void CSpellSystem::OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastE
         return;
     }
 
-    CSpellCastContext* pSpellCtx = new CSpellCastContext(pGameState);
+    CSpellCastContext* pSpellCtx = new CSpellCastContext();
     pSpellCtx->idCaster = pCastAttemptEvent->m_idCaster;
     pSpellCtx->idTarget = pCastAttemptEvent->m_targetInfo.target;
     pSpellCtx->nSpellIndex = pCastAttemptEvent->m_nIndex;
     TryCastSpell(pGameState, pSpellCtx);
 }
 
-void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent) {
+void CSpellSystem::OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pCastEvent) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pCastEvent->m_spellCtx->idCaster);
 
     if(pCaster == nullptr) {
@@ -154,7 +155,7 @@ void CSpellSystem::OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEve
     }
 }
 
-void CSpellSystem::SpellHit(CGameState* pGameState, CSpellCastContext* pCtx) {
+void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCtx) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pCtx->idCaster);
 
     CSpellCastComponent* pSpellComp = pCaster->GetComponent<CSpellCastComponent>();
@@ -168,7 +169,7 @@ void CSpellSystem::SpellHit(CGameState* pGameState, CSpellCastContext* pCtx) {
     pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));
 }
 
-void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpellCtx) {
+void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext* pSpellCtx) {
     CGameObject* pCaster = pGameState->FindGameObjectById(pSpellCtx->idCaster);
     CGameObject* pTarget = pGameState->FindGameObjectById(pSpellCtx->idTarget);
 
@@ -210,7 +211,7 @@ void CSpellSystem::TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpel
 }
 
 
-void CSpellSystem::OnAttackIntention(CGameState* pGameState, CAttackIntentionEvent* pEvt) {
+void CSpellSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt) {
     CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idUnit);
 
     if(pAttacker == nullptr) {
@@ -228,7 +229,7 @@ void CSpellSystem::OnAttackIntention(CGameState* pGameState, CAttackIntentionEve
 }
 
 
-void CSpellSystem::OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvent) {
+void CSpellSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvent) {
     CGameObject* pDead = pGameState->FindGameObjectById(pDeathEvent->idTarget);
 
     if(pDead == nullptr) {

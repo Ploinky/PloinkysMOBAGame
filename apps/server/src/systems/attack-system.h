@@ -4,15 +4,17 @@
 #include "events.h"
 #include "components/Components.h"
 
+class CServerGameState;
+
 class CAttackSystem : public ISystem {
 public:
     CAttackSystem();
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
-    virtual void Finalize(CGameState* pGameState) override;
+    virtual void Update(CServerGameState* pGameState, float fDelta) override;
+    virtual void Finalize(CServerGameState* pGameState) override;
 
-    void OnAttackIntention(CGameState* pGameState, CAttackIntentionEvent* pEvt);
-    void OnAttackHit(CGameState* pGameState, CAttackHitEvent* pEvt);
-    void OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent* pEvt);
-    void OnSpellCastAttempt(CGameState* pGameState, CSpellAttemptCastEvent* pEvt);
+    void OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt);
+    void OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt);
+    void OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt);
+    void OnSpellCastAttempt(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt);
 };

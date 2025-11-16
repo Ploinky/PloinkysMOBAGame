@@ -4,10 +4,12 @@
 #include <functional>
 #include <typeindex>
 
+#ifndef REGISTER_EVENT_HANDLER
 #define REGISTER_EVENT_HANDLER(EventType, Method) \
-    RegisterHandler<EventType>([this](CGameState* state, EventType* e) { this->Method(state, e); });
+    RegisterHandler<EventType>([this](CServerGameState* state, EventType* e) { this->Method(state, e); });
+#endif
 
-class CGameState;
+class CServerGameState;
 class IGameEvent;
 
 
@@ -15,21 +17,21 @@ class ISystem {
 public:
     virtual ~ISystem() = default;
 
-    virtual void Update(CGameState* pGameState, float fDelta) {};
-    void Process(CGameState* pGameState, IGameEvent* pGameEvent);
-    virtual void Finalize(CGameState* pGameState) {};
+    virtual void Update(CServerGameState* pGameState, float fDelta) {};
+    void Process(CServerGameState* pGameState, IGameEvent* pGameEvent);
+    virtual void Finalize(CServerGameState* pGameState) {};
 
 protected:
-    using HandlerFunc = std::function<void(CGameState*, IGameEvent*)>;
+    using HandlerFunc = std::function<void(CServerGameState*, IGameEvent*)>;
     std::unordered_map<std::type_index, std::vector<HandlerFunc>> handlers;
 
     template<typename TEvent>
-    void RegisterHandler(std::function<void(CGameState*, TEvent*)> func) {
+    void RegisterHandler(std::function<void(CServerGameState*, TEvent*)> func) {
         if(!handlers.contains(typeid(TEvent))) {
             handlers.emplace(typeid(TEvent), std::vector<HandlerFunc>());
         }
 
-        handlers[typeid(TEvent)].push_back([func](CGameState* state, IGameEvent* baseEvt) {
+        handlers[typeid(TEvent)].push_back([func](CServerGameState* state, IGameEvent* baseEvt) {
             func(state, static_cast<TEvent*>(baseEvt));
         });
     }

@@ -1,5 +1,7 @@
 #include "systems/attack-system.h"
 
+#include <game/server-game-state.h>
+
 CAttackSystem::CAttackSystem() {
     REGISTER_EVENT_HANDLER(CAttackIntentionEvent, OnAttackIntention)
     REGISTER_EVENT_HANDLER(CAttackHitEvent, OnAttackHit)
@@ -7,7 +9,7 @@ CAttackSystem::CAttackSystem() {
     REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellCastAttempt)
 }
 
-void CAttackSystem::Update(CGameState* pGameState, float fDelta) {
+void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> pGameObj : pGameState->GameObjects) {
         CBasicAttackComponent* pAttackComp = pGameObj.second->GetComponent<CBasicAttackComponent>();
 
@@ -92,11 +94,11 @@ void CAttackSystem::Update(CGameState* pGameState, float fDelta) {
     }
 }
 
-void CAttackSystem::Finalize(CGameState* pGameState) {
+void CAttackSystem::Finalize(CServerGameState* pGameState) {
 
 }
 
-void CAttackSystem::OnAttackIntention(CGameState* pGameState, CAttackIntentionEvent* pEvt) {
+void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt) {
     CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idUnit);
     CGameObject* pTarget = pGameState->FindGameObjectById(pEvt->idTarget);
 
@@ -127,7 +129,7 @@ void CAttackSystem::OnAttackIntention(CGameState* pGameState, CAttackIntentionEv
     pAttackComp->optCurrentAttack.emplace(activeAttack);
 }
 
-void CAttackSystem::OnAttackHit(CGameState* pGameState, CAttackHitEvent* pEvt) {
+void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt) {
     CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idAttacker);
     CGameObject* pTarget = pGameState->FindGameObjectById(pEvt->idTarget);
 
@@ -153,7 +155,7 @@ void CAttackSystem::OnAttackHit(CGameState* pGameState, CAttackHitEvent* pEvt) {
 
 }
 
-void CAttackSystem::OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent* pEvt) {
+void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt) {
     // CBasicAttackComponent* pAttackComp = pGameState->FindGameObjectById(pEvt->idUnit)->GetComponent<CBasicAttackComponent>();
     // 
     // if(pAttackComp && pAttackComp->optCurrentAttack.has_value()) {
@@ -162,7 +164,7 @@ void CAttackSystem::OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent*
     // }
 }
 
-void CAttackSystem::OnSpellCastAttempt(CGameState* pGameState, CSpellAttemptCastEvent* pEvt) {
+void CAttackSystem::OnSpellCastAttempt(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt) {
     CBasicAttackComponent* pAttackComp = pGameState->FindGameObjectById(pEvt->m_idCaster)->GetComponent<CBasicAttackComponent>();
     
     if(pAttackComp && pAttackComp->optCurrentAttack.has_value()) {

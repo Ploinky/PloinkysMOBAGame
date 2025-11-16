@@ -12,7 +12,6 @@
 #include "GameObject.h"
 #include <common/PMG_Common.h>
 #include <Buff.h>
-#include <GameState.h>
 
 #include "systems/NetworkSystem.h"
 #include "systems/damage-system.h"
@@ -20,6 +19,8 @@
 #include "systems/movement-system.h"
 
 #include "game/wave-manager.h"
+
+#include <game/server-game-state.h>
 
 class Missile;
 static uint64_t current_network_id_ = 0;
@@ -99,7 +100,7 @@ public:
     NavigationMap* m_navMap;
 
     std::vector<std::vector<uint8_t>> all_ticks;
-    CGameState GameState;
+    CServerGameState GameState;
 
 
     void SendMessageToClient(PlayerID playerId, std::vector<uint8_t>* packet) {

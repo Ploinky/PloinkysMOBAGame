@@ -1,8 +1,9 @@
 #include "wave-manager.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "GameObject.h"
 #include "components/Components.h"
+#include <game/server-game-state.h>
 
 #define SPAWN_INTERVAL 30000
 
@@ -10,7 +11,7 @@ CWaveManager::CWaveManager() {
     fTimeSinceLastSpawn = 30000;
 }
 
-void CWaveManager::Update(CGameState* pGameState, float fDelta) {
+void CWaveManager::Update(CServerGameState* pGameState, float fDelta) {
     fTimeSinceLastSpawn += fDelta;
 
     if(fTimeSinceLastSpawn < SPAWN_INTERVAL) {

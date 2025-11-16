@@ -1,7 +1,5 @@
 #include "Components.h"
 
-#include "GameState.h"
-
 CNavigationComponent::CNavigationComponent() {
     m_vec3Destination = Vector3::ZERO;
     m_pNavGridAgent = nullptr;

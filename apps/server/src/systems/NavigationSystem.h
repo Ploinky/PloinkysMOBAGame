@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GameState.h>
+#include <game/server-game-state.h>
 #include "system.h"
 #include "events.h"
 
@@ -10,11 +10,11 @@ class CNavigationSystem : public ISystem{
 public:
     CNavigationSystem(NavigationMap* pMap);
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
+    virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
-    void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvent);
-    void OnMoveAttempt(CGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent);
-    void OnAttackStart(CGameState* pGameState, CAttackStartEvent* pEvt);
+    void OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent);
+    void OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent);
+    void OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt);
 
 private:
     NavigationMap* m_pMap;

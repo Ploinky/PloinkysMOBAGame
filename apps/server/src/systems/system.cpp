@@ -1,8 +1,8 @@
 #include "system.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 
-void ISystem::Process(CGameState* pGameState, IGameEvent* pGameEvent) {
+void ISystem::Process(CServerGameState* pGameState, IGameEvent* pGameEvent) {
     auto it = handlers.find(pGameEvent->GetType());
     if (it != handlers.end()) {
         for(auto evtHandler : it->second) {

@@ -4,7 +4,7 @@ CRespawnSystem::CRespawnSystem() {
 
 }
 
-void CRespawnSystem::Update(CGameState* pGameState, float fDelta) {
+void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
         CGameObject* pGameObject = goPair.second;
 

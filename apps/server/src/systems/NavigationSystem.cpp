@@ -1,6 +1,6 @@
 #include "NavigationSystem.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "common/navigation.h"
 #include "components/Components.h"
 #include "events.h"
@@ -12,7 +12,7 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart);
 }
 
-void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
+void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
         CGameObject* pGameObject = goPair.second;
 
@@ -91,7 +91,7 @@ void CNavigationSystem::Update(CGameState* pGameState, float fDelta) {
     }
 }
 
-void CNavigationSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
+void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pCastStartEvent->pCtx->idCaster);
 
     CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
@@ -105,7 +105,7 @@ void CNavigationSystem::OnSpellCastStart(CGameState* pGameState, CSpellCastStart
 }
 
 
-void CNavigationSystem::OnAttackStart(CGameState* pGameState, CAttackStartEvent* pEvt) {
+void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pEvt->idAttacker);
 
     CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
@@ -116,7 +116,7 @@ void CNavigationSystem::OnAttackStart(CGameState* pGameState, CAttackStartEvent*
 
     pNavComp->StopNavigation();
 }
-void CNavigationSystem::OnMoveAttempt(CGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
+void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pMoveAttemptEvent->idUnit);
     CNavigationComponent* pNavComp = pGameObject->GetComponent<CNavigationComponent>();
 

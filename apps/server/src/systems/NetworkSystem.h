@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NetworkManager.h"
-#include <GameState.h>
+#include <game/server-game-state.h>
 #include "system.h"
 #include "events.h"
 
@@ -10,18 +10,18 @@ public:
     CNetworkSystem(ServerNetworkManager* pManager);
     ~CNetworkSystem();
 
-    void SyncGameState(CGameState* pGameState);
+    void SyncGameState(CServerGameState* pGameState);
 
-    void OnSpellCastStart(CGameState* pGameState, CSpellCastStartEvent* pEvt);
-    void OnSpellhit(CGameState* pGameState, CSpellHitEvent* pEvt);
-    void OnDeath(CGameState* pGameState, CDeathEvent* pEvt);
-    void OnRespawn(CGameState* pGameState, CRespawnEvent* pEvt);
-    void OnMove(CGameState* pGameState, CMoveEvent* pEvt);
-    void OnMoveIntention(CGameState* pGameState, CMoveIntentionEvent* pEvt);
-    void OnCooldownStarted(CGameState* pGameState, CCooldownStartedEvent* pEvt);
-    void OnAttackStart(CGameState* pGameState, CAttackStartEvent* pEvt);
-    void OnAttackHit(CGameState* pGameState, CAttackHitEvent* pEvt);
-    void OnAttackFinished(CGameState* pGameState, CAttackFinishedEvent* pEvt);
+    void OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pEvt);
+    void OnSpellhit(CServerGameState* pGameState, CSpellHitEvent* pEvt);
+    void OnDeath(CServerGameState* pGameState, CDeathEvent* pEvt);
+    void OnRespawn(CServerGameState* pGameState, CRespawnEvent* pEvt);
+    void OnMove(CServerGameState* pGameState, CMoveEvent* pEvt);
+    void OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt);
+    void OnCooldownStarted(CServerGameState* pGameState, CCooldownStartedEvent* pEvt);
+    void OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt);
+    void OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt);
+    void OnAttackFinished(CServerGameState* pGameState, CAttackFinishedEvent* pEvt);
 
 private:
     ServerNetworkManager* m_pNetworkManager;

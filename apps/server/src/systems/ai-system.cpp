@@ -1,10 +1,10 @@
 #include "ai-system.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "GameObject.h"
 #include "components/Components.h"
 
-void CAiSystem::Update(CGameState* pGameState, float fDelta) {
+void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(auto goPair : pGameState->GameObjects) {
         CGameObject* go = goPair.second;
 

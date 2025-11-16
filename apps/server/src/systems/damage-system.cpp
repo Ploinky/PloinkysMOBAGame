@@ -1,6 +1,6 @@
 #include "damage-system.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "events/damage-event.h"
 #include "events/heal-event.h"
 #include "events.h"
@@ -13,12 +13,12 @@ CDamageSystem::CDamageSystem() {
     REGISTER_EVENT_HANDLER(CHealEvent, OnUnitHealed);
 }
 
-void CDamageSystem::Update(CGameState* pGameState, float fDelta) { 
+void CDamageSystem::Update(CServerGameState* pGameState, float fDelta) { 
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
     }
 }
 
-void CDamageSystem::Finalize(CGameState* pGameState) {
+void CDamageSystem::Finalize(CServerGameState* pGameState) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
         CGameObject* pGameObject = goPair.second;
 
@@ -45,7 +45,7 @@ void CDamageSystem::Finalize(CGameState* pGameState) {
     }
 }
 
-void CDamageSystem::OnUnitDamaged(CGameState* pGameState, CDamageEvent* dmgEvt) {
+void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dmgEvt) {
     CGameObject* pSource = pGameState->FindGameObjectById(dmgEvt->m_idSource);
     CGameObject* pTarget = pGameState->FindGameObjectById(dmgEvt->m_idTarget);
 
@@ -68,7 +68,7 @@ void CDamageSystem::OnUnitDamaged(CGameState* pGameState, CDamageEvent* dmgEvt) 
     pHealthComponent->nHealth -= dmgEvt->m_nDamage;
 }
 
-void CDamageSystem::OnUnitHealed(CGameState* pGameState, CHealEvent* healEvt) {
+void CDamageSystem::OnUnitHealed(CServerGameState* pGameState, CHealEvent* healEvt) {
     CGameObject* pSource = pGameState->FindGameObjectById(healEvt->m_idSource);
     CGameObject* pTarget = pGameState->FindGameObjectById(healEvt->m_idTarget);
 

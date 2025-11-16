@@ -1,6 +1,6 @@
 #include "movement-system.h"
 
-#include "GameState.h"
+#include "game/server-game-state.h"
 #include "GameObject.h"
 #include "components/Components.h"
 #include "events.h"
@@ -9,7 +9,7 @@ CMovementSystem::CMovementSystem() {
     REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
 }
 
-void CMovementSystem::Update(CGameState* pGameState, float fDelta) {
+void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
         CGameObject* pGameObject = goPair.second;
 
@@ -55,7 +55,7 @@ void CMovementSystem::Update(CGameState* pGameState, float fDelta) {
     }
 }
 
-void CMovementSystem::OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvt) {
+void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
     CGameObject* pGameObject = pGameState->FindGameObjectById(pDeathEvt->idTarget);
 
     CMovementComponent* pMoveComp = pGameObject->GetComponent<CMovementComponent>();

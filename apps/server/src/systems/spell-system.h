@@ -9,16 +9,16 @@ class CSpellSystem : public ISystem {
 public:
     CSpellSystem();
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
+    virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
-    void OnSpellAttemptCast(CGameState* pGameState, CSpellAttemptCastEvent* pEvt);
-    void OnSpellCast(CGameState* pGameState, CSpellCastEvent* pCastEvent);
+    void OnSpellAttemptCast(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt);
+    void OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pCastEvent);
     
-    void OnAttackIntention(CGameState* pGameState, CAttackIntentionEvent* pCastEvent);
-    void OnDeath(CGameState* pGameState, CDeathEvent* pDeathEvent);
+    void OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pCastEvent);
+    void OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvent);
 
 private:
-    void TryCastSpell(CGameState* pGameState, CSpellCastContext* pSpellContext);
+    void TryCastSpell(CServerGameState* pGameState, CSpellCastContext* pSpellContext);
 
-    void SpellHit(CGameState* pGameState, CSpellCastContext* pCtx);
+    void SpellHit(CServerGameState* pGameState, CSpellCastContext* pCtx);
 };

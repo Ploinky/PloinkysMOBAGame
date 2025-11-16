@@ -1,12 +1,12 @@
 #pragma once
 
-class CGameState;
+class CServerGameState;
 
 class CWaveManager {
 public:
     CWaveManager();
 
-    void Update(CGameState* pGameState, float fDelta);
+    void Update(CServerGameState* pGameState, float fDelta);
 
 private:
     float fTimeSinceLastSpawn;

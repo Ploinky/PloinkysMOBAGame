@@ -10,7 +10,7 @@ public:
     virtual std::type_index GetType() const = 0;
 };
 
-class CGameState {
+class IGameState {
 public:
     template <typename T>
     T* GetComponent(UnitId idUnit) {
@@ -47,7 +47,6 @@ public:
         static std::unordered_map<UnitId, T> map;
         return map;
     }
-
 
     std::vector<IGameSystem*> m_vecGameSystems;
 };
