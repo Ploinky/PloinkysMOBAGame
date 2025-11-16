@@ -12,7 +12,7 @@
 #include "Renderer.h"
 #include <Model.h>
 #include "client-asset-manager.h"
-#include "common/game/game-state.h"
+#include "game/client-game-state.h"
 #include "AudioSystem.h"
 
 class NavMesh;
@@ -93,7 +93,7 @@ public:
     std::map<UnitId, GameObject*> game_objects_;
     std::vector<ParticleEffect*> m_vecGlobalParticles;
 
-    CGameState m_gameState;
+    CClientGameState m_gameState;
 
     NavMesh* m_navMesh;
     NavigationCellGrid* m_navGrid;

@@ -70,10 +70,10 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
 	// bitmaps_.emplace("MissingTexture", CreateBitmapFromData(pAssetManager->LoadFile("Generic/missing_texture.bmp")));
 
 	// ------------ IMAGES ------------
-	m_pAssetManager->LoadTexture("data/UI/move-to/move_to.png");
-	m_pAssetManager->LoadTexture("data/Persons/chess_person/blast_area.png");
-	m_pAssetManager->LoadTexture("data/Persons/chess_person/particle.png");
-	m_pAssetManager->LoadTexture("data/characters/stormcaller/abilities/stormbolt.png");
+	m_pAssetManager->LoadTexture("assets/UI/move-to/move_to.png");
+	m_pAssetManager->LoadTexture("assets/Persons/chess_person/blast_area.png");
+	m_pAssetManager->LoadTexture("assets/Persons/chess_person/particle.png");
+	m_pAssetManager->LoadTexture("assets/characters/stormcaller/abilities/stormbolt.png");
 
 #ifdef NAV_DEBUG
 	FlatUnlitShaderVertex_t vertices[4] = {
@@ -752,7 +752,7 @@ void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
 	Submit(cmd);
 }
 
-void CRenderer::Render(CGameState* pGameState) {
+void CRenderer::Render(CClientGameState* pGameState) {
 	for(UnitId idUnit : pGameState->vecUnits) {
 		if(RenderableComponent_t* pRenderable = pGameState->GetComponent<RenderableComponent_t>(idUnit)) {
 			

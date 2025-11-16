@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/game/game-state.h"
+#include "game/client-game-state.h"
 
 #include "client-asset-manager.h"
 

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "common/game/game-system.h"
+#include "game/client-game-system.h"
 #include "client-asset-manager.h"
 
-class CParticleSystem : public IGameSystem {
+class CParticleSystem : public ISystem {
 public:
     CParticleSystem(CClientAssetManager* pAssetManager);
 
-    virtual void Update(CGameState* pGameState, float fDelta) override;
+    virtual void Update(CClientGameState* pGameState, float fDelta) override;
 
 private:
     CClientAssetManager* m_pAssetManager;

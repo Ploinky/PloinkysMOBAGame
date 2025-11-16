@@ -17,7 +17,7 @@
 #include <common/navigation.h>
 #include "client-asset-manager.h"
 #include "core/rendering/render-command.h"
-#include "common/game/game-state.h"
+#include "game/client-game-state.h"
 
 class GameObject;
 class ParticleEffect;
@@ -68,7 +68,7 @@ public:
 
     void DrawMap();
 
-    void Render(CGameState* pGameState);
+    void Render(CClientGameState* pGameState);
 
     void ClearScreen();
     void Present();

@@ -29,7 +29,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     }
     
 #ifndef _DEBUG
-    assetManager->LoadPakFile("data/maps/map1.pak");
+    assetManager->LoadPakFile("assets/maps/map1.pak");
 #endif
 
     m_navMesh = new NavMesh();

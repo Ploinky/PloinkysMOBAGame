@@ -237,7 +237,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         }
 
         // TODO react to event instead of this?
-        ParticleEffect* particle_system = ParticleEffect::Load("data/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
+        ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
         particle_system->Attach(go);
 
         if(!m_gameState.GetComponent<ParticleComponent_t>(go->unit_id)) {
@@ -297,10 +297,10 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     // TODO
     m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());
-    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("data/persons/shared/ability-icon.bmp");
-    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("data/characters/stormcaller/abilities/thunderstrike.wav");
-    m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("data/characters/stormcaller/death.wav");
-    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("data/characters/stormcaller/attack.wav");
+    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("assets/persons/shared/ability-icon.bmp");
+    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/abilities/thunderstrike.wav");
+    m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/death.wav");
+    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/attack.wav");
 
     m_gameState.AddSystem(m_pAudioSystem);
     m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
@@ -874,7 +874,7 @@ void Game::SpawnUnit(uint64_t unitId, uint64_t unit_type, Team team, Vector3 pos
                 m_vecAbilities.resize(4);
                 m_vecAbilities[0] = {
                     .strName = "Thunderstrike",
-                    .hIcon = assetManager_->GetBitmapImage("data/characters/stormcaller/abilities/thunderstrike_icon.png"),
+                    .hIcon = assetManager_->GetBitmapImage("assets/characters/stormcaller/abilities/thunderstrike_icon.png"),
                     .eTargetType = EAbilityTargetType::UNIT,
                 };
                 break;
@@ -1273,7 +1273,7 @@ void Game::Action(EInputAction eAction) {
             mv.y = y;
             net_manager_->SendPacket(&mv);
 
-            ParticleEffect* particle_system = ParticleEffect::Load("data/UI/move-to/move_to.pts", assetManager_);
+            ParticleEffect* particle_system = ParticleEffect::Load("assets/UI/move-to/move_to.pts", assetManager_);
             particle_system->position = { x, 0, y };
             m_vecGlobalParticles.push_back(particle_system);
 

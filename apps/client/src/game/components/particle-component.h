@@ -1,6 +1,8 @@
 #pragma once
 
-#include "ParticleEffect.h"
+#include <vector>
+
+class ParticleEffect;
 
 typedef struct {
     std::vector<ParticleEffect*> vecEffects;

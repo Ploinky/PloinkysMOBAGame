@@ -17,7 +17,7 @@ void AudioSystem::PlaySoundOnUnit(HSound hSound, UnitId idUnit) {
     HVoice hVoice = m_pEngine->CreateVoice(hSound);
 }
 
-void AudioSystem::Update(CGameState* pGameState, float fDelta) {
+void AudioSystem::Update(CClientGameState* pGameState, float fDelta) {
     for(UnitId idUnit : pGameState->vecUnits) {
         if(AudioEmitterComponent_t* pEmitterComp = pGameState->GetComponent<AudioEmitterComponent_t>(idUnit)) {
             if(TransformComponent_t* pTransformComp = pGameState->GetComponent<TransformComponent_t>(idUnit)) {
@@ -33,7 +33,7 @@ void AudioSystem::SetListenerPosition(Vector3 vec3LisPos) {
     m_pEngine->SetListenerPosition(vec3LisPos);
 }
 
-void AudioSystem::OnSpellHit(CGameState* pGameState, CSpellHitEvent* pHitEvent) {
+void AudioSystem::OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* pHitEvent) {
     HVoice hVoice = m_pEngine->CreateVoice(pHitEvent->hSound);
 
     AudioEmitterComponent_t* pEmitterComp = pGameState->GetComponent<AudioEmitterComponent_t>(pHitEvent->idUnit);
@@ -42,7 +42,7 @@ void AudioSystem::OnSpellHit(CGameState* pGameState, CSpellHitEvent* pHitEvent) 
     }
 }
 
-void AudioSystem::OnAttackStart(CGameState* pGameState, CAttackStartEvent* pHitEvent) {
+void AudioSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pHitEvent) {
     HVoice hVoice = m_pEngine->CreateVoice(pHitEvent->hSound);
 
     AudioEmitterComponent_t* pEmitterComp = pGameState->GetComponent<AudioEmitterComponent_t>(pHitEvent->idUnit);

@@ -1,6 +1,6 @@
 #include "animation-system.h"
 
-#include "common/game/game-state.h"
+#include "game/client-game-state.h"
 #include "game/components/components.h"
 #include "Model.h"
 
@@ -38,7 +38,7 @@ void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& boneP
 	}
 }
 
-void CAnimationSystem::Update(CGameState* pGameState, float fDelta) {
+void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
     for(const UnitId& id : pGameState->vecUnits) {
         AnimationComponent_t* pAnimComp = pGameState->GetComponent<AnimationComponent_t>(id);
         RenderableComponent_t* pRendercomp = pGameState->GetComponent<RenderableComponent_t>(id);

@@ -1,15 +1,16 @@
 #include "particle-system.h"
 
-#include "common/game/game-state.h"
+#include "game/client-game-state.h"
 #include "game/components/components.h"
 #include "Model.h"
 #include "ParticleEmitter.h"
+#include "ParticleEffect.h"
 
 CParticleSystem::CParticleSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
 }
 
-void CParticleSystem::Update(CGameState* pGameState, float fDelta) {
+void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
     for(const UnitId& id : pGameState->vecUnits) {
         ParticleComponent_t* pParticleComp = pGameState->GetComponent<ParticleComponent_t>(id);
 
