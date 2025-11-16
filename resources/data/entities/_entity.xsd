@@ -14,7 +14,14 @@
                         <xs:element name="ability" minOccurs="0" maxOccurs="1">
                             <xs:complexType>
                                 <xs:attribute name="id" type="xs:string" use="required" />
-                                <xs:attribute name="slot" type="xs:int" use="required" />
+                                <xs:attribute name="slot" use="required">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:integer">
+                                            <xs:minInclusive value="0"/>
+                                            <xs:maxInclusive value="3"/>
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>

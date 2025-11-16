@@ -21,7 +21,7 @@ CGameData CServerDataLoader::LoadManifest() {
             continue;
         }
 
-        pugi::xml_node ability = doc.child("ability_data");
+        pugi::xml_node ability = doc.child("ability");
         if(ability) {
             CAbilityData abilityData = LoadAbility(ability);
             gameData.mapAbilityData.emplace(abilityData.strId, abilityData);

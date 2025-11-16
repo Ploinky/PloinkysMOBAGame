@@ -144,9 +144,16 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     GameState.AddBasicAttack(id, CBasicAttackComponent());
 
     std::vector<SpellSlot_t> vecSpells;
-    SpellSlot_t spell1;
-    spell1.data = handler_->GetGameData()->mapAbilityData.at(charData.mapAbilityIds.at(0));
-    vecSpells.push_back(spell1);
+    vecSpells.resize(4); // TODO this seems like a sane default...
+    for(auto it : charData.mapAbilityIds) {
+        SpellSlot_t spell1;
+        spell1.data = handler_->GetGameData()->mapAbilityData.at(it.second);
+        int index = it.first;
+        if(vecSpells.size() < it.first + 1) {
+            vecSpells.resize(it.first + 1);
+        }
+        vecSpells[it.first] = spell1;
+    }
     GameState.AddSpellCast(id, CSpellCastComponent(vecSpells));
 
     AddGameObject(pGameObject);

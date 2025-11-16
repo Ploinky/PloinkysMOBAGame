@@ -11,7 +11,7 @@
     <abilities>
         <ability
             id="stormbolt"
-            slot="0"
+            slot="3"
         />
     </abilities>
 </entity>
