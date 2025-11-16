@@ -19,7 +19,6 @@
 #include <paklib/pak-file-table-entry.h>
 #include <paklib/pak-header.h>
 #include <paklib/pak-util.h>
-#include "projection.h"
 #include "quaternion.h"
 #include "ray.h"
 #include "sphere.h"

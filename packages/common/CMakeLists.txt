@@ -8,7 +8,6 @@ add_library(common
 	src/JSONValue.cpp
 	src/logger.cpp
 	src/navigation.cpp
-	src/projection.cpp
 	src/ray.cpp
 	src/sphere.cpp
 	src/util.cpp

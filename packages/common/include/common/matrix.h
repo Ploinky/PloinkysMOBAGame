@@ -186,32 +186,21 @@ inline mat_t PMathMatRotation(const mat_t& mat, const Quaternion& q) {
 }
 
 inline mat_t PMathMatRotation(float yaw, float pitch, float roll) {
-    const float halfC = (float)(M_PI / 180.0f);
+    yaw = ToRadians(yaw);
+    pitch = ToRadians(pitch);
+    roll = ToRadians(roll);
 
-    yaw *= halfC;
-    pitch *= halfC;
-    roll *= halfC;
+    float cy = cosf(yaw);
+    float sy = sinf(yaw);
+    float cp = cosf(pitch);
+    float sp = sinf(pitch);
+    float cr = cosf(roll);
+    float sr = sinf(roll);
 
     return {
-        {
-        {
-            cosf(yaw) * cosf(pitch),
-            cosf(yaw) * sinf(pitch) * sinf(roll) - sinf(yaw) * cosf(roll),
-            cosf(yaw) * sinf(pitch) * cosf(roll) + sinf(yaw) * sinf(roll),
-            0
-        },
-        {
-            sinf(yaw) * cosf(pitch),
-            sinf(yaw) * sinf(pitch) * sinf(roll) + cosf(yaw) * cosf(roll),
-            sinf(yaw) * sinf(pitch) * cosf(roll) - cosf(yaw) * sinf(roll),
-            0
-        },
-        {
-            -sinf(pitch),
-            cosf(pitch) * sinf(roll),
-            cosf(pitch) * cosf(roll),
-            0
-        },
+        {{cy*cr + sy*sp*sr, -cy*sr + sy*sp*cr, sy*cp, 0},
+        {sr*cp, cr*cp, -sp, 0},
+        {-sy*cr + cy*sp*sr, sy*sr + cy*sp*cr, cy*cp, 0},
         {0, 0, 0, 1}
         }
     };
@@ -404,8 +393,34 @@ inline mat_t PMathMatPerspectiveRH(float fovV, float aspect, float nearZ, float 
 
     // z mapping
     m.m[2][2] = farZ / (nearZ - farZ);
-    m.m[3][2] = (farZ * nearZ) / (nearZ - farZ);
-    m.m[2][3] = -1.0f;
+    m.m[2][3] = (farZ * nearZ) / (nearZ - farZ);
+    m.m[3][2] = -1.0f;
+
+    return m;
+}
+
+/**
+ * Creates the inverse of a perspective projection matrix for a right handed coordinate system.
+ * Assumes NDCz = [0, 1]!
+ * @param fovV Vertical field of view of the camera in degrees
+ * @param aspect Aspect ratio of the viewing plane
+ * @param nearZ Distance to the near viewing plane from the camera
+ * @param farZ Distance to the far viewing plane from the camrea
+ */
+inline mat_t PMathMatPerspectiveRHInverse(float fovV, float aspect, float nearZ, float farZ) {
+    float halfFovV = fovV / 2.0f;
+    float yScale = 1.0f / tanf(halfFovV);
+    float xScale = yScale / aspect;
+    mat_t m {};
+
+    // scale
+    m.m[0][0] = 1 / xScale;
+    m.m[1][1] = 1 / yScale;
+
+    // z mapping
+    m.m[2][3] = -1;
+    m.m[3][2] = (farZ - nearZ) / (farZ * nearZ);
+    m.m[3][3] = farZ / nearZ;
 
     return m;
 }
