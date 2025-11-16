@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- All character data -->
-<character_data
+
+<entity
+    xmlns="https://ploinky.de/mySchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://ploinky.de/mySchema _entity.xsd"
     id="stormcaller"
     name="stormcaller"
     model="stormcaller"
@@ -11,5 +14,4 @@
             slot="0"
         />
     </abilities>
-</character_data>
-
+</entity>

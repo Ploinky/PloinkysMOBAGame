@@ -13,7 +13,7 @@ CGameData CServerDataLoader::LoadManifest() {
     for(std::string fileName : GetFileNamesByExtension("data", ".xml")) {
         pugi::xml_document doc = LoadXMLFile(fileName);
 
-        pugi::xml_node character = doc.child("character_data");
+        pugi::xml_node character = doc.child("entity");
         if(character) {
             CCharacterData charData = LoadCharacter(character);
             gameData.mapCharacterData.emplace(charData.strId, charData);
