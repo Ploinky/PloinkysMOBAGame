@@ -76,5 +76,10 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         healthComp->nMaxHealth = entityData.optHealthData.value().nMaxHealth;
     }
 
+    // ==================== NAVIGATION COMPONENT ====================
+    if(entityData.optNavigationData.has_value()) {
+        AddNavigation(id);
+    }
+
     return id;
 }

@@ -217,6 +217,12 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         charData.optHealthData.emplace(healthData);
     }
 
+    pugi::xml_node navigationNode = charDataNode.child("navigation");
+    if(navigationNode) {
+        CNavigationData navigationData{};
+        charData.optNavigationData.emplace(navigationData);
+    }
+
     return charData;
 }
 

@@ -26,7 +26,6 @@ void CWaveManager::Update(CServerGameState* pGameState, float fDelta) {
     pGameState->AddTeam(id, CTeamComponent(Team::TEAM_1));
     pGameState->AddIntent(id);
     pGameState->AddAi(id);
-    pGameState->AddNavigation(id);
     pGameState->GetAi(id)->eType = EAiType::MINION;
     pGameState->GetAi(id)->vecWaypoints.push_back({3000, 0, -2000});
 }

@@ -68,6 +68,10 @@ public:
     int nMaxHealth;
 };
 
+class CNavigationData {
+
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -78,6 +82,7 @@ public:
     std::optional<CNetworkData> optNetworkData;
     std::optional<CMovementData> optMovementData;
     std::optional<CHealthData> optHealthData;
+    std::optional<CNavigationData> optNavigationData;
 };
 
 class CGameData {

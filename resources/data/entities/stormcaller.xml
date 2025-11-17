@@ -18,4 +18,5 @@
     <network sync_movement="true" />
     <movement speed="300" />
     <health max_health="200" />
+    <navigation />
 </entity>

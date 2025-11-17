@@ -131,7 +131,6 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     // always present
     UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "stormcaller");
 
-    GameState.AddNavigation(id);
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_1));
     GameState.AddBasicAttack(id, CBasicAttackComponent());
 
