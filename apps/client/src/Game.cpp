@@ -418,7 +418,7 @@ void Game::Update(float dt) {
             desiredAnim = "run";
             bLoop = true;
         } else if(go->bIsCasting) {
-            desiredAnim = "attack1";
+            desiredAnim = "ability1";
             bLoop = false;
         } else if(go->bIsAttacking) {
             desiredAnim = "attack1";
@@ -557,16 +557,15 @@ void Game::Update(float dt) {
         if (unit_id_received_) {
             // Snap to player
             if (TransformComponent_t* pTransform = m_gameState.GetTransform(my_unit_id_)) {
-                m_camDir[0] = 0;
-                m_camDir[1] = 0;
                 m_camPos[0] = pTransform->vec3Position.x;
-                m_camPos[1] = 1500.0f;
-                m_camPos[2] = pTransform->vec3Position.z + 800.0f;
+                m_camPos[1] = 800.0f;
+                m_camPos[2] = pTransform->vec3Position.z + 533.0f;
             }
         }
         else {
             m_camPos[0] = 0;
-            m_camPos[2] = -1000;
+            m_camPos[1] = 800.0f;
+            m_camPos[2] = 0;
         }
     }
 
@@ -684,7 +683,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
        if(TransformComponent_t* pTransform = m_gameState.GetTransform(go->unit_id)) {
 
-        Vector2 vec2Screen = renderer->m_camera.UnprojectWorldPoint({pTransform->vec3Position.x, pTransform->vec3Position.y + 350, pTransform->vec3Position.z}, windowWidth_, windowHeight_);
+        Vector2 vec2Screen = renderer->m_camera.UnprojectWorldPoint({pTransform->vec3Position.x, pTransform->vec3Position.y + 200, pTransform->vec3Position.z}, windowWidth_, windowHeight_);
             double x = vec2Screen.x;
             double y = vec2Screen.y;
 
@@ -1004,8 +1003,8 @@ void Game::HandleTicks(float dt) {
             continue;
         }
 
-        if (vec3Move.Length() > 600 * (7 / 1000.0f)) {
-            vec3Move = vec3Move.Normalize().ScaleToLength(600 * (7 / 1000.0f));
+        if (vec3Move.Length() > 330 * (16.6666f / 1000.0f)) {
+            vec3Move = vec3Move.Normalize().ScaleToLength(330.0f * (16.6666f / 1000.0f));
         }
         
         pTransformComp->vec3Position = pTransformComp->vec3Position + vec3Move;

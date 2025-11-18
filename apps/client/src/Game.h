@@ -117,7 +117,7 @@ public:
 
     int m_mouseClicked[3] = { 0, 0, 0 };
     int m_camDir[2] = { 0, 0 };
-    float m_camPos[3] = { 0, 1500.0f, -800.0f };
+    float m_camPos[3] = { 0, 800.0f, 533.0f };
 
     int cooldowns[4] = { -1, -1 , -1 , -1 };
     int total_cooldowns[4] = { -1, -1 , -1 , -1 };
