@@ -47,6 +47,8 @@ add_library(common
 	
 	src/Packets/CharacterSelect/RemainingTimePacket.cpp
 
+	src/util/frame-timer.cpp
+
 	src/vendor/pugixml.cpp
 )
 

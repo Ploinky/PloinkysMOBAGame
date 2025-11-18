@@ -121,9 +121,6 @@ public:
 
 private:
 
-    // std::map<uint64_t, player_t> players_;
-    float lastTick = 0;
-
     ServerNetworkManager* networkManager_ = nullptr;
     // CWaveManager m_waveManager;
     // LobbyPlayer* players_[10];

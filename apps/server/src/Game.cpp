@@ -260,16 +260,6 @@ std::vector<CGameObject*> Client::GetGameObjectsInArea(Vector2 position, float r
 }
 
 void Client::Update(float dt) {
-    lastTick += dt;
-
-    // ca. 16 ms per tick
-    if (lastTick < TICKRATE / 1000.0f) {
-        return;
-    }
-
-    // Next gametick -> wrap to zero at start. Yikes...
-    lastTick -= TICKRATE / 1000.0f;
-
     // first lets see what the clients have to say
     networkManager_->Update();
 

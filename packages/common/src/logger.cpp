@@ -10,13 +10,20 @@
 #include <chrono>
 
 std::string Logger::PrependTimeAndDate(std::string str) {
+    std::chrono::time_point tpNow = std::chrono::high_resolution_clock::now();
     std::time_t time = std::time(nullptr);
     std::tm* localTime = std::localtime(&time);
+    auto seconds = std::chrono::time_point_cast<std::chrono::seconds>(tpNow);
+    auto fraction = tpNow - seconds;
+    const std::chrono::duration<double> tse = tpNow.time_since_epoch();
+    std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tse).count() % 1000;
+
+
 
     char* buf = (char*) malloc(26 * sizeof(char));
 
-    snprintf(buf, 26, "[%d-%02d-%02d] [%02d:%02d:%02d]: ",
-        localTime->tm_year + 1900, localTime->tm_mon + 1, localTime->tm_mday, localTime->tm_hour, localTime->tm_min, localTime->tm_sec
+    snprintf(buf, 30, "[%d-%02d-%02d] [%02d:%02d:%02d.%03llu]: ",
+        localTime->tm_year + 1900, localTime->tm_mon + 1, localTime->tm_mday, localTime->tm_hour, localTime->tm_min, localTime->tm_sec, milliseconds
     );
 
     return std::string(buf).append(str);

@@ -3,6 +3,7 @@
 #include "NetworkManager.h"
 #include <Game.h>
 #include <common/PMG_Common.h>
+#include <common/util/frame-timer.h>
 
 #include "LobbyState.h"
 
@@ -28,13 +29,13 @@ void Server::Start() {
 
     bool isRunning = true;
 
-    long long lastFrame = GetSystemTime();
+    CFrameTimer frameTimer(60);
     while (isRunning) {
-        auto thisFrame = GetSystemTime();
-        float dt = (thisFrame - lastFrame) / 1000000.0f / 1000.0f;
-        lastFrame = thisFrame;
+        if(!frameTimer.Frame()) {
+            continue;
+        }
 
-        currentState_->Update(dt);
+        currentState_->Update(frameTimer.GetFrameDeltaTime());
 
         SteamGameServer_RunCallbacks();
     }
