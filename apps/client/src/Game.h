@@ -105,7 +105,11 @@ public:
     UnitId my_unit_id_;
     bool unit_id_received_ = false;
 
+    // Time that we have been simming this current frame for
     float m_fCurrentFrameDelta = 0;
+
+    // Tick we are currently simulating FROM
+    // ALWAYS simulating towards current_tick_ + 1
     uint64_t current_tick_ = 0;
     double last_move = 0;
 

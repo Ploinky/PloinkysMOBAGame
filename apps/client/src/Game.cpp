@@ -11,285 +11,40 @@
 #include "game/systems/particle-system.h"
 
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+    // Initialize navigation mesh for selected map
+    // TODO probably need to get this from a loading / connecting state
     m_navMesh = new NavMesh();
     m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("data/Maps/map1/map1.nvm"));
 
+    // Convert the navigation mesh to a cell grid we can actually use
     m_navGrid = new NavigationCellGrid(m_navMesh);
 
+    // NetworkManager is persistent from the lobby scene
     net_manager_ = server;
 
-    packet_manager = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
     // Register network packets, the fuck...
-    packet_manager.RegisterHandler(PacketType::PCK_ATTACK_FINISHED, [this](std::vector<uint8_t> data) {
-        CAttackFinishedPacket pck{};
-        pck.Read(&data);
-
-        GameObject* go = GetGameObject(pck.content.unit);
-        go->bIsAttacking = false;
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_ATTACK_START, [this](std::vector<uint8_t> data) {
-        AttackStartPacket pck{};
-        pck.Read(&data);
-
-        GameObject* go = GetGameObject(pck.content.unit);
-        go->bIsAttacking = true;
-        
-        if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
-            pMoveComp->vec3Target = Vector3::ZERO;
-            pMoveComp->bIsMoving = false;
-        }
-
-        if(TransformComponent_t* transform = m_gameState.GetTransform(pck.content.unit)) {
-            if(TransformComponent_t* targetTransform = m_gameState.GetTransform(pck.content.target)) {
-                targetTransform->vec3Rotation.y = CalculateAngle({transform->vec3Position.x, transform->vec3Position.z}, {targetTransform->vec3Position.x, targetTransform->vec3Position.z});
-            }
-        }
-        
-
-        CAttackStartEvent* pAttackEvent = new CAttackStartEvent();
-        pAttackEvent->idUnit = go->unit_id;
-        pAttackEvent->hSound = m_hStormcallerAttack;
-        m_gameState.EmitEvent(pAttackEvent);
-    });
+    std::function<void(std::vector<uint8_t>)> addToPacket = [this](std::vector<uint8_t> data) {AddPacketToCurrentTick(data);};
+    packet_manager = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
+    packet_manager.RegisterHandler(PacketType::PCK_ATTACK_FINISHED, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_CLIENT_UNIT_ID, [this](std::vector<uint8_t> data) { HandleUnitIdPacket(data); });
     packet_manager.RegisterHandler(PacketType::GAME_TICK, [this](std::vector<uint8_t> data) { HandleGameTickPacket(data); });
-    packet_manager.RegisterHandler(PacketType::UNITSPAWN, [this](std::vector<uint8_t> data) {
-        SpawnPacket spawn{};
-        spawn.Read(&data);
-        SpawnUnit(spawn.unit, spawn.strEntId, spawn.team, Vector3{ spawn.x, spawn.y, spawn.z });
-    });
-    packet_manager.RegisterHandler(PacketType::UNITMOVE, [this](std::vector<uint8_t> data) { 
-        UnitMovePacket move{};
-        move.Read(&data);
+    packet_manager.RegisterHandler(PacketType::PCK_ATTACK_START, addToPacket);
+    packet_manager.RegisterHandler(PacketType::UNITSPAWN, addToPacket);
+    packet_manager.RegisterHandler(PacketType::UNITMOVE, addToPacket);
+    packet_manager.RegisterHandler(PacketType::UNITIDLE, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_PLAY_PARTICLE, addToPacket);
+    packet_manager.RegisterHandler(PacketType::UNITDESPAWN, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_STATS, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_SPELL_COOLDOWN, addToPacket);
+    packet_manager.RegisterHandler(PacketType::SCORE_UPDATE_PACKET, addToPacket);
+    packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, addToPacket);
+    packet_manager.RegisterHandler(PacketType::UNITMOVE_INTENTION, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, addToPacket);
 
-        GameObject* go = GetGameObject(move.unit);
-
-        if (go == nullptr) {
-            Logger::Err("Received move command for object that does not exist!");
-            return;
-        }
-
-        go->bIsCasting = false;
-        go->bIsAttacking = false;
-
-        TransformComponent_t* transform = m_gameState.GetTransform(move.unit);
-        Vector3 vec3Move = { move.x, move.y, move.z };
-        if((transform->vec3Position - vec3Move).Length() > 100) {
-            Logger::FormatMsg("snap: %f", (transform->vec3Position - vec3Move).Length());
-            transform->vec3Position = vec3Move;
-        } else if ((transform->vec3Position - vec3Move).Length() > 5) {
-            Logger::FormatMsg("diff: %f", (transform->vec3Position - vec3Move).Length());
-
-            Vector3 vec3Catchup = (vec3Move - transform->vec3Position).ScaleToLength(((vec3Move - transform->vec3Position).Length() - 5) / 10);
-            transform->vec3Position = transform->vec3Position + vec3Catchup;
-        }
-
-        transform->vec3Rotation.y = move.r; // this actually looks less fucked for now :O
-    });
-    packet_manager.RegisterHandler(PacketType::UNITIDLE, [this](std::vector<uint8_t> data) {
-        UnitIdlePacket idle{};
-        idle.Read(&data);
-
-        GameObject* go = GetGameObject(idle.unit);
-
-        if (go == nullptr) {
-            Logger::Err("Received idle command for object that does not exist!");
-            return;
-        }
-
-        if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
-            pMoveComp->vec3Target = Vector3::ZERO;
-            pMoveComp->bIsMoving = false;
-        }
-
-        if(TransformComponent_t* pTransformComp = m_gameState.GetTransform(idle.unit)) {
-            pTransformComp->vec3Position.x = idle.x;
-            pTransformComp->vec3Position.y = idle.y;
-            pTransformComp->vec3Position.z = idle.z;
-            // go->rotation.y = go->rotation.y + (idle.r - go->rotation.y) * diff;
-            pTransformComp->vec3Rotation.y = idle.r; // this actually looks less fucked for now :O
-        }
-
-        go->bIsAttacking = false;
-        go->bIsCasting = false;
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_PLAY_PARTICLE, [this](std::vector<uint8_t> data) {
-        PlayParticlePacket part{};
-        part.Read(&data);
-
-        ParticleEffect* particle_system = ParticleEffect::Load(part.particle, assetManager_);
-
-        GameObject* go = GetGameObject(part.unit);
-        if (part.unit != 0 && go != nullptr) {
-            particle_system->Attach(go);
-        }
-        else {
-            particle_system->position.x = part.x;
-            particle_system->position.y = 0;
-            particle_system->position.z = part.y;
-        }
-
-        game_objects_.emplace(current_tick_, particle_system);
-    });
-    packet_manager.RegisterHandler(PacketType::UNITDESPAWN, [this](std::vector<uint8_t> data) {
-        Logger::Msg("despawn!!");
-        AddPacketToCurrentTick(data);
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_STATS, [this](std::vector<uint8_t> data) {
-        UnitStatsPacket stats{};
-        stats.Read(&data);
-
-        GameObject* go = GetGameObject(stats.unit);
-
-        if (go == nullptr) {
-            Logger::Msg("WARNING: received stats message for unknown object");
-            return;
-        }
-	
-	HealthComponent_t* pHealthComp = m_gameState.GetHealth(go->unit_id);
-	
-	if(pHealthComp) {
-		pHealthComp->nHealth = stats.health;
-		pHealthComp->nMaxHealth = stats.max_health;
-	}
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_SPELL_COOLDOWN, [this](std::vector<uint8_t> data) {
-        CooldownPacket cd{};
-        cd.Read(&data);
-
-        if (cd.unit != my_unit_id_) {
-            return;
-        }
-
-        cooldowns[cd.spell_slot] = cd.cooldown;
-        total_cooldowns[cd.spell_slot] = cd.total_cooldown;
-    });
-    packet_manager.RegisterHandler(PacketType::SCORE_UPDATE_PACKET, [this](std::vector<uint8_t> data) {
-        ScoreUpdatePacket pck{};
-        pck.Read(&data);
-
-        m_iTeam1Score = pck.usTeam1Score;
-        m_iTeam2Score = pck.usTeam2Score;
-    });
-    packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, [this](std::vector<uint8_t> data) { m_bGameHasEnded = true; });
-    packet_manager.RegisterHandler(PacketType::UNITMOVE_INTENTION, [this](std::vector<uint8_t> data) {
-        UnitMoveIntentionPacket move{};
-        move.Read(&data);
-
-        GameObject* go = GetGameObject(move.unit);
-
-        if (go == nullptr) {
-            Logger::Err("Received move intention for object that does not exist!");
-            return;
-        }
-
-        MovementComponent_t* pMovementComponent = m_gameState.GetMovement(go->unit_id);
-        TransformComponent_t* pTransform = m_gameState.GetTransform(move.unit);
-        if(pMovementComponent == nullptr || pTransform == nullptr) {
-            Logger::FormatErr("Received unit move intention for unit %u which has no move component", go->unit_id);
-            return;
-        }
-        Vector3 vec3NewTarget = { move.x, 0, move.z };
-        if((pTransform->vec3Position - vec3NewTarget).Length() < 1) {
-            pMovementComponent->vec3Target = Vector3::ZERO;
-            pMovementComponent->bIsMoving = false;
-            return;
-        }
-
-        if(pMovementComponent->vec3Target == vec3NewTarget) {
-            return;
-        }
-
-        pMovementComponent->vec3Target = vec3NewTarget;
-        pMovementComponent->bIsMoving = true;
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, [this](std::vector<uint8_t> data) {
-        SpellCastStartPacket pck;
-        pck.Read(&data);
-
-        GameObject* go = GetGameObject(pck.unit);
-
-        if (go == nullptr) {
-            // TODO
-            Logger::Err("Received spell cast start for unknown unit");
-            return;
-        }
-
-        if(TransformComponent_t* pTransform = m_gameState.GetTransform(pck.unit)) {
-            if(TransformComponent_t* pTarget = m_gameState.GetTransform(pck.idTarget)) {
-                pTarget->vec3Rotation.y = CalculateAngle({pTransform->vec3Position.x, pTransform->vec3Position.z}, {pTarget->vec3Position.x, pTarget->vec3Position.z});
-            }
-        }
-
-        go->bIsCasting = true;
-
-        if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
-            pMoveComp->vec3Target = Vector3::ZERO;
-            pMoveComp->bIsMoving = false;
-        }
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, [this](std::vector<uint8_t> data) {
-        SpellHitPacket pck;
-        pck.Read(&data);
-
-        GameObject* go = GetGameObject(pck.unit);
-
-        if (go == nullptr) {
-            // TODO
-            Logger::Err("Received spell cast start for unknown unit");
-            return;
-        }
-
-        // TODO react to event instead of this?
-        ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
-        particle_system->Attach(go);
-
-        if(!m_gameState.GetParticle(go->unit_id)) {
-            m_gameState.AddParticle(go->unit_id);
-            particle_system->Attach(go);
-        }
-
-        ParticleComponent_t* pParticleComp = m_gameState.GetParticle(go->unit_id);
-        pParticleComp->vecEffects.push_back(particle_system);
-
-        CSpellHitEvent* pHitEvent = new CSpellHitEvent();
-        pHitEvent->idUnit = go->unit_id;
-        pHitEvent->hSound = m_hThunderstrikeSound;
-        m_gameState.EmitEvent(pHitEvent);
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, [this](std::vector<uint8_t> data) {
-        CUnitDeathPacket pck;
-        pck.Read(&data);
-
-        GameObject* go = GetGameObject(pck.idUnit);
-
-        if (go == nullptr) {
-            // TODO
-            Logger::Err("Received death for unknown unit");
-            return;
-        }
-        
-        go->bIsCasting = false;
-        go->dead = true;
-        m_pAudioSystem->PlaySoundOnUnit(m_hStormcallerDeath, go->unit_id);
-    });
-    packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, [this](std::vector<uint8_t> data) {
-        CUnitRespawnPacket pck;
-        pck.Read(&data);
-
-        GameObject* go = GetGameObject(pck.idUnit);
-
-        if (go == nullptr) {
-            // TODO
-            Logger::Err("Received death for unknown unit");
-            return;
-        }
-        
-        go->bIsCasting = false;
-        go->bIsAttacking = false;
-        go->dead = false;
-    });
-
+    // Let the network manager know about our new packet handler
     net_manager_->Initialize(&packet_manager);
 
     this->assetManager_ = handler->GetAssetManager();
@@ -985,6 +740,7 @@ void Game::DespawnUnit(uint64_t unitId) {
 }
 
 void Game::HandleTicks(float dt) {
+    /*
     for (auto go_it : game_objects_) {
         GameObject* pGameObject = go_it.second;
 
@@ -1011,15 +767,27 @@ void Game::HandleTicks(float dt) {
         pTransformComp->vec3Rotation.y = CalculateAngle({ pTransformComp->vec3Position.x, pTransformComp->vec3Position.z }, { pMovementComponent->vec3Target.x, pMovementComponent->vec3Target.z });
 
     }
+    */
+
+    // === Tick simulation logic ===
+    // I am trying to do the thing that some valve dev or other talked about in the past - interpolate between world snapshots
+    // So I am saving whatever packets I am getting to whatever frame the server says it's working on at the moment.
+    // Now I need to interpolate from a while back towards the current packet.
+    // I guess the difficulty is never running past our current frame, and not falling behind, and not getting out of order...
+    // Right now I want to try to interpolate between 2 frames - one that is 2 frames back and the most recent completed frame.
+    // My hope is that I will never need to interpolate to the current frame.
+    // But I don't think that's realistic.
+    // So here we go now.
     if (ticks.size() <= 2) {
         // we do not yet have 2 ticks to simulate
         m_fCurrentFrameDelta = 0;
         current_tick_ = 0;
-        Logger::Msg("Waiting for enough frames to start simulating!");
-
+        Logger::Msg("Waiting for enough frames to start simulating");
         return;
     }
 
+    //  Below is one of my old crashouts. Maybe I won't need this now.
+    /*
     if (current_tick_ == 0) {
         Logger::Msg("Gotta simulate that first tick somehow!");
         game_tick_t tick = ticks[0];
@@ -1038,7 +806,6 @@ void Game::HandleTicks(float dt) {
         current_tick_++;
         m_fCurrentFrameDelta = 0;
     }
-
     // all right, we're simming no more than 2 frames in the past.
     // now let's make sure we actually have something to sim to...
     if ((current_tick_ + 1) >= ticks.size()) {
@@ -1046,6 +813,8 @@ void Game::HandleTicks(float dt) {
         // Logger::Msg("Simulation is caught up, but has nothing to simulate to!");
         return;
     }
+    */
+
 
     // we're here! we have something to do!
 
@@ -1062,75 +831,16 @@ void Game::HandleTicks(float dt) {
     }
 
     if (m_fCurrentFrameDelta > 1.0) {
-        Logger::Msg("This should _NEVER_ happen");
+        Logger::FormatErr("We are trying to simulate but we're already past this frame %d. This should _NEVER_ happen!", current_tick_);
     }
 
-    // all right, we're simming no more than 2 frames in the past.
-    // now let's make sure we actually have something to sim to...
-    if ((current_tick_ + 1) >= ticks.size()) {
-        // we do, so simulate completed ticks till we're there
-        // Logger::Msg("Simulation is caught up, but has nothing to simulate to!");
+    if((current_tick_ + 1) >= ticks.size()) {
+        Logger::FormatErr("ALARM! no more frames after %d. This should _NEVER_ happen!", current_tick_);
         return;
     }
 
     game_tick_t targetTick = ticks[current_tick_ + 1];
     SimulateTick(targetTick, m_fCurrentFrameDelta);
-
-    /*
-    long long frameTime = Util::GetSystemTime();
-
-    unsigned long long sim_time = frameTime - (1000.0 / 60.0);
-
-    int start_tick = ticks.size() - 1;
-    for (; start_tick >= 0; start_tick--) {
-        if (ticks[start_tick].received <= sim_time) {
-            start_tick += 1;
-            break;
-        }
-    }
-
-    if (start_tick < 0 || start_tick > ticks.size()) {
-        // mhm...
-        Logger::Msg("no ticks yet?");
-        return;
-    }
-
-    while (start_tick >= current_tick_ + 2) {
-        // uhm? we're missing some ticks?
-        game_tick_t tick = ticks[current_tick_];
-
-        SimulateTick(tick, 1);
-
-        current_tick_++;
-    }
-
-    if (start_tick >= ticks.size()) {
-        start_tick -= 1;
-    }
-
-    int current_tick_index = ticks.size() - 1;
-    game_tick_t current_tick = ticks[current_tick_index];
-
-    float frame_dt = (1000.0 / 60.0) + 20 - (frameTime - current_tick.received);
-
-    while (frame_dt > (1000.0 / 60.0)) {
-        frame_dt -= (1000.0 / 60.0);
-        current_tick_index--;
-    }
-
-    float remaining = (1000.0 / 60.0) - ((1000.0 / 60.0) - frame_dt);
-    float diff = dt / (double)remaining;
-    if (diff > 1) {
-        // this we can do better?!
-        diff = 1;
-    }
-    current_tick = ticks[current_tick_index];
-
-    game_tick_t to_tick = current_tick;
-
-    SimulateTick(to_tick, diff);
-    */
-
 }
 
 void Game::SimulateTick(game_tick_t& tick, double diff) {
@@ -1140,22 +850,290 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
     for(std::vector<uint8_t> vecData : tick.Data) {
         std::memcpy(&header, vecData.data(), sizeof(header));
-        switch (header.type) {
-        case PacketType::UNITSPAWN:
-        case PacketType::UNITIDLE:
-        case PacketType::UNITMOVE:
-        case PacketType::UNITDESPAWN:
-        case PacketType::PCK_STATS:
-        case PacketType::PCK_SPELL_COOLDOWN:
-        case PacketType::PCK_PLAY_PARTICLE:
-        case PacketType::PCK_ATTACK_START:
-        case PacketType::SCORE_UPDATE_PACKET: {
-            break;
+        if(header.type == PacketType::UNITSPAWN){
+            SpawnPacket spawn{};
+            spawn.Read(&vecData);
+            SpawnUnit(spawn.unit, spawn.strEntId, spawn.team, Vector3{ spawn.x, spawn.y, spawn.z });
+            continue;
         }
-        default:
-            Logger::Err("Received unknown packet type");
-            break;
+        if(header.type == PacketType::UNITIDLE){
+            UnitIdlePacket idle{};
+            idle.Read(&vecData);
+
+            GameObject* go = GetGameObject(idle.unit);
+
+            if (go == nullptr) {
+                Logger::Err("Received idle command for object that does not exist!");
+                continue;
+            }
+
+            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
+                pMoveComp->vec3Target = Vector3::ZERO;
+                pMoveComp->bIsMoving = false;
+            }
+
+            if(TransformComponent_t* pTransformComp = m_gameState.GetTransform(idle.unit)) {
+                pTransformComp->vec3Position.x = idle.x;
+                pTransformComp->vec3Position.y = idle.y;
+                pTransformComp->vec3Position.z = idle.z;
+                // go->rotation.y = go->rotation.y + (idle.r - go->rotation.y) * diff;
+                pTransformComp->vec3Rotation.y = idle.r; // this actually looks less fucked for now :O
+            }
+
+            go->bIsAttacking = false;
+            go->bIsCasting = false;
+            continue;
         }
+        if(header.type == PacketType::UNITMOVE){
+            UnitMovePacket move{};
+            move.Read(&vecData);
+
+            GameObject* go = GetGameObject(move.unit);
+
+            if (go == nullptr) {
+                Logger::Err("Received move command for object that does not exist!");
+                continue;
+            }
+
+            go->bIsCasting = false;
+            go->bIsAttacking = false;
+
+            TransformComponent_t* transform = m_gameState.GetTransform(move.unit);
+            Vector3 vec3Move = { move.x, move.y, move.z };
+            if((transform->vec3Position - vec3Move).Length() > 100) {
+                Logger::FormatMsg("snap: %f", (transform->vec3Position - vec3Move).Length());
+                transform->vec3Position = vec3Move;
+            } else if ((transform->vec3Position - vec3Move).Length() > 5) {
+                Logger::FormatMsg("diff: %f", (transform->vec3Position - vec3Move).Length());
+
+                Vector3 vec3Catchup = (vec3Move - transform->vec3Position).ScaleToLength(((vec3Move - transform->vec3Position).Length() - 5) / 10);
+                transform->vec3Position = transform->vec3Position + vec3Catchup;
+            }
+
+            transform->vec3Rotation.y = move.r; // this actually looks less fucked for now :O
+            continue;
+        }
+        if(header.type == PacketType::UNITDESPAWN){
+            Logger::Msg("despawn!!");
+            AddPacketToCurrentTick(vecData);
+            continue;
+        }
+        if(header.type == PacketType::PCK_STATS){
+            UnitStatsPacket stats{};
+            stats.Read(&vecData);
+
+            GameObject* go = GetGameObject(stats.unit);
+
+            if (go == nullptr) {
+                Logger::Msg("WARNING: received stats message for unknown object");
+                continue;
+            }
+            
+            HealthComponent_t* pHealthComp = m_gameState.GetHealth(go->unit_id);
+            
+            if(pHealthComp) {
+                pHealthComp->nHealth = stats.health;
+                pHealthComp->nMaxHealth = stats.max_health;
+            }
+            continue;
+        }
+        if(header.type == PacketType::PCK_SPELL_COOLDOWN){
+            CooldownPacket cd{};
+            cd.Read(&vecData);
+
+            if (cd.unit != my_unit_id_) {
+                continue;
+            }
+
+            cooldowns[cd.spell_slot] = cd.cooldown;
+            total_cooldowns[cd.spell_slot] = cd.total_cooldown;
+            continue;
+        }
+        if(header.type == PacketType::PCK_PLAY_PARTICLE){
+            PlayParticlePacket part{};
+            part.Read(&vecData);
+
+            ParticleEffect* particle_system = ParticleEffect::Load(part.particle, assetManager_);
+
+            GameObject* go = GetGameObject(part.unit);
+            if (part.unit != 0 && go != nullptr) {
+                particle_system->Attach(go);
+            }
+            else {
+                particle_system->position.x = part.x;
+                particle_system->position.y = 0;
+                particle_system->position.z = part.y;
+            }
+
+            game_objects_.emplace(current_tick_, particle_system);
+            continue;
+        }
+        if(header.type == PacketType::PCK_ATTACK_START){
+            AttackStartPacket pck{};
+            pck.Read(&vecData);
+
+            GameObject* go = GetGameObject(pck.content.unit);
+            go->bIsAttacking = true;
+            
+            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
+                pMoveComp->vec3Target = Vector3::ZERO;
+                pMoveComp->bIsMoving = false;
+            }
+
+            if(TransformComponent_t* transform = m_gameState.GetTransform(pck.content.unit)) {
+                if(TransformComponent_t* targetTransform = m_gameState.GetTransform(pck.content.target)) {
+                    targetTransform->vec3Rotation.y = CalculateAngle({transform->vec3Position.x, transform->vec3Position.z}, {targetTransform->vec3Position.x, targetTransform->vec3Position.z});
+                }
+            }
+            
+
+            CAttackStartEvent* pAttackEvent = new CAttackStartEvent();
+            pAttackEvent->idUnit = go->unit_id;
+            pAttackEvent->hSound = m_hStormcallerAttack;
+            m_gameState.EmitEvent(pAttackEvent);
+            continue;
+        }
+        if(header.type == PacketType::SCORE_UPDATE_PACKET){
+            ScoreUpdatePacket pck{};
+            pck.Read(&vecData);
+
+            m_iTeam1Score = pck.usTeam1Score;
+            m_iTeam2Score = pck.usTeam2Score;
+            continue;
+        }
+
+        if(header.type == PacketType::PCK_ATTACK_FINISHED) {
+            CAttackFinishedPacket pck{};
+            pck.Read(&vecData);
+
+            GameObject* go = GetGameObject(pck.content.unit);
+            go->bIsAttacking = false;
+        }
+
+        if(header.type == PacketType::UNITMOVE_INTENTION) {
+            UnitMoveIntentionPacket move{};
+            move.Read(&vecData);
+
+            GameObject* go = GetGameObject(move.unit);
+
+            if (go == nullptr) {
+                Logger::Err("Received move intention for object that does not exist!");
+                continue;
+            }
+
+            MovementComponent_t* pMovementComponent = m_gameState.GetMovement(go->unit_id);
+            TransformComponent_t* pTransform = m_gameState.GetTransform(move.unit);
+            if(pMovementComponent == nullptr || pTransform == nullptr) {
+                Logger::FormatErr("Received unit move intention for unit %u which has no move component", go->unit_id);
+                continue;
+            }
+            Vector3 vec3NewTarget = { move.x, 0, move.z };
+            if((pTransform->vec3Position - vec3NewTarget).Length() < 1) {
+                pMovementComponent->vec3Target = Vector3::ZERO;
+                pMovementComponent->bIsMoving = false;
+                continue;
+            }
+
+            if(pMovementComponent->vec3Target == vec3NewTarget) {
+                continue;
+            }
+
+            pMovementComponent->vec3Target = vec3NewTarget;
+            pMovementComponent->bIsMoving = true;
+        }
+
+        if(header.type == PacketType::PCK_SPELL_CAST_START) {
+            SpellCastStartPacket pck;
+            pck.Read(&vecData);
+
+            GameObject* go = GetGameObject(pck.unit);
+
+            if (go == nullptr) {
+                // TODO
+                Logger::Err("Received spell cast start for unknown unit");
+                continue;
+            }
+
+            if(TransformComponent_t* pTransform = m_gameState.GetTransform(pck.unit)) {
+                if(TransformComponent_t* pTarget = m_gameState.GetTransform(pck.idTarget)) {
+                    pTarget->vec3Rotation.y = CalculateAngle({pTransform->vec3Position.x, pTransform->vec3Position.z}, {pTarget->vec3Position.x, pTarget->vec3Position.z});
+                }
+            }
+
+            go->bIsCasting = true;
+
+            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
+                pMoveComp->vec3Target = Vector3::ZERO;
+                pMoveComp->bIsMoving = false;
+            }
+        
+        }
+
+        if(header.type == PacketType::PCK_SPELL_HIT) {
+            SpellHitPacket pck;
+            pck.Read(&vecData);
+
+            GameObject* go = GetGameObject(pck.unit);
+
+            if (go == nullptr) {
+                // TODO
+                Logger::Err("Received spell cast hit for unknown unit");
+                continue;
+            }
+
+            // TODO react to event instead of this?
+            ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
+            particle_system->Attach(go);
+
+            if(!m_gameState.GetParticle(go->unit_id)) {
+                m_gameState.AddParticle(go->unit_id);
+                particle_system->Attach(go);
+            }
+
+            ParticleComponent_t* pParticleComp = m_gameState.GetParticle(go->unit_id);
+            pParticleComp->vecEffects.push_back(particle_system);
+
+            CSpellHitEvent* pHitEvent = new CSpellHitEvent();
+            pHitEvent->idUnit = go->unit_id;
+            pHitEvent->hSound = m_hThunderstrikeSound;
+            m_gameState.EmitEvent(pHitEvent);
+        }
+
+        if(header.type == PacketType::PCK_UNIT_DEATH) {
+            CUnitDeathPacket pck;
+            pck.Read(&vecData);
+
+            GameObject* go = GetGameObject(pck.idUnit);
+
+            if (go == nullptr) {
+                // TODO
+                Logger::Err("Received death for unknown unit");
+                continue;
+            }
+            
+            go->bIsCasting = false;
+            go->dead = true;
+            m_pAudioSystem->PlaySoundOnUnit(m_hStormcallerDeath, go->unit_id);
+        }
+
+        if(header.type == PacketType::PCK_UNIT_RESPAWN) {
+            CUnitRespawnPacket pck;
+            pck.Read(&vecData);
+
+            GameObject* go = GetGameObject(pck.idUnit);
+
+            if (go == nullptr) {
+                // TODO
+                Logger::Err("Received death for unknown unit");
+                return;
+            }
+            
+            go->bIsCasting = false;
+            go->bIsAttacking = false;
+            go->dead = false;
+        }
+
+        Logger::Err("Received unknown packet type");
     }
 }
 
