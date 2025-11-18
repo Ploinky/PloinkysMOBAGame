@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ability
+    xmlns="https://ploinky.de/mySchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://ploinky.de/mySchema _ability.xsd"
+    id="restore"
+    name="restore"
+    icon="stormbolt"
+>
+    <targeting_info
+        type="unit"
+        cast_range="800"
+        cast_time="200"
+        cast_point="100"
+        cooldown="5000"
+    />
+
+    <on_impact>
+        <heal amount="10, 20, 30, 40" target="target_entity" />
+    </on_impact>
+</ability>

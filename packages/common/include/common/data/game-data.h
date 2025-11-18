@@ -20,7 +20,13 @@ typedef struct {
 } ImpactEffectDamage_t;
 
 typedef struct {
+    EImpactEffectAffects eAffects;
+    std::vector<float> vecHeal;
+} ImpactEffectHeal_t;
+
+typedef struct {
     std::vector<ImpactEffectDamage_t> vecDamageEffects;
+    std::vector<ImpactEffectHeal_t> vecHealEffects;
 } ImpactEffect_t;
 
 class CAbilityData {

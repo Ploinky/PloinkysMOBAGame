@@ -157,9 +157,13 @@ void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCt
     CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
     SpellSlot_t spell = pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex);
 
+    CSpellCastApi api = CSpellCastApi(pGameState);
     for(ImpactEffectDamage_t damageEffect : spell.data.effect.vecDamageEffects) {
-        CSpellCastApi api = CSpellCastApi(pGameState);
         api.ApplyDamage(pCtx->idCaster, pCtx->idTarget, damageEffect.vecDamage[0]);
+    }
+
+    for(ImpactEffectHeal_t healEffect : spell.data.effect.vecHealEffects) {
+        api.ApplyHeal(pCtx->idCaster, pCtx->idTarget, healEffect.vecHeal[0]);
     }
 
     pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));

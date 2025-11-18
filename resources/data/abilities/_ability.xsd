@@ -18,14 +18,20 @@
             </xs:element>
             <xs:element name="on_impact">
                 <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="damage" minOccurs="1">
+                    <xs:all>
+                        <xs:element name="damage" minOccurs="0">
                             <xs:complexType>
                                 <xs:attribute name="amount" type="xs:string" use="required"/>
                                 <xs:attribute name="target" type="xs:string" use="required" />
                             </xs:complexType>
                         </xs:element>
-                    </xs:sequence>
+                        <xs:element name="heal" minOccurs="0">
+                            <xs:complexType>
+                                <xs:attribute name="amount" type="xs:string" use="required"/>
+                                <xs:attribute name="target" type="xs:string" use="required" />
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:all>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

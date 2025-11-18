@@ -30,6 +30,10 @@ std::vector<uint8_t> AssetManager::LoadFile(std::string fileName) {
     auto length = inputFile.tellg();
     inputFile.seekg(0, std::ios_base::beg);
 
+    if(length == -1) {
+        return {};
+    }
+
     // Make a buffer of the exact size of the file and read the data into it.
     std::vector<uint8_t> buffer(length);
     inputFile.read(reinterpret_cast<char*>(buffer.data()), length);
@@ -137,6 +141,17 @@ CAbilityData AssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
                 effect.vecDamage = ParseFloatVec(onImpactEffectNode.attribute("amount").as_string());
 
                 abilityData.effect.vecDamageEffects.push_back(effect);
+            }
+            if(!strcmp(onImpactEffectNode.name(), "heal")) {
+                ImpactEffectHeal_t effect{};
+
+                if(strcmp(onImpactEffectNode.attribute("target").as_string(), "target_unit")) {
+                    effect.eAffects = EImpactEffectAffects::TARGET_UNIT;
+                }
+
+                effect.vecHeal = ParseFloatVec(onImpactEffectNode.attribute("amount").as_string());
+
+                abilityData.effect.vecHealEffects.push_back(effect);
             }
         }
     }

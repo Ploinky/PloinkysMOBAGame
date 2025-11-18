@@ -10,8 +10,8 @@
         <xs:all>
             <xs:element name="abilities" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
-                    <xs:all>
-                        <xs:element name="ability" minOccurs="0" maxOccurs="1">
+                    <xs:choice maxOccurs="unbounded">
+                        <xs:element name="ability" minOccurs="0" maxOccurs="4">
                             <xs:complexType>
                                 <xs:attribute name="id" type="xs:string" use="required" />
                                 <xs:attribute name="slot" use="required">
@@ -24,7 +24,7 @@
                                 </xs:attribute>
                             </xs:complexType>
                         </xs:element>
-                    </xs:all>
+                    </xs:choice>
                     <xs:attribute name="move_speed" type="xs:float" use="optional" />
                 </xs:complexType>
             </xs:element>

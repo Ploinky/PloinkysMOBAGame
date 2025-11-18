@@ -13,6 +13,10 @@
             id="stormbolt"
             slot="2"
         />
+        <ability
+            id="restore"
+            slot="1"
+        />
     </abilities>
     <transform collision_radius="100" />
     <network sync_movement="true" />
