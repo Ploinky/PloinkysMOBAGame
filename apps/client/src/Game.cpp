@@ -820,10 +820,17 @@ void Game::HandleTicks(float dt) {
 
     // let's add the new delta, see what happens
     m_fCurrentFrameDelta += dt / (1000.0 / 60.0);
-
+    
     if (m_fCurrentFrameDelta > 1.0) {
         // whoops we blew into a new frame
         // let's sim that
+        if(current_tick_ + 1 == ticks.size()) {
+            Logger::Err("ALARM! we are now ahead of the server?!. This is a problem");
+            m_fCurrentFrameDelta = 0.0;
+            current_tick_ -= 1;
+            return;
+        }
+
         game_tick_t tick = ticks[current_tick_ + 1];
         SimulateTick(tick, 1);
         current_tick_++;
@@ -1162,8 +1169,6 @@ void Game::HandleUnitIdPacket(std::vector<uint8_t> data) {
 }
 
 void Game::HandleGameTickPacket(std::vector<uint8_t> data) {
-    current_tick_ = ticks.size() - 2;
-    m_fCurrentFrameDelta = 0.0f;
     ticks.push_back(m_receivingTick);
 
     game_tick_t new_tick{};
