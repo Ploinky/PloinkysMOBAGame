@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <model_data
     id="stormcaller"
-    model="assets/characters/untitled.glb"
+    model="assets/characters/stormcaller/stormcaller.glb"
 >
     <animations>
         <animation
             slot="idle"
-            name="jax_idle1"
+            name="idle"
             duration="272"
         />
         <animation
             slot="run"
-            name="Jax_PAX_Run"
+            name="run"
             duration="272"
         />
         <animation
             slot="attack1"
-            name="jax_attack1"
+            name="attack1"
             duration="272"
         />
         <animation
             slot="death"
-            name="jax_death"
+            name="death"
             duration="272"
         />
     </animations>
