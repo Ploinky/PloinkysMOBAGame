@@ -128,7 +128,7 @@ public:
     bool m_bGameHasEnded;
 
     std::vector<std::string> m_vecChat;
-    std::vector<UIAbility_t> m_vecAbilities;
+    std::vector<UIAbility_t> m_vecAbilities = std::vector<UIAbility_t>(4);
 
     HBitmap m_hGenericIcon = INVALID_ASSET_HANDLE;
     // TODO

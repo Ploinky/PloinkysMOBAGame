@@ -11,7 +11,7 @@
     <abilities>
         <ability
             id="stormbolt"
-            slot="3"
+            slot="2"
         />
     </abilities>
     <transform collision_radius="100" />

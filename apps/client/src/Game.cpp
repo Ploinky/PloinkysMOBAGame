@@ -779,7 +779,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         x = windowWidth_ / 2 - 55;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, m_hGenericIcon);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_vecAbilities.at(1).hIcon);
         if (cooldowns[1] != -1) {
             float cd_remaining = (float)cooldowns[1] / (float)total_cooldowns[1];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -788,7 +788,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         x = windowWidth_ / 2 + 5;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, m_hGenericIcon);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_vecAbilities.at(2).hIcon);
         if (cooldowns[2] != -1) {
             float cd_remaining = (float)cooldowns[2] / (float)total_cooldowns[2];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -797,7 +797,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
         x = windowWidth_ / 2 + 65;
         renderer->DrawRect(x, y, 50, 50, black);
-        renderer->DrawImage(x + 1, y + 1, 48, 48, m_hGenericIcon);
+        renderer->DrawImage(x + 1, y + 1, 48, 48, m_vecAbilities.at(3).hIcon);
         if (cooldowns[3] != -1) {
             float cd_remaining = (float)cooldowns[3] / (float)total_cooldowns[3];
             renderer->RenderPartialCover(x + 1, y + 1, 48, 48, cd_remaining);
@@ -883,12 +883,20 @@ void Game::SpawnUnit(uint64_t unitId) {
 void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos) {
     if(unitId == my_unit_id_) {
         const CCharacterData entityData = assetManager_->GetGameData().mapCharacterData.at(entityId);
-        for(auto it : entityData.mapAbilityIds) {
-            const CAbilityData& abilityData = assetManager_->GetGameData().mapAbilityData.at(it.second);
-            if(m_vecAbilities.size() <= it.first) {
-                m_vecAbilities.resize(it.first + 1);
+        for(int i = 0; i < 4; i++) {
+            auto abilityMapIt = entityData.mapAbilityIds.find(i);
+            if(abilityMapIt == entityData.mapAbilityIds.end()) {
+                m_vecAbilities[i] = {
+                    .strName = "",
+                    .hIcon = assetManager_->GetBitmapImage("empty-ability-slot"),
+                    .eTargetType = EAbilityTargetType::UNIT,
+                };
+                continue;
             }
-            m_vecAbilities[it.first] = {
+
+            std::string abilityId = entityData.mapAbilityIds.at(i);
+            const CAbilityData& abilityData = assetManager_->GetGameData().mapAbilityData.at(abilityId);
+            m_vecAbilities[i] = {
                 .strName = abilityData.strName,
                 .hIcon = assetManager_->GetBitmapImage(abilityData.iconId),
                 .eTargetType = abilityData.eTargetType,
@@ -1238,6 +1246,75 @@ void Game::Action(EInputAction eAction) {
                 
                 CastCommandPacket cast = CastCommandPacket();
                 cast.spell_slot = 0;
+                cast.x = x;
+                cast.y = 0;
+                cast.z = y;
+                net_manager_->SendPacket(&cast);
+                break;
+        }
+    }
+    if(eAction == EInputAction::GAME_CAST_SPELL_2) {
+        switch(m_vecAbilities[0].eTargetType) {
+            case EAbilityTargetType::UNIT:
+                if (pObjectUnderCursor) {
+                    CastTargetCommandPacket cmd = CastTargetCommandPacket();
+                    cmd.spell_slot = 1;
+                    cmd.target = pObjectUnderCursor->unit_id;
+                    net_manager_->SendPacket(&cmd);
+                }
+                break;
+            default:
+                float x, y;
+                TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+                
+                CastCommandPacket cast = CastCommandPacket();
+                cast.spell_slot = 1;
+                cast.x = x;
+                cast.y = 0;
+                cast.z = y;
+                net_manager_->SendPacket(&cast);
+                break;
+        }
+    }
+    if(eAction == EInputAction::GAME_CAST_SPELL_3) {
+        switch(m_vecAbilities[0].eTargetType) {
+            case EAbilityTargetType::UNIT:
+                if (pObjectUnderCursor) {
+                    CastTargetCommandPacket cmd = CastTargetCommandPacket();
+                    cmd.spell_slot = 2;
+                    cmd.target = pObjectUnderCursor->unit_id;
+                    net_manager_->SendPacket(&cmd);
+                }
+                break;
+            default:
+                float x, y;
+                TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+                
+                CastCommandPacket cast = CastCommandPacket();
+                cast.spell_slot = 2;
+                cast.x = x;
+                cast.y = 0;
+                cast.z = y;
+                net_manager_->SendPacket(&cast);
+                break;
+        }
+    }
+    if(eAction == EInputAction::GAME_CAST_SPELL_4) {
+        switch(m_vecAbilities[0].eTargetType) {
+            case EAbilityTargetType::UNIT:
+                if (pObjectUnderCursor) {
+                    CastTargetCommandPacket cmd = CastTargetCommandPacket();
+                    cmd.spell_slot = 3;
+                    cmd.target = pObjectUnderCursor->unit_id;
+                    net_manager_->SendPacket(&cmd);
+                }
+                break;
+            default:
+                float x, y;
+                TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+                
+                CastCommandPacket cast = CastCommandPacket();
+                cast.spell_slot = 3;
                 cast.x = x;
                 cast.y = 0;
                 cast.z = y;
