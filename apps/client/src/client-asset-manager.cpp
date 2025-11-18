@@ -16,10 +16,17 @@ CClientAssetManager::CClientAssetManager(IGraphicsEngine* pGraphicsEngine, IAudi
 void CClientAssetManager::Cleanup() {
 }
 
+HBitmap CClientAssetManager::GetBitmapImage(std::string id) {
+    if(m_mapBitmaps.contains(id)) {
+        return m_mapBitmaps.at(id);
+    }
 
-HBitmap CClientAssetManager::GetBitmapImage(std::string strBitmap) {
-    if(m_mapBitmaps.contains(strBitmap)) {
-        return m_mapBitmaps.at(strBitmap);
+    return INVALID_ASSET_HANDLE;
+}
+
+HBitmap CClientAssetManager::GetBitmapImage(std::string id, std::string strBitmap) {
+    if(m_mapBitmaps.contains(id)) {
+        return m_mapBitmaps.at(id);
     }
 
     std::vector<uint8_t> vecImageData = LoadFile(strBitmap);
@@ -39,7 +46,7 @@ HBitmap CClientAssetManager::GetBitmapImage(std::string strBitmap) {
     if(hBitmap == INVALID_ASSET_HANDLE) {
         Logger::FormatErr("Missing asset %s", strBitmap.c_str());
     } else {
-        m_mapBitmaps.emplace(strBitmap, hBitmap);
+        m_mapBitmaps.emplace(id, hBitmap);
     }
 
     return hBitmap;
@@ -220,9 +227,25 @@ const CGameData& CClientAssetManager::LoadManifest() {
             Logger::FormatMsg("Loaded ability %s from %s", abilityData.strId.c_str(), xmlFileName.c_str());
             continue;
         }
+
+        pugi::xml_node iconNode = doc.child("icon");
+        if(iconNode) {
+            CIconData iconData = LoadIconData(iconNode);
+            m_gameData.mapIconData.emplace(iconData.id, iconData);
+            Logger::FormatMsg("Loaded icon %s from %s", iconData.id.c_str(), xmlFileName.c_str());
+            continue;
+        }
     }
 
     return GetGameData();
+}
+
+CIconData CClientAssetManager::LoadIconData(pugi::xml_node& iconNode) {
+    CIconData iconData{};
+    std::string iconId = iconNode.attribute("id").as_string();
+    std::string iconPath = iconNode.attribute("asset").as_string();
+    GetBitmapImage(iconId, iconPath);
+    return iconData;
 }
 
 CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {
@@ -244,7 +267,8 @@ CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {
         CAnimationData animData{};
         animData.name = animationNode.attribute("name").as_string();
         animData.fDuration = animationNode.attribute("duration").as_int();
-        model.mapAnimations.emplace(animData.name, animData);
+        std::string slot = animationNode.attribute("slot").as_string();
+        model.mapAnimations.emplace(slot, animData);
     }
     return model;
 }

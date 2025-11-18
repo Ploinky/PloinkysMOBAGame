@@ -48,6 +48,11 @@ public:
     std::map<std::string, CAnimationData> mapAnimations;
 };
 
+class CIconData {
+public:
+    std::string id;
+};
+
 class CTransformData {
 public:
     int nCollisionRadius;
@@ -72,6 +77,10 @@ class CNavigationData {
 
 };
 
+class CIntentData {
+
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -83,6 +92,7 @@ public:
     std::optional<CMovementData> optMovementData;
     std::optional<CHealthData> optHealthData;
     std::optional<CNavigationData> optNavigationData;
+    std::optional<CIntentData> optIntentData;
 };
 
 class CGameData {
@@ -90,4 +100,5 @@ public:
     std::map<std::string, CCharacterData> mapCharacterData;
     std::map<std::string, CModelData> mapModelData;
     std::map<std::string, CAbilityData> mapAbilityData;
+    std::map<std::string, CIconData> mapIconData;
 };

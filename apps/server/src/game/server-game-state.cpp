@@ -81,5 +81,10 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         AddNavigation(id);
     }
 
+    // ==================== INTENT COMPONENT ====================
+    if(entityData.optIntentData.has_value()) {
+        AddIntent(id);
+    }
+
     return id;
 }

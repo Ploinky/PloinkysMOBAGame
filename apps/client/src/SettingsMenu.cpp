@@ -4,7 +4,7 @@
 SettingsMenu::SettingsMenu(IClientStateHandler* handler, int width, int height, Settings* settings)
 	: IClientState(handler, width, height), settings_(settings) {
 
-	HBitmap hBitmap = handler->GetAssetManager()->GetBitmapImage("assets/ui/buttons/menu-button/menu-button.bmp");
+	HBitmap hBitmap = handler->GetAssetManager()->GetBitmapImage("menu_button");
 
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };

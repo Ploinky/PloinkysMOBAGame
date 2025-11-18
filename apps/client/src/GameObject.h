@@ -32,5 +32,5 @@ public:
 	bool bIsCasting = false;
 	bool bIsAttacking = false;
 
-	uint64_t uPrefab = 0;
+	std::string uPrefab = "";
 };

@@ -7,9 +7,6 @@ void SpawnPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&unit, data->data() + offset, sizeof(unit));
 	offset += sizeof(unit);
 
-	memcpy(&unit_type, data->data() + offset, sizeof(unit_type));
-	offset += sizeof(unit_type);
-
 	memcpy(&team, data->data() + offset, sizeof(team));
 	offset += sizeof(team);
 
@@ -20,12 +17,21 @@ void SpawnPacket::Read(std::vector<uint8_t>* data) {
 	offset += sizeof(y);
 
 	memcpy(&z, data->data() + offset, sizeof(z));
+
+	memcpy(&entTypeLen, data->data() + offset, sizeof(entTypeLen));
+	offset += sizeof(entTypeLen);
+
+	strEntId.resize(entTypeLen);
+	memcpy(strEntId.data(), data->data() + offset, entTypeLen);
+	offset += entTypeLen;
 }
 
 void SpawnPacket::Write(std::vector<uint8_t>* data) {
+	entTypeLen = strEntId.length();
+
 	packet_header_t header{};
 	header.type = type;
-	header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(unit_type) + sizeof(team) + sizeof(x) + sizeof(y) + sizeof(z);
+	header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(team) + sizeof(x) + sizeof(y) + sizeof(z) + sizeof(entTypeLen) + entTypeLen;
 
 	size_t offset = data->size();
 	data->resize(data->size() + header.size);
@@ -37,9 +43,6 @@ void SpawnPacket::Write(std::vector<uint8_t>* data) {
 	memcpy(data->data() + offset, &unit, sizeof(unit));
 	offset += sizeof(unit);
 	
-	memcpy(data->data() + offset, &unit_type, sizeof(unit_type));
-	offset += sizeof(unit_type);
-	
 	memcpy(data->data() + offset, &team, sizeof(team));
 	offset += sizeof(team);
 	
@@ -50,4 +53,9 @@ void SpawnPacket::Write(std::vector<uint8_t>* data) {
 	offset += sizeof(y);
 
 	memcpy(data->data() + offset, &z, sizeof(z));
+	
+	memcpy(data->data() + offset, &entTypeLen, sizeof(entTypeLen));
+	offset += sizeof(entTypeLen);
+
+	memcpy(data->data() + offset, strEntId.data(), entTypeLen);
 }

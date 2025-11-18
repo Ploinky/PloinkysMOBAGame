@@ -51,6 +51,9 @@
             <xs:element name="navigation" minOccurs="0" maxOccurs="1">
                 <xs:complexType></xs:complexType>
             </xs:element>
+            <xs:element name="intent" minOccurs="0" maxOccurs="1">
+                <xs:complexType></xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="id" type="xs:string" use="required"/>
         <xs:attribute name="name" type="xs:string" use="required"/>

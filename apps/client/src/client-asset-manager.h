@@ -26,7 +26,8 @@ public:
 
     void Cleanup();
 
-    HBitmap GetBitmapImage(std::string strBitmap);
+    HBitmap GetBitmapImage(std::string id);
+    HBitmap GetBitmapImage(std::string id, std::string strBitmap);
 
     HTexture LoadTexture(std::string strTexture);
     HTexture LoadTextureFromData(std::vector<uint8_t> imageData);
@@ -58,5 +59,6 @@ private:
     std::unordered_map<std::string, HModel> m_mapModels;
     std::vector<ModelAsset_t> m_vecModels;
     
+    CIconData LoadIconData(pugi::xml_node& modelNode);
     CModelData LoadModelData(pugi::xml_node& modelNode);
 };

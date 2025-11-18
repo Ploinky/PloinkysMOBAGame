@@ -54,7 +54,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::UNITSPAWN, [this](std::vector<uint8_t> data) {
         SpawnPacket spawn{};
         spawn.Read(&data);
-        SpawnUnit(spawn.unit, spawn.unit_type, spawn.team, Vector3{ spawn.x, spawn.y, spawn.z });
+        SpawnUnit(spawn.unit, spawn.strEntId, spawn.team, Vector3{ spawn.x, spawn.y, spawn.z });
     });
     packet_manager.RegisterHandler(PacketType::UNITMOVE, [this](std::vector<uint8_t> data) { 
         UnitMovePacket move{};
@@ -297,7 +297,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 
     // TODO
     m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());
-    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("assets/persons/shared/ability-icon.bmp");
+    m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("ability-icon", "assets/persons/shared/ability-icon.bmp");
     m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/abilities/thunderstrike.wav");
     m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/death.wav");
     m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/attack.wav");
@@ -404,7 +404,8 @@ void Game::Update(float dt) {
 		GameObject* go = go_it.second;
         std::string desiredAnim;
         bool bLoop;
-
+        const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(m_gameState.GetRenderable(go->unit_id)->strRenderable);
+    
         if (go->dead) {
             desiredAnim = "death";
             bLoop = false;
@@ -415,13 +416,19 @@ void Game::Update(float dt) {
             desiredAnim = "attack1";
             bLoop = false;
         } else if(go->bIsAttacking) {
-            Logger::FormatMsg("PLAY ATTACK!");
             desiredAnim = "attack1";
             bLoop = false;
         } else {
             desiredAnim = "idle";
             bLoop = true;
         }
+
+        if(!modelData.mapAnimations.contains(desiredAnim)) {
+            continue;
+        }
+
+        CAnimationData animData = modelData.mapAnimations.at(desiredAnim);
+        desiredAnim = animData.name;
 
         AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(go->unit_id);
         if (pAnimComp && pAnimComp->m_strAnimationName != desiredAnim) {
@@ -868,14 +875,16 @@ void Game::SpawnUnit(uint64_t unitId) {
 void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos) {
     if(unitId == my_unit_id_) {
         const CCharacterData entityData = assetManager_->GetGameData().mapCharacterData.at(entityId);
-        m_vecAbilities.resize(entityData.mapAbilityIds.size());
         for(auto it : entityData.mapAbilityIds) {
             const CAbilityData& abilityData = assetManager_->GetGameData().mapAbilityData.at(it.second);
+            if(m_vecAbilities.size() <= it.first) {
+                m_vecAbilities.resize(it.first + 1);
+            }
             m_vecAbilities[it.first] = {
                 .strName = abilityData.strName,
                 .hIcon = assetManager_->GetBitmapImage(abilityData.iconId),
                 .eTargetType = abilityData.eTargetType,
-            }
+            };
         }
     }
 
@@ -886,7 +895,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
 
     m_gameState.vecUnits.push_back(unitId);
     // Hacky missile hack
-    if (unit_type == UnitPrefab::THROW_FOOTBALL) {
+    if (entityId == "throw_football") {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         m_gameState.AddHealth(unitId);
@@ -898,12 +907,12 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         go->rotation = { 0, 0, 0 };
         go->has_healthbar = false;
         go->team = team;
-        go->uPrefab = unit_type;
+        go->uPrefab = entityId;
         game_objects_.emplace(unitId, go);
         return;
     }
 
-    if (unit_type == UnitPrefab::FOOTBALL_PERSON) {
+    if (entityId == "football_person") {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         m_gameState.AddHealth(unitId);
@@ -912,7 +921,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->team = team;
-        go->uPrefab = unit_type;
+        go->uPrefab = "football_person";
         m_gameState.AddTargetable(unitId);
         m_gameState.AddTransform(unitId);
         m_gameState.AddMovement(unitId);
@@ -928,7 +937,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         return;
     }
 
-    if (unit_type == UnitPrefab::STORMCALLER) {
+    if (entityId == "stormcaller") {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         m_gameState.AddHealth(unitId);
@@ -938,7 +947,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         go->position = pos;
         go->rotation = { 0, 0, 0 };
         go->team = team;
-        go->uPrefab = unit_type;
+        go->uPrefab = entityId;
         m_gameState.AddTargetable(unitId);
         m_gameState.AddTransform(unitId);
         m_gameState.AddMovement(unitId);
@@ -954,7 +963,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         return;
     }
 
-    if (unit_type == UnitPrefab::TOWER) {
+    if (entityId == "tower") {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         go->position = pos;
@@ -968,12 +977,12 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         go->has_healthbar = true;
         go->has_title = false;
         go->team = team;
-        go->uPrefab = unit_type;
+        go->uPrefab = entityId;
         game_objects_.emplace(unitId, go);
         return;
     }
 
-    if (unit_type == UnitPrefab::GENERIC_EMPTY) {
+    if (entityId == "") {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         m_gameState.AddHealth(unitId);
@@ -985,12 +994,12 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         go->has_healthbar = false;
         go->has_title = false;
         go->team = team;
-        go->uPrefab = unit_type;
+        go->uPrefab = entityId;
         game_objects_.emplace(unitId, go);
         return;
     }
 
-    if (unit_type == UnitPrefab::MINION) {
+    if (entityId == "") {
         GameObject* go = new GameObject();
         go->unit_id = unitId;
         m_gameState.AddHealth(unitId);
@@ -1007,7 +1016,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         go->has_healthbar = true;
         go->has_title = false;
         go->team = team;
-        go->uPrefab = unit_type;
+        go->uPrefab = entityId;
         m_gameState.AddTargetable(unitId);
         game_objects_.emplace(unitId, go);
         return;

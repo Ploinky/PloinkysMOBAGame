@@ -13,4 +13,5 @@
     <movement speed="300" />
     <health max_health="50" />
     <navigation />
+    <intent />
 </entity>

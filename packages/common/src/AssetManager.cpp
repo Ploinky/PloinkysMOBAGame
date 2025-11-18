@@ -223,6 +223,11 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         charData.optNavigationData.emplace(navigationData);
     }
 
+    pugi::xml_node intentNode = charDataNode.child("intent");
+    if(intentNode) {
+        charData.optIntentData.emplace(CIntentData());
+    }
+
     return charData;
 }
 

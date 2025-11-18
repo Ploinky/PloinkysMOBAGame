@@ -30,7 +30,7 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
     for(CNetworkComponent& networkComp : pGameState->GetAllNetwork()) {
         if(!networkComp.IsSpawnSynced()) {
             SpawnPacket spawn;
-            spawn.unit_type = pGameState->GetCharacter(networkComp.idUnit)->prefab;
+            spawn.strEntId = pGameState->GetCharacter(networkComp.idUnit)->prefab;
             spawn.team = Team::TEAM_1;
             spawn.unit = networkComp.idUnit;
             if(CTransformComponent* pTransform = pGameState->GetTransform(networkComp.idUnit)) {
