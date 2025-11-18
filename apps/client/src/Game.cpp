@@ -899,16 +899,22 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             go->bIsAttacking = false;
 
             TransformComponent_t* transform = m_gameState.GetTransform(move.unit);
-            Vector3 vec3Move = { move.x, move.y, move.z };
-            if((transform->vec3Position - vec3Move).Length() > 100) {
-                Logger::FormatMsg("snap: %f", (transform->vec3Position - vec3Move).Length());
-                transform->vec3Position = vec3Move;
-            } else if ((transform->vec3Position - vec3Move).Length() > 5) {
-                Logger::FormatMsg("diff: %f", (transform->vec3Position - vec3Move).Length());
 
-                Vector3 vec3Catchup = (vec3Move - transform->vec3Position).ScaleToLength(((vec3Move - transform->vec3Position).Length() - 5) / 10);
-                transform->vec3Position = transform->vec3Position + vec3Catchup;
-            }
+            //  We're trying to go here
+            Vector3 vec3Dest = { move.x, move.y, move.z };
+            // And we're here
+            Vector3 vec3Pos = transform->vec3Position;
+            // So this is our movement vector now
+            Vector3 vec3Move = vec3Dest - vec3Pos;
+            
+            // To get there by the end of the frame we have
+            double dRemaining = 1.0 - diff;
+
+            // If we just run we'll manage
+            double dPredictedDistance = 330.0 / (1000.0 / 16.66666) * dRemaining;
+
+            Vector3 vec3ActualMove = vec3Move.ScaleToLength(330.0 / (1000.0 / 16.66666) * dRemaining);
+            transform->vec3Position = vec3Dest - vec3ActualMove;
 
             transform->vec3Rotation.y = move.r; // this actually looks less fucked for now :O
             continue;
@@ -1156,6 +1162,8 @@ void Game::HandleUnitIdPacket(std::vector<uint8_t> data) {
 }
 
 void Game::HandleGameTickPacket(std::vector<uint8_t> data) {
+    current_tick_ = ticks.size() - 2;
+    m_fCurrentFrameDelta = 0.0f;
     ticks.push_back(m_receivingTick);
 
     game_tick_t new_tick{};
