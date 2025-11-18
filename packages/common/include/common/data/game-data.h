@@ -81,6 +81,13 @@ class CIntentData {
 
 };
 
+class CTargetableData {
+};
+
+class CAudioData {
+
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -93,6 +100,8 @@ public:
     std::optional<CHealthData> optHealthData;
     std::optional<CNavigationData> optNavigationData;
     std::optional<CIntentData> optIntentData;
+    std::optional<CTargetableData> optTargetableData;
+    std::optional<CAudioData> optAudioData;
 };
 
 class CGameData {

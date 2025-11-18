@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model_data
+    id="dummy"
+    model="assets/persons/chess_person/chess_person.glb"
+>
+    <animations>
+        <animation
+            slot="idle"
+            name="idle"
+            duration="272"
+        />
+        <animation
+            slot="death"
+            name="death"
+            duration="272"
+        />
+    </animations>
+</model_data>

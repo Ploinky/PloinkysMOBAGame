@@ -228,6 +228,16 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         charData.optIntentData.emplace(CIntentData());
     }
 
+    pugi::xml_node targetableNode = charDataNode.child("targetable");
+    if(targetableNode) {
+        charData.optTargetableData.emplace(CTargetableData());
+    }
+
+    pugi::xml_node audioNode = charDataNode.child("audio");
+    if(audioNode) {
+        charData.optAudioData.emplace(CAudioData());
+    }
+
     return charData;
 }
 

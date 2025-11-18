@@ -16,9 +16,6 @@ public:
 
 	UnitId unit_id;
 
-	Vector3 position;
-
-	Vector3 rotation;
 	unsigned long long position_received;
 
 	bool has_healthbar = true;

@@ -19,4 +19,6 @@
     <movement speed="300" />
     <health max_health="200" />
     <navigation />
+    <targetable selection_radius="100" />
+    <audio />
 </entity>

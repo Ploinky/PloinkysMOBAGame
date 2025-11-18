@@ -25,5 +25,7 @@ public:
 	void AddEmitter(ParticleEmitter* emitter);
 	std::vector<ParticleEmitter*> emitters_;
 
+	Vector3 position; // TODO get this out of here
+	Vector3 rotation; // TODO get this out of here
 	GameObject* attached_to_ = nullptr;
 };

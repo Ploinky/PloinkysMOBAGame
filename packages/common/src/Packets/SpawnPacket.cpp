@@ -17,6 +17,7 @@ void SpawnPacket::Read(std::vector<uint8_t>* data) {
 	offset += sizeof(y);
 
 	memcpy(&z, data->data() + offset, sizeof(z));
+	offset += sizeof(z);
 
 	memcpy(&entTypeLen, data->data() + offset, sizeof(entTypeLen));
 	offset += sizeof(entTypeLen);
@@ -53,6 +54,7 @@ void SpawnPacket::Write(std::vector<uint8_t>* data) {
 	offset += sizeof(y);
 
 	memcpy(data->data() + offset, &z, sizeof(z));
+	offset += sizeof(z);
 	
 	memcpy(data->data() + offset, &entTypeLen, sizeof(entTypeLen));
 	offset += sizeof(entTypeLen);
