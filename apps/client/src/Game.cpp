@@ -177,7 +177,7 @@ void Game::Update(float dt) {
             bLoop = false;
         } else if(go->bIsAttacking) {
             desiredAnim = "attack1";
-            bLoop = false;
+            bLoop = true;
         } else {
             desiredAnim = "idle";
             bLoop = true;
@@ -314,7 +314,7 @@ void Game::Update(float dt) {
             if (TransformComponent_t* pTransform = m_gameState.GetTransform(my_unit_id_)) {
                 m_camPos[0] = pTransform->vec3Position.x;
                 m_camPos[1] = 800.0f;
-                m_camPos[2] = pTransform->vec3Position.z + 533.0f;
+                m_camPos[2] = pTransform->vec3Position.z + 350.0f;
             }
         }
         else {
@@ -923,7 +923,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             Vector3 vec3ActualMove = vec3Move.ScaleToLength(330.0 / (1000.0 / 16.66666) * dRemaining);
             transform->vec3Position = vec3Dest - vec3ActualMove;
 
-            transform->vec3Rotation.y = move.r; // this actually looks less fucked for now :O
+            transform->vec3Rotation.y = move.r; // move.r; // this actually looks less fucked for now :O
             continue;
         }
         if(header.type == PacketType::UNITDESPAWN){
@@ -1020,7 +1020,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             pck.Read(&vecData);
 
             GameObject* go = GetGameObject(pck.content.unit);
-            go->bIsAttacking = false;
+            // go->bIsAttacking = false;
         }
 
         if(header.type == PacketType::UNITMOVE_INTENTION) {

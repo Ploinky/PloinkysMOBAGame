@@ -12,12 +12,12 @@
         <animation
             slot="run"
             name="run"
-            duration="272"
+            duration="1000"
         />
         <animation
             slot="attack1"
             name="attack1"
-            duration="272"
+            duration="1000"
         />
         <animation
             slot="death"

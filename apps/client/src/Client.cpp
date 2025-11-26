@@ -70,10 +70,10 @@ void Client::Run(std::string connectString_) {
     int height = 768;
         
     if (devModeIt != settings_.GetAllVideoModesAndValues()->end()) {
-
         width = devModeIt->second.uWidth;
         height = devModeIt->second.uHeight;
     }
+
     // Create and show window
     window = Window::Create(width, height, (WindowMode)settings_.GetInt(PMGSettings::WINDOW_MODE));
     window->Show();
@@ -145,7 +145,7 @@ void Client::Run(std::string connectString_) {
     }
 
     // Save settings to settings file
-    settings_.SaveToFile("./settings.cfg");
+    settings_.SaveToFile("./cfg/settings.cfg");
 
     // Game has endeded, close window if it isn't already closing
     if (!window->ShouldClose()) {

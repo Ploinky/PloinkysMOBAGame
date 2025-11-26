@@ -10,9 +10,9 @@ bool CompareFloat(float a, float b) {
 
 float CalculateAngle(Vector2 from, Vector2 to) {
 	float dx = to.x - from.x;
-	float dy = -(to.y - from.y);
+	float dy = to.y - from.y;
 
-	return ToDegrees(atan2(dy, dx));
+	return ToDegrees(atan2(dx, dy));
 }
 
 float ToRadians(float degrees) {
