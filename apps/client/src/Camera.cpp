@@ -6,7 +6,7 @@ Camera::Camera() {
     this->nearClip = 100.0f;
     this->farClip = 10000.0f;
     this->position = Vector3{ 2000.0f, 800.0f, 533.0f };
-    this->rotation = Vector3{ -70, 0.0f, 0.0f };
+    this->rotation = Vector3{ -60, 0.0f, 0.0f };
 }
 
 Vector2 Camera::UnprojectWorldPoint(Vector3 vec3WorldPoint, int windowWidth, int windowHeight) {
