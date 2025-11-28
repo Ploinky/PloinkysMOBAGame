@@ -175,7 +175,7 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 		ToRadians(cmd.vec3Rotation.x),
 		ToRadians(cmd.vec3Rotation.y));
 		
-	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z}) + 90;
+	float a = CalculateAngle({cmd.vec3Position.x, cmd.vec3Position.z}, {m_camera.position.x, m_camera.position.z});
  	float x = ToRadians(a);
 	if(cmd.eType == ERenderCommandType::PARTICLE_SYSTEM) {
 		rotMat = PMathMatRollPitchYaw(ToRadians(0), ToRadians(0), x);

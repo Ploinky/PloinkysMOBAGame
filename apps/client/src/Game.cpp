@@ -1004,6 +1004,12 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             pAttackEvent->idUnit = go->unit_id;
             pAttackEvent->hSound = m_hStormcallerAttack;
             m_gameState.EmitEvent(pAttackEvent);
+
+            if(AnimationComponent_t* pAnim = m_gameState.GetAnimation(pck.content.unit)) {
+                pAnim->m_strAnimationName = "attack1";
+                pAnim->m_bLoop = true;
+                pAnim->m_fAnimationTime = 0.0f;
+            }
             continue;
         }
         if(header.type == PacketType::SCORE_UPDATE_PACKET){
