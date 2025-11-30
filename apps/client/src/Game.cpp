@@ -131,8 +131,8 @@ void Game::MouseMoved(int screenX, int screenY) {
 			break;
 		}
     }
-    
-    if(pObjectUnderCursor && m_gameState.GetTargetable(pObjectUnderCursor->unit_id)) {
+
+    if(pObjectUnderCursor && pObjectUnderCursor->unit_id != my_unit_id_ && m_gameState.GetTargetable(pObjectUnderCursor->unit_id)) {
         handler_->RequestCursor(CursorId::ATTACK_MOVE);
     } else {
         handler_->RequestCursor(CursorId::DEFAULT);
@@ -1202,7 +1202,7 @@ void Game::Action(EInputAction eAction) {
     }
 
     if(eAction == EInputAction::GAME_SECONDARY) {
-        if (pObjectUnderCursor && pObjectUnderCursor->has_healthbar) {
+        if (pObjectUnderCursor && pObjectUnderCursor->unit_id != my_unit_id_ && pObjectUnderCursor->has_healthbar) {
 			last_move = 150;
 
             AttackCommandPacket atk_pk = AttackCommandPacket();

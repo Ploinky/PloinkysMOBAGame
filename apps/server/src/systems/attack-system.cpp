@@ -94,21 +94,19 @@ void CAttackSystem::Finalize(CServerGameState* pGameState) {
 }
 
 void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt) {
-    CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idUnit);
-    CGameObject* pTarget = pGameState->FindGameObjectById(pEvt->idTarget);
-
-    if(pAttacker == nullptr || pTarget == nullptr) {
-        Logger::FormatErr("Invalid attack by unit %u on unit %u: at least one unit invalid", pEvt->idUnit, pEvt->idTarget);
+    if(pEvt->idTarget == pEvt->idUnit) {
+        Logger::FormatErr("Invalid attack by unit %u on unit %u: cannot attack self", pEvt->idUnit, pEvt->idTarget);
         return;
     }
 
-    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pAttacker->GetId());
+    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pEvt->idUnit);
 
     if(attackComp == nullptr) {
         Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idUnit, pEvt->idTarget);
         return;
     }
 
+    // Already attacking that target
     if(attackComp->optCurrentAttack.has_value()) {
         ActiveAttack_t& atk = attackComp->optCurrentAttack.value();
         if(atk.idTarget == pEvt->idTarget) {
