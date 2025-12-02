@@ -211,8 +211,8 @@ void Client::Start() {
     }
 
     UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "dummy");
-    GameState.GetTransform(id)->SetPosition({2000, 0, -2000});
-    GameState.GetMovement(id)->vec3Target = {2000, 0, -2000};
+    GameState.GetTransform(id)->SetPosition({1000, 0, -1000});
+    GameState.GetMovement(id)->vec3Target = {1000, 0, -1000};
     GameState.GetHealth(id)->nHealth = 10;
 
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
