@@ -29,6 +29,7 @@ protected:
 
     CCharacterData LoadCharacter(pugi::xml_node& characterNode);
     CAbilityData LoadAbility(pugi::xml_node& abilityNode);
+	CMapData LoadMapData(pugi::xml_node& mapNode);
 	std::vector<float> ParseFloatVec(std::string str);
 };
 

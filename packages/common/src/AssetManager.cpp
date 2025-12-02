@@ -256,6 +256,27 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
     return charData;
 }
 
+CMapData AssetManager::LoadMapData(pugi::xml_node& mapNode) {
+    CMapData mapData;
+
+    mapData.strId = mapNode.attribute("id").as_string();
+    
+    if(pugi::xml_node navMeshNode = mapNode.child("navmesh")) {
+        mapData.navMeshDataFile = navMeshNode.attribute("file").as_string();
+    }
+
+    if(pugi::xml_node camVolumeNode = mapNode.child("camvolume")) {
+        mapData.camVolume.fBack = camVolumeNode.attribute("back").as_float();
+        mapData.camVolume.fFront = camVolumeNode.attribute("front").as_float();
+        mapData.camVolume.fLeft = camVolumeNode.attribute("left").as_float();
+        mapData.camVolume.fRight = camVolumeNode.attribute("right").as_float();
+        mapData.camVolume.fTop = camVolumeNode.attribute("top").as_float();
+        mapData.camVolume.fBottom = camVolumeNode.attribute("bottom").as_float();
+    }
+
+    return mapData;
+}
+
 std::vector<float> AssetManager::ParseFloatVec(std::string str) {
     std::vector<float> result;
     std::stringstream ss(str);

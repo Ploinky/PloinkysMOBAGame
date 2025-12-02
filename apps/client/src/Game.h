@@ -143,4 +143,5 @@ public:
 
 	GameObject* pObjectUnderCursor = nullptr;
     PlayerInput_t m_playerInput;
+    CMapData m_map;
 };

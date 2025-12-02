@@ -29,6 +29,12 @@ CGameData CServerDataLoader::LoadManifest() {
             continue;
         }
 
+        if(pugi::xml_node map = doc.child("map")) {
+            CMapData mapData = LoadMapData(map);
+            gameData.mapMapData.emplace(mapData.strId, mapData);
+            continue;
+        }
+
         Logger::FormatMsg("Found no relevant data node in %s", fileName.c_str());
     }
     

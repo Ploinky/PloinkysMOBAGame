@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<map
+    xmlns="https://ploinky.de/mySchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://ploinky.de/mySchema _map.xsd"
+    id="map1"
+    model="map1"
+>
+    <navmesh file="data/maps/map1.nvm" />
+    <camvolume back="-4400" front="500" left="0" right="9000" top="0" bottom="0" />
+</map>

@@ -110,10 +110,28 @@ public:
     std::optional<CAudioData> optAudioData;
 };
 
+class CMapCameraVolume {
+public:
+    float fLeft;
+    float fRight;
+    float fBottom;
+    float fTop;
+    float fFront;
+    float fBack;
+};
+
+class CMapData {
+public:
+    std::string strId;
+    std::string navMeshDataFile;
+    CMapCameraVolume camVolume;
+};
+
 class CGameData {
 public:
     std::map<std::string, CCharacterData> mapCharacterData;
     std::map<std::string, CModelData> mapModelData;
     std::map<std::string, CAbilityData> mapAbilityData;
     std::map<std::string, CIconData> mapIconData;
+    std::map<std::string, CMapData> mapMapData;
 };

@@ -13,8 +13,10 @@
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     // Initialize navigation mesh for selected map
     // TODO probably need to get this from a loading / connecting state
+    // TODO load more intelligently
+    m_map = handler->GetAssetManager()->GetGameData().mapMapData.at("map1");
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile("data/Maps/map1/map1.nvm"));
+    m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile(m_map.navMeshDataFile));
 
     // Convert the navigation mesh to a cell grid we can actually use
     m_navGrid = new NavigationCellGrid(m_navMesh);
@@ -368,8 +370,8 @@ void Game::Update(float dt) {
     }
 
     // clamp camera position to avoid scrolling off map
-    m_camPos[0] = std::min(std::max(m_camPos[0], 0.0f), 9000.0f);
-    m_camPos[2] = std::max(std::min(m_camPos[2], 1000.0f), -4400.0f);
+    m_camPos[0] = std::min(std::max(m_camPos[0], m_map.camVolume.fLeft), m_map.camVolume.fRight);
+    m_camPos[2] = std::max(std::min(m_camPos[2], m_map.camVolume.fFront), m_map.camVolume.fBack);
 
     m_pAudioSystem->SetListenerPosition({m_camPos[0], m_camPos[1], m_camPos[2]});
     for(ISystem* pSystem : m_gameState.m_vecGameSystems) {

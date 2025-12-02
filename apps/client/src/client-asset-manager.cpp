@@ -235,6 +235,12 @@ const CGameData& CClientAssetManager::LoadManifest() {
             Logger::FormatMsg("Loaded icon %s from %s", iconData.id.c_str(), xmlFileName.c_str());
             continue;
         }
+
+        pugi::xml_node mapNode = doc.child("map");
+        if(mapNode) {
+            CMapData mapData = LoadMapData(mapNode);
+            m_gameData.mapMapData.emplace(mapData.strId, mapData);
+        }
     }
 
     return GetGameData();

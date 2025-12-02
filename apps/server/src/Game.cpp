@@ -33,7 +33,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
 #endif
 
     m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(assetManager->LoadPlainFile("data/maps/map1/map1.nvm"));
+    m_navMesh->LoadFromData(assetManager->LoadPlainFile(handler_->GetGameData().mapMapData.at("map1").navMeshDataFile));
 
     m_navGrid = new NavigationCellGrid(m_navMesh);
     m_navMap = new NavigationMap();
