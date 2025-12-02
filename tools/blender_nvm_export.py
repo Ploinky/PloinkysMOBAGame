@@ -26,8 +26,6 @@ with open(filepath, 'w') as f:
 	
 	me = obj.data
 	me.calc_loop_triangles()
-	# me.calc_normals_split()
-	uvmap = me.uv_layers.active
 	
 	for tri in me.loop_triangles:
 		for i in range(3):
@@ -35,16 +33,11 @@ with open(filepath, 'w') as f:
 			loop_index = tri.loops[i]
 
 			pos = me.vertices[vert_index].co
-			# normals
-			# norm = me.loops[loop_index].normal
-			uv = uvmap.data[loop_index].uv
 			
 			foundOne = False
 			vertI = 0
 			while vertI < len(verts):
-				# normals
-				# if verts[vertI] == (pos, norm, uv):
-				if verts[vertI] == (pos, uv):
+				if verts[vertI] == (pos):
 					foundOne = True
 					indices.append(vertI)
 					break
@@ -53,12 +46,10 @@ with open(filepath, 'w') as f:
 			if foundOne == False:
 				# normals
 				# verts.append((pos, norm, uv))
-				verts.append((pos, uv))
+				verts.append(pos)
 				indices.append(len(verts) - 1)
 	for vert in verts:
-		co = vert[0]
-		uv = vert[1]
-		f.write("v " + str(co.x) +  " " + str(co.z) + " " + str(-co.y) + "\n")
+		f.write("v " + str(vert.x) +  " " + str(vert.z) + " " + str(-vert.y) + "\n")
 	x = 0
 	while x < len(indices):
 		f.write("f ")

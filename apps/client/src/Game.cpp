@@ -365,8 +365,8 @@ void Game::Update(float dt) {
 
     }
     else {
-        m_camPos[0] += m_camDir[0] * dt / 0.2;
-        m_camPos[2] += m_camDir[1] * dt / 0.2;
+        m_camPos[0] += m_camDir[0] * dt / 0.4;
+        m_camPos[2] += m_camDir[1] * dt / 0.4;
     }
 
     // clamp camera position to avoid scrolling off map
