@@ -1,49 +1,54 @@
 #include "ClientNetworkManager.h"
-#include <common/PMG_Common.h>
-#include <common/pmg_networking.h>
+#include <Common/PMG_Common.h>
+#include <Common/pmg_networking.h>
+
+#define ENET_IMPLEMENTATION
+#include "enet/enet.h"
 
 #include "Game.h"
 
-#include "steam/isteamnetworkingsockets.h"
-
 bool ClientNetworkManager::IsConnected() {
-	return serverConnection_ != k_HSteamNetConnection_Invalid && m_bIsConnectedToServer;
+	return m_pServerConnection != nullptr && m_bIsConnectedToServer;
 }
 
 bool ClientNetworkManager::Initialize(NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
+    // TODO do we need to do anything here? like check for errors? 
+    if(enet_initialize()) {
+        Logger::FormatErr("Failed to initialize enet!");
+        return false;
+    }
+
 	this->packet_manager = manager;
 	return true;
 }
 
 void ClientNetworkManager::ConnectToServer(std::string addr) {
-	m_bIsConnectedToServer = false;
-	SteamNetworkingIPAddr ipAddr{};
-	ipAddr.ParseString(addr.c_str());
-	SteamNetworkingConfigValue_t config{};
-	config.SetInt32(k_ESteamNetworkingConfig_IP_AllowWithoutAuth, 1);
-	serverConnection_ = SteamNetworkingSockets()->ConnectByIPAddress(ipAddr, 0, &config);
-
-	if (serverConnection_ == k_HSteamNetConnection_Invalid) {
+	m_pHost = enet_host_create (NULL /* create a client host */,
+				1 /* only allow 1 outgoing connection */,
+				2 /* allow up 2 channels to be used, 0 and 1 */,
+				0 /* assume any amount of incoming bandwidth */,
+				0 /* assume any amount of outgoing bandwidth */);
+ 
+	if (m_pHost == NULL) {
+		Logger::Err("An error occurred while trying to create an ENet client host.");
 		return;
 	}
-}
+	
+	m_bIsConnectedToServer = false;
 
-void ClientNetworkManager::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* callback) {
-	Logger::Msg("Status changed");
-
-	if (callback->m_info.m_eState == k_ESteamNetworkingConnectionState_Connected) {
-		if (callback->m_eOldState != k_ESteamNetworkingConnectionState_Connected) {
-			// TODO we are connected now but were not before
-			m_bIsConnectedToServer = true;
-		}
+	ENetAddress address;
+	ENetEvent event;
+	ENetPeer *peer;
+	
+	enet_address_set_host (&address, addr.c_str());
+	address.port = 23119;
+	
+	m_pServerConnection = enet_host_connect(m_pHost, &address, 2, 0);
+	
+	if (m_pServerConnection == NULL) {
+		Logger::Err("Failed to connect to server: No available peers for initiating an ENet connection.");
+		return;
 	}
-	else if (callback->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
-		if (callback->m_eOldState == k_ESteamNetworkingConnectionState_Connected) {
-			// TODO we were connected but have become disconnected. Whoops!
-			m_bIsConnectedToServer = false;
-		}
-	}
-
 }
 
 bool ClientNetworkManager::CheckConnected() {
@@ -52,9 +57,8 @@ bool ClientNetworkManager::CheckConnected() {
 }
 
 bool ClientNetworkManager::Close() {
-	// TODO
-	SteamNetworkingSockets()->CloseConnection(serverConnection_, 0, nullptr, false);
-
+    // TODO what is actually needed here? checks?
+    enet_deinitialize();
 	return true;
 }
 
@@ -62,22 +66,62 @@ bool ClientNetworkManager::SendPacket(BasePacket* packet) {
 	std::vector<uint8_t>* buf = new std::vector<uint8_t>();
 	packet->Write(buf);
 
-	EResult result = SteamNetworkingSockets()->SendMessageToConnection(serverConnection_, buf->data(), buf->size(), 0, nullptr);
-
-	if (result != k_EResultOK) {
-		throw new std::exception();
-	}
+    ENetPacket* pPacket = enet_packet_create (buf->data(), buf->size(), ENET_PACKET_FLAG_RELIABLE);
+ 
+    enet_peer_send (m_pServerConnection, 0, pPacket);
+    enet_host_flush(m_pHost);
 
 	return true;
 }
 
 bool ClientNetworkManager::ReceivePacket() {
+    ENetEvent event;
+	std::function<void (std::vector<uint8_t>)> fun = [](std::vector<uint8_t>){};
+	std::vector<uint8_t> data;
+	packet_header_t header{};
+
+    while (enet_host_service(m_pHost, &event, 0) > 0) {
+        switch (event.type) {
+            case ENET_EVENT_TYPE_CONNECT:
+                Logger::FormatMsg("A new client connected from %x:%u.\n", event.peer->address.host, event.peer->address.port);
+
+                /* Store any relevant client information here. */
+				m_bIsConnectedToServer = true;
+				break;
+            case ENET_EVENT_TYPE_RECEIVE:
+				data.resize(event.packet->dataLength);
+				std::memcpy(data.data(), event.packet->data, data.size());
+
+				std::memcpy(&header, data.data(), sizeof(header));
+
+				fun = packet_manager->GetHandler(header.type);
+
+				if(fun != nullptr) {
+					fun(data);
+				}
+
+                /* Clean up the packet now that we're done using it. */
+                enet_packet_destroy (event.packet);
+
+                break;
+            case ENET_EVENT_TYPE_DISCONNECT:
+                printf ("%s disconnected.\n", event.peer -> data);
+        
+                /* Reset the peer's client information. */
+				m_bIsConnectedToServer = false;
+                break;
+        }
+        
+    }
+	return false;
+
+	/*
 	std::vector<uint8_t> data;
 
 	std::vector<SteamNetworkingMessage_t*> messages;
 	messages.resize(1);
 
-	if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(serverConnection_, messages.data(), 1)) {
+	if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(m_pServerConnection, messages.data(), 1)) {
 		for (SteamNetworkingMessage_t* message : messages) {
 
 			if (message == nullptr) {
@@ -105,4 +149,6 @@ bool ClientNetworkManager::ReceivePacket() {
 	}
 
 	return true;
+	*/
+
 }

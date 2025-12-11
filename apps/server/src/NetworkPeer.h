@@ -1,9 +1,10 @@
-#include <steam/steam_api.h>
+#pragma once
 
-typedef CSteamID PlayerID;
+typedef struct _ENetHost ENetHost;
+typedef uint64_t PlayerID;
 
 class NetworkPeer {
 public:
 	PlayerID idPlayer;
-	HSteamNetConnection pConnection;
+	ENetHost* pConnection;
 };

@@ -5,12 +5,10 @@
 #include <vector>
 #include "GuiButton.h"
 #include "GuiServerElement.h"
-#include "steam/isteammatchmaking.h"
-#include "steam/steam_api.h"
 #include "GuiCheckbox.h"
 #include "Server_t.h"
 
-class ServerBrowser : public IClientState, public ISteamMatchmakingServerListResponse, ISteamMatchmakingPingResponse {
+class ServerBrowser : public IClientState {
 public:
 	ServerBrowser(IClientStateHandler* handler, int width, int height);
 	~ServerBrowser();
@@ -27,18 +25,18 @@ private:
 	GuiCheckbox checkboxLan_;
 
 
-	HServerListRequest refreshRequest_ = nullptr;
+	void* refreshRequest_ = nullptr;
 
 	void CancelRefreshRequest();
 	void StartRefresh();
 
-	void RefreshComplete(HServerListRequest hRequest, EMatchMakingServerResponse response) override;
-	void ServerFailedToRespond(HServerListRequest hRequest, int iServer) override;
-	void ServerResponded(HServerListRequest hRequest, int iServer) override;
+	void RefreshComplete(void* hRequest, void* response);
+	void ServerFailedToRespond(void* hRequest, int iServer);
+	void ServerResponded(void* hRequest, int iServer);
 
 
 	// Server has responded successfully and has updated data
-	void ServerResponded(gameserveritem_t& server) {
+	void ServerResponded(void* server) {
 		printf("response\n");
 	}
 

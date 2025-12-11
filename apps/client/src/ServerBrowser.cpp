@@ -72,46 +72,18 @@ void ServerBrowser::MouseButtonPressed(int button) {
 }
 
 void ServerBrowser::StartRefresh() {
-	// servers_.clear();
-
-	MatchMakingKeyValuePair_t* filter = new MatchMakingKeyValuePair_t[]{ {} };
-
-	if (checkboxLan_.IsSelected()) {
-		refreshRequest_ = SteamMatchmakingServers()->RequestLANServerList(SteamUtils()->GetAppID(), this);
-	}
-	else {
-		MatchMakingKeyValuePair_t** ppchFilters = new MatchMakingKeyValuePair_t * [0];
-		refreshRequest_ = SteamMatchmakingServers()->RequestInternetServerList(SteamUtils()->GetAppID(), ppchFilters, 0, this);
-	}
-
-	buttonRefresh_.m_text = "Cancel";
-	delete[] filter;
 }
 
-void ServerBrowser::RefreshComplete(HServerListRequest hRequest, EMatchMakingServerResponse response) {
+void ServerBrowser::RefreshComplete(void* hRequest, void* response) {
 	printf("RefreshComplete");
-	if (hRequest != refreshRequest_) {
-		// really this should not be happening i guess?
-		SteamMatchmakingServers()->ReleaseRequest(hRequest);
-	}
 	CancelRefreshRequest();
 }
 
-void ServerBrowser::ServerFailedToRespond(HServerListRequest hRequest, int iServer) {
+void ServerBrowser::ServerFailedToRespond(void* hRequest, int iServer) {
 	printf("ServerFailedToRespond\n");
-	gameserveritem_t* pServer = SteamMatchmakingServers()->GetServerDetails(hRequest, iServer);
-	if (pServer)
-	{
-		// Filter out servers that don't match our appid here (might get these in LAN calls since we can't put more filters on it)
-		if (pServer->m_nAppID == SteamUtils()->GetAppID())
-		{
-			SteamMatchmakingServers()->PingServer(pServer->m_NetAdr.GetIP(), 27016, this);
-		}
-	}
 }
 
 void ServerBrowser::CancelRefreshRequest() {
-	SteamMatchmakingServers()->ReleaseRequest(refreshRequest_);
 	refreshRequest_ = nullptr;
 	buttonRefresh_.m_color[0] = 0.4f;
 	buttonRefresh_.m_color[1] = 0.4f;
@@ -119,28 +91,8 @@ void ServerBrowser::CancelRefreshRequest() {
 	buttonRefresh_.m_text = "Refresh";
 }
 
-void ServerBrowser::ServerResponded(HServerListRequest hRequest, int iServer) {
+void ServerBrowser::ServerResponded(void* hRequest, int iServer) {
 	printf("ServerResponded\n");
-
-	gameserveritem_t* pServer = SteamMatchmakingServers()->GetServerDetails(hRequest, iServer);
-	if (pServer)
-	{
-		// Filter out servers that don't match our appid here (might get these in LAN calls since we can't put more filters on it)
-		if (pServer->m_nAppID == SteamUtils()->GetAppID())
-		{
-			Server_t server{};
-			server.addr = pServer->m_NetAdr;
-			server.name = std::string(pServer->GetName());
-
-			GuiServerElement* serverElement = new GuiServerElement(server);
-			serverElement->e_onMousePressed = [this, serverElement]() {
-				handler_->JoinLobby(serverElement->GetServer().addr);
-			};
-			serverElement->m_pos = { 50, 200 };
-			serverElement->m_size = { 280, 30};
-			rootElement_.m_children.push_back(serverElement);
-		}
-	}
 }
 
 void ServerBrowser::Action(EInputAction eAction) {

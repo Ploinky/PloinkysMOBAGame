@@ -139,8 +139,6 @@ void Client::Run(std::string connectString_) {
 
         m_pAudioEngine->Update();
 
-        SteamAPI_RunCallbacks();
-
         fps = (int)(1000.0f / dt);
     }
 
@@ -209,9 +207,9 @@ void Client::JoinGame(ClientNetworkManager* networkManager) {
     m_pInputManager->SetContext(EInputContext::GAME);
 };
 
-void Client::JoinLobby(servernetadr_t addr) {
+void Client::JoinLobby(const char* addr) {
     m_pInputManager->SetContext(EInputContext::MENU);
-    Lobby* lobby = new Lobby(addr.GetConnectionAddressString(), this, window->width_, window->height_);
+    Lobby* lobby = new Lobby(std::string(addr), this, window->width_, window->height_);
     NewState(lobby);
 }
 

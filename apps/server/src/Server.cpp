@@ -36,8 +36,6 @@ void Server::Start() {
         }
 
         currentState_->Update(frameTimer.GetFrameDeltaTime());
-
-        SteamGameServer_RunCallbacks();
     }
 
     // TODO handle player connecting and disconnecting during game

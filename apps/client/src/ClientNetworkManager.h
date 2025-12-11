@@ -1,11 +1,14 @@
 #pragma once
+
 #include <string>
 #include <common/pmg_networking.h>
 #include <common/PMG_Common.h>
-#include <steam/steam_api.h>
 #include <functional>
 
 class Client;
+typedef struct _ENetPeer ENetPeer;
+typedef struct _ENetHost ENetHost;
+
 
 class ClientNetworkManager {
 public:
@@ -17,10 +20,10 @@ public:
 	bool ReceivePacket();
 
 	bool SendPacket(BasePacket* packet);
-	STEAM_CALLBACK(ClientNetworkManager, OnConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
 
 private:
 	bool m_bIsConnectedToServer = false;
-	HSteamNetConnection serverConnection_;
+	ENetPeer* m_pServerConnection;
+	ENetHost* m_pHost;
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* packet_manager;
 };

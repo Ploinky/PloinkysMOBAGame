@@ -5,10 +5,6 @@
 #include <functional>
 #include <common/PMG_Common.h>
 #include "common/pmg_networking.h"
-
-#include <steam/isteamnetworkingsockets.h>
-#include "steam/steam_api.h"
-
 #include "NetworkPeer.h"
 
 // NOTES:
@@ -16,7 +12,9 @@
 // - should hide complexity and offer high level functions like "send message to client identified by id"
 
 // TODO Abstraction when and where?
-typedef CSteamID PlayerID;
+typedef uint64_t PlayerID;
+typedef struct _ENetPeer ENetPeer;
+typedef struct _ENetHost ENetHost;
 /*
 * Manages connections to clients.
 */
@@ -47,9 +45,6 @@ public:
     std::function<void(PlayerID oldPlayerId)> on_clientDisconnected;
     std::function<void(PlayerID playerId, std::vector<uint8_t>*)> on_clientMessageReceived;
 
-    // Steam stuff?
-    STEAM_GAMESERVER_CALLBACK(ServerNetworkManager, OnConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
-
     // TODO there has to be a better way
     std::list<NetworkPeer*> GetConnections() {
         return clients_;
@@ -58,7 +53,7 @@ public:
 private:
     std::list<NetworkPeer*> clients_;
 
-    HSteamListenSocket listenSocket_;
+    ENetHost* listenSocket_;
     
-    HSteamNetConnection GetConnectionForPlayer(PlayerID playerId);
+    ENetHost* GetConnectionForPlayer(PlayerID playerId);
 };

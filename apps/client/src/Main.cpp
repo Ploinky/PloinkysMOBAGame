@@ -4,7 +4,6 @@
 #include <string>
 #include <locale>
 #include <codecvt>
-#include <steam/steam_api.h>
 #include <core/window/Window.h>
 #include "Renderer.h"
 #include "GameObject.h"
@@ -17,25 +16,10 @@
 
 // Main entry point into the application
 int main(int argc, char* argv[]) {
-#ifndef _DEBUG
-    if (SteamAPI_RestartAppIfNecessary(1756910)) {
-        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERR);
-        return 1;
-    }
-#endif
-
-    if (!SteamAPI_Init()) {
-        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERR);
-        return 1;
-    }
-
     if (!CPlatform::Initialize()) {
         CPlatform::Alert("Error", "Fatal Error - failed to initialize platform\n", EAlertType::ERR);
         return 1;
     }
-
-    // This is done as early as possible because it may take a while...
-    SteamNetworkingSockets()->InitAuthentication();
 
     // Attempt to read command line arguments
     bool showConsole = false;
@@ -61,9 +45,9 @@ int main(int argc, char* argv[]) {
     Logger::Msg("Starting Ploinky's MOBA Game...");
 
     Client* client = nullptr;
-    #ifdef _DEBUG
-        client = new Client();
-        client->Run(connectString);
+#ifdef _DEBUG
+    client = new Client();
+    client->Run(connectString);
 #else
     try {
         client = new Client();
@@ -76,7 +60,6 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    SteamAPI_Shutdown();
     Logger::Msg("Stopping Ploinky's MOBA Game.");
 
     delete client;

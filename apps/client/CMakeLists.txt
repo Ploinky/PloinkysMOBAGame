@@ -102,9 +102,8 @@ target_link_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 target_link_libraries(client PUBLIC common)
 
 if(WIN32)
-    add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll ${client_out_dir}/steam_api64.dll)
     add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:client>/client.exe ${client_out_dir}/client.exe)
-    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64 glfw3)
+    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 glfw3)
 
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/data)
         add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
@@ -112,11 +111,9 @@ if(WIN32)
 endif()
 
 if(UNIX)
-    add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so $<TARGET_FILE_DIR:client>/libsteam_api.so)
-    target_link_libraries(client PUBLIC common steam_api glfw GL glut)
+    target_link_libraries(client PUBLIC common glfw GL glut)
 endif()
     
-add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${client_out_dir}/steam_appid.txt)
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different  ${CMAKE_SOURCE_DIR}/resources/config_client/ ${client_out_dir}/cfg/)
 
 # shaders

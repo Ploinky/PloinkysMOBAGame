@@ -51,19 +51,13 @@ target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include
 target_link_libraries(server PUBLIC common)
 
 if(WIN32)
-	target_link_libraries(server PUBLIC steam_api64)
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/server/data)
         add_custom_command(TARGET server POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/server/data\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
 	endif()
-	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll ${server_out_dir}/steam_api64.dll)
 	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:server>/server.exe ${server_out_dir}/server.exe)
 endif()
 
 if(UNIX)
-	target_link_libraries(server PUBLIC steam_api)
-	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/libsteam_api.so ${server_out_dir}/libsteam_api.so)
-
 endif()
 
-add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${server_out_dir}/steam_appid.txt)
 add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different  ${CMAKE_SOURCE_DIR}/resources/config_server/ ${server_out_dir}/cfg/)

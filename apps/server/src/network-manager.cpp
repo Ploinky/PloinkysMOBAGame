@@ -2,46 +2,37 @@
 #include <common/PMG_Common.h>
 #include <LobbyPlayer.h>
 
+#define ENET_IMPLEMENTATION
+#include "enet/enet.h"
+
 ServerNetworkManager::ServerNetworkManager() {
     // start out with invalid socket
-    listenSocket_ = k_HSteamListenSocket_Invalid;
+    listenSocket_ = nullptr;
 }
 
 ServerNetworkManager::~ServerNetworkManager() {
     Close();
 }
 
-bool ServerNetworkManager::Initialize() {
-    // TODO do we need to do anything here? like check for errors?
-    SteamGameServerNetworkingSockets()->InitAuthentication();
-    return true;
-}
-
-bool ServerNetworkManager::CreateListenSocket(std::string port) {
-    SteamNetworkingIPAddr addr{};
-    addr.Clear();
-    addr.m_port = 23119;
-
-    listenSocket_ = SteamGameServerNetworkingSockets()->CreateListenSocketIP(addr, 0, 0);
-
-    if (listenSocket_ == k_HSteamListenSocket_Invalid) {
-        // this must mean there was an error, surely?
+bool ServerNetworkManager::Initialize() {    // TODO do we need to do anything here? like check for errors? 
+    if(enet_initialize()) {
+        Logger::FormatErr("Failed to initialize enet!");
         return false;
     }
 
     return true;
 }
 
-void ServerNetworkManager::StopListenSocket() {
-    // TODO does this need to be done gracefully?
-    if (!SteamGameServerNetworkingSockets()->CloseListenSocket(listenSocket_)) {
-        Logger::Err("Failed to close listen socket");
-        return;
-    }
-
-    listenSocket_ = k_HSteamListenSocket_Invalid;
+bool ServerNetworkManager::CreateListenSocket(std::string port) {
+    // TODO
+    return false;
 }
 
+void ServerNetworkManager::StopListenSocket() {
+    // TODO does this need to be done gracefully?
+    listenSocket_ = nullptr;
+}
+/*
 void ServerNetworkManager::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* callback) {
     if (callback->m_info.m_hListenSocket && callback->m_eOldState == k_ESteamNetworkingConnectionState_None
         && callback->m_info.m_eState == k_ESteamNetworkingConnectionState_Connecting) {
@@ -93,43 +84,24 @@ void ServerNetworkManager::OnConnectionStatusChanged(SteamNetConnectionStatusCha
         Logger::Err("Unknown connection status change received");
     }
 }
+*/
 
 bool ServerNetworkManager::Close() {
     // TODO what is actually needed here? checks?
     for (NetworkPeer* peer : clients_) {
-        SteamNetworkingSockets()->CloseConnection(peer->pConnection, 0, nullptr, false);
+        // TODO close connection
         delete peer;
     }
 
     clients_.clear();
 
-    SteamGameServerNetworkingSockets()->CloseListenSocket(listenSocket_);
+    // TODO close socket
 
     return true;
 }
 
 bool ServerNetworkManager::ReceivePacket(PlayerID playerId, std::vector<uint8_t>* packet) {
     // TODO only receive 1 message every time?
-    std::vector<SteamNetworkingMessage_t*> messages;
-    messages.resize(1);
-
-    if (SteamGameServerNetworkingSockets()->ReceiveMessagesOnConnection(GetConnectionForPlayer(playerId), messages.data(), 1)) {
-        for (SteamNetworkingMessage_t* message : messages) {
-            if (message == nullptr) {
-                Logger::Err("Received NULL message");
-                continue;
-            }
-
-            packet->resize(message->GetSize());
-            memcpy(packet->data(), message->GetData(), message->GetSize());
-
-            // release when done!
-            message->Release();
-
-            return true;
-        }
-    }
-
     return false;
 }
 
@@ -169,28 +141,20 @@ void ServerNetworkManager::SendToClient(PlayerID playerId, BasePacket* packet) {
     std::vector<uint8_t>* buf = new std::vector<uint8_t>();
     packet->Write(buf);
 
-    EResult result = SteamGameServerNetworkingSockets()->SendMessageToConnection(GetConnectionForPlayer(playerId), buf->data(), buf->size(), 0, nullptr);
-
-    if (result != k_EResultOK) {
-        Logger::Err("Failed to send message to client");
-    }
+    // TODO send
 }
 
 void ServerNetworkManager::SendToClient(PlayerID playerId, std::vector<uint8_t>* data) {
-    EResult result = SteamGameServerNetworkingSockets()->SendMessageToConnection(GetConnectionForPlayer(playerId), data->data(), data->size(), 0, nullptr);
-
-    if (result != k_EResultOK) {
-        Logger::Err("Failed to send message to client");
-    }
+    // TODO send
 }
 
 
-HSteamNetConnection ServerNetworkManager::GetConnectionForPlayer(PlayerID playerId) {
+ENetHost* ServerNetworkManager::GetConnectionForPlayer(PlayerID playerId) {
     for (NetworkPeer* peer : clients_) {
         if (peer->idPlayer == playerId) {
             return peer->pConnection;
         }
     }
 
-    return k_HSteamNetConnection_Invalid;
+    return nullptr;
 }

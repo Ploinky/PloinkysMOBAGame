@@ -3,7 +3,6 @@
 #include <Renderer.h>
 #include <common/PMG_Common.h>
 #include <Player.h>
-#include <steam/steam_api.h>
 #include <core/platform/cursor-id.h>
 
 class IClientState;
@@ -14,7 +13,7 @@ public:
     virtual void NewState(IClientState* newState) = 0;
 
     virtual void JoinGame(ClientNetworkManager* networkManager) = 0;
-    virtual void JoinLobby(servernetadr_t addr) = 0;
+    virtual void JoinLobby(const char* addr) = 0;
 
     virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) = 0;
 
