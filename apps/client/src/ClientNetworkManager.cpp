@@ -13,7 +13,7 @@ bool ClientNetworkManager::IsConnected() {
 
 bool ClientNetworkManager::Initialize(NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
     // TODO do we need to do anything here? like check for errors? 
-    if(enet_initialize()) {
+    if(m_pHost == nullptr && enet_initialize()) {
         Logger::FormatErr("Failed to initialize enet!");
         return false;
     }
@@ -36,11 +36,11 @@ void ClientNetworkManager::ConnectToServer(std::string addr) {
 	
 	m_bIsConnectedToServer = false;
 
-	ENetAddress address;
+	ENetAddress address = {0};
 	ENetEvent event;
 	ENetPeer *peer;
 	
-	enet_address_set_host (&address, addr.c_str());
+	enet_address_set_host (&address, "127.0.0.1");
 	address.port = 23119;
 	
 	m_pServerConnection = enet_host_connect(m_pHost, &address, 2, 0);
@@ -109,6 +109,12 @@ bool ClientNetworkManager::ReceivePacket() {
         
                 /* Reset the peer's client information. */
 				m_bIsConnectedToServer = false;
+                break;
+
+            case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+                printf("%s disconnected due to timeout.\n", event.peer->data);
+                /* Reset the peer's client information. */
+                event.peer->data = NULL;
                 break;
         }
         

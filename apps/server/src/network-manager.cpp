@@ -24,12 +24,29 @@ bool ServerNetworkManager::Initialize() {    // TODO do we need to do anything h
 }
 
 bool ServerNetworkManager::CreateListenSocket(std::string port) {
-    // TODO
-    return false;
+    if(listenSocket_) {
+        StopListenSocket();
+    }
+
+    ENetAddress address = {0};
+    address.host = ENET_HOST_ANY;
+    address.port = 23119;
+
+    listenSocket_ = enet_host_create(&address, 10, 2, 0, 0);
+    if(listenSocket_ == nullptr) {
+        Logger::Err("An error occurred while trying to create an ENet server host.");
+        return false;
+    }
+
+    return true;
 }
 
 void ServerNetworkManager::StopListenSocket() {
-    // TODO does this need to be done gracefully?
+    if(listenSocket_ == nullptr) {
+        return;
+    }
+
+    enet_host_destroy(listenSocket_);
     listenSocket_ = nullptr;
 }
 /*
@@ -87,6 +104,8 @@ void ServerNetworkManager::OnConnectionStatusChanged(SteamNetConnectionStatusCha
 */
 
 bool ServerNetworkManager::Close() {
+    StopListenSocket();
+
     // TODO what is actually needed here? checks?
     for (NetworkPeer* peer : clients_) {
         // TODO close connection
@@ -113,6 +132,59 @@ void ServerNetworkManager::Update() {
             on_clientMessageReceived(peer->idPlayer, &packet);
         }
     }
+    
+
+        ENetEvent event;
+        NetworkPeer* pPeer = nullptr;
+        PlayerID idPlayer;
+        std::vector<uint8_t> data;
+
+        /* Wait up to 1000 milliseconds for an event. (WARNING: blocking) */
+        while (enet_host_service(listenSocket_, &event, 0) > 0) {
+            switch (event.type) {
+                case ENET_EVENT_TYPE_CONNECT:
+                    printf("A new client connected from %x:%u.\n",  event.peer->address.host, event.peer->address.port);
+                    /* Store any relevant client information here. */
+                    pPeer = new NetworkPeer();
+                    pPeer->idPlayer = clients_.size();
+                    pPeer->pConnection = event.peer;
+                    clients_.push_back(pPeer);
+                    event.peer->data = (void*)&pPeer->idPlayer;
+                    on_clientConnected(pPeer->idPlayer);
+                    break;
+
+                case ENET_EVENT_TYPE_RECEIVE:
+                    printf("A packet of length %lu containing %s was received from %s on channel %u.\n",
+                            event.packet->dataLength,
+                            event.packet->data,
+                            event.peer->data,
+                            event.channelID);
+                    data.resize(event.packet->dataLength);
+                    std::memcpy(data.data(), event.packet->data, data.size());
+                    idPlayer = *(PlayerID*)(event.peer->data);
+                    on_clientMessageReceived(idPlayer, &data);
+                    /* Clean up the packet now that we're done using it. */
+                    enet_packet_destroy (event.packet);
+                    break;
+
+                case ENET_EVENT_TYPE_DISCONNECT:
+                    printf("%s disconnected.\n", event.peer->data);
+                    /* Reset the peer's client information. */
+                    idPlayer = *(PlayerID*)(event.peer->data);
+                    on_clientDisconnected(idPlayer);
+                    event.peer->data = NULL;
+                    break;
+
+                case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+                    printf("%s disconnected due to timeout.\n", event.peer->data);
+                    /* Reset the peer's client information. */
+                    event.peer->data = NULL;
+                    break;
+
+                case ENET_EVENT_TYPE_NONE:
+                    break;
+            }
+        }
 }
 
 void ServerNetworkManager::SendToAllClients(BasePacket& packet) {
@@ -138,18 +210,22 @@ void ServerNetworkManager::SendToAllClients(BasePacket* packet) {
 }
 
 void ServerNetworkManager::SendToClient(PlayerID playerId, BasePacket* packet) {
-    std::vector<uint8_t>* buf = new std::vector<uint8_t>();
-    packet->Write(buf);
-
-    // TODO send
+    std::vector<uint8_t> buf = std::vector<uint8_t>();
+    packet->Write(&buf);
+    SendToClient(playerId, &buf);
 }
 
 void ServerNetworkManager::SendToClient(PlayerID playerId, std::vector<uint8_t>* data) {
     // TODO send
+    ENetPacket* pPacket = enet_packet_create (data->data(), data->size(), ENET_PACKET_FLAG_RELIABLE);
+ 
+    ENetPeer* pPeer = GetConnectionForPlayer(playerId);
+    enet_peer_send (pPeer, 0, pPacket);
+    enet_host_flush(listenSocket_);
 }
 
 
-ENetHost* ServerNetworkManager::GetConnectionForPlayer(PlayerID playerId) {
+ENetPeer* ServerNetworkManager::GetConnectionForPlayer(PlayerID playerId) {
     for (NetworkPeer* peer : clients_) {
         if (peer->idPlayer == playerId) {
             return peer->pConnection;
