@@ -45,6 +45,11 @@ Client::~Client() {
         renderer = 0;
     }
 
+    if (m_pGraphicsEngine != nullptr) {
+        delete m_pGraphicsEngine;
+        m_pGraphicsEngine = nullptr;
+    }
+
     if (window != nullptr) {
         delete window;
         window = 0;

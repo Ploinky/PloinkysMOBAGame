@@ -58,6 +58,8 @@ public:
 
 class IGraphicsEngine {
 public:
+    virtual ~IGraphicsEngine() = default;
+
     static IGraphicsEngine* Create(HWindow hWindow, int nWidth, int nHeight);
 
     // == loading
