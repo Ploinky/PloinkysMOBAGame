@@ -50,21 +50,21 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         virtual void SetFullScreen(bool full_screen) override;
 
         // Creates a vertex buffer
-        virtual BufferHandle_t CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) override;
+        virtual HBuffer CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) override;
 
         //Creates an index buffer
-        virtual BufferHandle_t CreateIndexBuffer(uint32_t* pIndices, int nCount) override;
+        virtual HBuffer CreateIndexBuffer(uint32_t* pIndices, int nCount) override;
 
         // Creates a constant buffer
-        virtual BufferHandle_t CreateConstantBuffer(size_t uSize, void* pInitialData) override;
+        virtual HBuffer CreateConstantBuffer(size_t uSize, void* pInitialData) override;
 
         // Update the contents of a buffer
-        virtual void UpdateBuffer(BufferHandle_t hBuffer, const void* src, size_t size) override;
+        virtual void UpdateBuffer(HBuffer hBuffer, const void* src, size_t size) override;
         
         // Creates an instance buffer
-        virtual BufferHandle_t CreateInstanceBuffer(void* instances, int instance_count, size_t size) override;
+        virtual HBuffer CreateInstanceBuffer(void* instances, int instance_count, size_t size) override;
 
-        virtual void BindVertexShaderConstantBuffer(int nSlot, BufferHandle_t hBuffer) override;
+        virtual void BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) override;
         
         virtual void EnableAlphaBlending() override;
         virtual void DisableAlphaBlending() override;
@@ -77,8 +77,8 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         virtual void BindShaderProgram(HShaderProgram hShaderProgram) override;
         virtual void BindTexture(uint32_t uSlot, HTexture hTexture) override;
         
-        virtual void SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, UINT uStride, UINT uOffset) override;
-        virtual void SetIndexBuffer(BufferHandle_t& indexBuffer) override;
+        virtual void SetVertexBuffer(uint32_t uSlot, HBuffer vertexBuffer, UINT uStride, UINT uOffset) override;
+        virtual void SetIndexBuffer(HBuffer indexBuffer) override;
         
         virtual void DrawIndexed(UINT indices) override;
         virtual void DrawInstanced(UINT uVertexCountPerInstance, UINT uInstanceCount) override;
@@ -143,4 +143,5 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         std::unordered_map<EVertexFormat, InputLayoutD3D11_t> m_vecInputElementDescs;
         std::vector<Microsoft::WRL::ComPtr<ID2D1Bitmap>> m_vecBitmaps;
         std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_vecTextures;
+        std::vector<Microsoft::WRL::ComPtr<ID3D11Buffer>> m_vecBuffers;
 };

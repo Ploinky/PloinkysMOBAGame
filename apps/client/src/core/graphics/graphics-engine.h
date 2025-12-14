@@ -5,15 +5,11 @@
 #include <common/PMG_Common.h>
 #include <core/window/h-window.h>
 
-typedef struct BufferHandle_t {
-    void* ptr = nullptr;
-    explicit operator bool() const { return ptr != nullptr; }
-} BufferHandle_t;
-
 typedef uint32_t GraphicsEngineHandle;
 constexpr GraphicsEngineHandle INVALID_HANDLE = std::numeric_limits<uint32_t>::max();
 typedef GraphicsEngineHandle HShaderProgram;
 typedef GraphicsEngineHandle HSampler;
+typedef GraphicsEngineHandle HBuffer;
 
 enum class EVertexFormat {
     STATIC_MESH,
@@ -68,11 +64,11 @@ public:
     virtual HTexture LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) = 0;
 
     // == buffer management
-    virtual BufferHandle_t CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) = 0;
-    virtual BufferHandle_t CreateIndexBuffer(uint32_t* pIndices, int nCount) = 0;
-    virtual BufferHandle_t CreateConstantBuffer(size_t uSize, void* pInitialData) = 0;
-    virtual BufferHandle_t CreateInstanceBuffer(void* instances, int instance_count, size_t size) = 0;
-    virtual void UpdateBuffer(BufferHandle_t hBuffer, const void* pData, size_t uSize) = 0;
+    virtual HBuffer CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) = 0;
+    virtual HBuffer CreateIndexBuffer(uint32_t* pIndices, int nCount) = 0;
+    virtual HBuffer CreateConstantBuffer(size_t uSize, void* pInitialData) = 0;
+    virtual HBuffer CreateInstanceBuffer(void* instances, int instance_count, size_t size) = 0;
+    virtual void UpdateBuffer(HBuffer hBuffer, const void* pData, size_t uSize) = 0;
     
     // == window events?
 	virtual void SetWindowDimensions(int nWidth, int nHeight) = 0;
@@ -81,7 +77,7 @@ public:
     // == drawing
     virtual void ClearScreen() = 0;
 
-    virtual void BindVertexShaderConstantBuffer(int nSlot, BufferHandle_t hBuffer) = 0;
+    virtual void BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) = 0;
     
     virtual void EnableAlphaBlending() = 0;
     virtual void DisableAlphaBlending() = 0;
@@ -94,8 +90,8 @@ public:
     virtual void BindSampler(uint32_t uSlot, HSampler hSampler) = 0;
     virtual void BindTexture(uint32_t uSlot, HTexture hTexture) = 0;
 
-    virtual void SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, unsigned int uStride, unsigned int uOffset) = 0;
-    virtual void SetIndexBuffer(BufferHandle_t& indexBuffer) = 0;
+    virtual void SetVertexBuffer(uint32_t uSlot, HBuffer vertexBuffer, unsigned int uStride, unsigned int uOffset) = 0;
+    virtual void SetIndexBuffer(HBuffer indexBuffer) = 0;
 
     virtual void DrawIndexed(unsigned int indices) = 0;
     virtual void DrawInstanced(unsigned int uVertexCountPerInstance, unsigned int uInstanceCount) = 0;

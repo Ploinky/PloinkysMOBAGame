@@ -6,8 +6,8 @@ class Mesh {
 public:
 	~Mesh();
 
-	BufferHandle_t VertexBuffer;
-	BufferHandle_t IndexBuffer;
+	HBuffer VertexBuffer;
+	HBuffer IndexBuffer;
 	int IndexCount;
 	int MaterialIndex = -1;
 };

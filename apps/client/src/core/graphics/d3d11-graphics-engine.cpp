@@ -9,11 +9,6 @@
 #include "Settings.h"
 #include "client-asset-manager.h"
 
-inline ID3D11Buffer* D3DBuffer(BufferHandle_t bfr) {
-    return static_cast<ID3D11Buffer*>(bfr.ptr);
-}
-
-
 IGraphicsEngine* IGraphicsEngine::Create(HWindow hWindow, int nWidth, int nHeight) {
     CD3D11GraphicsEngine* pEngine = new CD3D11GraphicsEngine();
     pEngine->Initialize(hWindow, false); // TODO
@@ -61,6 +56,7 @@ CD3D11GraphicsEngine::~CD3D11GraphicsEngine() {
     m_pDevice->Release();
 
     m_vecShaderPrograms.clear();
+    m_vecBuffers.clear();
 
 #ifdef _DEBUG
     debug->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL | D3D11_RLDO_DETAIL);
@@ -601,8 +597,8 @@ bool CD3D11GraphicsEngine::Present() {
     return true;
 }
 
-BufferHandle_t CD3D11GraphicsEngine::CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) {
-    ID3D11Buffer* buffer;
+HBuffer CD3D11GraphicsEngine::CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) {
+    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 
     // Description used to create vertex buffer
     D3D11_BUFFER_DESC bd;
@@ -618,18 +614,20 @@ BufferHandle_t CD3D11GraphicsEngine::CreateVertexBuffer(void* pVertices, size_t 
     data.SysMemSlicePitch = 0;
 
     // Buffer created in GPU memory
-    HRESULT hr = m_pDevice->CreateBuffer(&bd, &data, &buffer);
+    HRESULT hr = m_pDevice->CreateBuffer(&bd, &data, buffer.GetAddressOf());
 
     if(FAILED(hr)) {
         Logger::FormatErr("Error creating D3D vertex Buffer: ", _com_error(hr).ErrorMessage());
-        return BufferHandle_t {nullptr};
-    } else {
-        return BufferHandle_t {buffer};
+        return INVALID_HANDLE;
     }
+    
+    HBuffer hBuf = m_vecBuffers.size();
+    m_vecBuffers.push_back(buffer);
+    return hBuf;
 }
 
-BufferHandle_t CD3D11GraphicsEngine::CreateIndexBuffer(uint32_t* pIndices, int nCount) {
-    ID3D11Buffer* buffer;
+HBuffer CD3D11GraphicsEngine::CreateIndexBuffer(uint32_t* pIndices, int nCount) {
+    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 
     D3D11_BUFFER_DESC bufferDesc;
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -643,18 +641,20 @@ BufferHandle_t CD3D11GraphicsEngine::CreateIndexBuffer(uint32_t* pIndices, int n
     data.SysMemPitch = 0;
     data.SysMemSlicePitch = 0;
 
-    HRESULT hr = m_pDevice->CreateBuffer(&bufferDesc, &data, &buffer);
+    HRESULT hr = m_pDevice->CreateBuffer(&bufferDesc, &data, buffer.GetAddressOf());
 
     if(FAILED(hr)) {
         Logger::FormatErr("Error creating D3D index Buffer: ", _com_error(hr).ErrorMessage());
-        return BufferHandle_t {nullptr};
-    } else {
-        return BufferHandle_t {buffer};
+        return INVALID_HANDLE;
     }
+
+    HBuffer hBuf = m_vecBuffers.size();
+    m_vecBuffers.push_back(buffer);
+    return hBuf;
 }
 
-BufferHandle_t CD3D11GraphicsEngine::CreateConstantBuffer(size_t uSize, void* pInitialData) {
-    ID3D11Buffer* buffer;
+HBuffer CD3D11GraphicsEngine::CreateConstantBuffer(size_t uSize, void* pInitialData) {
+    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 
 	D3D11_BUFFER_DESC desc;
 	desc.ByteWidth = uSize;
@@ -673,23 +673,30 @@ BufferHandle_t CD3D11GraphicsEngine::CreateConstantBuffer(size_t uSize, void* pI
 
     if(FAILED(hr)) {
         Logger::FormatErr("Error creating D3D constant buffer: ", _com_error(hr).ErrorMessage());
-        return BufferHandle_t {nullptr};
-    } {
-        return BufferHandle_t {buffer};
+        return INVALID_HANDLE;
     }
+    HBuffer hBuf = m_vecBuffers.size();
+    m_vecBuffers.push_back(buffer);
+    return hBuf;
 }
 
-void CD3D11GraphicsEngine::UpdateBuffer(BufferHandle_t hBuffer, const void* src, size_t size) {
+void CD3D11GraphicsEngine::UpdateBuffer(HBuffer hBuffer, const void* src, size_t size) {
+    if(hBuffer == INVALID_HANDLE) {
+        Logger::Err("Attempted to update invalid buffer");
+        return;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> buf = m_vecBuffers[hBuffer];
     D3D11_MAPPED_SUBRESOURCE mappedResource = { 0 };
-    if(FAILED(m_pContext->Map(D3DBuffer(hBuffer), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+    if(FAILED(m_pContext->Map(buf.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
         Logger::Err("Failed to map buffer for update");
         return;
     }
     memcpy(mappedResource.pData, src, size);
-    m_pContext->Unmap(D3DBuffer(hBuffer), 0);
+    m_pContext->Unmap(buf.Get(), 0);
 }
 
-BufferHandle_t CD3D11GraphicsEngine::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
+HBuffer CD3D11GraphicsEngine::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
     ID3D11Buffer* buffer;
 
     D3D11_BUFFER_DESC bufferDesc;
@@ -708,11 +715,12 @@ BufferHandle_t CD3D11GraphicsEngine::CreateInstanceBuffer(void* instances, int i
 
     if (FAILED(hr)) {
         Logger::FormatErr("Error creating D3D instance Buffer: ",  _com_error(hr).ErrorMessage());
-        return BufferHandle_t {nullptr};
+        return INVALID_HANDLE;
     }
-    else {
-        return BufferHandle_t {buffer};
-    }
+
+    HBuffer hBuf = m_vecBuffers.size();
+    m_vecBuffers.push_back(buffer);
+    return hBuf;
 }
     
 void CD3D11GraphicsEngine::SetFullScreen(bool full_screen) {
@@ -764,9 +772,14 @@ void CD3D11GraphicsEngine::SetWindowDimensions(int width_, int height_) {
     SetViewport();
 }
 
-void CD3D11GraphicsEngine::BindVertexShaderConstantBuffer(int nSlot, BufferHandle_t hBuffer) {
-    ID3D11Buffer* pRawBuf = D3DBuffer(hBuffer);
-    m_pContext->VSSetConstantBuffers(nSlot, 1, &pRawBuf);
+void CD3D11GraphicsEngine::BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) {
+    if(hBuffer == INVALID_HANDLE) {
+        Logger::Err("Attempted to set invalid vertex shader constant buffer");
+        return;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pRawBuf = m_vecBuffers[hBuffer];
+    m_pContext->VSSetConstantBuffers(nSlot, 1, pRawBuf.GetAddressOf());
 }
 
 void CD3D11GraphicsEngine::BindShaderProgram(HShaderProgram hShaderProgram) {
@@ -854,14 +867,24 @@ void CD3D11GraphicsEngine::BindTexture(uint32_t uSlot, HTexture hTexture) {
     m_pContext->PSSetShaderResources(uSlot, 1, pTex.GetAddressOf());
 }
 
-void CD3D11GraphicsEngine::SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, UINT uStride, UINT uOffset) {
-    ID3D11Buffer* ptr = D3DBuffer(vertexBuffer);
-    m_pContext->IASetVertexBuffers(uSlot, 1, &ptr, &uStride, &uOffset);
+void CD3D11GraphicsEngine::SetVertexBuffer(uint32_t uSlot, HBuffer vertexBuffer, UINT uStride, UINT uOffset) {
+    if(vertexBuffer == INVALID_HANDLE) {
+        Logger::Err("Attempted to set invalid vertex buffer");
+        return;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> ptr = m_vecBuffers[vertexBuffer];
+    m_pContext->IASetVertexBuffers(uSlot, 1, ptr.GetAddressOf(), &uStride, &uOffset);
 }
 
-void CD3D11GraphicsEngine::SetIndexBuffer(BufferHandle_t& indexBuffer) {
-    ID3D11Buffer* ptr = D3DBuffer(indexBuffer);
-    m_pContext->IASetIndexBuffer(ptr, DXGI_FORMAT_R32_UINT, 0);
+void CD3D11GraphicsEngine::SetIndexBuffer(HBuffer indexBuffer) {
+    if(indexBuffer == INVALID_HANDLE) {
+        Logger::Err("Attempted to set invalid index buffer");
+        return;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> ptr = m_vecBuffers[indexBuffer];
+    m_pContext->IASetIndexBuffer(ptr.Get(), DXGI_FORMAT_R32_UINT, 0);
 }
 
 void CD3D11GraphicsEngine::DrawIndexed(UINT indices) {

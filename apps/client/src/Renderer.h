@@ -101,17 +101,17 @@ private:
     HShaderProgram m_hParticleShaderProgram;
     HShaderProgram m_hFlatUnlitShaderProgram;
 
-    BufferHandle_t m_hFrameConstBuffer;
-    BufferHandle_t m_hModelConstBuffer;
-    BufferHandle_t m_hSkinnedModelConstBuffer;
-    BufferHandle_t m_hBillboardFrameConstBuffer;
+    HBuffer m_hFrameConstBuffer;
+    HBuffer m_hModelConstBuffer;
+    HBuffer m_hSkinnedModelConstBuffer;
+    HBuffer m_hBillboardFrameConstBuffer;
 
-    BufferHandle_t m_hParticleVertexBuffer;
+    HBuffer m_hParticleVertexBuffer;
         
     #ifdef NAV_DEBUG
     // --- navigation grid rendering ---
-    BufferHandle_t m_pNavGridVertexBuffer;
-    BufferHandle_t m_pNavGridIndexBuffer;
+    HBuffer m_pNavGridVertexBuffer;
+    HBuffer m_pNavGridIndexBuffer;
     #endif
     
     CClientAssetManager* m_pAssetManager;

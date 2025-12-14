@@ -16,9 +16,9 @@ enum class ERenderCommandType {
 typedef struct RenderCommand_t {
     ERenderCommandType eType = ERenderCommandType::NONE;
 
-    BufferHandle_t hVertexBuffer;
-    BufferHandle_t hIndexBuffer;
-    BufferHandle_t hInstanceBuffer;
+    HBuffer hVertexBuffer;
+    HBuffer hIndexBuffer;
+    HBuffer hInstanceBuffer;
     unsigned int uIndexCount;
     unsigned int uInstanceCount;
 

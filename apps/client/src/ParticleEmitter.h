@@ -32,8 +32,8 @@ public:
 	std::vector<Particle> particles;
 	int emitter_life;
 	bool static_angle = false;
-	BufferHandle_t vertex_buffer_;
-	BufferHandle_t instance_buffer_;
+	HBuffer vertex_buffer_;
+	HBuffer instance_buffer_;
 	bool initialized;
 	std::string texture_name_;
 };
