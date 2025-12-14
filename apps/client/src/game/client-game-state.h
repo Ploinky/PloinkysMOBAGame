@@ -22,14 +22,14 @@ public:                                                                         
         vec##ComponentType##Components.push_back(comp);                                                    \
         return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
     }                                                                                                      \
-    ComponentType##Component_t* Get##ComponentType##(UnitId idUnit) {                                     \
+    ComponentType##Component_t* Get##ComponentType(UnitId idUnit) {                                     \
         auto index = map##ComponentType##Indices.at(idUnit);                                               \
         if(index == -1) {                                                                                  \
             return nullptr;                                                                                \
         }                                                                                                  \
         return &vec##ComponentType##Components.at(index) ;                                                 \
     }                                                                                                      \
-    std::vector<ComponentType##Component_t>& GetAll##ComponentType##() {                                  \
+    std::vector<ComponentType##Component_t>& GetAll##ComponentType() {                                  \
         return vec##ComponentType##Components;                                                             \
     }                                                                                                      \
 private:                                                                                                   \

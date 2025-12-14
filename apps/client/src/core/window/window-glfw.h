@@ -9,6 +9,7 @@
 class CWindowGLFW : public Window {
 public:
     CWindowGLFW(int res_x, int res_y, WindowMode mode);
+    ~CWindowGLFW();
 
     // Show window on screen
     virtual void Show() override;

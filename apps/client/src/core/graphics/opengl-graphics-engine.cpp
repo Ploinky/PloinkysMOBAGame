@@ -20,19 +20,19 @@ HTexture COpenGLGraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidt
 }
 
 // == buffer management
-BufferHandle_t COpenGLGraphicsEngine::CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) {
-    return BufferHandle_t {.ptr = nullptr};
+HBuffer COpenGLGraphicsEngine::CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) {
+    return INVALID_HANDLE;
 }
-BufferHandle_t COpenGLGraphicsEngine::CreateIndexBuffer(uint32_t* pIndices, int nCount) {
-    return BufferHandle_t {.ptr = nullptr};
+HBuffer COpenGLGraphicsEngine::CreateIndexBuffer(uint32_t* pIndices, int nCount) {
+    return INVALID_HANDLE;
 }
-BufferHandle_t COpenGLGraphicsEngine::CreateConstantBuffer(size_t uSize, void* pInitialData) {
-    return BufferHandle_t {.ptr = nullptr};
+HBuffer COpenGLGraphicsEngine::CreateConstantBuffer(size_t uSize, void* pInitialData) {
+    return INVALID_HANDLE;
 }
-BufferHandle_t COpenGLGraphicsEngine::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
-    return BufferHandle_t {.ptr = nullptr};
+HBuffer COpenGLGraphicsEngine::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
+    return INVALID_HANDLE;
 }
-void COpenGLGraphicsEngine::UpdateBuffer(BufferHandle_t hBuffer, const void* pData, size_t uSize) {
+void COpenGLGraphicsEngine::UpdateBuffer(HBuffer hBuffer, const void* pData, size_t uSize) {
 
 }
 
@@ -49,7 +49,7 @@ void COpenGLGraphicsEngine::ClearScreen() {
 
 }
 
-void COpenGLGraphicsEngine::BindVertexShaderConstantBuffer(int nSlot, BufferHandle_t hBuffer) {
+void COpenGLGraphicsEngine::BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) {
 
 }
 
@@ -78,10 +78,10 @@ void COpenGLGraphicsEngine::BindTexture(uint32_t uSlot, HTexture hTexture) {
 
 }
 
-void COpenGLGraphicsEngine::SetVertexBuffer(uint32_t uSlot, BufferHandle_t& vertexBuffer, unsigned int uStride, unsigned int uOffset) {
+void COpenGLGraphicsEngine::SetVertexBuffer(uint32_t uSlot, HBuffer vertexBuffer, unsigned int uStride, unsigned int uOffset) {
 
 }
-void COpenGLGraphicsEngine::SetIndexBuffer(BufferHandle_t& indexBuffer) {
+void COpenGLGraphicsEngine::SetIndexBuffer(HBuffer indexBuffer) {
 
 }
 

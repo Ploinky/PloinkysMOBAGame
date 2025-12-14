@@ -70,7 +70,12 @@ void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int 
             self->e_mouseButtonPressed(EMouseButton::RIGHT);
         }
     } else if (nAction == GLFW_RELEASE) {
-        self->e_mouseButtonReleased(nButton);
+        if(nButton == GLFW_MOUSE_BUTTON_1) {
+            self->e_mouseButtonReleased(EMouseButton::LEFT);
+        }
+        if(nButton == GLFW_MOUSE_BUTTON_2) {
+            self->e_mouseButtonReleased(EMouseButton::RIGHT);
+        }
     } 
 } 
  
