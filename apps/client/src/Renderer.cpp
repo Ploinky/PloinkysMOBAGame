@@ -743,7 +743,7 @@ void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
 		instances.push_back(p);
 	}
 
-	if(!pParticleEmitter->instance_buffer_) {
+	if(pParticleEmitter->instance_buffer_ == INVALID_HANDLE) {
 		pParticleEmitter->instance_buffer_ = m_pGraphicsEngine->CreateInstanceBuffer(instances.data(), instances.size(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
 	} else {
 		m_pGraphicsEngine->UpdateBuffer(pParticleEmitter->instance_buffer_, (void*) instances.data(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
