@@ -78,10 +78,15 @@ void GLFWMouseButtonCallback(GLFWwindow* pWindow, int nButton, int nAction, int 
         }
     } 
 } 
- 
+
 void GLFWMouseMoveCallback(GLFWwindow* pWindow, double dXPos, double dYPos) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
     self->e_mouseMoved(dXPos, dYPos);
+}
+
+void GLFWWindowCloseCallback(GLFWwindow* pWindow) {
+    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
+    self->SetShouldClose();
 }
 
 void GLFWWindowFocusCallback(GLFWwindow* pWindow, int nFocused) {
@@ -157,6 +162,7 @@ CWindowGLFW::CWindowGLFW(int res_x, int res_y, WindowMode mode) {
     glfwSetMouseButtonCallback(m_pWindow, GLFWMouseButtonCallback);
     glfwSetCursorPosCallback(m_pWindow, GLFWMouseMoveCallback);
     glfwSetWindowFocusCallback(m_pWindow, GLFWWindowFocusCallback);
+    glfwSetWindowCloseCallback(m_pWindow, GLFWWindowCloseCallback);
 
     glfwMakeContextCurrent(m_pWindow);
 
