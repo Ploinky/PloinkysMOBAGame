@@ -60,6 +60,8 @@ CD3D11GraphicsEngine::~CD3D11GraphicsEngine() {
     m_pContext->Release();
     m_pDevice->Release();
 
+    m_vecShaderPrograms.clear();
+
 #ifdef _DEBUG
     debug->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL | D3D11_RLDO_DETAIL);
     debug->Release();
@@ -775,28 +777,28 @@ void CD3D11GraphicsEngine::BindShaderProgram(HShaderProgram hShaderProgram) {
 
     ShaderProgramD3D11_t shaderProgram = m_vecShaderPrograms[hShaderProgram];
 
-    m_pContext->VSSetShader(shaderProgram.pVertexShader, nullptr, 0);
-    m_pContext->PSSetShader(shaderProgram.pPixelShader, nullptr, 0);
-    m_pContext->IASetInputLayout(shaderProgram.pLayout);
+    m_pContext->VSSetShader(shaderProgram.pVertexShader.Get(), nullptr, 0);
+    m_pContext->PSSetShader(shaderProgram.pPixelShader.Get(), nullptr, 0);
+    m_pContext->IASetInputLayout(shaderProgram.pLayout.Get());
 
     if(shaderProgram.pSampler != nullptr) {
-        m_pContext->PSSetSamplers(0, 1, &shaderProgram.pSampler);
+        m_pContext->PSSetSamplers(0, 1, shaderProgram.pSampler.GetAddressOf());
     }
 }
 
 void CD3D11GraphicsEngine::BindSampler(uint32_t slot, HSampler hSampler) {
-    ID3D11SamplerState* pState = m_vecSamplers[hSampler];
-    m_pContext->PSSetSamplers(slot, 1, &pState);
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> pState = m_vecSamplers[hSampler];
+    m_pContext->PSSetSamplers(slot, 1, pState.GetAddressOf());
 }
 
 HShaderProgram CD3D11GraphicsEngine::LoadShaderProgram(std::string strShaderName, EVertexFormat eVertexFormat, std::vector<uint8_t> vecVsBytecode, std::vector<uint8_t> vecPsBytecode) {
     ShaderProgramD3D11_t shaderProgram;
 
-    m_pDevice->CreateVertexShader(vecVsBytecode.data(), vecVsBytecode.size(), nullptr, &shaderProgram.pVertexShader);
-    m_pDevice->CreatePixelShader(vecPsBytecode.data(), vecPsBytecode.size(), nullptr, &shaderProgram.pPixelShader);
+    m_pDevice->CreateVertexShader(vecVsBytecode.data(), vecVsBytecode.size(), nullptr, shaderProgram.pVertexShader.GetAddressOf());
+    m_pDevice->CreatePixelShader(vecPsBytecode.data(), vecPsBytecode.size(), nullptr, shaderProgram.pPixelShader.GetAddressOf());
 
     InputLayoutD3D11_t layout = m_vecInputElementDescs.at(eVertexFormat);
-    m_pDevice->CreateInputLayout(layout.pDescs, layout.nCount, vecVsBytecode.data(), vecVsBytecode.size(), &shaderProgram.pLayout);
+    m_pDevice->CreateInputLayout(layout.pDescs, layout.nCount, vecVsBytecode.data(), vecVsBytecode.size(), shaderProgram.pLayout.GetAddressOf());
 
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -806,7 +808,7 @@ HShaderProgram CD3D11GraphicsEngine::LoadShaderProgram(std::string strShaderName
     samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     samplerDesc.MinLOD = 0;
     samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    m_pDevice->CreateSamplerState(&samplerDesc, &shaderProgram.pSampler);
+    m_pDevice->CreateSamplerState(&samplerDesc, shaderProgram.pSampler.GetAddressOf());
 
     m_vecShaderPrograms.push_back(shaderProgram);
     return m_vecShaderPrograms.size() - 1;

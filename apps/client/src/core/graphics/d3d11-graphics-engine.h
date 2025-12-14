@@ -12,10 +12,10 @@
 #include "common/PMG_Common.h"
 
 typedef struct ShaderProgramD3D11_t {
-    ID3D11VertexShader* pVertexShader;
-    ID3D11PixelShader* pPixelShader;
-    ID3D11InputLayout* pLayout;
-    ID3D11SamplerState* pSampler;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 } ShaderProgramD3D11_t;
 
 typedef struct InputLayoutD3D11_t {
@@ -139,7 +139,7 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         void SetViewport();
 
         std::vector<ShaderProgramD3D11_t> m_vecShaderPrograms;
-        std::vector<ID3D11SamplerState*> m_vecSamplers;
+        std::vector<Microsoft::WRL::ComPtr<ID3D11SamplerState>> m_vecSamplers;
         std::unordered_map<EVertexFormat, InputLayoutD3D11_t> m_vecInputElementDescs;
         std::vector<Microsoft::WRL::ComPtr<ID2D1Bitmap>> m_vecBitmaps;
         std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_vecTextures;
