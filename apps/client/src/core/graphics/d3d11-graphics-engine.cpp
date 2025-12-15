@@ -697,7 +697,7 @@ void CD3D11GraphicsEngine::UpdateBuffer(HBuffer hBuffer, const void* src, size_t
 }
 
 HBuffer CD3D11GraphicsEngine::CreateInstanceBuffer(void* instances, int instance_count, size_t size) {
-    ID3D11Buffer* buffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 
     D3D11_BUFFER_DESC bufferDesc;
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -711,7 +711,7 @@ HBuffer CD3D11GraphicsEngine::CreateInstanceBuffer(void* instances, int instance
     data.SysMemPitch = 0;
     data.SysMemSlicePitch = 0;
 
-    HRESULT hr = m_pDevice->CreateBuffer(&bufferDesc, &data, &buffer);
+    HRESULT hr = m_pDevice->CreateBuffer(&bufferDesc, &data, buffer.GetAddressOf());
 
     if (FAILED(hr)) {
         Logger::FormatErr("Error creating D3D instance Buffer: ",  _com_error(hr).ErrorMessage());
