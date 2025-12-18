@@ -60,6 +60,7 @@ add_executable(client
     src/Vertex.cpp
     
     src/core/input/input-manager.cpp
+    src/core/network/enet-network-engine.cpp
 
     src/game/client-game-state.cpp
 

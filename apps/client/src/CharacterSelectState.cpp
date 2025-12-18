@@ -6,7 +6,7 @@ CCharacterSelectState::CCharacterSelectState(ClientNetworkManager* server, IClie
     packetManager_ = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
     // Register network packets, the fuck...
     packetManager_.RegisterHandler(PacketType::CHARACER_SELECT_REMAINING_TIME, [this](std::vector<uint8_t> data) { HandleCharacterSelectTimePacket(data); });
-    networkManager_->Initialize(&packetManager_);
+    networkManager_->Initialize(handler->GetNetworkEngine(), &packetManager_);
 
     mySlot_ = -1;
 

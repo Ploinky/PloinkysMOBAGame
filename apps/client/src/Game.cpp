@@ -47,7 +47,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, addToPacket);
 
     // Let the network manager know about our new packet handler
-    net_manager_->Initialize(&packet_manager);
+    net_manager_->Initialize(handler->GetNetworkEngine(), &packet_manager);
 
     this->assetManager_ = handler->GetAssetManager();
     this->renderer = handler->GetRenderer();

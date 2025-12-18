@@ -56,4 +56,5 @@ private:
     ENetHost* listenSocket_;
     
     ENetPeer* GetConnectionForPlayer(PlayerID playerId);
+    int sock;
 };

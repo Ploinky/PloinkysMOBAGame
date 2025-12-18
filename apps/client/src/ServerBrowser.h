@@ -7,6 +7,10 @@
 #include "GuiServerElement.h"
 #include "GuiCheckbox.h"
 #include "Server_t.h"
+#include "ClientNetworkManager.h"
+
+// TODO move this out
+#include <enet/enet.h>
 
 class ServerBrowser : public IClientState {
 public:
@@ -44,4 +48,9 @@ private:
 	void ServerFailedToRespond() {
 		printf("no response\n");
 	}
+
+
+	// TODO move this out
+	std::unique_ptr<ENetHost> m_discoverHost = nullptr;
+	ClientNetworkManager m_netManager;
 };

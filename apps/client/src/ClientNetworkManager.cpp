@@ -11,15 +11,16 @@ bool ClientNetworkManager::IsConnected() {
 	return m_pServerConnection != nullptr && m_bIsConnectedToServer;
 }
 
-bool ClientNetworkManager::Initialize(NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
+bool ClientNetworkManager::Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
     // TODO do we need to do anything here? like check for errors? 
-    if(m_pHost == nullptr && enet_initialize()) {
-        Logger::FormatErr("Failed to initialize enet!");
-        return false;
-    }
-
+	this->m_pEngine = pEngine;
 	this->packet_manager = manager;
 	return true;
+}
+
+
+HServerRequest ClientNetworkManager::StartServerSearch() {
+	return m_pEngine->RequestServers();
 }
 
 void ClientNetworkManager::ConnectToServer(std::string addr) {
@@ -53,6 +54,7 @@ void ClientNetworkManager::ConnectToServer(std::string addr) {
 
 bool ClientNetworkManager::CheckConnected() {
 	// TODO
+	m_pEngine->Update(16);
 	return true;
 }
 
@@ -156,5 +158,4 @@ bool ClientNetworkManager::ReceivePacket() {
 
 	return true;
 	*/
-
 }

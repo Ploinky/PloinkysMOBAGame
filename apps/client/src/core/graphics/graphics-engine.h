@@ -5,8 +5,7 @@
 #include <common/PMG_Common.h>
 #include <core/window/h-window.h>
 
-typedef uint32_t GraphicsEngineHandle;
-constexpr GraphicsEngineHandle INVALID_HANDLE = std::numeric_limits<uint32_t>::max();
+typedef EngineHandle GraphicsEngineHandle;
 typedef GraphicsEngineHandle HShaderProgram;
 typedef GraphicsEngineHandle HSampler;
 typedef GraphicsEngineHandle HBuffer;

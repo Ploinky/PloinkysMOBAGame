@@ -30,6 +30,7 @@ class GuiElement;
 class GuiTextfield;
 class IClientState;
 class ClientNetworkManager;
+class INetworkEngine;
 
 class Client : public IClientStateHandler {
 
@@ -52,7 +53,7 @@ public:
 	virtual CClientAssetManager* GetAssetManager() override;
 
     virtual IAudioEngine* GetAudioEngine() override;
-
+    virtual INetworkEngine* GetNetworkEngine() override;
 
 private:
     IClientState* currentState_;
@@ -77,6 +78,7 @@ private:
     Settings settings_;
     IAudioEngine* m_pAudioEngine;
     IGraphicsEngine* m_pGraphicsEngine;
+    INetworkEngine* m_pNetworkEngine;
     CClientAssetManager* m_pAssetManager;
     CInputManager* m_pInputManager;
 

@@ -14,8 +14,9 @@ void ServerInfoPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&ubNameLen, data->data() + offset, sizeof(ubNameLen));
 	offset += sizeof(ubNameLen);
 
-	szName = (char*) std::malloc(ubNameLen);
+	szName = (char*) std::malloc(ubNameLen) + 1;
 	memcpy(szName, data->data() + offset, ubNameLen);
+	szName[ubNameLen] = 0;
 	offset += ubNameLen;
 }
 

@@ -23,6 +23,7 @@
 #include <sstream>
 #include <limits>
 #include "core/audio/audio-engine.h"
+#include "core/network/network-engine.h"
 #include <core/platform/platform.h>
 
 enum class GameState {
@@ -96,6 +97,8 @@ void Client::Run(std::string connectString_) {
     
     m_pAudioEngine = IAudioEngine::Create();
     m_pAudioEngine->Initialize();
+
+    m_pNetworkEngine = INetworkEngine::Create();
 
     m_pAssetManager = new CClientAssetManager(m_pGraphicsEngine, m_pAudioEngine);
 
@@ -246,4 +249,8 @@ CClientAssetManager* Client::GetAssetManager() {
 
 IAudioEngine* Client::GetAudioEngine() {
     return m_pAudioEngine;
+}
+
+INetworkEngine* Client::GetNetworkEngine() {
+    return m_pNetworkEngine;
 }

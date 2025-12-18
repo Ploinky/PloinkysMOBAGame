@@ -1,24 +1,28 @@
 #pragma once
 
 #include <string>
-#include <common/pmg_networking.h>
-#include <common/PMG_Common.h>
 #include <functional>
+
+#include "common/pmg_networking.h"
+#include "common/PMG_Common.h"
+#include "core/network/network-engine.h"
 
 class Client;
 typedef struct _ENetPeer ENetPeer;
 typedef struct _ENetHost ENetHost;
 
-
 class ClientNetworkManager {
 public:
-	bool Initialize(NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
+	bool Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
+
+	HServerRequest StartServerSearch();
+
+	// Gameplay
 	void ConnectToServer(std::string addr);
 	bool CheckConnected();
 	bool IsConnected();
 	bool Close();
 	bool ReceivePacket();
-
 	bool SendPacket(BasePacket* packet);
 
 private:
@@ -26,4 +30,5 @@ private:
 	ENetPeer* m_pServerConnection;
 	ENetHost* m_pHost;
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* packet_manager;
+	INetworkEngine* m_pEngine;
 };

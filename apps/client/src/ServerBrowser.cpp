@@ -3,6 +3,8 @@
 #include <common/PMG_Common.h>
 
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+	m_netManager = ClientNetworkManager();
+	m_netManager.Initialize(handler->GetNetworkEngine(), nullptr);
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
 	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("menu_button");
@@ -53,8 +55,9 @@ ServerBrowser::~ServerBrowser() {
 
 
 void ServerBrowser::Update(float dt) {
-
+	m_netManager.CheckConnected();
 }
+
 
 void ServerBrowser::Render(CRenderer* renderer) {
 	if (refreshRequest_) {
@@ -72,6 +75,11 @@ void ServerBrowser::MouseButtonPressed(int button) {
 }
 
 void ServerBrowser::StartRefresh() {
+	bool bLan = checkboxLan_.IsSelected();
+
+	if(bLan) {
+		m_netManager.StartServerSearch();
+	}
 }
 
 void ServerBrowser::RefreshComplete(void* hRequest, void* response) {

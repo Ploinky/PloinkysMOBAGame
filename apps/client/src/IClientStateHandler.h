@@ -4,6 +4,7 @@
 #include <common/PMG_Common.h>
 #include <Player.h>
 #include <core/platform/cursor-id.h>
+#include "core/network/network-engine.h"
 
 class IClientState;
 class ClientNetworkManager;
@@ -27,4 +28,5 @@ public:
 	virtual CClientAssetManager* GetAssetManager() = 0;
 
     virtual IAudioEngine* GetAudioEngine() = 0;
+    virtual INetworkEngine* GetNetworkEngine() = 0;
 };

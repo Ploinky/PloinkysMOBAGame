@@ -11,7 +11,7 @@ Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int he
     packetManager_.RegisterHandler(PacketType::LOBBY_PLAYER_PCK, [this](std::vector<uint8_t> data) { HandleSlotPacket(data); });
     packetManager_.RegisterHandler(PacketType::CHARACER_SELECT_REMAINING_TIME, [this](std::vector<uint8_t> data) { HandleCharacterSelectTimePacket(data); });
     packetManager_.RegisterHandler(PacketType::LOBBY_GAME_START, [this](std::vector<uint8_t> data) { HandleGameStartPacket(data); });
-    networkManager_->Initialize(&packetManager_);
+    networkManager_->Initialize(handler->GetNetworkEngine(), &packetManager_);
 
     networkManager_->ConnectToServer(server);
 
