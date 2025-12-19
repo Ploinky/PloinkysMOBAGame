@@ -29,4 +29,5 @@ public:
 private:
     HServerRequest m_hCurrentRequest = INVALID_HANDLE;
     ServerRequest_t m_request;
+    std::map<unsigned long, RequestResult_t> m_mapFound;
 };

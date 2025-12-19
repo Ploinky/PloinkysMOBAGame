@@ -6,6 +6,7 @@
 #include <common/PMG_Common.h>
 #include "common/pmg_networking.h"
 #include "NetworkPeer.h"
+#include "common/util/frame-timer.h"
 
 // NOTES:
 // - api should be agnostic of networking solution (haha good one)
@@ -52,6 +53,7 @@ public:
 
 private:
     std::list<NetworkPeer*> clients_;
+    CFrameTimer m_frameTimer = CFrameTimer(1);
 
     ENetHost* listenSocket_;
     

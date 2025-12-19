@@ -46,7 +46,6 @@ bool ServerNetworkManager::CreateListenSocket(std::string port) {
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST,
             (char*)&broadcastEnable, sizeof(broadcastEnable));
 
-
     return true;
 }
 
@@ -81,25 +80,28 @@ bool ServerNetworkManager::ReceivePacket(PlayerID playerId, std::vector<uint8_t>
 }
 
 void ServerNetworkManager::Update() {
-    ServerInfoPacket pkt{};
-    pkt.szName = (char*) "abc";
-    pkt.ubNameLen = 3;
-    pkt.ubPlayerCount = 0;
-    pkt.ubPlayerMaxCount = 10;
+    // TODO only in lan mode
+    if(m_frameTimer.Frame()) {
+        ServerInfoPacket pkt{};
+        pkt.szName = (char*) "abc";
+        pkt.ubNameLen = 3;
+        pkt.ubPlayerCount = 0;
+        pkt.ubPlayerMaxCount = 10;
 
-    std::vector<uint8_t> data;
-    pkt.Write(&data);
+        std::vector<uint8_t> data;
+        pkt.Write(&data);
 
-    sockaddr_in addr{};
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(23119);
-    addr.sin_addr.s_addr = INADDR_BROADCAST;
+        sockaddr_in addr{};
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(23119);
+        addr.sin_addr.s_addr = INADDR_BROADCAST;
 
-    int sent = sendto(sock, (char*)data.data(), data.size(), 0,
-        (sockaddr*)&addr, sizeof(addr));
+        int sent = sendto(sock, (char*)data.data(), data.size(), 0,
+            (sockaddr*)&addr, sizeof(addr));
 
-    if(sent == SOCKET_ERROR) {
-        Logger::FormatErr("Failed to send; %d", WSAGetLastError());
+        if(sent == SOCKET_ERROR) {
+            Logger::FormatErr("Failed to send lan discovery packet; %d", WSAGetLastError());
+        }
     }
 
     for (NetworkPeer* peer : clients_) {
@@ -114,6 +116,7 @@ void ServerNetworkManager::Update() {
         ENetEvent event;
         NetworkPeer* pPeer = nullptr;
         PlayerID idPlayer;
+        std::vector<uint8_t> data;
 
         while (enet_host_service(listenSocket_, &event, 0) > 0) {
             switch (event.type) {

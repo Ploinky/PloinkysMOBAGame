@@ -38,9 +38,13 @@ void CEnetNetworkEngine::Update(float fDt) {
     }
     else if (n > 0) {
         pkt.Read(&buf);
-        // from.sin_addr gives server IP
-        // pkt.enetPort gives ENet port
-        Logger::FormatMsg("Found server %s", pkt.szName);
+
+        if(m_mapFound.find(from.sin_addr.S_un.S_addr) == m_mapFound.end()) {
+            RequestResult_t res;
+            res.szIp = inet_ntoa(from.sin_addr);
+            Logger::FormatMsg("Found server %s at %s", pkt.szName, res.szIp);
+            m_mapFound.emplace(from.sin_addr.S_un.S_addr, res);
+        }
     }
 }
 
