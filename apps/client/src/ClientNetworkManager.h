@@ -16,6 +16,7 @@ public:
 	bool Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
 
 	HServerRequest StartServerSearch();
+	std::vector<RequestResult_t> GetServers(HServerRequest hRequest);
 
 	// Gameplay
 	void ConnectToServer(std::string addr);

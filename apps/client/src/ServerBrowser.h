@@ -29,7 +29,7 @@ private:
 	GuiCheckbox checkboxLan_;
 
 
-	void* refreshRequest_ = nullptr;
+	HServerRequest refreshRequest_ = INVALID_HANDLE;
 
 	void CancelRefreshRequest();
 	void StartRefresh();

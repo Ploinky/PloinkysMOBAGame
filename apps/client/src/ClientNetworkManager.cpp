@@ -22,6 +22,9 @@ bool ClientNetworkManager::Initialize(INetworkEngine* pEngine, NetworkHandlerMan
 HServerRequest ClientNetworkManager::StartServerSearch() {
 	return m_pEngine->RequestServers();
 }
+std::vector<RequestResult_t> ClientNetworkManager::GetServers(HServerRequest hRequest) {
+	return m_pEngine->GetRequestResults(hRequest);
+}
 
 void ClientNetworkManager::ConnectToServer(std::string addr) {
 	m_pHost = enet_host_create (NULL /* create a client host */,

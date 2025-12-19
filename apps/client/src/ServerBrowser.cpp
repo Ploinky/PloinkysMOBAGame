@@ -17,7 +17,7 @@ ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height
 	buttonRefresh_.m_size = { 300, 80 };
 	buttonRefresh_.hImage = hButton;
 	buttonRefresh_.e_onMousePressed = [this]() {
-		if (refreshRequest_) {
+		if (refreshRequest_ != INVALID_HANDLE) {
 			CancelRefreshRequest();
 			return;
 		}
@@ -48,7 +48,7 @@ ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height
 }
 
 ServerBrowser::~ServerBrowser() {
-	if (refreshRequest_) {
+	if (refreshRequest_ != INVALID_HANDLE) {
 		CancelRefreshRequest();
 	}
 }
@@ -56,11 +56,27 @@ ServerBrowser::~ServerBrowser() {
 
 void ServerBrowser::Update(float dt) {
 	m_netManager.CheckConnected();
+
+	if(refreshRequest_ != INVALID_HANDLE) {
+		for(const auto& result : m_netManager.GetServers(refreshRequest_)) {
+			Server_t server{};
+			server.addr = result.szIp;
+			server.name = std::string(result.szIp);
+
+			GuiServerElement* serverElement = new GuiServerElement(server);
+			serverElement->e_onMousePressed = [this, serverElement]() {
+				handler_->JoinLobby(serverElement->GetServer().addr);
+			};
+			serverElement->m_pos = { 50, 200 };
+			serverElement->m_size = { 280, 30};
+			rootElement_.m_children.push_back(serverElement);
+		}
+	}
 }
 
 
 void ServerBrowser::Render(CRenderer* renderer) {
-	if (refreshRequest_) {
+	if (refreshRequest_ != INVALID_HANDLE) {
 		// we are refreshing!
 		renderer->RenderText(370, 80, 150, 50, "Refreshing...");
 	}
@@ -78,8 +94,9 @@ void ServerBrowser::StartRefresh() {
 	bool bLan = checkboxLan_.IsSelected();
 
 	if(bLan) {
-		m_netManager.StartServerSearch();
+		refreshRequest_ = m_netManager.StartServerSearch();
 	}
+	buttonRefresh_.m_text = "Cancel";
 }
 
 void ServerBrowser::RefreshComplete(void* hRequest, void* response) {
@@ -92,7 +109,7 @@ void ServerBrowser::ServerFailedToRespond(void* hRequest, int iServer) {
 }
 
 void ServerBrowser::CancelRefreshRequest() {
-	refreshRequest_ = nullptr;
+	refreshRequest_ = INVALID_HANDLE;
 	buttonRefresh_.m_color[0] = 0.4f;
 	buttonRefresh_.m_color[1] = 0.4f;
 	buttonRefresh_.m_color[2] = 0.4f;

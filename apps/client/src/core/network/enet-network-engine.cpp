@@ -73,5 +73,11 @@ void CEnetNetworkEngine::StopServerRequest(HServerRequest hRequest) {
 }
 
 std::vector<RequestResult_t> CEnetNetworkEngine::GetRequestResults(HServerRequest hRequest) {
-    return {};
+    std::vector<RequestResult_t> values;
+
+    // Transform map values into a vector
+    std::transform(m_mapFound.begin(), m_mapFound.end(), std::back_inserter(values),
+    [](const std::pair<unsigned long, RequestResult_t>& pair) { return pair.second; });
+
+    return values;
 }
