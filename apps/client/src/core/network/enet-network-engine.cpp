@@ -26,18 +26,8 @@ void CEnetNetworkEngine::Update(float fDt) {
     sockaddr_in from;
     socklen_t fromLen = sizeof(from);
 
-    packet_header_t header;
-    int n = recvfrom(m_request.sock, (char*)&header, sizeof(header), MSG_PEEK,
-    (sockaddr*)&from, &fromLen);
-    if(n == SOCKET_ERROR) {
-        int e = WSAGetLastError();
-        if(e == WSAEWOULDBLOCK) {
-           return;
-        }
-    }
-    
-    std::vector<uint8_t> buf(header.size);
-    n = recvfrom(m_request.sock, (char*)buf.data(), header.size, 0,
+    std::vector<uint8_t> buf(4096);
+    int n = recvfrom(m_request.sock, (char*)buf.data(), buf.size(), 0,
     (sockaddr*)&from, &fromLen);
 
     if(n == SOCKET_ERROR) {
