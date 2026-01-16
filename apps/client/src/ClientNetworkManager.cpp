@@ -8,7 +8,7 @@
 #include "Game.h"
 
 bool ClientNetworkManager::IsConnected() {
-	return m_pServerConnection != nullptr && m_bIsConnectedToServer;
+	return m_hServerConnection != INVALID_HANDLE && m_bIsConnectedToServer;
 }
 
 bool ClientNetworkManager::Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
@@ -22,37 +22,20 @@ bool ClientNetworkManager::Initialize(INetworkEngine* pEngine, NetworkHandlerMan
 HServerRequest ClientNetworkManager::StartServerSearch() {
 	return m_pEngine->RequestServers();
 }
-std::vector<RequestResult_t> ClientNetworkManager::GetServers(HServerRequest hRequest) {
-	return m_pEngine->GetRequestResults(hRequest);
+
+void ClientNetworkManager::RegisterRequestObserver(IRequestObserver* pObserver) {
+	for(const auto& pExistingObserver : m_vecObservers) {
+		if(pExistingObserver == pObserver) {
+			return;
+		}
+	}
+
+	m_vecObservers.push_back(pObserver);
+	m_pEngine->RegisterRequestObserver(pObserver);
 }
 
-void ClientNetworkManager::ConnectToServer(std::string addr) {
-	m_pHost = enet_host_create (NULL /* create a client host */,
-				1 /* only allow 1 outgoing connection */,
-				2 /* allow up 2 channels to be used, 0 and 1 */,
-				0 /* assume any amount of incoming bandwidth */,
-				0 /* assume any amount of outgoing bandwidth */);
- 
-	if (m_pHost == NULL) {
-		Logger::Err("An error occurred while trying to create an ENet client host.");
-		return;
-	}
-	
-	m_bIsConnectedToServer = false;
-
-	ENetAddress address = {0};
-	ENetEvent event;
-	ENetPeer *peer;
-	
-	enet_address_set_host (&address, "127.0.0.1");
-	address.port = 23119;
-	
-	m_pServerConnection = enet_host_connect(m_pHost, &address, 2, 0);
-	
-	if (m_pServerConnection == NULL) {
-		Logger::Err("Failed to connect to server: No available peers for initiating an ENet connection.");
-		return;
-	}
+void ClientNetworkManager::ConnectToServer(std::string addr, int port) {
+	m_hServerConnection = m_pEngine->ConnectToServer(addr.c_str(), port);
 }
 
 bool ClientNetworkManager::CheckConnected() {
@@ -68,97 +51,32 @@ bool ClientNetworkManager::Close() {
 }
 
 bool ClientNetworkManager::SendPacket(BasePacket* packet) {
-	std::vector<uint8_t>* buf = new std::vector<uint8_t>();
-	packet->Write(buf);
-
-    ENetPacket* pPacket = enet_packet_create (buf->data(), buf->size(), ENET_PACKET_FLAG_RELIABLE);
- 
-    enet_peer_send (m_pServerConnection, 0, pPacket);
-    enet_host_flush(m_pHost);
-
+	m_pEngine->SendMessageToConnection(m_hServerConnection, packet);
 	return true;
 }
 
 bool ClientNetworkManager::ReceivePacket() {
-    ENetEvent event;
-	std::function<void (std::vector<uint8_t>)> fun = [](std::vector<uint8_t>){};
-	std::vector<uint8_t> data;
-	packet_header_t header{};
+	bool bEvt = false;
 
-    while (enet_host_service(m_pHost, &event, 0) > 0) {
-        switch (event.type) {
-            case ENET_EVENT_TYPE_CONNECT:
-                Logger::FormatMsg("A new client connected from %x:%u.\n", event.peer->address.host, event.peer->address.port);
+	CNetworkEvent evt;
+	while(m_pEngine->PollConnection(m_hServerConnection, &evt)) {
+		bEvt = true;
 
-                /* Store any relevant client information here. */
-				m_bIsConnectedToServer = true;
-				break;
-            case ENET_EVENT_TYPE_RECEIVE:
-				data.resize(event.packet->dataLength);
-				std::memcpy(data.data(), event.packet->data, data.size());
-
-				std::memcpy(&header, data.data(), sizeof(header));
-
-				fun = packet_manager->GetHandler(header.type);
-
-				if(fun != nullptr) {
-					fun(data);
-				}
-
-                /* Clean up the packet now that we're done using it. */
-                enet_packet_destroy (event.packet);
-
-                break;
-            case ENET_EVENT_TYPE_DISCONNECT:
-                printf ("%s disconnected.\n", event.peer -> data);
-        
-                /* Reset the peer's client information. */
-				m_bIsConnectedToServer = false;
-                break;
-
-            case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
-                printf("%s disconnected due to timeout.\n", event.peer->data);
-                /* Reset the peer's client information. */
-                event.peer->data = NULL;
-                break;
-        }
-        
-    }
-	return false;
-
-	/*
-	std::vector<uint8_t> data;
-
-	std::vector<SteamNetworkingMessage_t*> messages;
-	messages.resize(1);
-
-	if (SteamNetworkingSockets()->ReceiveMessagesOnConnection(m_pServerConnection, messages.data(), 1)) {
-		for (SteamNetworkingMessage_t* message : messages) {
-
-			if (message == nullptr) {
-				return false;
+		if(evt.type == ENetworkEventType::CONNECTED) {
+			m_bIsConnectedToServer = true;
+		} else if(evt.type == ENetworkEventType::PACKET_RECEIVED) {
+			packet_header_t header{};
+			std::memcpy(&header, evt.data.data(), sizeof(header));
+			std::function<void (std::vector<uint8_t>)> fun = packet_manager->GetHandler(header.type);
+			if(fun != nullptr) {
+				fun(evt.data);
 			}
-
-			data.resize(message->GetSize());
-			std::memcpy(data.data(), message->GetData(), message->GetSize());
-
-			// release when done!
-			message->Release();
+		} else if(evt.type == ENetworkEventType::DISCONNECTED) {
+			m_bIsConnectedToServer = false;
+		} else if(evt.type == ENetworkEventType::DISCONNECTED_TIMEOUT) {
+			m_bIsConnectedToServer = false;
 		}
 	}
-	else {
-		return false;
-	}
 
-	packet_header_t header{};
-	std::memcpy(&header, data.data(), sizeof(header));
-
-	std::function fun = packet_manager->GetHandler(header.type);
-
-	if(fun != nullptr) {
-		fun(data);
-	}
-
-	return true;
-	*/
+	return bEvt;
 }

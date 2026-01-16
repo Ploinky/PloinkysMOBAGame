@@ -8,7 +8,7 @@ void LobbyPlayerLeftPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&uPlayerId, data->data() + sizeof(packet_header_t), sizeof(uPlayerId));
 }
 
-void LobbyPlayerLeftPacket::Write(std::vector<uint8_t>* data) {
+void LobbyPlayerLeftPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(uPlayerId);

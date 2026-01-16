@@ -10,7 +10,7 @@ void LobbySlotPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&isReady, data->data() + sizeof(packet_header_t) + sizeof(slot) + sizeof(steamId), sizeof(isReady));
 }
 
-void LobbySlotPacket::Write(std::vector<uint8_t>* data) {
+void LobbySlotPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(slot) + sizeof(steamId) + sizeof(isReady);

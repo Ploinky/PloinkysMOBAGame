@@ -7,7 +7,7 @@ void DespawnPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&unit, data->data() + offset, sizeof(unit));
 }
 
-void DespawnPacket::Write(std::vector<uint8_t>* data) {
+void DespawnPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(header) + sizeof(unit);

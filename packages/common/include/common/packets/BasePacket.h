@@ -14,7 +14,7 @@ class BasePacket {
 public:
 	BasePacket(PacketType type) : type(type) {};
 	virtual void Read(std::vector<uint8_t>* data) = 0;
-	virtual void Write(std::vector<uint8_t>* data) = 0;
+	virtual void Write(std::vector<uint8_t>* data) const = 0;
 
 	PacketType type;
 };

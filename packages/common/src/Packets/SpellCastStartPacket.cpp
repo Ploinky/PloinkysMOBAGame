@@ -9,7 +9,7 @@ void SpellCastStartPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&idTarget, data->data() + sizeof(packet_header_t) + sizeof(unit), sizeof(idTarget));
 }
 
-void SpellCastStartPacket::Write(std::vector<uint8_t>* data) {
+void SpellCastStartPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(idTarget);

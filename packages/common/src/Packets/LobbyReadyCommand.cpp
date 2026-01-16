@@ -7,7 +7,7 @@ void LobbyReadyCmd::Read(std::vector<uint8_t>* data) {
 	memcpy(&header, data->data(), sizeof(packet_header_t));
 }
 
-void LobbyReadyCmd::Write(std::vector<uint8_t>* data) {
+void LobbyReadyCmd::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t);

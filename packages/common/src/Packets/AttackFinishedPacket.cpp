@@ -6,7 +6,7 @@ void CAttackFinishedPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&content, data->data() + offset, sizeof(content));
 }
 
-void CAttackFinishedPacket::Write(std::vector<uint8_t>* data) {
+void CAttackFinishedPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(content);

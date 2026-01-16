@@ -12,7 +12,7 @@
 // TODO move this out
 #include <enet/enet.h>
 
-class ServerBrowser : public IClientState {
+class ServerBrowser : public IClientState, IRequestObserver {
 public:
 	ServerBrowser(IClientStateHandler* handler, int width, int height);
 	~ServerBrowser();
@@ -28,7 +28,6 @@ private:
 	GuiButton buttonBack_;
 	GuiCheckbox checkboxLan_;
 
-
 	HServerRequest refreshRequest_ = INVALID_HANDLE;
 
 	void CancelRefreshRequest();
@@ -37,7 +36,7 @@ private:
 	void RefreshComplete(void* hRequest, void* response);
 	void ServerFailedToRespond(void* hRequest, int iServer);
 	void ServerResponded(void* hRequest, int iServer);
-
+	virtual void ServerFound(RequestResult_t result) override;
 
 	// Server has responded successfully and has updated data
 	void ServerResponded(void* server) {

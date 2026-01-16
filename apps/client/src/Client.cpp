@@ -215,9 +215,9 @@ void Client::JoinGame(ClientNetworkManager* networkManager) {
     m_pInputManager->SetContext(EInputContext::GAME);
 };
 
-void Client::JoinLobby(const char* addr) {
+void Client::JoinLobby(const char* addr, int port) {
     m_pInputManager->SetContext(EInputContext::MENU);
-    Lobby* lobby = new Lobby(std::string(addr), this, window->width_, window->height_);
+    Lobby* lobby = new Lobby(std::string(addr), port, this, window->width_, window->height_);
     NewState(lobby);
 }
 

@@ -10,7 +10,7 @@ void SpellHitPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(spell.data(), data->data() + sizeof(packet_header_t) + sizeof(unit), header.size - sizeof(unit) - sizeof(packet_header_t));
 }
 
-void SpellHitPacket::Write(std::vector<uint8_t>* data) {
+void SpellHitPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(unit) + spell.length();

@@ -2,7 +2,7 @@
 #include "common/pmg_networking.h"
 #include "Renderer.h"
 
-Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+Lobby::Lobby(std::string server, int port, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 	networkManager_ = new ClientNetworkManager();
 	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("menu_button");
 
@@ -13,7 +13,7 @@ Lobby::Lobby(std::string server, IClientStateHandler* handler, int width, int he
     packetManager_.RegisterHandler(PacketType::LOBBY_GAME_START, [this](std::vector<uint8_t> data) { HandleGameStartPacket(data); });
     networkManager_->Initialize(handler->GetNetworkEngine(), &packetManager_);
 
-    networkManager_->ConnectToServer(server);
+    networkManager_->ConnectToServer(server, port);
 
     mySlot_ = -1;
 

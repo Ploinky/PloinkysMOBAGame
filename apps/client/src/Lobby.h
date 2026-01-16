@@ -10,7 +10,7 @@
 
 class Lobby : public IClientState {
 public:
-	Lobby(std::string server, IClientStateHandler* handler, int width, int height);
+	Lobby(std::string server, int port, IClientStateHandler* handler, int width, int height);
 	~Lobby();
 	virtual void Update(float dt) override;
 	virtual void Render(CRenderer* renderer) override;

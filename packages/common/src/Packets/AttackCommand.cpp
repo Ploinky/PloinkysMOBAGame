@@ -6,7 +6,7 @@ void AttackCommandPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&target_unit, data->data() + sizeof(packet_header_t), sizeof(target_unit));
 }
 
-void AttackCommandPacket::Write(std::vector<uint8_t>* data) {
+void AttackCommandPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(target_unit);

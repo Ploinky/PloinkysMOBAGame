@@ -6,7 +6,7 @@ void CastTargetCommandPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&target, data->data() + sizeof(packet_header_t) + sizeof(spell_slot), sizeof(target));
 }
 
-void CastTargetCommandPacket::Write(std::vector<uint8_t>* data) {
+void CastTargetCommandPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(spell_slot) + sizeof(target);

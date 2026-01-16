@@ -49,7 +49,7 @@ void CLoadingState::Update(float dt) {
 
 		if(m_strServerAddress != "") {
 			ClientNetworkManager* pServerNetworkManger = new ClientNetworkManager();
-			NewState(new Lobby(m_strServerAddress, handler_, windowWidth_, windowHeight_));
+			NewState(new Lobby(m_strServerAddress, 23119, handler_, windowWidth_, windowHeight_));
 		} else {
 			handler_->OpenMainMenu();
 		}

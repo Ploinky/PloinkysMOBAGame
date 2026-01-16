@@ -31,7 +31,7 @@ bool ServerNetworkManager::CreateListenSocket(std::string port) {
 
     ENetAddress address = {0};
     address.host = ENET_HOST_ANY;
-    address.port = 23129;
+    address.port = 45123;
 
     listenSocket_ = enet_host_create(&address, 10, 2, 0, 0);
     if(listenSocket_ == nullptr) {
@@ -83,6 +83,7 @@ void ServerNetworkManager::Update() {
     // TODO only in lan mode
     if(m_frameTimer.Frame()) {
         ServerInfoPacket pkt{};
+        pkt.usPort = 45123;
         pkt.szName = (char*) "abc";
         pkt.ubNameLen = 3;
         pkt.ubPlayerCount = 0;

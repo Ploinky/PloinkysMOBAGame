@@ -5,4 +5,5 @@
 struct Server_t {
 	std::string name;
 	const char* addr;
+	int nPort;
 };

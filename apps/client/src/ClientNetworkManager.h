@@ -2,24 +2,23 @@
 
 #include <string>
 #include <functional>
+#include <vector>
 
 #include "common/pmg_networking.h"
 #include "common/PMG_Common.h"
 #include "core/network/network-engine.h"
 
 class Client;
-typedef struct _ENetPeer ENetPeer;
-typedef struct _ENetHost ENetHost;
 
 class ClientNetworkManager {
 public:
 	bool Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
 
 	HServerRequest StartServerSearch();
-	std::vector<RequestResult_t> GetServers(HServerRequest hRequest);
+	void RegisterRequestObserver(IRequestObserver* pObserver);
 
 	// Gameplay
-	void ConnectToServer(std::string addr);
+	void ConnectToServer(std::string addr, int port);
 	bool CheckConnected();
 	bool IsConnected();
 	bool Close();
@@ -28,8 +27,8 @@ public:
 
 private:
 	bool m_bIsConnectedToServer = false;
-	ENetPeer* m_pServerConnection;
-	ENetHost* m_pHost;
+	HConnection m_hServerConnection = INVALID_HANDLE;
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* packet_manager;
 	INetworkEngine* m_pEngine;
+	std::vector<IRequestObserver*> m_vecObservers;
 };

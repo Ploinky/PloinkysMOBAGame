@@ -14,7 +14,7 @@ public:
     virtual void NewState(IClientState* newState) = 0;
 
     virtual void JoinGame(ClientNetworkManager* networkManager) = 0;
-    virtual void JoinLobby(const char* addr) = 0;
+    virtual void JoinLobby(const char* addr, int port) = 0;
 
     virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) = 0;
 

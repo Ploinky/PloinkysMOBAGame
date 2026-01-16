@@ -11,7 +11,7 @@ void ScoreUpdatePacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&usTeam2Score, data->data() + offset, sizeof(usTeam2Score));
 }
 
-void ScoreUpdatePacket::Write(std::vector<uint8_t>* data) {
+void ScoreUpdatePacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(usTeam1Score) + sizeof(usTeam2Score);

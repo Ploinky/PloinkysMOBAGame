@@ -5,6 +5,8 @@
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 	m_netManager = ClientNetworkManager();
 	m_netManager.Initialize(handler->GetNetworkEngine(), nullptr);
+	m_netManager.RegisterRequestObserver(this);
+
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
 	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("menu_button");
@@ -56,22 +58,6 @@ ServerBrowser::~ServerBrowser() {
 
 void ServerBrowser::Update(float dt) {
 	m_netManager.CheckConnected();
-
-	if(refreshRequest_ != INVALID_HANDLE) {
-		for(const auto& result : m_netManager.GetServers(refreshRequest_)) {
-			Server_t server{};
-			server.addr = result.szIp;
-			server.name = std::string(result.szIp);
-
-			GuiServerElement* serverElement = new GuiServerElement(server);
-			serverElement->e_onMousePressed = [this, serverElement]() {
-				handler_->JoinLobby(serverElement->GetServer().addr);
-			};
-			serverElement->m_pos = { 50, 200 };
-			serverElement->m_size = { 280, 30};
-			rootElement_.m_children.push_back(serverElement);
-		}
-	}
 }
 
 
@@ -118,6 +104,21 @@ void ServerBrowser::CancelRefreshRequest() {
 
 void ServerBrowser::ServerResponded(void* hRequest, int iServer) {
 	printf("ServerResponded\n");
+}
+
+void ServerBrowser::ServerFound(RequestResult_t result) {
+	Server_t server{};
+	server.addr = result.szIp;
+	server.name = std::string(result.szIp);
+	server.nPort = result.nPort;
+
+	GuiServerElement* serverElement = new GuiServerElement(server);
+	serverElement->e_onMousePressed = [this, serverElement]() {
+		handler_->JoinLobby(serverElement->GetServer().addr, serverElement->GetServer().nPort);
+	};
+	serverElement->m_pos = { 50, 200 };
+	serverElement->m_size = { 280, 30};
+	rootElement_.m_children.push_back(serverElement);
 }
 
 void ServerBrowser::Action(EInputAction eAction) {

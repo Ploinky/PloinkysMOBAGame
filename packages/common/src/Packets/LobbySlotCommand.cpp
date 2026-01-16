@@ -8,7 +8,7 @@ void LobbySlotCmd::Read(std::vector<uint8_t>* data) {
 	memcpy(&slot, data->data() + sizeof(packet_header_t), sizeof(slot));
 }
 
-void LobbySlotCmd::Write(std::vector<uint8_t>* data) {
+void LobbySlotCmd::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(slot);

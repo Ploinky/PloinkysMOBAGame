@@ -12,7 +12,7 @@ void CastCommandPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&z, data->data() + offset, sizeof(z));
 }
 
-void CastCommandPacket::Write(std::vector<uint8_t>* data) {
+void CastCommandPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(spell_slot) + sizeof(x) + sizeof(y) + sizeof(z);

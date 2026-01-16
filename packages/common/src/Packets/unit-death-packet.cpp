@@ -8,7 +8,7 @@ void CUnitDeathPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&idUnit, data->data() + sizeof(packet_header_t), sizeof(idUnit));
 }
 
-void CUnitDeathPacket::Write(std::vector<uint8_t>* data) {
+void CUnitDeathPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(idUnit);

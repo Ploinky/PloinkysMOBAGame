@@ -13,7 +13,7 @@ void PlayParticlePacket::Read(std::vector<uint8_t>* data) {
 	memcpy(particle.data(), data->data() + sizeof(packet_header_t) + sizeof(unit) + sizeof(x) + sizeof(y), header.size - sizeof(unit) - sizeof(x) - sizeof(y) - sizeof(packet_header_t));
 }
 
-void PlayParticlePacket::Write(std::vector<uint8_t>* data) {
+void PlayParticlePacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(x) + sizeof(y) + particle.length();

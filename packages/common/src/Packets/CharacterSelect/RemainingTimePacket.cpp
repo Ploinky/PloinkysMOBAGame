@@ -5,7 +5,7 @@ void CRemainingTimePacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&TimeInMS, data->data() + offset, sizeof(TimeInMS));
 }
 
-void CRemainingTimePacket::Write(std::vector<uint8_t>* data) {
+void CRemainingTimePacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(TimeInMS);

@@ -8,7 +8,7 @@ void UnitIdPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&unit_id, data->data() + sizeof(packet_header_t), sizeof(unit_id));
 }
 
-void UnitIdPacket::Write(std::vector<uint8_t>* data) {
+void UnitIdPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(unit_id);

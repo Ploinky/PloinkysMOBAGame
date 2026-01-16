@@ -3,6 +3,7 @@
 
 void SpawnPacket::Read(std::vector<uint8_t>* data) {
 	int offset = sizeof(packet_header_t);
+	uint8_t entTypeLen = 0;
 
 	memcpy(&unit, data->data() + offset, sizeof(unit));
 	offset += sizeof(unit);
@@ -27,8 +28,8 @@ void SpawnPacket::Read(std::vector<uint8_t>* data) {
 	offset += entTypeLen;
 }
 
-void SpawnPacket::Write(std::vector<uint8_t>* data) {
-	entTypeLen = strEntId.length();
+void SpawnPacket::Write(std::vector<uint8_t>* data) const {
+	uint8_t entTypeLen = strEntId.length();
 
 	packet_header_t header{};
 	header.type = type;

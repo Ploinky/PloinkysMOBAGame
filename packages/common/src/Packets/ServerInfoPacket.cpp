@@ -5,6 +5,9 @@
 void ServerInfoPacket::Read(std::vector<uint8_t>* data) {
 	int offset = sizeof(packet_header_t);
 
+	memcpy(&usPort, data->data() + offset, sizeof(usPort));
+	offset += sizeof(usPort);
+
 	memcpy(&ubPlayerCount, data->data() + offset, sizeof(ubPlayerCount));
 	offset += sizeof(ubPlayerCount);
 
@@ -20,17 +23,19 @@ void ServerInfoPacket::Read(std::vector<uint8_t>* data) {
 	offset += ubNameLen;
 }
 
-void ServerInfoPacket::Write(std::vector<uint8_t>* data) {
+void ServerInfoPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
-	header.size = sizeof(packet_header_t) + sizeof(ubPlayerCount) + sizeof(ubPlayerMaxCount) + sizeof(ubNameLen) + ubNameLen;
+	header.size = sizeof(packet_header_t) + sizeof(usPort) + sizeof(ubPlayerCount) + sizeof(ubPlayerMaxCount) + sizeof(ubNameLen) + ubNameLen;
 
 	size_t offset = data->size();
 	data->resize(data->size() + header.size);
 
-
 	memcpy(data->data() + offset, &header, sizeof(header));
 	offset += sizeof(header);
+
+	memcpy(data->data() + offset, &usPort, sizeof(usPort));
+	offset += sizeof(usPort);
 	
 	memcpy(data->data() + offset, &ubPlayerCount, sizeof(ubPlayerCount));
 	offset += sizeof(ubPlayerCount);

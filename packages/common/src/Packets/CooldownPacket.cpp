@@ -23,7 +23,7 @@ void CooldownPacket::Read(std::vector<uint8_t>* data) {
     memcpy(&total_cooldown, data->data() + offset, sizeof(total_cooldown));
 }
 
-void CooldownPacket::Write(std::vector<uint8_t>* data) {
+void CooldownPacket::Write(std::vector<uint8_t>* data) const {
     packet_header_t header{};
     header.type = type;
     header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(spell_slot) + sizeof(cooldown) + sizeof(total_cooldown);

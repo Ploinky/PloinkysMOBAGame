@@ -7,7 +7,7 @@ class CooldownPacket : public BasePacket {
 public:
 	CooldownPacket() : BasePacket(PacketType::PCK_SPELL_COOLDOWN) {};
 	virtual void Read(std::vector<uint8_t>* data) override;
-	virtual void Write(std::vector<uint8_t>* data) override;
+	virtual void Write(std::vector<uint8_t>* data) const override;
 
 	UnitId unit;
 	int spell_slot;

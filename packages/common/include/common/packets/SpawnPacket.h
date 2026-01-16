@@ -8,7 +8,7 @@ class SpawnPacket : public BasePacket {
 public:
 	SpawnPacket() : BasePacket(PacketType::UNITSPAWN) {};
 	virtual void Read(std::vector<uint8_t>* data) override;
-	virtual void Write(std::vector<uint8_t>* data) override;
+	virtual void Write(std::vector<uint8_t>* data) const override;
 
 	uint64_t unit;
 	Team team;
@@ -16,6 +16,4 @@ public:
 	float y;
 	float z;
 	std::string strEntId;
-private:
-	uint8_t entTypeLen;
 };

@@ -13,7 +13,7 @@ void UnitStatsPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&max_health, data->data() + offset, sizeof(max_health));
 }
 
-void UnitStatsPacket::Write(std::vector<uint8_t>* data) {
+void UnitStatsPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header{};
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(health) + sizeof(max_health);

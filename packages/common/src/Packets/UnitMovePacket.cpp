@@ -21,7 +21,7 @@ void UnitMovePacket::Read(std::vector<uint8_t>* data) {
 
 }
 
-void UnitMovePacket::Write(std::vector<uint8_t>* data) {
+void UnitMovePacket::Write(std::vector<uint8_t>* data) const {
     packet_header_t header{};
     header.type = type;
     header.size = sizeof(packet_header_t) + sizeof(unit) + sizeof(x) + sizeof(y) + sizeof(z) + sizeof(r);

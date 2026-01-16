@@ -5,7 +5,7 @@ void GameEndPacket::Read(std::vector<uint8_t>* data) {
 	memcpy(&victory, data->data() + sizeof(packet_header_t), sizeof(victory));
 }
 
-void GameEndPacket::Write(std::vector<uint8_t>* data) {
+void GameEndPacket::Write(std::vector<uint8_t>* data) const {
 	packet_header_t header;
 	header.type = type;
 	header.size = sizeof(packet_header_t) + sizeof(victory);
