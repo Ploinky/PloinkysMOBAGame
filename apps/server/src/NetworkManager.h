@@ -26,7 +26,7 @@ public:
 
     // Initialization
     bool Initialize();
-    bool CreateListenSocket(std::string port);
+    bool CreateListenSocket(int nPort, const char* pszName);
 
 
     void Update();
@@ -52,6 +52,9 @@ public:
     };
 
 private:
+    int m_nPort;
+    const char* m_pszName;
+
     std::list<NetworkPeer*> clients_;
     CFrameTimer m_frameTimer = CFrameTimer(1);
 

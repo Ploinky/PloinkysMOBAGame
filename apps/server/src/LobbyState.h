@@ -9,8 +9,8 @@
 
 class LobbyState : public IServerState {
 public:
-	LobbyState(IServerStateHandler* handler);
-	LobbyState(IServerStateHandler* handler, ServerNetworkManager* networkManager);
+	LobbyState(IServerStateHandler* handler, int nPort, char* pszName);
+	LobbyState(IServerStateHandler* handler, int nPort, char* pszName, ServerNetworkManager* networkManager);
 	virtual void Update(float dt) override;
 
 	int GetPlayerCount();
@@ -19,7 +19,7 @@ private:
 	ServerNetworkManager* networkManager_;
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>, PlayerID)>> packetHandler_;
 
-	void Initialize();
+	void Initialize(int nPort, char* pszName);
 
 	LobbyPlayer* lobbySlots_[10]{ 0 };
 

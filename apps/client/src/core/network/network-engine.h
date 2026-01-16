@@ -10,6 +10,7 @@ typedef EngineHandle HConnection;
 typedef struct RequestResult_s {
     const char* szIp;
     int nPort;
+    const char* szName;
 } RequestResult_t;
 
 enum class ENetworkEventType {

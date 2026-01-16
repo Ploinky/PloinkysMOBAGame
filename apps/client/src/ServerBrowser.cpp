@@ -109,7 +109,7 @@ void ServerBrowser::ServerResponded(void* hRequest, int iServer) {
 void ServerBrowser::ServerFound(RequestResult_t result) {
 	Server_t server{};
 	server.addr = result.szIp;
-	server.name = std::string(result.szIp);
+	server.name = result.szName;
 	server.nPort = result.nPort;
 
 	GuiServerElement* serverElement = new GuiServerElement(server);

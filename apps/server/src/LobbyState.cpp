@@ -2,18 +2,18 @@
 #include <common/PMG_Common.h>
 #include <vector>
 
-LobbyState::LobbyState(IServerStateHandler* handler) : IServerState(handler) {
+LobbyState::LobbyState(IServerStateHandler* handler, int nPort, char* pszName) : IServerState(handler) {
 	networkManager_ = new ServerNetworkManager();
 	networkManager_->Initialize();
-	Initialize();
+	Initialize(nPort, pszName);
 }
 
-LobbyState::LobbyState(IServerStateHandler* handler, ServerNetworkManager* networkManager) : networkManager_(networkManager), IServerState(handler) {
-	Initialize();
+LobbyState::LobbyState(IServerStateHandler* handler, int nPort, char* pszName, ServerNetworkManager* networkManager) : networkManager_(networkManager), IServerState(handler) {
+	Initialize(nPort, pszName);
 }
 
-void LobbyState::Initialize() {
-	networkManager_->CreateListenSocket(std::to_string(DEFAULT_PORT));
+void LobbyState::Initialize(int nPort, char* pszName) {
+	networkManager_->CreateListenSocket(nPort, pszName);
 
 	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_SLOT, [this](std::vector<uint8_t> data, PlayerID idPlayer) {
 		LobbySlotCmd cmd = LobbySlotCmd();

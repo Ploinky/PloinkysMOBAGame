@@ -24,14 +24,17 @@ bool ServerNetworkManager::Initialize() {
     return true;
 }
 
-bool ServerNetworkManager::CreateListenSocket(std::string port) {
+bool ServerNetworkManager::CreateListenSocket(int nPort, const char* pszName) {
     if(listenSocket_) {
         StopListenSocket();
     }
 
+    m_nPort = nPort;
+    m_pszName = pszName;
+
     ENetAddress address = {0};
     address.host = ENET_HOST_ANY;
-    address.port = 45123;
+    address.port = nPort;
 
     listenSocket_ = enet_host_create(&address, 10, 2, 0, 0);
     if(listenSocket_ == nullptr) {
@@ -83,9 +86,9 @@ void ServerNetworkManager::Update() {
     // TODO only in lan mode
     if(m_frameTimer.Frame()) {
         ServerInfoPacket pkt{};
-        pkt.usPort = 45123;
-        pkt.szName = (char*) "abc";
-        pkt.ubNameLen = 3;
+        pkt.usPort = m_nPort;
+        pkt.szName = (char*) m_pszName;
+        pkt.ubNameLen = std::strlen(m_pszName);
         pkt.ubPlayerCount = 0;
         pkt.ubPlayerMaxCount = 10;
 

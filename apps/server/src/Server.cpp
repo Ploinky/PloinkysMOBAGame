@@ -8,6 +8,7 @@
 #include "LobbyState.h"
 
 #include <data/server-data-loader.h>
+#include "common/PloinkysJSONLibrary.h"
 
 void Server::Start() {
 #ifndef _DEBUG
@@ -19,11 +20,33 @@ void Server::Start() {
         m_gameData = assetManager_.LoadManifest();
     }
 
+    int nPort = DEFAULT_PORT;
+    char pszName[1024];
+    strcpy_s(pszName, strnlen("Default Server Name", 1024) + 1, "Default Server Name");
+    {
+        std::list<std::string> listContent = assetManager_.LoadPlainFile("./cfg/settings.cfg");
+        for(std::string str : listContent ) {
+            if(str.find("=") == std::string::npos) {
+                continue;
+            }
+
+            std::string key = str.substr(0, str.find("="));
+            std::string value = str.substr(str.find("=") + 1);
+
+            if(key == "port") {
+                nPort = std::stoi(value);
+            }
+            if(key == "name") {
+                strcpy_s(pszName, strnlen(value.c_str(), 1024) + 1, value.c_str());
+            }
+        }
+    }
+
 #ifndef DEBUG
     // assetManager_. LoadPakFile("Maps/Map1.pak");
 #endif
 
-    currentState_ = new LobbyState(this);
+    currentState_ = new LobbyState(this, nPort, pszName);
 
     Logger::Msg("Server started");
 
@@ -59,7 +82,7 @@ void Server::StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) 
 }
 
 void Server::StartLobby(ServerNetworkManager* manager) {
-    LobbyState* lobby = new LobbyState(this, manager);
+    LobbyState* lobby = new LobbyState(this, DEFAULT_PORT, (char*) "Default Server Name", manager);
 
     if (currentState_ != nullptr) {
         delete currentState_;
