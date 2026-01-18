@@ -39,4 +39,5 @@ private:
     ServerRequest_t m_request;
     std::map<unsigned long, RequestResult_t> m_mapFound;
     std::map<HConnection, Connection_t> m_mapConnections;
+    std::map<HServerRequest, ServerRequest_t> m_mapRequests;
 };

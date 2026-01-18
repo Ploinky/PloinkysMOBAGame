@@ -14,6 +14,9 @@ INetworkEngine* INetworkEngine::Create() {
 
 
 CEnetNetworkEngine::CEnetNetworkEngine() {
+    if(m_hCurrentRequest != INVALID_HANDLE) {
+        StopServerRequest(m_hCurrentRequest);
+    }
 }
 
 
@@ -55,6 +58,10 @@ void CEnetNetworkEngine::Update(float fDt) {
 }
 
 HServerRequest CEnetNetworkEngine::RequestServers() {
+    if(m_hCurrentRequest != INVALID_HANDLE) {
+        return m_hCurrentRequest;
+    }
+
     m_request.fBrowseTimeMS = 0.0f;
 
     m_request.sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -75,7 +82,15 @@ HServerRequest CEnetNetworkEngine::RequestServers() {
 }
 
 void CEnetNetworkEngine::StopServerRequest(HServerRequest hRequest) {
-    
+    if(hRequest != m_hCurrentRequest) {
+        return;
+    }
+
+    int nErr = closesocket(m_request.sock);
+    if(nErr != 0) {
+        Logger::FormatErr("Failed to close server request socket with error %d", nErr);
+    }
+    m_hCurrentRequest = INVALID_HANDLE;
 }
 
 std::vector<RequestResult_t> CEnetNetworkEngine::GetRequestResults(HServerRequest hRequest) {
