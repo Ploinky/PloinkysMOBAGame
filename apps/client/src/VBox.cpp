@@ -61,17 +61,28 @@ void VBox::LayoutChildren() {
 
 	// Is this how we should be autogapping???
 	if (gap == 0) {
-		gap = (m_size.y - totalHeight) / (m_children.size() + 1);
+		// TODO no autogapping
+		// gap = (m_size.y - totalHeight) / (m_children.size() + 1);
+	}
+
+	// Take preferred width if it fits (max width otherwise), grow to container width if no preferred width
+	for (auto el : m_children) {
+		if (el->m_prefSize.x != -1) {
+			el->m_size.x = el->m_prefSize.x; // TODO clamp to container width
+		} else {
+			el->m_size.x = m_size.x;
+		}
 	}
 
 	// Now set positions... jesus h roosevelt christ
-	float currPos = gap;
+	float currPos = m_pos.y + gap;
 
+	// TODO do not auto center vertically
 	// Start first item at offset depending on how much space the other elements use
 	// -> what a horrible attempt at centering elements, hey?
-	if (totalHeight > 0 && m_gap != 0) {
-		currPos += (m_size.y - totalHeight) / 2.0f;
-	}
+	// if (totalHeight > 0 && m_gap != 0) {
+	// 	currPos += (m_size.y - totalHeight) / 2.0f;
+	// }
 
 	for (auto el : m_children) {
 		el->m_pos.x = (m_size.x - el->m_size.x) / 2.0f + m_pos.x;

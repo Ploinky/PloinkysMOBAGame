@@ -5,7 +5,7 @@
 
 class GuiServerElement : public GuiElement {
 public:
-	GuiServerElement(Server_t server) : server_(server) {};
+	GuiServerElement(Server_t server);
 	Server_t GetServer();
 
 	void Render(CRenderer* renderer);

@@ -6,6 +6,7 @@
 #include "GuiButton.h"
 #include "GuiServerElement.h"
 #include "GuiCheckbox.h"
+#include "Gui.h"
 #include "Server_t.h"
 #include "ClientNetworkManager.h"
 
@@ -27,6 +28,7 @@ private:
 	GuiButton buttonRefresh_;
 	GuiButton buttonBack_;
 	GuiCheckbox checkboxLan_;
+	VBox m_boxServers;
 
 	HServerRequest refreshRequest_ = INVALID_HANDLE;
 

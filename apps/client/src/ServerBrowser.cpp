@@ -44,9 +44,14 @@ ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height
 	checkboxLan_.m_pos = { 370, 50 };
 	checkboxLan_.m_size = { 20, 20 };
 
+	m_boxServers.m_pos = {50, 200};
+	m_boxServers.m_size = {windowWidth_ - 100.0f, windowHeight_ - 400.0f};
+	m_boxServers.m_gap = 10;
+
 	rootElement_.m_children.push_back(&buttonRefresh_);
 	rootElement_.m_children.push_back(&buttonBack_);
 	rootElement_.m_children.push_back(&checkboxLan_);
+	rootElement_.m_children.push_back(&m_boxServers);
 }
 
 ServerBrowser::~ServerBrowser() {
@@ -116,9 +121,26 @@ void ServerBrowser::ServerFound(RequestResult_t result) {
 	serverElement->e_onMousePressed = [this, serverElement]() {
 		handler_->JoinLobby(serverElement->GetServer().addr, serverElement->GetServer().nPort);
 	};
-	serverElement->m_pos = { 50, 200 };
-	serverElement->m_size = { 280, 30};
-	rootElement_.m_children.push_back(serverElement);
+	m_boxServers.m_children.push_back(serverElement);
+	m_boxServers.LayoutChildren();
+
+	
+
+	GuiServerElement* serverElement2 = new GuiServerElement(server);
+	serverElement2->e_onMousePressed = [this, serverElement2]() {
+		handler_->JoinLobby(serverElement2->GetServer().addr, serverElement2->GetServer().nPort);
+	};
+	m_boxServers.m_children.push_back(serverElement2);
+	m_boxServers.LayoutChildren();
+
+	
+
+	GuiServerElement* serverElement3 = new GuiServerElement(server);
+	serverElement3->e_onMousePressed = [this, serverElement3]() {
+		handler_->JoinLobby(serverElement3->GetServer().addr, serverElement3->GetServer().nPort);
+	};
+	m_boxServers.m_children.push_back(serverElement3);
+	m_boxServers.LayoutChildren();
 }
 
 void ServerBrowser::Action(EInputAction eAction) {
