@@ -123,24 +123,6 @@ void ServerBrowser::ServerFound(RequestResult_t result) {
 	};
 	m_boxServers.m_children.push_back(serverElement);
 	m_boxServers.LayoutChildren();
-
-	
-
-	GuiServerElement* serverElement2 = new GuiServerElement(server);
-	serverElement2->e_onMousePressed = [this, serverElement2]() {
-		handler_->JoinLobby(serverElement2->GetServer().addr, serverElement2->GetServer().nPort);
-	};
-	m_boxServers.m_children.push_back(serverElement2);
-	m_boxServers.LayoutChildren();
-
-	
-
-	GuiServerElement* serverElement3 = new GuiServerElement(server);
-	serverElement3->e_onMousePressed = [this, serverElement3]() {
-		handler_->JoinLobby(serverElement3->GetServer().addr, serverElement3->GetServer().nPort);
-	};
-	m_boxServers.m_children.push_back(serverElement3);
-	m_boxServers.LayoutChildren();
 }
 
 void ServerBrowser::Action(EInputAction eAction) {

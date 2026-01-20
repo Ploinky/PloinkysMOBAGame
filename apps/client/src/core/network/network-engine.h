@@ -1,13 +1,14 @@
 #pragma once
 
 #include <vector>
+
 #include "common/pmg_types.h"
 #include "common/packets/BasePacket.h"
 
 typedef EngineHandle HServerRequest;
 typedef EngineHandle HConnection;
 
-typedef struct RequestResult_s {
+typedef struct {
     const char* szIp;
     int nPort;
     const char* szName;
@@ -26,11 +27,11 @@ public:
     std::vector<uint8_t> data;
 };
 
-
 class IRequestObserver {
 public:
 	virtual void ServerFound(RequestResult_t result) = 0;
 };
+
 class INetworkEngine {
 public:
     static INetworkEngine* Create();
