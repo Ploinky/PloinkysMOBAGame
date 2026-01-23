@@ -18,6 +18,7 @@ public:
 	void SetListenerPosition(Vector3 vec3LisPos);
 	void OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* pHitEvent);
 	void OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pHitEvent);
+	void OnEntityDeath(CClientGameState* pGameState, CEntityDeathEvent* pDeathEvent);
 
 private:
 	CClientAssetManager* m_pAssetManager;

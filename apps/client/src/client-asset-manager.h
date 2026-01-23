@@ -32,7 +32,7 @@ public:
     HTexture LoadTexture(std::string strTexture);
     HTexture LoadTextureFromData(std::vector<uint8_t> imageData);
 
-    HSound LoadSound(std::string strSound);
+    HSound LoadSound(std::string strId, std::string strSound);
 
     HModel LoadModel(std::string strModel);
     ModelAsset_t& GetModel(HModel hModel);
@@ -60,5 +60,6 @@ private:
     std::vector<ModelAsset_t> m_vecModels;
     
     CIconData LoadIconData(pugi::xml_node& modelNode);
+    CAudioAssetData LoadAudioAssetData(pugi::xml_node& audioNode);
     CModelData LoadModelData(pugi::xml_node& modelNode);
 };

@@ -59,6 +59,11 @@ public:
     std::string id;
 };
 
+class CAudioAssetData {
+public:
+    std::string id;
+};
+
 class CTransformData {
 public:
     int nCollisionRadius;
@@ -91,7 +96,8 @@ class CTargetableData {
 };
 
 class CAudioData {
-
+public:
+    std::map<std::string, std::string> mapAudioIds;
 };
 
 class CCharacterData {
@@ -133,5 +139,6 @@ public:
     std::map<std::string, CModelData> mapModelData;
     std::map<std::string, CAbilityData> mapAbilityData;
     std::map<std::string, CIconData> mapIconData;
+    std::map<std::string, CAudioAssetData> mapAudioData;
     std::map<std::string, CMapData> mapMapData;
 };

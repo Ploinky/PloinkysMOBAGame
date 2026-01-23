@@ -59,7 +59,11 @@
             <xs:element name="intent" minOccurs="0" maxOccurs="1">
                 <xs:complexType></xs:complexType>
             </xs:element>
-            <xs:element name="audio" minOccurs="0" maxOccurs="1" />
+            <xs:element name="audio" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="death" type="xs:string" use="optional" />
+                </xs:complexType>
+            </xs:element>
         </xs:all>
         <xs:attribute name="id" type="xs:string" use="required"/>
         <xs:attribute name="name" type="xs:string" use="required"/>

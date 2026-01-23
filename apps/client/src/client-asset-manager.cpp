@@ -78,9 +78,9 @@ HTexture CClientAssetManager::LoadTexture(std::string strTexture) {
     m_mapTextures.emplace(strTexture, hTexture);
     return hTexture;
 }
-HSound CClientAssetManager::LoadSound(std::string strSound) {
-    if(m_mapSounds.contains(strSound)) {
-        return m_mapSounds[strSound];
+HSound CClientAssetManager::LoadSound(std::string strId, std::string strSound) {
+    if(m_mapSounds.contains(strId)) {
+        return m_mapSounds[strId];
     }
     
     std::vector<uint8_t> vecFileData = LoadFile(strSound);
@@ -90,7 +90,9 @@ HSound CClientAssetManager::LoadSound(std::string strSound) {
         return INVALID_ASSET_HANDLE;
     }
 
-    return m_pAudioEngine->LoadSound(vecFileData);
+    HSound hSound = m_pAudioEngine->LoadSound(vecFileData);
+    m_mapSounds.emplace(strId, hSound);
+    return hSound;
 }
 
 HModel CClientAssetManager::LoadModel(std::string strModel) {
@@ -236,6 +238,14 @@ const CGameData& CClientAssetManager::LoadManifest() {
             continue;
         }
 
+        pugi::xml_node audioNode = doc.child("audio");
+        if(audioNode) {
+            CAudioAssetData audioData = LoadAudioAssetData(audioNode);
+            m_gameData.mapAudioData.emplace(audioData.id, audioData);
+            Logger::FormatMsg("Loaded audio asset %s from %s", audioData.id.c_str(), xmlFileName.c_str());
+            continue;
+        }
+
         pugi::xml_node mapNode = doc.child("map");
         if(mapNode) {
             CMapData mapData = LoadMapData(mapNode);
@@ -252,6 +262,15 @@ CIconData CClientAssetManager::LoadIconData(pugi::xml_node& iconNode) {
     std::string iconPath = iconNode.attribute("asset").as_string();
     GetBitmapImage(iconId, iconPath);
     return iconData;
+}
+
+CAudioAssetData CClientAssetManager::LoadAudioAssetData(pugi::xml_node& audioNode) {
+    CAudioAssetData audioData{};
+    std::string audioId = audioNode.attribute("id").as_string();
+    std::string audioPath = audioNode.attribute("asset").as_string();
+    LoadSound(audioId, audioPath);
+    audioData.id = audioId;
+    return audioData;
 }
 
 CModelData CClientAssetManager::LoadModelData(pugi::xml_node& modelNode) {

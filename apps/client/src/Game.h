@@ -138,7 +138,6 @@ public:
     // TODO
     AudioSystem* m_pAudioSystem;
     HSound m_hThunderstrikeSound = INVALID_ASSET_HANDLE;
-    HSound m_hStormcallerDeath = INVALID_ASSET_HANDLE;
     HSound m_hStormcallerAttack = INVALID_ASSET_HANDLE;
 
 	GameObject* pObjectUnderCursor = nullptr;

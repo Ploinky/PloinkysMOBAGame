@@ -5,6 +5,7 @@
 
 #include <game/components/components.h>
 #include <game/client-game-system.h>
+#include "common/data/game-data.h"
 
 #ifndef REGISTER_COMPONENT_TYPE
 #define REGISTER_COMPONENT_TYPE(ComponentType) \
@@ -98,7 +99,6 @@ public:
     }
 
     std::vector<ISystem*> m_vecGameSystems;
-
 private:
     NavigationMap* m_pNavMap;
 };

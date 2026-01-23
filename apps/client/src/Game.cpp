@@ -59,9 +59,8 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     // TODO
     m_pAudioSystem = new AudioSystem(handler->GetAudioEngine(), handler->GetAssetManager());
     m_hGenericIcon = handler->GetAssetManager()->GetBitmapImage("ability-icon", "assets/persons/shared/ability-icon.bmp");
-    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/abilities/thunderstrike.wav");
-    m_hStormcallerDeath = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/death.wav");
-    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("assets/characters/stormcaller/attack.wav");
+    m_hThunderstrikeSound = handler->GetAssetManager()->LoadSound("thunderstrike", "assets/characters/stormcaller/abilities/thunderstrike.wav");
+    m_hStormcallerAttack = handler->GetAssetManager()->LoadSound("attack", "assets/characters/stormcaller/attack.wav");
 
     m_gameState.AddSystem(m_pAudioSystem);
     m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
@@ -1114,10 +1113,10 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             ParticleComponent_t* pParticleComp = m_gameState.GetParticle(go->unit_id);
             pParticleComp->vecEffects.push_back(particle_system);
 
-            CSpellHitEvent* pHitEvent = new CSpellHitEvent();
-            pHitEvent->idUnit = go->unit_id;
-            pHitEvent->hSound = m_hThunderstrikeSound;
-            m_gameState.EmitEvent(pHitEvent);
+            CSpellHitEvent hitEvent = CSpellHitEvent();
+            hitEvent.idUnit = go->unit_id;
+            hitEvent.hSound = m_hThunderstrikeSound;
+            m_gameState.EmitEvent(&hitEvent);
         }
 
         if(header.type == PacketType::PCK_UNIT_DEATH) {
@@ -1134,7 +1133,10 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             
             go->bIsCasting = false;
             go->dead = true;
-            m_pAudioSystem->PlaySoundOnUnit(m_hStormcallerDeath, go->unit_id);
+
+            CEntityDeathEvent deathEvent = CEntityDeathEvent();
+            deathEvent.idUnit = go->unit_id;
+            m_gameState.EmitEvent(&deathEvent);
         }
 
         if(header.type == PacketType::PCK_UNIT_RESPAWN) {

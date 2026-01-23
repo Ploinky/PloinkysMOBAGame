@@ -24,5 +24,7 @@
     <health max_health="200" />
     <navigation />
     <targetable selection_radius="100" />
-    <audio />
+    <audio
+        death="stormcaller_death"
+    />
 </entity>

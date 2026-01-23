@@ -1,4 +1,5 @@
 #pragma once
 
-#include "spell-hit-event.h"
 #include "attack-start-event.h"
+#include "entity-death-event.h"
+#include "spell-hit-event.h"

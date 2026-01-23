@@ -9,6 +9,7 @@ AudioSystem::AudioSystem(IAudioEngine* pEngine, CClientAssetManager* pAssetManag
     m_pEngine = pEngine;
     m_pAssetManager = pAssetManager;
 
+    REGISTER_EVENT_HANDLER(CEntityDeathEvent, OnEntityDeath)
     REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellHit)
     REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
 }
@@ -47,4 +48,36 @@ void AudioSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent*
 
     AudioEmitterComponent_t* pEmitterComp = pGameState->GetAudioEmitter(pHitEvent->idUnit);
     pEmitterComp->vecCurrentSounds.push_back(hVoice);
+}
+
+void AudioSystem::OnEntityDeath(CClientGameState* pGameState, CEntityDeathEvent* pDeathEvent) {
+    // TODO can only renderables play sound?
+    RenderableComponent_t* pRenderable = pGameState->GetRenderable(pDeathEvent->idUnit);
+    if(pRenderable == nullptr) {
+        Logger::FormatErr("Failed to play death sound on entity <%d>: could not find entity type", pDeathEvent->idUnit);
+        return;
+    }
+
+    if(m_pAssetManager->GetGameData().mapCharacterData.find(pRenderable->strRenderable) == m_pAssetManager->GetGameData().mapCharacterData.end()) {
+        Logger::FormatErr("Failed to play sound <%s> on entity <%d>: could not find character data for <%s>",
+            "death", pDeathEvent->idUnit, pRenderable->strRenderable);
+        return;
+    }
+
+    CCharacterData charData = m_pAssetManager->GetGameData().mapCharacterData.at(pRenderable->strRenderable);
+
+    if(!charData.optAudioData.has_value() || charData.optAudioData.value().mapAudioIds.find("death") == charData.optAudioData.value().mapAudioIds.end()) {
+        Logger::FormatErr("Failed to play sound <%s> on entity <%d>: entity is missing that sound", "death", pDeathEvent->idUnit);
+        return;
+    }
+
+    std::string audioId = charData.optAudioData.value().mapAudioIds.at("death");
+    HSound hDeathSound = m_pAssetManager->LoadSound(audioId, "");
+
+    if(hDeathSound == INVALID_HANDLE) {
+        Logger::FormatErr("Failed to play sound <%s> on entity <%d>: sound was not loaded", "death", pDeathEvent->idUnit);
+        return;
+    }
+
+    PlaySoundOnUnit(hDeathSound, pDeathEvent->idUnit);
 }
