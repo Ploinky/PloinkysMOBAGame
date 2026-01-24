@@ -26,5 +26,6 @@
     <targetable selection_radius="100" />
     <audio
         death="stormcaller_death"
+        attack1="stormcaller_attack1"
     />
 </entity>

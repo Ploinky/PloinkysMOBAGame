@@ -255,6 +255,10 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         if(deathAudio) {
             audioData.mapAudioIds.emplace("death", deathAudio.as_string());
         }
+        pugi::xml_attribute attack1Audio = audioNode.attribute("attack1");
+        if(attack1Audio) {
+            audioData.mapAudioIds.emplace("attack1", attack1Audio.as_string());
+        }
         charData.optAudioData.emplace(audioData);
     }
 

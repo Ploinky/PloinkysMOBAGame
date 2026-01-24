@@ -1003,7 +1003,6 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             CAttackStartEvent* pAttackEvent = new CAttackStartEvent();
             pAttackEvent->idUnit = go->unit_id;
-            pAttackEvent->hSound = m_hStormcallerAttack;
             m_gameState.EmitEvent(pAttackEvent);
 
             if(AnimationComponent_t* pAnim = m_gameState.GetAnimation(pck.content.unit)) {

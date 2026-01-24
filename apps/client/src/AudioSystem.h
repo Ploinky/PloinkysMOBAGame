@@ -13,7 +13,7 @@ public:
 	AudioSystem(IAudioEngine* pEngine, CClientAssetManager* pAssetManager);
 	virtual void Update(CClientGameState* pGameState, float fDelta) override;
 
-	void PlaySoundOnUnit(HSound hSound, UnitId idUnit);
+	void PlaySoundOnUnit(CClientGameState* pGameState, HSound hSound, UnitId idUnit);
 
 	void SetListenerPosition(Vector3 vec3LisPos);
 	void OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* pHitEvent);

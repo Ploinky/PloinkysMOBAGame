@@ -62,6 +62,7 @@
             <xs:element name="audio" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:attribute name="death" type="xs:string" use="optional" />
+                    <xs:attribute name="attack1" type="xs:string" use="optional" />
                 </xs:complexType>
             </xs:element>
         </xs:all>
