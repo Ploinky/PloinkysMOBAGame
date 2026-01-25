@@ -1075,7 +1075,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             if(TransformComponent_t* pTransform = m_gameState.GetTransform(pck.unit)) {
                 if(TransformComponent_t* pTarget = m_gameState.GetTransform(pck.idTarget)) {
-                    pTarget->vec3Rotation.y = CalculateAngle({pTransform->vec3Position.x, pTransform->vec3Position.z}, {pTarget->vec3Position.x, pTarget->vec3Position.z});
+                    pTransform->vec3Rotation.y = CalculateAngle({pTransform->vec3Position.x, pTransform->vec3Position.z}, {pTarget->vec3Position.x, pTarget->vec3Position.z});
                 }
             }
 

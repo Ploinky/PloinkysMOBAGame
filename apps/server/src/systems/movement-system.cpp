@@ -35,7 +35,6 @@ void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         if(vec3Move.Length() < (330.0f * (fDelta / 1000))) {
             pTransform->SetPosition(move.vec3Target);
-            pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
             return;
         }
 
