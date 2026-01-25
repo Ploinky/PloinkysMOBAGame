@@ -1114,7 +1114,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             CSpellHitEvent hitEvent = CSpellHitEvent();
             hitEvent.idUnit = go->unit_id;
-            hitEvent.hSound = m_hThunderstrikeSound;
+            hitEvent.strSpellId = pck.spell;
             m_gameState.EmitEvent(&hitEvent);
         }
 

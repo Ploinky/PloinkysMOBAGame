@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<audio
+    xmlns="https://ploinky.de/mySchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://ploinky.de/mySchema _audio.xsd"
+    id="thunderstrike_target_hit"
+    asset="assets/characters/stormcaller/abilities/thunderstrike.wav"
+/>

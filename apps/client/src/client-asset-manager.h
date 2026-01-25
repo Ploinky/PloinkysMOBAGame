@@ -43,23 +43,24 @@ public:
     const CGameData& LoadManifest();
     const CGameData& GetGameData();
     std::vector<float> ParseFloatVec(std::string str);
-
-private:
+    
+    private:
     IGraphicsEngine* m_pGraphicsEngine;
     IAudioEngine* m_pAudioEngine;
-
+    
     CGameData m_gameData;
-
+    
     std::unordered_map<std::string, HBitmap> m_mapBitmaps;
-
+    
     std::unordered_map<std::string, HTexture> m_mapTextures;
-
+    
     std::unordered_map<std::string, HSound> m_mapSounds;
-
+    
     std::unordered_map<std::string, HModel> m_mapModels;
     std::vector<ModelAsset_t> m_vecModels;
     
     CIconData LoadIconData(pugi::xml_node& modelNode);
     CAudioAssetData LoadAudioAssetData(pugi::xml_node& audioNode);
     CModelData LoadModelData(pugi::xml_node& modelNode);
+    CEffectData LoadEffectData(pugi::xml_node& effectData);
 };

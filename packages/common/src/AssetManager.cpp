@@ -153,6 +153,14 @@ CAbilityData AssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
 
                 abilityData.effect.vecHealEffects.push_back(effect);
             }
+
+            if(!strcmp(onImpactEffectNode.name(), "effect")) {
+                ImpactEffectFX_t effect{};
+
+                effect.strId = onImpactEffectNode.attribute("id").as_string();
+
+                abilityData.effect.vecFXEffects.push_back(effect);
+            }
         }
     }
 

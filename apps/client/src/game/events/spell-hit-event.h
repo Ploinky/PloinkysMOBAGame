@@ -11,5 +11,5 @@ public:
     virtual std::type_index GetType() const override { return typeid(CSpellHitEvent); };
 
     UnitId idUnit;
-    HSound hSound;
+    std::string strSpellId;
 };

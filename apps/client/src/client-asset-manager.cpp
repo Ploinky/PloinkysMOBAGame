@@ -251,9 +251,24 @@ const CGameData& CClientAssetManager::LoadManifest() {
             CMapData mapData = LoadMapData(mapNode);
             m_gameData.mapMapData.emplace(mapData.strId, mapData);
         }
+
+        pugi::xml_node effectNode = doc.child("effect");
+        if(effectNode) {
+            CEffectData effectData = LoadEffectData(effectNode);
+            m_gameData.mapEffectData.emplace(effectData.strId, effectData);
+        }
     }
 
     return GetGameData();
+}
+
+CEffectData CClientAssetManager::LoadEffectData(pugi::xml_node& effectNode) {
+    CEffectData effectData{};
+
+    effectData.strId = effectNode.attribute("id").as_string();
+    effectData.audioId = effectNode.attribute("audio").as_string();
+
+    return effectData;
 }
 
 CIconData CClientAssetManager::LoadIconData(pugi::xml_node& iconNode) {

@@ -18,7 +18,10 @@ void AudioSystem::PlaySoundOnUnit(CClientGameState* pGameState, HSound hSound, U
     HVoice hVoice = m_pEngine->CreateVoice(hSound);
 
     AudioEmitterComponent_t* pEmitterComp = pGameState->GetAudioEmitter(idUnit);
-    pEmitterComp->vecCurrentSounds.push_back(hVoice);
+
+    if(pEmitterComp) {
+        pEmitterComp->vecCurrentSounds.push_back(hVoice);
+    }
 }
 
 void AudioSystem::Update(CClientGameState* pGameState, float fDelta) {
@@ -38,14 +41,24 @@ void AudioSystem::SetListenerPosition(Vector3 vec3LisPos) {
 }
 
 void AudioSystem::OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* pHitEvent) {
-    HVoice hVoice = m_pEngine->CreateVoice(pHitEvent->hSound);
+    const CAbilityData& abilityData = m_pAssetManager->GetGameData().mapAbilityData.at(pHitEvent->strSpellId);
 
-    AudioEmitterComponent_t* pEmitterComp = pGameState->GetAudioEmitter(pHitEvent->idUnit);
-    if(pEmitterComp) {
-        pEmitterComp->vecCurrentSounds.push_back(hVoice);
+    for(auto fx : abilityData.effect.vecFXEffects) {
+        if(fx.strId.empty()) {
+            continue;
+        }
+
+        const CEffectData& effectData = m_pAssetManager->GetGameData().mapEffectData.at(fx.strId);
+
+        HSound hSound = m_pAssetManager->LoadSound(effectData.audioId, "");
+
+        if(hSound == INVALID_HANDLE) {
+            Logger::FormatErr("Failed to play sound <%s> on entity <%d>: sound was not loaded", effectData.audioId, pHitEvent->idUnit);
+            return;
+        }
+
+        PlaySoundOnUnit(pGameState, hSound, pHitEvent->idUnit);
     }
-
-    
 }
 
 void AudioSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pHitEvent) {

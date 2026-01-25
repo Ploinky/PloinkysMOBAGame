@@ -17,5 +17,6 @@
 
     <on_impact>
         <damage amount="10, 20, 30, 40" target="target_entity" />
+        <effect id="thunderstrike_target_hit" />
     </on_impact>
 </ability>

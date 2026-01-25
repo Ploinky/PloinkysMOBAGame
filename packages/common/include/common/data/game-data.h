@@ -15,6 +15,10 @@ enum class EImpactEffectAffects {
 };
 
 typedef struct {
+    std::string strId;
+} ImpactEffectFX_t;
+
+typedef struct {
     EImpactEffectAffects eAffects;
     std::vector<float> vecDamage;
 } ImpactEffectDamage_t;
@@ -27,6 +31,7 @@ typedef struct {
 typedef struct {
     std::vector<ImpactEffectDamage_t> vecDamageEffects;
     std::vector<ImpactEffectHeal_t> vecHealEffects;
+    std::vector<ImpactEffectFX_t> vecFXEffects;
 } ImpactEffect_t;
 
 class CAbilityData {
@@ -100,6 +105,12 @@ public:
     std::map<std::string, std::string> mapAudioIds;
 };
 
+class CEffectData {
+public:
+    std::string strId;
+    std::string audioId;
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -140,5 +151,6 @@ public:
     std::map<std::string, CAbilityData> mapAbilityData;
     std::map<std::string, CIconData> mapIconData;
     std::map<std::string, CAudioAssetData> mapAudioData;
+    std::map<std::string, CEffectData> mapEffectData;
     std::map<std::string, CMapData> mapMapData;
 };
