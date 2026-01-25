@@ -57,24 +57,26 @@ public:
 class CClientGameState {
 public:
     REGISTER_COMPONENT_TYPE(Animation)
+    REGISTER_COMPONENT_TYPE(Attack)
     REGISTER_COMPONENT_TYPE(AudioEmitter)
     REGISTER_COMPONENT_TYPE(Health)
     REGISTER_COMPONENT_TYPE(Movement)
     REGISTER_COMPONENT_TYPE(Particle)
     REGISTER_COMPONENT_TYPE(Renderable)
+    REGISTER_COMPONENT_TYPE(SpellCast)
     REGISTER_COMPONENT_TYPE(Targetable)
+    REGISTER_COMPONENT_TYPE(Team)
+    REGISTER_COMPONENT_TYPE(Title)
     REGISTER_COMPONENT_TYPE(Transform)
 
     uint64_t CurrentTick = 0;
     UnitId CurrentUnitId = 0;
-    std::map<UnitId, CGameObject*> GameObjects;
     
     void SetNavMap(NavigationMap* pNavMap);
     NavigationMap* GetNavMap() const;
 
     // ========================================================
     std::vector<CGameObject*> GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const;
-    CGameObject* FindGameObjectById(UnitId idUnit) const;
 
     std::queue<IGameEvent*> VecEvent;
     std::vector<UnitId> vecUnits;

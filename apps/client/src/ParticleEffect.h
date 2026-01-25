@@ -4,28 +4,28 @@
 #include "Particle.h"
 #include <vector>
 #include "Renderer.h"
-#include "GameObject.h"
-#include <GameObject.h>
 #include <common/PMG_Common.h>
 
 class ParticleEmitter;
 
-class ParticleEffect : public GameObject {
+class ParticleEffect {
 public:
 	ParticleEffect();
-	virtual ~ParticleEffect() override;
+	~ParticleEffect();
 
 	static ParticleEffect* Load(std::string particleName, AssetManager* assetManager);
 
 	void Render(CRenderer* renderer);
-	virtual void Update(float dt) override;
+	void Update(float dt);
 
-	void Attach(GameObject* other);
+	void Attach(UnitId idOther);
 
 	void AddEmitter(ParticleEmitter* emitter);
 	std::vector<ParticleEmitter*> emitters_;
 
 	Vector3 position; // TODO get this out of here
 	Vector3 rotation; // TODO get this out of here
-	GameObject* attached_to_ = nullptr;
+	UnitId attached_to_ = UNIT_ID_NONE;
+
+	bool destroy = false;
 };

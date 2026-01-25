@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include "common/pmg_physics.h"
 #include "ClientNetworkManager.h"
-#include "GameObject.h"
 #include <common/PMG_Common.h>
 #include "Renderer.h"
 #include <Model.h>
@@ -88,9 +87,6 @@ public:
     virtual void Action(EInputAction eAction) override;
     virtual void ActionReleased(EInputAction eAction) override;
 
-    GameObject* GetGameObject(UnitId unit_id);
-
-    std::map<UnitId, GameObject*> game_objects_;
     std::vector<ParticleEffect*> m_vecGlobalParticles;
 
     CClientGameState m_gameState;
@@ -140,7 +136,6 @@ public:
     HSound m_hThunderstrikeSound = INVALID_ASSET_HANDLE;
     HSound m_hStormcallerAttack = INVALID_ASSET_HANDLE;
 
-	GameObject* pObjectUnderCursor = nullptr;
     PlayerInput_t m_playerInput;
     CMapData m_map;
 };

@@ -13,13 +13,11 @@
 #include <Armature.h>
 #include "core/graphics/graphics-engine.h"
 #include "Animation.h"
-#include "GameObject.h"
 #include <common/navigation.h>
 #include "client-asset-manager.h"
 #include "core/rendering/render-command.h"
 #include "game/client-game-state.h"
 
-class GameObject;
 class ParticleEffect;
 class ParticleEmitter;
 

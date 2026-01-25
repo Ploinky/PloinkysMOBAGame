@@ -35,7 +35,6 @@ add_executable(client
     src/ClientNetworkManager.cpp
     src/ConnectingState.cpp
     src/Game.cpp
-    src/GameObject.cpp
     src/GLBFileLoader.cpp
     src/GuiButton.cpp
     src/GuiCheckbox.cpp

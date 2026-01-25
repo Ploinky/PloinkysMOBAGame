@@ -6,7 +6,6 @@
 #include <codecvt>
 #include <core/window/Window.h>
 #include "Renderer.h"
-#include "GameObject.h"
 #include "Camera.h"
 #include "Particle.h"
 #include "ParticleEffect.h"

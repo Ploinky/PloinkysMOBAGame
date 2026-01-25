@@ -5,8 +5,6 @@
 #include "ParticleEmitter.h"
 
 ParticleEffect::ParticleEffect() {
-	has_healthbar = false;
-	has_title = false;
 }
 
 ParticleEffect::~ParticleEffect() {
@@ -47,8 +45,8 @@ void ParticleEffect::Update(float dt) {
 	}
 }
 
-void ParticleEffect::Attach(GameObject* other) {
-	attached_to_ = other;
+void ParticleEffect::Attach(UnitId idOther) {
+	attached_to_ = idOther;
 }
 
 void ParticleEffect::AddEmitter(ParticleEmitter* emitter) {

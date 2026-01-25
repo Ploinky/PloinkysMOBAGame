@@ -78,15 +78,9 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 Game::~Game() {
     net_manager_->Close();
 
-    for (auto go : game_objects_) {
-        delete go.second;
-    }
-
     if (net_manager_->IsConnected()) {
         net_manager_->Close();
     }
-
-    game_objects_.clear();
 }
 
 void Game::CharTyped(uint32_t ch) {
@@ -113,27 +107,25 @@ void Game::MouseMoved(int screenX, int screenY) {
     m_mousePos[0] = screenX;
     m_mousePos[1] = screenY;
 
-    pObjectUnderCursor = nullptr;
+    UnitId idUnitUnderCursor = UNIT_ID_NONE;
 	float hp = static_cast<float>(M_PI / 180.0);
 	Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(screenX), static_cast<float>(screenY) }, windowWidth_, (float)windowHeight_);
 
-    for(auto go_it : game_objects_) {
-        GameObject* go = go_it.second;
-        TransformComponent_t* pTransform = m_gameState.GetTransform(go->unit_id);
+    for(const TransformComponent_t& pTransform : m_gameState.GetAllTransform()) {
         Capsule_t capsule = Capsule_t {
-            .vec3Start = Vector3(pTransform->vec3Position.x, 0, pTransform->vec3Position.z),
-            .vec3End = Vector3(pTransform->vec3Position.x, 200, pTransform->vec3Position.z),
+            .vec3Start = Vector3(pTransform.vec3Position.x, 0, pTransform.vec3Position.z),
+            .vec3End = Vector3(pTransform.vec3Position.x, 200, pTransform.vec3Position.z),
             .fRadius = 50,
         };
 
 		if (TestCollision(ray, capsule)) {
 			// TODO does this work for multiple objects right behind each other?
-			pObjectUnderCursor = go;
+			idUnitUnderCursor = pTransform.idUnit;
 			break;
 		}
     }
 
-    if(pObjectUnderCursor && pObjectUnderCursor->unit_id != my_unit_id_ && m_gameState.GetTargetable(pObjectUnderCursor->unit_id)) {
+    if(idUnitUnderCursor != UNIT_ID_NONE && idUnitUnderCursor != my_unit_id_ && m_gameState.GetTargetable(idUnitUnderCursor)) {
         handler_->RequestCursor(CursorId::ATTACK_MOVE);
     } else {
         handler_->RequestCursor(CursorId::DEFAULT);
@@ -161,22 +153,23 @@ void Game::Update(float dt) {
         m_mouseClicked[2] = 1;
     }
 
-	for (auto& go_it : game_objects_) {
-		GameObject* go = go_it.second;
+	for (const RenderableComponent_t& renderable : m_gameState.GetAllRenderable()) {
         std::string desiredAnim;
         bool bLoop;
-        const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(m_gameState.GetRenderable(go->unit_id)->strRenderable);
+        const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(renderable.strRenderable);
     
-        if (go->dead) {
+        // TODO this is fucked up
+        HealthComponent_t* health  = m_gameState.GetHealth(renderable.idUnit);
+        if (health != nullptr && health->nHealth <= 0.0f) {
             desiredAnim = "death";
             bLoop = false;
-        } else if (m_gameState.GetMovement(go->unit_id) && m_gameState.GetMovement(go->unit_id)->bIsMoving) {
+        } else if (m_gameState.GetMovement(renderable.idUnit) && m_gameState.GetMovement(renderable.idUnit)->bIsMoving) {
             desiredAnim = "run";
             bLoop = true;
-        } else if(go->bIsCasting) {
+        } else if(m_gameState.GetSpellCast(renderable.idUnit) && m_gameState.GetSpellCast(renderable.idUnit)->bIsCasting) {
             desiredAnim = "ability1";
             bLoop = false;
-        } else if(go->bIsAttacking) {
+        } else if(m_gameState.GetAttack(renderable.idUnit) && m_gameState.GetAttack(renderable.idUnit)->bIsAttacking) {
             desiredAnim = "attack1";
             bLoop = true;
         } else {
@@ -191,7 +184,7 @@ void Game::Update(float dt) {
         CAnimationData animData = modelData.mapAnimations.at(desiredAnim);
         desiredAnim = animData.name;
 
-        AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(go->unit_id);
+        AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(renderable.idUnit);
         if (pAnimComp && pAnimComp->m_strAnimationName != desiredAnim) {
             Logger::FormatMsg("Playing animation %s", desiredAnim.c_str());
             pAnimComp->m_strAnimationName = desiredAnim;
@@ -202,13 +195,37 @@ void Game::Update(float dt) {
         }
 	}
 
+    // TODO EXTRACT
+
+    UnitId idUnitUnderCursor = UNIT_ID_NONE;
+	float hp = static_cast<float>(M_PI / 180.0);
+	Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) }, windowWidth_, (float)windowHeight_);
+
+    for(const TransformComponent_t& pTransform : m_gameState.GetAllTransform()) {
+        Capsule_t capsule = Capsule_t {
+            .vec3Start = Vector3(pTransform.vec3Position.x, 0, pTransform.vec3Position.z),
+            .vec3End = Vector3(pTransform.vec3Position.x, 200, pTransform.vec3Position.z),
+            .fRadius = 50,
+        };
+
+		if (TestCollision(ray, capsule)) {
+			// TODO does this work for multiple objects right behind each other?
+			idUnitUnderCursor = pTransform.idUnit;
+			break;
+		}
+    }
+
+
+
+
+
     if (m_keys['q']) {
         switch(m_vecAbilities[0].eTargetType) {
             case EAbilityTargetType::UNIT:
-                if (pObjectUnderCursor) {
+                if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 0;
-                    cmd.target = pObjectUnderCursor->unit_id;
+                    cmd.target = idUnitUnderCursor;
                     net_manager_->SendPacket(&cmd);
                 }
                 break;
@@ -227,10 +244,10 @@ void Game::Update(float dt) {
     }
 
     if (m_keys['w']) {
-		if (pObjectUnderCursor) {
+		if (idUnitUnderCursor != UNIT_ID_NONE) {
 			CastTargetCommandPacket cmd = CastTargetCommandPacket();
 			cmd.spell_slot = 1;
-			cmd.target = pObjectUnderCursor->unit_id;
+			cmd.target = idUnitUnderCursor;
 			net_manager_->SendPacket(&cmd);
 		}
     }
@@ -248,10 +265,10 @@ void Game::Update(float dt) {
     }
 
     if (m_keys['r']) {
-		if (pObjectUnderCursor) {
+		if (idUnitUnderCursor != UNIT_ID_NONE) {
 			CastTargetCommandPacket cmd = CastTargetCommandPacket();
 			cmd.spell_slot = 3;
-			cmd.target = pObjectUnderCursor->unit_id;
+			cmd.target = idUnitUnderCursor;
 			net_manager_->SendPacket(&cmd);
 		}
     }
@@ -269,16 +286,15 @@ void Game::Update(float dt) {
     }
 
     if (last_move == 0 && m_mouseButtons[2] && m_mouseClicked[2] == 1) {
-		if (pObjectUnderCursor && pObjectUnderCursor->has_healthbar) {
+		if (idUnitUnderCursor != UNIT_ID_NONE && m_gameState.GetHealth(idUnitUnderCursor) != nullptr) {
 			last_move = 150;
 
 			if (m_mouseButtons[2]) {
 				AttackCommandPacket atk_pk = AttackCommandPacket();
-				atk_pk.target_unit = pObjectUnderCursor->unit_id;
-
+				atk_pk.target_unit = idUnitUnderCursor;
 				net_manager_->SendPacket(&atk_pk);
 			}
-		} else if (!pObjectUnderCursor) {
+		} else if (idUnitUnderCursor == UNIT_ID_NONE) {
             float x, y;
             TestIntersect(renderer, m_mouseClicked[0], m_mouseClicked[1], &x, &y);
 
@@ -300,10 +316,6 @@ void Game::Update(float dt) {
     }
 
     HandleTicks(dt);
-
-    for (auto go_it : game_objects_) {
-        go_it.second->Update(dt);
-    }
 
     for(ParticleEffect* pEffect : m_vecGlobalParticles) {
         pEffect->Update(dt);
@@ -334,15 +346,6 @@ void Game::Update(float dt) {
         return false;
     });
 
-
-    std::erase_if(game_objects_, [](auto kv) {
-        if (kv.second->destroy) {
-            delete kv.second;
-            return true;
-        }
-
-        return false;
-        });
 
     if (m_keys[' ']) {
     //    if (unit_id_received_) {
@@ -428,22 +431,17 @@ void Game::RenderGameUI(CRenderer* renderer) {
     renderer->RenderNavGrid(m_navGrid);
 #endif
 
-    for (auto go_it : game_objects_) {
-        GameObject* go = go_it.second;
-
-        if (!go->has_healthbar || go->dead) {
-            continue;
-        }
-
+    for (const HealthComponent_t& health : m_gameState.GetAllHealth()) {
        double health_bar_height = 5;
 
-       if(TransformComponent_t* pTransform = m_gameState.GetTransform(go->unit_id)) {
+       if(TransformComponent_t* pTransform = m_gameState.GetTransform(health.idUnit)) {
 
         Vector2 vec2Screen = renderer->m_camera.UnprojectWorldPoint({pTransform->vec3Position.x, pTransform->vec3Position.y + 200, pTransform->vec3Position.z}, windowWidth_, windowHeight_);
             double x = vec2Screen.x;
             double y = vec2Screen.y;
 
-            if (go->has_title) {
+            // TODO when to show title?
+            if (const TitleComponent_t* titleComp = m_gameState.GetTitle(health.idUnit)) {
                 renderer->RenderText(x - 50, y - 50, 100, 50, "Ploinky");
                 renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
                 renderer->RenderText(x - 71, y - 12, 20, 20, "1");
@@ -453,22 +451,16 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
             float color[3]{ 0, 1, 0 };
 
-            if (go->team == Team::TEAM_2) {
+            if (m_gameState.GetTeam(health.idUnit)->eTeam == Team::TEAM_2) {
                 color[0] = 1;
                 color[1] = 0;
                 color[2] = 0;
             }
 
-            renderer->FillRect(x - 50, y - 10, ((float)m_gameState.GetHealth(go->unit_id)->nHealth / (float)m_gameState.GetHealth(go->unit_id)->nMaxHealth) * 100.0f, health_bar_height, color);
+            renderer->FillRect(x - 50, y - 10, ((float)health.nHealth / (float)health.nMaxHealth) * 100.0f, health_bar_height, color);
             renderer->DrawRect(x - 51, y - 11, 102, health_bar_height + 2, new float[3] { 0.0f, 0.0f, 0 });
        }
     }
-
-#ifdef _DEBUG
-    std::string go_text("game_objects: ");
-    go_text.append(std::to_string(game_objects_.size()));
-    renderer->RenderText(0, 20, 150, 20, go_text);
-#endif
 
     int done_ticks = current_tick_;
     int done_seconds = current_tick_ / 60.0;
@@ -497,16 +489,10 @@ void Game::RenderGameUI(CRenderer* renderer) {
         return;
     }
 
-    auto test = game_objects_.find(my_unit_id_);
-    if (test == game_objects_.end()) {
-        return;
-    }
-    GameObject* my_go = test->second;
-
     int y = windowHeight_ - 50;
     int x = windowWidth_ / 2 - 200;
 
-    if(HealthComponent_t* pHealthComp = m_gameState.GetHealth(my_go->unit_id)) {
+    if(HealthComponent_t* pHealthComp = m_gameState.GetHealth(my_unit_id_)) {
         int nPercentageHealth = (float)pHealthComp->nHealth / (float)pHealthComp->nMaxHealth * 400.0f;
 
         renderer->FillRect(x - 1, y - 1, 402, 27, black);
@@ -563,14 +549,12 @@ void Game::RenderGameUI(CRenderer* renderer) {
     float hp = static_cast<float>(M_PI / 180.0);
     Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) }, windowWidth_, windowHeight_);
 
-    for (auto& go_it : game_objects_) {
-        GameObject* go = go_it.second;
-        if(TransformComponent_t* pTransform = m_gameState.GetTransform(go->unit_id)) {
-            Sphere sphere(Vector3(pTransform->vec3Position.x, 25, pTransform->vec3Position.z), 50);
-            if (TestCollision(ray, sphere) && go->has_healthbar && go->team != my_go->team) {
-                handler_->RequestCursor(CursorId::ATTACK_MOVE);
-                break;
-            }
+    for (const TransformComponent_t& transform : m_gameState.GetAllTransform()) {
+        Sphere sphere(Vector3(transform.vec3Position.x, 25, transform.vec3Position.z), 50);
+        if (TestCollision(ray, sphere) && m_gameState.GetHealth(transform.idUnit)
+            && m_gameState.GetTeam(transform.idUnit)->eTeam != m_gameState.GetTeam(my_unit_id_)->eTeam) {
+            handler_->RequestCursor(CursorId::ATTACK_MOVE);
+            break;
         }
     }
 
@@ -635,8 +619,8 @@ void Game::SpawnUnit(uint64_t unitId) {
     SpawnUnit(unitId, "", Team::TEAM_1, Vector3(0, 0, 0));
 }
 
-void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos) {
-    if(unitId == my_unit_id_) {
+void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos) {
+    if(entId == my_unit_id_) {
         const CCharacterData entityData = assetManager_->GetGameData().mapCharacterData.at(entityId);
         for(int i = 0; i < 4; i++) {
             auto abilityMapIt = entityData.mapAbilityIds.find(i);
@@ -659,13 +643,7 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
         }
     }
 
-    if (game_objects_.find(unitId) != game_objects_.end()) {
-        // already spawned!
-        Logger::FormatMsg("Unit with id %d already spawned", unitId);
-        return;
-    }
-
-    m_gameState.vecUnits.push_back(unitId);
+    m_gameState.vecUnits.push_back(entId);
 
     auto entMapIt = assetManager_->GetGameData().mapCharacterData.find(entityId);
 
@@ -676,18 +654,14 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
 
     const CCharacterData& entData = entMapIt->second;
 
-    GameObject* go = new GameObject();
-    go->uPrefab = entData.strId;
-    go->team = team;
-    go->unit_id = unitId;
-    UnitId entId = go->unit_id;
     m_gameState.AddRenderable(entId)->strRenderable = entData.modelId;
     
+    m_gameState.AddTeam(entId)->eTeam = team;
+
     if(entData.optHealthData) {
         HealthComponent_t* health = m_gameState.AddHealth(entId);
         health->nMaxHealth = entData.optHealthData.value().nMaxHealth;
         health->nHealth = health->nMaxHealth;
-        go->has_healthbar = true;
     }
 
     if(entData.optTransformData) {
@@ -722,22 +696,14 @@ void Game::SpawnUnit(UnitId unitId, std::string entityId, Team team, Vector3 pos
     if(entData.optNetworkData) {}
     if(entData.optIntentData) {}
 
-    game_objects_.emplace(unitId, go);
-
     // TODO need to figure out if it's a player controlled unit or no
     // go->has_title = false;
 
-    Logger::FormatMsg("Spawned new unit %d from template %s at <%f, %f, %f>", unitId, entityId.c_str(), pos.x, pos.y, pos.z);
+    Logger::FormatMsg("Spawned new unit %d from template %s at <%f, %f, %f>", entId, entityId.c_str(), pos.x, pos.y, pos.z);
 }
 
 void Game::DespawnUnit(uint64_t unitId) {
-    GameObject* go = GetGameObject(unitId);
-
-    if (go == nullptr) {
-        return;
-    }
-
-    go->destroy = true;
+    // TODO
 }
 
 void Game::HandleTicks(float dt) {
@@ -868,14 +834,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             UnitIdlePacket idle{};
             idle.Read(&vecData);
 
-            GameObject* go = GetGameObject(idle.unit);
-
-            if (go == nullptr) {
-                Logger::Err("Received idle command for object that does not exist!");
-                continue;
-            }
-
-            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
+            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(idle.unit)) {
                 pMoveComp->vec3Target = Vector3::ZERO;
                 pMoveComp->bIsMoving = false;
             }
@@ -888,23 +847,26 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
                 pTransformComp->vec3Rotation.y = idle.r; // this actually looks less fucked for now :O
             }
 
-            go->bIsAttacking = false;
-            go->bIsCasting = false;
+            if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(idle.unit)) {
+                pAttackComponent->bIsAttacking = false;
+            }
+
+            if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(idle.unit)) {
+                pSpellCastComponent->bIsCasting = false;
+            }
             continue;
         }
         if(header.type == PacketType::UNITMOVE){
             UnitMovePacket move{};
             move.Read(&vecData);
 
-            GameObject* go = GetGameObject(move.unit);
-
-            if (go == nullptr) {
-                Logger::Err("Received move command for object that does not exist!");
-                continue;
+            if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(move.unit)) {
+                pAttackComponent->bIsAttacking = false;
             }
 
-            go->bIsCasting = false;
-            go->bIsAttacking = false;
+            if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(move.unit)) {
+                pSpellCastComponent->bIsCasting = false;
+            }
 
             TransformComponent_t* transform = m_gameState.GetTransform(move.unit);
 
@@ -935,15 +897,8 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
         if(header.type == PacketType::PCK_STATS){
             UnitStatsPacket stats{};
             stats.Read(&vecData);
-
-            GameObject* go = GetGameObject(stats.unit);
-
-            if (go == nullptr) {
-                Logger::Msg("WARNING: received stats message for unknown object");
-                continue;
-            }
             
-            HealthComponent_t* pHealthComp = m_gameState.GetHealth(go->unit_id);
+            HealthComponent_t* pHealthComp = m_gameState.GetHealth(stats.unit);
             
             if(pHealthComp) {
                 pHealthComp->nHealth = stats.health;
@@ -969,9 +924,8 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             ParticleEffect* particle_system = ParticleEffect::Load(part.particle, assetManager_);
 
-            GameObject* go = GetGameObject(part.unit);
-            if (part.unit != 0 && go != nullptr) {
-                particle_system->Attach(go);
+            if (part.unit != UNIT_ID_NONE) {
+                particle_system->Attach(part.unit);
             }
             else {
                 particle_system->position.x = part.x;
@@ -979,17 +933,17 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
                 particle_system->position.z = part.y;
             }
 
-            game_objects_.emplace(current_tick_, particle_system);
             continue;
         }
         if(header.type == PacketType::PCK_ATTACK_START){
             AttackStartPacket pck{};
             pck.Read(&vecData);
 
-            GameObject* go = GetGameObject(pck.content.unit);
-            go->bIsAttacking = true;
-            
-            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
+            if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.content.unit)) {
+                pAttackComponent->bIsAttacking = false;
+            }
+
+            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(pck.content.unit)) {
                 pMoveComp->vec3Target = Vector3::ZERO;
                 pMoveComp->bIsMoving = false;
             }
@@ -1002,7 +956,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             
 
             CAttackStartEvent* pAttackEvent = new CAttackStartEvent();
-            pAttackEvent->idUnit = go->unit_id;
+            pAttackEvent->idUnit = pck.content.unit;
             m_gameState.EmitEvent(pAttackEvent);
 
             if(AnimationComponent_t* pAnim = m_gameState.GetAnimation(pck.content.unit)) {
@@ -1024,26 +978,20 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
         if(header.type == PacketType::PCK_ATTACK_FINISHED) {
             CAttackFinishedPacket pck{};
             pck.Read(&vecData);
-
-            GameObject* go = GetGameObject(pck.content.unit);
-            // go->bIsAttacking = false;
+            
+            if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.content.unit)) {
+                pAttackComponent->bIsAttacking = false;
+            }
         }
 
         if(header.type == PacketType::UNITMOVE_INTENTION) {
             UnitMoveIntentionPacket move{};
             move.Read(&vecData);
 
-            GameObject* go = GetGameObject(move.unit);
-
-            if (go == nullptr) {
-                Logger::Err("Received move intention for object that does not exist!");
-                continue;
-            }
-
-            MovementComponent_t* pMovementComponent = m_gameState.GetMovement(go->unit_id);
+            MovementComponent_t* pMovementComponent = m_gameState.GetMovement(move.unit);
             TransformComponent_t* pTransform = m_gameState.GetTransform(move.unit);
             if(pMovementComponent == nullptr || pTransform == nullptr) {
-                Logger::FormatErr("Received unit move intention for unit %u which has no move component", go->unit_id);
+                Logger::FormatErr("Received unit move intention for unit %u which has no move component", move.unit);
                 continue;
             }
             Vector3 vec3NewTarget = { move.x, 0, move.z };
@@ -1065,13 +1013,6 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             SpellCastStartPacket pck;
             pck.Read(&vecData);
 
-            GameObject* go = GetGameObject(pck.unit);
-
-            if (go == nullptr) {
-                // TODO
-                Logger::Err("Received spell cast start for unknown unit");
-                continue;
-            }
 
             if(TransformComponent_t* pTransform = m_gameState.GetTransform(pck.unit)) {
                 if(TransformComponent_t* pTarget = m_gameState.GetTransform(pck.idTarget)) {
@@ -1079,9 +1020,11 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
                 }
             }
 
-            go->bIsCasting = true;
+            if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(pck.unit)) {
+                pSpellCastComponent->bIsCasting = false;
+            }
 
-            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(go->unit_id)) {
+            if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(pck.unit)) {
                 pMoveComp->vec3Target = Vector3::ZERO;
                 pMoveComp->bIsMoving = false;
             }
@@ -1092,28 +1035,8 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             SpellHitPacket pck;
             pck.Read(&vecData);
 
-            GameObject* go = GetGameObject(pck.unit);
-
-            if (go == nullptr) {
-                // TODO
-                Logger::Err("Received spell cast hit for unknown unit");
-                continue;
-            }
-
-            // TODO react to event instead of this?
-            ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + pck.spell + ".pts", assetManager_);
-            particle_system->Attach(go);
-
-            if(!m_gameState.GetParticle(go->unit_id)) {
-                m_gameState.AddParticle(go->unit_id);
-                particle_system->Attach(go);
-            }
-
-            ParticleComponent_t* pParticleComp = m_gameState.GetParticle(go->unit_id);
-            pParticleComp->vecEffects.push_back(particle_system);
-
             CSpellHitEvent hitEvent = CSpellHitEvent();
-            hitEvent.idUnit = go->unit_id;
+            hitEvent.idUnit = pck.unit;
             hitEvent.strSpellId = pck.spell;
             m_gameState.EmitEvent(&hitEvent);
         }
@@ -1122,51 +1045,36 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CUnitDeathPacket pck;
             pck.Read(&vecData);
 
-            GameObject* go = GetGameObject(pck.idUnit);
-
-            if (go == nullptr) {
-                // TODO
-                Logger::Err("Received death for unknown unit");
-                continue;
+            if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.idUnit)) {
+                pAttackComponent->bIsAttacking = false;
             }
-            
-            go->bIsCasting = false;
-            go->dead = true;
+            if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(pck.idUnit)) {
+                pSpellCastComponent->bIsCasting = false;
+            }
 
             CEntityDeathEvent deathEvent = CEntityDeathEvent();
-            deathEvent.idUnit = go->unit_id;
+            deathEvent.idUnit = pck.idUnit;
             m_gameState.EmitEvent(&deathEvent);
         }
 
         if(header.type == PacketType::PCK_UNIT_RESPAWN) {
             CUnitRespawnPacket pck;
             pck.Read(&vecData);
-
-            GameObject* go = GetGameObject(pck.idUnit);
-
-            if (go == nullptr) {
-                // TODO
-                Logger::Err("Received death for unknown unit");
-                return;
-            }
             
-            go->bIsCasting = false;
-            go->bIsAttacking = false;
-            go->dead = false;
+            if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.idUnit)) {
+                pAttackComponent->bIsAttacking = false;
+            }
+            if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(pck.idUnit)) {
+                pSpellCastComponent->bIsCasting = false;
+            }
+
+            if(HealthComponent_t* pHealthComponent = m_gameState.GetHealth(pck.idUnit)) {
+                pHealthComponent->nHealth = pHealthComponent->nMaxHealth;
+            }
         }
 
         Logger::Err("Received unknown packet type");
     }
-}
-
-GameObject* Game::GetGameObject(UnitId unit_id) {
-    auto it = game_objects_.find(unit_id);
-
-    if (it == game_objects_.end()) {
-        return nullptr;
-    }
-
-    return it->second;
 }
 
 void Game::HandleUnitIdPacket(std::vector<uint8_t> data) {
@@ -1190,6 +1098,27 @@ void Game::AddPacketToCurrentTick(std::vector<uint8_t> data) {
 }
 
 void Game::Action(EInputAction eAction) {
+    // TODO EXTRACT
+    UnitId idUnitUnderCursor = UNIT_ID_NONE;
+	float hp = static_cast<float>(M_PI / 180.0);
+	Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) }, windowWidth_, (float)windowHeight_);
+
+    for(const TransformComponent_t& pTransform : m_gameState.GetAllTransform()) {
+        Capsule_t capsule = Capsule_t {
+            .vec3Start = Vector3(pTransform.vec3Position.x, 0, pTransform.vec3Position.z),
+            .vec3End = Vector3(pTransform.vec3Position.x, 200, pTransform.vec3Position.z),
+            .fRadius = 50,
+        };
+
+		if (TestCollision(ray, capsule)) {
+			// TODO does this work for multiple objects right behind each other?
+			idUnitUnderCursor = pTransform.idUnit;
+			break;
+		}
+    }
+
+
+
     if(eAction == EInputAction::GAME_ESCAPE) {
         handler_->OpenMainMenu();
     }
@@ -1205,14 +1134,14 @@ void Game::Action(EInputAction eAction) {
     }
 
     if(eAction == EInputAction::GAME_SECONDARY) {
-        if (pObjectUnderCursor && pObjectUnderCursor->unit_id != my_unit_id_ && pObjectUnderCursor->has_healthbar) {
+        if (idUnitUnderCursor != UNIT_ID_NONE && idUnitUnderCursor != my_unit_id_ && m_gameState.GetHealth(idUnitUnderCursor)) {
 			last_move = 150;
 
             AttackCommandPacket atk_pk = AttackCommandPacket();
-            atk_pk.target_unit = pObjectUnderCursor->unit_id;
+            atk_pk.target_unit = idUnitUnderCursor;
 
             net_manager_->SendPacket(&atk_pk);
-		} else if (!pObjectUnderCursor) {
+		} else if (idUnitUnderCursor == UNIT_ID_NONE) {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
 
@@ -1232,10 +1161,10 @@ void Game::Action(EInputAction eAction) {
     if(eAction == EInputAction::GAME_CAST_SPELL_1) {
         switch(m_vecAbilities[0].eTargetType) {
             case EAbilityTargetType::UNIT:
-                if (pObjectUnderCursor) {
+                if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 0;
-                    cmd.target = pObjectUnderCursor->unit_id;
+                    cmd.target = idUnitUnderCursor;
                     net_manager_->SendPacket(&cmd);
                 }
                 break;
@@ -1255,10 +1184,10 @@ void Game::Action(EInputAction eAction) {
     if(eAction == EInputAction::GAME_CAST_SPELL_2) {
         switch(m_vecAbilities[0].eTargetType) {
             case EAbilityTargetType::UNIT:
-                if (pObjectUnderCursor) {
+                if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 1;
-                    cmd.target = pObjectUnderCursor->unit_id;
+                    cmd.target = idUnitUnderCursor;
                     net_manager_->SendPacket(&cmd);
                 }
                 break;
@@ -1278,10 +1207,10 @@ void Game::Action(EInputAction eAction) {
     if(eAction == EInputAction::GAME_CAST_SPELL_3) {
         switch(m_vecAbilities[0].eTargetType) {
             case EAbilityTargetType::UNIT:
-                if (pObjectUnderCursor) {
+                if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 2;
-                    cmd.target = pObjectUnderCursor->unit_id;
+                    cmd.target = idUnitUnderCursor;
                     net_manager_->SendPacket(&cmd);
                 }
                 break;
@@ -1301,10 +1230,10 @@ void Game::Action(EInputAction eAction) {
     if(eAction == EInputAction::GAME_CAST_SPELL_4) {
         switch(m_vecAbilities[0].eTargetType) {
             case EAbilityTargetType::UNIT:
-                if (pObjectUnderCursor) {
+                if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 3;
-                    cmd.target = pObjectUnderCursor->unit_id;
+                    cmd.target = idUnitUnderCursor;
                     net_manager_->SendPacket(&cmd);
                 }
                 break;
