@@ -6,6 +6,8 @@
 
 CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
+
+    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
 }
 
 void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat_t>& boneTransforms) {
@@ -93,4 +95,17 @@ void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
             }
         }
     }
+}
+
+
+void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pEvent) {
+    AnimationComponent_t* pAnimComp = pGameState->GetAnimation(pEvent->idUnit);
+
+    if(pAnimComp == nullptr) {
+        return;
+    }
+    
+    pAnimComp->m_strAnimationName = "attack1";
+    pAnimComp->m_bLoop = true;
+    pAnimComp->m_fAnimationTime = 0.0f;
 }
