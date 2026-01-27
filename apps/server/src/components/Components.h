@@ -2,6 +2,7 @@
 
 #include "ai-component.h"
 #include "basic-attack-component.h"
+#include "device-component.h"
 #include "intent-component.h"
 #include "NetworkComponent.h"
 #include "TransformComponent.h"

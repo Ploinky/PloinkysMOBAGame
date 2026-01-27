@@ -10,11 +10,9 @@ CSpellCastApi::CSpellCastApi(CServerGameState* pGameState) {
 }
 
 void CSpellCastApi::ApplyDamage(UnitId idSource, UnitId idTarget, float fDamage) {
-    CGameObject* pTarget = m_pGameState->FindGameObjectById(idTarget);
     m_pGameState->VecEvent.emplace(new CDamageEvent(idSource, idTarget, fDamage));
 }
 
 void CSpellCastApi::ApplyHeal(UnitId idSource, UnitId idTarget, float fDamage) {
-    CGameObject* pTarget = m_pGameState->FindGameObjectById(idTarget);
     m_pGameState->VecEvent.emplace(new CHealEvent(idSource, idTarget, fDamage));
 }

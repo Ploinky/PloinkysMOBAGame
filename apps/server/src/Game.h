@@ -77,22 +77,8 @@ public:
     void PlayerAttackCommand(PlayerID playerId, uint64_t target_id);
     void PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTargetInfo* target_info);
 
-    CGameObject* GetGameObjectById(unsigned int id) {
-        auto it = this->GameState.GameObjects.find(id);
-        
-        if (it == GameState.GameObjects.end()) {
-            return nullptr;
-        }
-
-        return it->second;
-    }
-
-    void AddGameObject(CGameObject* game_object);
     void SpawnMissile(Missile* missile);
 
-    void CheckCollision(CGameObject* collider);
-
-    std::vector<CGameObject*> GetGameObjectsInArea(Vector2 position, float radius);
 
     virtual void Update(float dt) override;
     NavigationCellGrid* m_navGrid;
@@ -116,8 +102,6 @@ public:
     }
 
     void OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data);
-
-    void AddBuff(CGameObject* pTarget, std::string strBuffName);
 
 private:
 

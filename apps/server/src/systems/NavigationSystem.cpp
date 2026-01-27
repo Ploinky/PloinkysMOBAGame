@@ -91,10 +91,8 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
-    CGameObject* pGameObject = pGameState->FindGameObjectById(pCastStartEvent->pCtx->idCaster);
-
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pGameObject->GetId());
-    CTransformComponent* pTransformComp = pGameState->GetTransform(pGameObject->GetId());
+    CNavigationComponent* pNavComp = pGameState->GetNavigation(pCastStartEvent->pCtx->idCaster);
+    CTransformComponent* pTransformComp = pGameState->GetTransform(pCastStartEvent->pCtx->idCaster);
 
     if(pNavComp == nullptr) {
         return;
@@ -111,9 +109,7 @@ void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCas
 
 
 void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt) {
-    CGameObject* pGameObject = pGameState->FindGameObjectById(pEvt->idAttacker);
-
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pGameObject->GetId());
+    CNavigationComponent* pNavComp = pGameState->GetNavigation(pEvt->idAttacker);
 
     if(pNavComp == nullptr) {
         return;
@@ -129,8 +125,7 @@ void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStart
     }
 }
 void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
-    CGameObject* pGameObject = pGameState->FindGameObjectById(pMoveAttemptEvent->idUnit);
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pGameObject->GetId());
+    CNavigationComponent* pNavComp = pGameState->GetNavigation(pMoveAttemptEvent->idUnit);
 
     if(pNavComp == nullptr) {
         return;
@@ -139,10 +134,10 @@ void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttempt
     pNavComp->vec3Destination = pMoveAttemptEvent->vec3Position;
     pNavComp->bIsNavigating = true;
 
-    if(CSpellCastComponent* pSpellCastComp = pGameState->GetSpellCast(pGameObject->GetId())) {
+    if(CSpellCastComponent* pSpellCastComp = pGameState->GetSpellCast(pMoveAttemptEvent->idUnit)) {
         pSpellCastComp->optCurrentCast.reset();
     }
-    if(CBasicAttackComponent* pAtkComp = pGameState->GetBasicAttack(pGameObject->GetId())) {
+    if(CBasicAttackComponent* pAtkComp = pGameState->GetBasicAttack(pMoveAttemptEvent->idUnit)) {
         pAtkComp->optCurrentAttack.reset();
     }
 }

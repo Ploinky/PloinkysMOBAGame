@@ -38,7 +38,6 @@ private:                                                                        
 public:
 #endif
 
-class CGameObject;
 class CGameState;
 
 typedef struct {
@@ -50,6 +49,7 @@ class CServerGameState : public IGameState {
 public:
     REGISTER_COMPONENT_TYPE(Movement)
     REGISTER_COMPONENT_TYPE(Character)
+    REGISTER_COMPONENT_TYPE(Device)
     REGISTER_COMPONENT_TYPE(Transform)
     REGISTER_COMPONENT_TYPE(Network)
     REGISTER_COMPONENT_TYPE(Health)
@@ -62,14 +62,9 @@ public:
 
     uint64_t CurrentTick = 0;
     UnitId CurrentUnitId = 0;
-    std::map<UnitId, CGameObject*> GameObjects;
     
     void SetNavMap(NavigationMap* pNavMap);
     NavigationMap* GetNavMap() const;
-
-    // ========================================================
-    std::vector<CGameObject*> GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const;
-    CGameObject* FindGameObjectById(UnitId idUnit) const;
 
     std::queue<IGameEvent*> VecEvent;
 
@@ -82,6 +77,7 @@ public:
     };
 
     UnitId SpawnUnit(const CGameData& gameData, std::string strId);
+    UnitId CreateEntity();
 private:
     NavigationMap* m_pNavMap;
 };

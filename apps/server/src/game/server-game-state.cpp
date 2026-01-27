@@ -2,21 +2,6 @@
 
 #include "GameObject.h"
 
-std::vector<CGameObject*> CServerGameState::GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const {
-    throw std::runtime_error("implement me");
-    return {};
-}
-
-CGameObject* CServerGameState::FindGameObjectById(UnitId idUnit) const {
-    std::map<UnitId, CGameObject*>::const_iterator entry = GameObjects.find(idUnit);
-
-    if(entry == GameObjects.end()) {
-        return nullptr;
-    }
-
-    return entry->second;
-}
-
 void CServerGameState::SetNavMap(NavigationMap* pNavMap) {
     m_pNavMap = pNavMap;
 }
@@ -25,12 +10,14 @@ NavigationMap* CServerGameState::GetNavMap() const {
     return m_pNavMap;
 }
 
+UnitId CServerGameState::CreateEntity() {
+    return CurrentUnitId++;
+}
+
 UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId) {
     CCharacterData entityData = gameData.mapCharacterData.at(strId);
 
-    CGameObject* go = new CGameObject();
-    this->GameObjects.emplace(go->GetId(), go);
-    UnitId id = go->GetId();
+    UnitId id = CurrentUnitId++;
 
     // ==================== CHARACTER COMPONENT ====================
     AddCharacter(id, CCharacterComponent(entityData.strId));

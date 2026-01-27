@@ -18,20 +18,16 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         ActiveAttack_t& activeAttack = attackComp.optCurrentAttack.value();
         activeAttack.fTimeInState += fDelta;
 
-        CGameObject* pAttacker = pGameState->FindGameObjectById(attackComp.idUnit);
-        CGameObject* pTarget = pGameState->FindGameObjectById(activeAttack.idTarget);
         CTransformComponent* pAttackerTransform = nullptr;
         CTransformComponent* pTargetTransform = nullptr;
         CNavigationComponent* pNavigationComponent = nullptr;
 
-        if(pTarget == nullptr
-            || pAttacker == nullptr
-            || (pGameState->GetHealth(pAttacker->GetId()) && pGameState->GetHealth(pAttacker->GetId())->bIsDead)) {
+        if(pGameState->GetHealth(attackComp.idUnit) && pGameState->GetHealth(attackComp.idUnit)->bIsDead) {
             attackComp.optCurrentAttack.reset();
             continue;
         }
 
-        if(CHealthComponent* pHealthComp = pGameState->GetHealth(pTarget->GetId())) {
+        if(CHealthComponent* pHealthComp = pGameState->GetHealth(activeAttack.idTarget)) {
             if(pHealthComp->bIsDead) {
                 attackComp.optCurrentAttack.reset();
                 continue;
@@ -41,15 +37,15 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         switch(activeAttack.eState) {
             case EAttackState::IDLE:
             case EAttackState::APPROACHING:
-                pAttackerTransform = pGameState->GetTransform(pAttacker->GetId());
-                pTargetTransform = pGameState->GetTransform(pTarget->GetId());
+                pAttackerTransform = pGameState->GetTransform(attackComp.idUnit);
+                pTargetTransform = pGameState->GetTransform(activeAttack.idTarget);
 
-                pNavigationComponent = pGameState->GetNavigation(pAttacker->GetId());
+                pNavigationComponent = pGameState->GetNavigation(attackComp.idUnit);
                 if(attackComp.fRange > (pAttackerTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
                     activeAttack.eState = EAttackState::ATTACKING;
                     activeAttack.fTimeInState = 0.0f;
 
-                    pGameState->VecEvent.emplace(new CAttackStartEvent(pAttacker->GetId(), pTarget->GetId()));
+                    pGameState->VecEvent.emplace(new CAttackStartEvent(attackComp.idUnit, activeAttack.idTarget));
                     break;
                 }
 
@@ -61,7 +57,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::ATTACKING:
                 if(activeAttack.fTimeInState >= attackComp.fAttackPoint) {
-                    pGameState->VecEvent.emplace(new CAttackHitEvent(pAttacker->GetId(), pTarget->GetId()));
+                    pGameState->VecEvent.emplace(new CAttackHitEvent(attackComp.idUnit, activeAttack.idTarget));
                     activeAttack.eState = EAttackState::BACKSWING;
                     activeAttack.fTimeInState = 0.0f;
                 }
@@ -74,13 +70,13 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::FINISHED:
                 // TODO
-                pGameState->VecEvent.emplace(new CAttackFinishedEvent(pAttacker->GetId()));
+                pGameState->VecEvent.emplace(new CAttackFinishedEvent(attackComp.idUnit));
                 attackComp.optCurrentAttack.value().eState = EAttackState::IDLE;
                 attackComp.optCurrentAttack.value().fTimeInState = 0.0f;
                 break;
                 case EAttackState::CANCELLED:
                 // TODO
-                pGameState->VecEvent.emplace(new CAttackFinishedEvent(pAttacker->GetId()));
+                pGameState->VecEvent.emplace(new CAttackFinishedEvent(attackComp.idUnit));
                 attackComp.optCurrentAttack.reset(); // Done
                 break;
             default:
@@ -123,21 +119,13 @@ void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackInten
 }
 
 void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt) {
-    CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idAttacker);
-    CGameObject* pTarget = pGameState->FindGameObjectById(pEvt->idTarget);
-
-    if(pAttacker == nullptr || pTarget == nullptr) {
-        Logger::FormatErr("Invalid attack by unit %u on unit %u: at least one unit invalid", pEvt->idAttacker, pEvt->idTarget);
-        return;
-    }
-
     ActiveAttack_t activeAttack {
         .idTarget = pEvt->idTarget,
         .eState = EAttackState::IDLE,
         .fTimeInState = 0.0f
     };
 
-    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pAttacker->GetId());
+    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pEvt->idAttacker);
 
     if(attackComp == nullptr) {
         Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idAttacker, pEvt->idTarget);

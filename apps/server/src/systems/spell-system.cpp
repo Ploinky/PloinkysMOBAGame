@@ -34,13 +34,11 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
         ActiveCast_t& activeCast = spellComp.optCurrentCast.value();
         activeCast.fTimeInState += fDelta;
 
-        CGameObject* pCaster = pGameState->FindGameObjectById(activeCast.spellCtx->idCaster);
-        if(pGameState->GetHealth(pCaster->GetId()) && pGameState->GetHealth(pCaster->GetId())->bIsDead) {
+        if(pGameState->GetHealth(activeCast.spellCtx->idCaster) && pGameState->GetHealth(activeCast.spellCtx->idCaster)->bIsDead) {
             spellComp.optCurrentCast.reset();
             continue;
         }
 
-        CGameObject* pTarget = nullptr;
         CTransformComponent* pCasterTransform = nullptr;
         CTransformComponent* pTargetTransform = nullptr;
         CNavigationComponent* pNavigationComponent = nullptr;
@@ -48,12 +46,10 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
         switch(activeCast.eState) {
             case ESpellCastState::IDLE:
             case ESpellCastState::APPROACHING:
-                pTarget = pGameState->FindGameObjectById(activeCast.spellCtx->idTarget);
+                pCasterTransform = pGameState->GetTransform(activeCast.spellCtx->idCaster);
+                pTargetTransform = pGameState->GetTransform(activeCast.spellCtx->idTarget);
 
-                pCasterTransform = pGameState->GetTransform(pCaster->GetId());
-                pTargetTransform = pGameState->GetTransform(pTarget->GetId());
-
-                pNavigationComponent = pGameState->GetNavigation(pCaster->GetId());
+                pNavigationComponent = pGameState->GetNavigation(activeCast.spellCtx->idCaster);
                 if(vecSpells[activeCast.nIndex].data.fCastRange > (pCasterTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
                     activeCast.eState = ESpellCastState::CASTING;
                     activeCast.fTimeInState = 0.0f;
@@ -100,21 +96,7 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CSpellSystem::OnSpellAttemptCast(CServerGameState* pGameState, CSpellAttemptCastEvent* pCastAttemptEvent) {
-    CGameObject* pCaster = pGameState->FindGameObjectById(pCastAttemptEvent->m_idCaster);
-
-    if(pCaster == nullptr) {
-        Logger::FormatErr("Invalid cast start event: caster with id %d does not exist", pCastAttemptEvent->m_idCaster);
-        return;
-    }
-
-    CGameObject* pTarget = pGameState->FindGameObjectById(pCastAttemptEvent->m_targetInfo.target);
-
-    if(pTarget == nullptr) {
-        Logger::FormatErr("Invalid cast start event: target with id %d does not exist", pCastAttemptEvent->m_targetInfo.target);
-        return;
-    }
-
-    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCastAttemptEvent->m_idCaster);
 
     if(pSpellComp == nullptr) {
         Logger::FormatErr("Invalid cast start event: caster with id %d does not not have a spell cast component", pCastAttemptEvent->m_idCaster);
@@ -129,14 +111,7 @@ void CSpellSystem::OnSpellAttemptCast(CServerGameState* pGameState, CSpellAttemp
 }
 
 void CSpellSystem::OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pCastEvent) {
-    CGameObject* pCaster = pGameState->FindGameObjectById(pCastEvent->m_spellCtx->idCaster);
-
-    if(pCaster == nullptr) {
-        Logger::FormatErr("Invalid cast event: caster with id %d does not exist", pCastEvent->m_spellCtx->idCaster);
-        return;
-    }
-
-    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCastEvent->m_spellCtx->idCaster);
 
     if(pSpellComp == nullptr) {
         Logger::FormatErr("Invalid cast event: caster with id %d does not not have a spell cast component", pCastEvent->m_spellCtx->idCaster);
@@ -152,9 +127,7 @@ void CSpellSystem::OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pC
 }
 
 void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCtx) {
-    CGameObject* pCaster = pGameState->FindGameObjectById(pCtx->idCaster);
-
-    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCaster->GetId());
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pCtx->idCaster);
     SpellSlot_t spell = pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex);
 
     CSpellCastApi api = CSpellCastApi(pGameState);
@@ -170,10 +143,7 @@ void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCt
 }
 
 void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext* pSpellCtx) {
-    CGameObject* pCaster = pGameState->FindGameObjectById(pSpellCtx->idCaster);
-    CGameObject* pTarget = pGameState->FindGameObjectById(pSpellCtx->idTarget);
-
-    CSpellCastComponent* pCastComponent = pGameState->GetSpellCast(pCaster->GetId());
+    CSpellCastComponent* pCastComponent = pGameState->GetSpellCast(pSpellCtx->idCaster);
 
     if(pSpellCtx->nSpellIndex >= pCastComponent->vecSpellSlots.size()) {
         // TODO ?
@@ -198,15 +168,15 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
 
     // TODO stop movement
 
-    pGameState->GetNavigation(pCaster->GetId())->bIsNavigating = false;
-    pGameState->GetNavigation(pCaster->GetId())->vec3Destination = Vector3::ZERO;
-    if(CMovementComponent* pMovement = pGameState->GetMovement(pGameState->GetNavigation(pCaster->GetId())->idUnit)) {
-        if(CTransformComponent* pTransform = pGameState->GetTransform(pGameState->GetNavigation(pCaster->GetId())->idUnit)) {
+    pGameState->GetNavigation(pSpellCtx->idCaster)->bIsNavigating = false;
+    pGameState->GetNavigation(pSpellCtx->idCaster)->vec3Destination = Vector3::ZERO;
+    if(CMovementComponent* pMovement = pGameState->GetMovement(pGameState->GetNavigation(pSpellCtx->idCaster)->idUnit)) {
+        if(CTransformComponent* pTransform = pGameState->GetTransform(pGameState->GetNavigation(pSpellCtx->idCaster)->idUnit)) {
             pMovement->vec3Target = pTransform->GetPosition();
         }
     }
-    Vector3 pos = pGameState->GetTransform(pCaster->GetId())->GetPosition();
-    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pCaster->GetId(), pos, 0));
+    Vector3 pos = pGameState->GetTransform(pSpellCtx->idCaster)->GetPosition();
+    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pSpellCtx->idCaster, pos, 0));
 
     ActiveCast_t cast;
     cast.eState = ESpellCastState::IDLE;
@@ -218,14 +188,7 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
 
 
 void CSpellSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt) {
-    CGameObject* pAttacker = pGameState->FindGameObjectById(pEvt->idUnit);
-
-    if(pAttacker == nullptr) {
-        Logger::FormatErr("Invalid attack intention event: unit with id %d does not exist", pEvt->idTarget);
-        return;
-    }
-
-    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pAttacker->GetId());
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pEvt->idUnit);
 
     if(pSpellComp == nullptr) {
         return;
@@ -236,14 +199,7 @@ void CSpellSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntent
 
 
 void CSpellSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvent) {
-    CGameObject* pDead = pGameState->FindGameObjectById(pDeathEvent->idTarget);
-
-    if(pDead == nullptr) {
-        Logger::FormatErr("Invalid death event: unit with id %d does not exist", pDeathEvent->idTarget);
-        return;
-    }
-
-    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pDead->GetId());
+    CSpellCastComponent* pSpellComp = pGameState->GetSpellCast(pDeathEvent->idTarget);
 
     if(pSpellComp == nullptr) {
         return;

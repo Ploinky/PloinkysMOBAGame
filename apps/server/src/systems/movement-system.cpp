@@ -48,10 +48,8 @@ void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
-    CGameObject* pGameObject = pGameState->FindGameObjectById(pDeathEvt->idTarget);
-
-    CMovementComponent* pMoveComp = pGameState->GetMovement(pGameObject->GetId());
-    CTransformComponent* pTransformComp = pGameState->GetTransform(pGameObject->GetId());
+    CMovementComponent* pMoveComp = pGameState->GetMovement(pDeathEvt->idTarget);
+    CTransformComponent* pTransformComp = pGameState->GetTransform(pDeathEvt->idTarget);
     if(pMoveComp == nullptr) {
         return;
     }

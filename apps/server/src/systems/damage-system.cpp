@@ -14,8 +14,6 @@ CDamageSystem::CDamageSystem() {
 }
 
 void CDamageSystem::Update(CServerGameState* pGameState, float fDelta) { 
-    for(std::pair<UnitId, CGameObject*> goPair : pGameState->GameObjects) {
-    }
 }
 
 void CDamageSystem::Finalize(CServerGameState* pGameState) {
@@ -38,15 +36,7 @@ void CDamageSystem::Finalize(CServerGameState* pGameState) {
 }
 
 void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dmgEvt) {
-    CGameObject* pSource = pGameState->FindGameObjectById(dmgEvt->m_idSource);
-    CGameObject* pTarget = pGameState->FindGameObjectById(dmgEvt->m_idTarget);
-
-    if(pTarget == nullptr || pSource == nullptr) {
-        Logger::FormatErr("Invalid damage event: missing source (%d) or target (%d)", dmgEvt->m_idSource, dmgEvt->m_idTarget);
-        return;
-    }
-
-    CHealthComponent* pHealthComponent = pGameState->GetHealth(pTarget->GetId());
+    CHealthComponent* pHealthComponent = pGameState->GetHealth(dmgEvt->m_idTarget);
 
     if(pHealthComponent == nullptr) {
         Logger::FormatErr("Invalid damage event: target unit (%d) does nmot have a health component", dmgEvt->m_idTarget);
@@ -61,15 +51,6 @@ void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dm
 }
 
 void CDamageSystem::OnUnitHealed(CServerGameState* pGameState, CHealEvent* healEvt) {
-    CGameObject* pSource = pGameState->FindGameObjectById(healEvt->m_idSource);
-    CGameObject* pTarget = pGameState->FindGameObjectById(healEvt->m_idTarget);
-
-    if(pTarget == nullptr || pSource == nullptr) {
-        Logger::FormatErr("Invalid heal event: missing source (%d) or target (%d)", healEvt->m_idSource, healEvt->m_idTarget);
-        return;
-    }
-
-    CHealthComponent* pHealthComponent = pGameState->GetHealth(pTarget->GetId());
-
+    CHealthComponent* pHealthComponent = pGameState->GetHealth(healEvt->m_idTarget);
     pHealthComponent->nHealth += healEvt->m_nHeal;
 }

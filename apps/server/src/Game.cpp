@@ -143,17 +143,12 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     SendMessageToClient(player->idPlayer, &data);
 }
 
-void Client::AddGameObject(CGameObject* game_object) {
-    GameState.GameObjects.emplace(game_object->GetId(), game_object);
-}
-
 void Client::PlayerMoveCommand(PlayerID playerId, float nx, float ny) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
-        CGameObject* person = GameState.GameObjects.find(player->unit)->second;
 
         GameState.VecEvent.emplace(new CMoveAttemptEvent(
-            person->GetId(),
+            player->unit,
             {nx, 0, ny},
             0
         ));
@@ -163,20 +158,19 @@ void Client::PlayerMoveCommand(PlayerID playerId, float nx, float ny) {
 void Client::PlayerStopCommand(PlayerID playerId) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
-        CGameObject* person = GameState.GameObjects.find(player->unit)->second;
 
-        if(CMovementComponent* pMovement = GameState.GetMovement(person->GetId())) {
-            if(CTransformComponent* pTransform = GameState.GetTransform(person->GetId())) {
+        if(CMovementComponent* pMovement = GameState.GetMovement(player->unit)) {
+            if(CTransformComponent* pTransform = GameState.GetTransform(player->unit)) {
                 pMovement->vec3Target = pTransform->GetPosition();
             }
         }
-        if(CNavigationComponent* pNavComp = GameState.GetNavigation(person->GetId())) {
+        if(CNavigationComponent* pNavComp = GameState.GetNavigation(player->unit)) {
             pNavComp->bIsNavigating = false;
             pNavComp->vec3Destination = Vector3::ZERO;
             
             // TODO this belongsn't here
-            Vector3 pos = GameState.GetTransform(person->GetId())->GetPosition();
-            GameState.VecEvent.emplace(new CMoveIntentionEvent(person->GetId(), pos, 0));
+            Vector3 pos = GameState.GetTransform(player->unit)->GetPosition();
+            GameState.VecEvent.emplace(new CMoveIntentionEvent(player->unit, pos, 0));
         }
     }
 }
@@ -193,14 +187,7 @@ void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTarg
         return;
     }
 
-    CGameObject* actor = GetGameObjectById(players_.find(playerId)->second->unit);
-
-    if(actor == nullptr) {
-        Logger::FormatErr("Invalid cast command: no game object for player %d", playerId);
-        return;
-    }
-
-    CSpellAttemptCastEvent* pSpellEvent = new CSpellAttemptCastEvent(actor->GetId(), *target_info, spell_slot);
+    CSpellAttemptCastEvent* pSpellEvent = new CSpellAttemptCastEvent(players_.find(playerId)->second->unit, *target_info, spell_slot);
     GameState.VecEvent.emplace(pSpellEvent);
 }
 
@@ -214,49 +201,11 @@ void Client::Start() {
     GameState.GetTransform(id)->SetPosition({1000, 0, -1000});
     GameState.GetMovement(id)->vec3Target = {1000, 0, -1000};
     GameState.GetHealth(id)->nHealth = 10;
-
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
-}
 
-void Client::CheckCollision(CGameObject* collider) {
-    /*
-    for (auto go_it : GameState.GameObjects) {
-        CGameObject* go = go_it.second;
-
-        if (go->unit_id == collider->unit_id) {
-            continue;
-        }
-
-        if (TestCollision(
-            Circle({ collider->position.x, collider->position.z }, collider->collision_radius),
-            Circle({ go->position.x, go->position.z }, 0))
-            ) {
-            // TODO
-            // collider->OnCollision(this, go);
-        }
-    }
-    */
-
-}
-
-std::vector<CGameObject*> Client::GetGameObjectsInArea(Vector2 position, float radius) {
-    /*
-    std::vector<CGameObject*> vecInArea;
-
-    for (auto go_it : GameState.GameObjects) {
-        CGameObject* go = go_it.second;
-
-        if (go && TestCollision(
-            Circle(position, radius),
-            Circle({ go->position.x, go->position.z }, 0))
-            ) {
-            vecInArea.push_back(go);
-        }
-    }
-    return vecInArea;
-    */
-
-    return {};
+    UnitId idDevice = GameState.CreateEntity();
+    GameState.AddTransform(idDevice)->SetPosition({500, 0, -500});
+    GameState.AddDevice(idDevice);
 }
 
 void Client::Update(float dt) {
@@ -283,11 +232,6 @@ void Client::Update(float dt) {
         system->Update(&GameState, TICKRATE);
     }
     
-    for (auto go_it : GameState.GameObjects) {
-        CGameObject* go = go_it.second;
-        CheckCollision(go);
-    }
-
     // TODO this appears wrong
     while(!GameState.VecEvent.empty()) {
         IGameEvent* pEvt = GameState.VecEvent.front();
@@ -303,16 +247,6 @@ void Client::Update(float dt) {
     }
 
     m_pNetworkSystem->SyncGameState(&GameState);
-
-    // TODO why is this stupid
-    erase_if(GameState.GameObjects, [this](auto& kv) {
-        // if (kv.second->) {
-        //    delete kv.second;
-        //    return true;
-        // }
-
-        return false;
-    });
 }
 
 void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {

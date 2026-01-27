@@ -13,8 +13,6 @@ add_executable(server
 	src/Server.cpp
 	src/spell-cast-api.cpp
 	
-	src/GameObject.cpp
-	
 	src/components/SpellCastComponent.cpp
 	src/components/TransformComponent.cpp
 
