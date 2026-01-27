@@ -9,6 +9,7 @@
 #include "game/components/components.h"
 #include "game/systems/animation-system.h"
 #include "game/systems/particle-system.h"
+#include "game/systems/health-system.h"
 
 Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
     // Initialize navigation mesh for selected map
@@ -65,6 +66,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     m_gameState.AddSystem(m_pAudioSystem);
     m_gameState.AddSystem(new CAnimationSystem(handler->GetAssetManager()));
     m_gameState.AddSystem(new CParticleSystem(handler->GetAssetManager()));
+    m_gameState.AddSystem(new CHealthSystem(handler->GetAssetManager()));
 
     m_playerInput = {
         .bKeyScrollLeft = false,
@@ -895,13 +897,12 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
         if(header.type == PacketType::PCK_STATS){
             UnitStatsPacket stats{};
             stats.Read(&vecData);
-            
-            HealthComponent_t* pHealthComp = m_gameState.GetHealth(stats.unit);
-            
-            if(pHealthComp) {
-                pHealthComp->nHealth = stats.health;
-                pHealthComp->nMaxHealth = stats.max_health;
-            }
+            CStatsEvent statsEvent = CStatsEvent();
+            statsEvent.idUnit = stats.unit;
+            statsEvent.nHealth = stats.health;
+            statsEvent.nMaxHealth = stats.max_health;
+
+            m_gameState.EmitEvent(&statsEvent);
             continue;
         }
         if(header.type == PacketType::PCK_SPELL_COOLDOWN){
@@ -1046,6 +1047,10 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             }
             if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(pck.idUnit)) {
                 pSpellCastComponent->bIsCasting = false;
+            }
+
+            if(HealthComponent_t* pHealth = m_gameState.GetHealth(pck.idUnit)) {
+                pHealth->nHealth = 0.0f;
             }
 
             CEntityDeathEvent deathEvent = CEntityDeathEvent();

@@ -65,6 +65,7 @@ add_executable(client
 
     src/game/systems/animation-system.cpp
     src/game/systems/particle-system.cpp
+    src/game/systems/health-system.cpp
     
     Resources/Cursor.cur
     Resources/cursor1.cur
