@@ -8,6 +8,7 @@ CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
 
     REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
+    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart)
 }
 
 void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat_t>& boneTransforms) {
@@ -48,6 +49,8 @@ void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
         if(pAnimComp == nullptr || pRendercomp == nullptr) {
             return;
         }
+
+        pAnimComp->m_fAnimationTime += fDelta;
 
         HModel hModel = m_pAssetManager->LoadModel(pRendercomp->strRenderable);
         ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
@@ -97,7 +100,6 @@ void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
     }
 }
 
-
 void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pEvent) {
     AnimationComponent_t* pAnimComp = pGameState->GetAnimation(pEvent->idUnit);
 
@@ -107,5 +109,17 @@ void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartE
     
     pAnimComp->m_strAnimationName = "attack1";
     pAnimComp->m_bLoop = true;
+    pAnimComp->m_fAnimationTime = 0.0f;
+}
+
+void CAnimationSystem::OnSpellCastStart(CClientGameState* pGameState, CSpellCastStartEvent* pEvent) {
+    AnimationComponent_t* pAnimComp = pGameState->GetAnimation(pEvent->idUnit);
+
+    if(pAnimComp == nullptr) {
+        return;
+    }
+
+    pAnimComp->m_strAnimationName = "attack1";
+    pAnimComp->m_bLoop = false;
     pAnimComp->m_fAnimationTime = 0.0f;
 }

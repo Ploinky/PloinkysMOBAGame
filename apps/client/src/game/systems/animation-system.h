@@ -11,7 +11,7 @@ public:
     virtual void Update(CClientGameState* pGameState, float fDelta) override;
 
     void OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pEvent);
-
+    void OnSpellCastStart(CClientGameState* pGameState, CSpellCastStartEvent* pEvent);
 private:
     CClientAssetManager* m_pAssetManager;
 };

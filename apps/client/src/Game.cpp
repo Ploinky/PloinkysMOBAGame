@@ -155,7 +155,7 @@ void Game::Update(float dt) {
 
 	for (const RenderableComponent_t& renderable : m_gameState.GetAllRenderable()) {
         std::string desiredAnim;
-        bool bLoop;
+        bool bLoop = false;
         const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(renderable.strRenderable);
     
         // TODO this is fucked up
@@ -170,28 +170,26 @@ void Game::Update(float dt) {
             desiredAnim = "ability1";
             bLoop = false;
         } else if(m_gameState.GetAttack(renderable.idUnit) && m_gameState.GetAttack(renderable.idUnit)->bIsAttacking) {
-            desiredAnim = "attack1";
-            bLoop = true;
+            // desiredAnim = "attack1";
+            // bLoop = true;
         } else {
-            desiredAnim = "idle";
-            bLoop = true;
+            // desiredAnim = "idle";
+            // bLoop = true;
         }
 
         if(!modelData.mapAnimations.contains(desiredAnim)) {
             continue;
         }
-
+        
         CAnimationData animData = modelData.mapAnimations.at(desiredAnim);
         desiredAnim = animData.name;
-
+        
         AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(renderable.idUnit);
         if (pAnimComp && pAnimComp->m_strAnimationName != desiredAnim) {
             Logger::FormatMsg("Playing animation %s", desiredAnim.c_str());
             pAnimComp->m_strAnimationName = desiredAnim;
             pAnimComp->m_bLoop = bLoop;
             pAnimComp->m_fAnimationTime = 0.0f;
-        } else if (pAnimComp) {
-            pAnimComp->m_fAnimationTime += dt;
         }
 	}
 
@@ -1022,7 +1020,11 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
                 pMoveComp->vec3Target = Vector3::ZERO;
                 pMoveComp->bIsMoving = false;
             }
-        
+
+            CSpellCastStartEvent startEvent = CSpellCastStartEvent();
+            startEvent.idUnit = pck.unit;
+            startEvent.strSpellId = "";
+            m_gameState.EmitEvent(&startEvent);
         }
 
         if(header.type == PacketType::PCK_SPELL_HIT) {
