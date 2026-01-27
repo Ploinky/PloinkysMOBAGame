@@ -1067,6 +1067,10 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             if(HealthComponent_t* pHealthComponent = m_gameState.GetHealth(pck.idUnit)) {
                 pHealthComponent->nHealth = pHealthComponent->nMaxHealth;
             }
+
+            CEntityRespawnEvent respawnEvent = CEntityRespawnEvent();
+            respawnEvent.idUnit = pck.idUnit;
+            m_gameState.EmitEvent(&respawnEvent);
         }
 
         Logger::Err("Received unknown packet type");

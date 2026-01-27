@@ -9,6 +9,7 @@ CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
 
     REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
     REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart)
+    REGISTER_EVENT_HANDLER(CEntityRespawnEvent, OnEntityRespawn)
 }
 
 void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat_t>& boneTransforms) {
@@ -101,25 +102,27 @@ void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
 }
 
 void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pEvent) {
-    AnimationComponent_t* pAnimComp = pGameState->GetAnimation(pEvent->idUnit);
-
-    if(pAnimComp == nullptr) {
-        return;
-    }
-    
-    pAnimComp->m_strAnimationName = "attack1";
-    pAnimComp->m_bLoop = true;
-    pAnimComp->m_fAnimationTime = 0.0f;
+    PlayAnimation(pGameState, pEvent->idUnit, "attack1", true);
 }
 
 void CAnimationSystem::OnSpellCastStart(CClientGameState* pGameState, CSpellCastStartEvent* pEvent) {
-    AnimationComponent_t* pAnimComp = pGameState->GetAnimation(pEvent->idUnit);
+    PlayAnimation(pGameState, pEvent->idUnit, "attack1", false);
+}
+
+
+void CAnimationSystem::OnEntityRespawn(CClientGameState* pGameState, CEntityRespawnEvent* pEvent) {
+    PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
+}
+
+
+void CAnimationSystem::PlayAnimation(CClientGameState* pGameState, UnitId idUnit, std::string strAnimationId, bool bLoop) {
+    AnimationComponent_t* pAnimComp = pGameState->GetAnimation(idUnit);
 
     if(pAnimComp == nullptr) {
         return;
     }
 
-    pAnimComp->m_strAnimationName = "attack1";
-    pAnimComp->m_bLoop = false;
+    pAnimComp->m_strAnimationName = strAnimationId;
+    pAnimComp->m_bLoop = bLoop;
     pAnimComp->m_fAnimationTime = 0.0f;
 }
