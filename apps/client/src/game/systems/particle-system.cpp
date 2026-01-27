@@ -83,6 +83,9 @@ void CParticleSystem::OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* p
 
     if(!pGameState->GetParticle(pHitEvent->idUnit)) {
         pGameState->AddParticle(pHitEvent->idUnit);
+    }
+
+    if(pHitEvent->idUnit != UNIT_ID_NONE) {
         particle_system->Attach(pHitEvent->idUnit);
     }
 
