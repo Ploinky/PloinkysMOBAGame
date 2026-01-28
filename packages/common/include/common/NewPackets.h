@@ -40,6 +40,7 @@
 #include "packets/ScoreUpdatePacket.h"
 #include "packets/SpellHitPacket.h"
 #include "packets/SpellCastStartPacket.h"
+#include "packets/use-entity-point-command.h"
 #include "packets/characterselect/RemainingTimePacket.h"
 #include "packets/GameEndPacket.h"
 

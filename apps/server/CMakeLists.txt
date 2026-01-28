@@ -35,6 +35,7 @@ add_executable(server
 	src/systems/movement-system.cpp
 	src/systems/points-system.cpp
 	src/systems/respawn-system.cpp
+	src/systems/spawn-system.cpp
 	src/systems/spell-system.cpp
 	src/systems/system.cpp
 )

@@ -28,10 +28,15 @@ typedef struct {
     std::vector<float> vecHeal;
 } ImpactEffectHeal_t;
 
+typedef struct { 
+    std::string strTemplateId;
+} ImpactEffectSpawn_t;
+
 typedef struct {
     std::vector<ImpactEffectDamage_t> vecDamageEffects;
     std::vector<ImpactEffectHeal_t> vecHealEffects;
     std::vector<ImpactEffectFX_t> vecFXEffects;
+    std::vector<ImpactEffectSpawn_t> vecSpawnEffects;
 } ImpactEffect_t;
 
 class CAbilityData {

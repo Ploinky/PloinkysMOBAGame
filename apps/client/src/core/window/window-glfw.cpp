@@ -38,7 +38,8 @@ static const std::map<uint64_t, EKeyCode> g_mapKeyCode = {
     {GLFW_KEY_LEFT, EKeyCode::LEFT_ARROW},
     {GLFW_KEY_RIGHT, EKeyCode::RIGHT_ARROW},
     {GLFW_KEY_UP, EKeyCode::UP_ARROW},
-    {GLFW_KEY_DOWN, EKeyCode::DOWN_ARROW}
+    {GLFW_KEY_DOWN, EKeyCode::DOWN_ARROW},
+    {GLFW_KEY_1, EKeyCode::NUM1}
 };
 
 

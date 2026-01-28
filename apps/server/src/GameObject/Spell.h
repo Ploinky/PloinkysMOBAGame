@@ -10,3 +10,9 @@ public:
     Vector2 vec2Target = Vector2(0, 0);
     Vector2 vec2Dir = Vector2(0, 0);
 };
+
+typedef struct {
+    UnitId idCaster;
+    Vector2 vec2Target;
+    CAbilityData abilityData;
+} SpellCastContext_t;

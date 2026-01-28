@@ -80,7 +80,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     if(entityData.optUseableData.has_value()) {
         CUseableComponent* pUseableComponent = AddUseable(id);
         pUseableComponent->nUses = entityData.optUseableData.value().nUses;
-        pUseableComponent->strAbilityId = entityData.optUseableData.value().strAbilityId;
+        pUseableComponent->abilityData = gameData.mapAbilityData.at(entityData.optUseableData.value().strAbilityId);
     }
 
     if(entityData.optInventoryData.has_value()) {

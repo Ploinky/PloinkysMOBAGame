@@ -8,6 +8,7 @@
 
 CInventorySystem::CInventorySystem() {
     REGISTER_EVENT_HANDLER(CPickUpAttemptEvent, OnPickUpEntityAttempt);
+    REGISTER_EVENT_HANDLER(CUseEntityAttemptEvent, OnUseEntityAttempt);
 }
 
 void CInventorySystem::Update(CServerGameState* pGameState, float fDelta) { 
@@ -35,4 +36,28 @@ void CInventorySystem::OnPickUpEntityAttempt(CServerGameState* pGameState, CPick
 
     CPickedUpEvent* pEvt = new CPickedUpEvent(pPickUpEvt->idUnit, pPickUpEvt->idTargetUnit);
     pGameState->VecEvent.emplace(pEvt);
+}
+
+void CInventorySystem::OnUseEntityAttempt(CServerGameState* pGameState, CUseEntityAttemptEvent* pEvt) {
+    CInventoryComponent* pInventory = pGameState->GetInventory(pEvt->idUser);
+
+    if(pInventory == nullptr) {
+        Logger::FormatErr("Invalid pick up event: unit <%d> does not have an inventory", pEvt->idUser);
+        return;
+    }
+
+    CUseableComponent* pUseable = pGameState->GetUseable(pEvt->idEntity);
+
+    if(pUseable == nullptr) {
+        Logger::FormatErr("Invalid pick up event: unit <%d> is not useable", pEvt->idEntity);
+        return;
+    }
+
+    // TODO check if it's even there?
+    CUseEntityEvent* pUseEvent = new CUseEntityEvent();
+    pUseEvent->idUser = pEvt->idUser;
+    pUseEvent->idEntity = pEvt->idEntity;
+    pUseEvent->x = pEvt->x;
+    pUseEvent->y = pEvt->y;
+    pGameState->VecEvent.emplace(pUseEvent);
 }

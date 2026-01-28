@@ -46,6 +46,7 @@ add_library(common
 	src/Packets/UnitMoveIntentionPacket.cpp
 	src/Packets/UnitMovePacket.cpp
 	src/Packets/UnitStatsPacket.cpp
+	src/packets/use-entity-point-command.cpp
 	
 	src/Packets/CharacterSelect/RemainingTimePacket.cpp
 

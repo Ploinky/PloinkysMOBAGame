@@ -161,6 +161,14 @@ CAbilityData AssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
 
                 abilityData.effect.vecFXEffects.push_back(effect);
             }
+
+            if(!strcmp(onImpactEffectNode.name(), "spawn")) {
+                ImpactEffectSpawn_t effect{};
+
+                effect.strTemplateId = onImpactEffectNode.attribute("entityId").as_string();
+
+                abilityData.effect.vecSpawnEffects.push_back(effect);
+            }
         }
     }
 

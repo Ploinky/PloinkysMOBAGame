@@ -8,6 +8,7 @@ CSpellSystem::CSpellSystem() {
     REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellAttemptCast);
     REGISTER_EVENT_HANDLER(CSpellCastEvent, OnSpellCast);
     REGISTER_EVENT_HANDLER(CAttackIntentionEvent, OnAttackIntention);
+    REGISTER_EVENT_HANDLER(CUseEntityEvent, OnUseEntity);
 }
 
 void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
@@ -142,6 +143,13 @@ void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCt
     pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));
 }
 
+void CSpellSystem::SpellPointHit(CServerGameState* pGameState, SpellCastContext_t context) {
+    CSpellCastApi api = CSpellCastApi(pGameState);
+    for(ImpactEffectSpawn_t spawn : context.abilityData.effect.vecSpawnEffects) {
+        api.SpawnEntity(context.idCaster, spawn.strTemplateId, context.vec2Target);
+    }
+}
+
 void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext* pSpellCtx) {
     CSpellCastComponent* pCastComponent = pGameState->GetSpellCast(pSpellCtx->idCaster);
 
@@ -206,4 +214,16 @@ void CSpellSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEven
     }
 
     pSpellComp->optCurrentCast.reset();
+}
+
+void CSpellSystem::OnUseEntity(CServerGameState* pGameState, CUseEntityEvent* pEvt) {
+    CUseableComponent* pUseable = pGameState->GetUseable(pEvt->idEntity);
+
+    SpellCastContext_t context {
+        .idCaster = pEvt->idUser,
+        .vec2Target = {pEvt->x, pEvt->y},
+        .abilityData = pUseable->abilityData
+    };
+
+    SpellPointHit(pGameState, context);
 }

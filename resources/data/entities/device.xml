@@ -12,5 +12,5 @@
     <network sync_movement="true" />
     <audio />
     <pickupable />
-    <useable abilityId="stormbolt" />
+    <useable abilityId="install_device" />
 </entity>

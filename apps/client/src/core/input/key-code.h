@@ -32,7 +32,8 @@ enum class EKeyCode {
     LEFT_ARROW,
     RIGHT_ARROW,
     UP_ARROW,
-    DOWN_ARROW
+    DOWN_ARROW,
+    NUM1
 };
 
 enum class EMouseButton {

@@ -39,7 +39,8 @@ static const std::map<uint64_t, EKeyCode> g_mapKeyCode = {
     {VK_LEFT, EKeyCode::LEFT_ARROW},
     {VK_RIGHT, EKeyCode::RIGHT_ARROW},
     {VK_UP, EKeyCode::UP_ARROW},
-    {VK_DOWN, EKeyCode::DOWN_ARROW}
+    {VK_DOWN, EKeyCode::DOWN_ARROW},
+    {'1', EKeyCode::NUM1}
 };
 
 Window* Window::Create(int res_x, int res_y, WindowMode mode) {

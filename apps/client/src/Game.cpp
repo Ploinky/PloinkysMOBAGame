@@ -1100,6 +1100,12 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CPickedUpEntityPacket pck;
             pck.Read(&vecData);
 
+            InventoryComponent_t* pInv = m_gameState.GetInventory(pck.idUnit);
+            if(pInv == nullptr) {
+                pInv = m_gameState.AddInventory(pck.idUnit);
+            }
+
+            pInv->vecEntitiesInInventory.push_back(pck.idPickedUpUnit);
             DespawnUnit(pck.idPickedUpUnit);
         }
 
@@ -1283,6 +1289,18 @@ void Game::Action(EInputAction eAction) {
                 net_manager_->SendPacket(&cast);
                 break;
         }
+    }
+
+    if(eAction == EInputAction::GAME_USE_ENTITY_1) {
+        InventoryComponent_t* pInv = m_gameState.GetInventory(my_unit_id_);
+        float x, y;
+        TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
+        
+        CUseEntityPointCommand cmd = CUseEntityPointCommand();
+        cmd.idEntity = pInv->vecEntitiesInInventory.at(0);
+        cmd.x = x;
+        cmd.y = y;
+        net_manager_->SendPacket(&cmd);
     }
     
     if(eAction == EInputAction::GAME_SCROLL_LEFT) {

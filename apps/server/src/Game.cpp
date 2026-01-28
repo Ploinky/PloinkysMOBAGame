@@ -18,6 +18,7 @@
 #include "systems/attack-system.h"
 #include "systems/ai-system.h"
 #include "systems/inventory-system.h"
+#include "systems/spawn-system.h"
 #include <common/data/game-data.h>
 
 uint64_t g_unitId = 0;
@@ -123,6 +124,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(new CAttackSystem());
     m_vecSystems.push_back(new CAiSystem());
     m_vecSystems.push_back(new CInventorySystem());
+    m_vecSystems.push_back(new CSpawnSystem(&handler_->GetGameData()));
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -311,6 +313,16 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
         CPickUpAttemptEvent* evt = new CPickUpAttemptEvent(pPlayer->unit, pickUpCommand.idUnit);
         GameState.VecEvent.emplace(evt);
         break;
+    }
+    case PacketType::CMD_USE_ENTITY_POINT: {
+        CUseEntityPointCommand useCommand = CUseEntityPointCommand();
+        useCommand.Read(data);
+
+        LobbyPlayer* pPlayer = players_.at(playerId);
+        CUseEntityAttemptEvent* evt = new CUseEntityAttemptEvent();
+        evt->idUser = pPlayer->unit;
+        evt->idEntity = useCommand.idEntity;
+        GameState.VecEvent.emplace(evt);
     }
     }
 }
