@@ -22,6 +22,7 @@ public:
     void OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt);
     void OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt);
     void OnAttackFinished(CServerGameState* pGameState, CAttackFinishedEvent* pEvt);
+    void OnPickedUp(CServerGameState* pGameState, CPickedUpEvent* pEvt);
 
 private:
     ServerNetworkManager* m_pNetworkManager;

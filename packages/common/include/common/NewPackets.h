@@ -24,6 +24,8 @@
 #include "packets/LobbySlotCommand.h"
 #include "packets/LobbySlotPacket.h"
 #include "packets/MoveCommand.h"
+#include "packets/pick-up-entity-command.h"
+#include "packets/picked-up-entity-packet.h"
 #include "packets/PlayParticlePacket.h"
 #include "packets/ServerInfoPacket.h"
 #include "packets/SpawnPacket.h"

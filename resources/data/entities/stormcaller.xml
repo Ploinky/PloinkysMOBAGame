@@ -24,6 +24,7 @@
     <health max_health="200" />
     <navigation />
     <targetable selection_radius="100" />
+    <inventory />
     <audio
         death="stormcaller_death"
         attack1="stormcaller_attack1"

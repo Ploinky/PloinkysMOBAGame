@@ -111,6 +111,20 @@ public:
     std::string audioId;
 };
 
+class CPickupableData {
+public:
+};
+
+class CUseableData {
+public:
+    std::string strAbilityId;
+    int nUses = -1;
+};
+
+class CInventoryData {
+public:
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -125,6 +139,9 @@ public:
     std::optional<CIntentData> optIntentData;
     std::optional<CTargetableData> optTargetableData;
     std::optional<CAudioData> optAudioData;
+    std::optional<CPickupableData> optPickupableData;
+    std::optional<CUseableData> optUseableData;
+    std::optional<CInventoryData> optInventoryData;
 };
 
 class CMapCameraVolume {

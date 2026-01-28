@@ -17,6 +17,7 @@ CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart);
     REGISTER_EVENT_HANDLER(CAttackHitEvent, OnAttackHit);
     REGISTER_EVENT_HANDLER(CAttackFinishedEvent, OnAttackFinished);
+    REGISTER_EVENT_HANDLER(CPickedUpEvent, OnPickedUp);
 }
 
 CNetworkSystem::~CNetworkSystem() {
@@ -219,5 +220,13 @@ void CNetworkSystem::OnAttackFinished(CServerGameState* pGameState, CAttackFinis
 
     CAttackFinishedPacket pck = CAttackFinishedPacket();
     pck.content = pckData;
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnPickedUp(CServerGameState* pGameState, CPickedUpEvent* pEvt) {
+    CPickedUpEntityPacket pck;
+    pck.idUnit = pEvt->idUnit;
+    pck.idPickedUpUnit = pEvt->idTargetUnit;
+
     m_pNetworkManager->SendToAllClients(pck);
 }

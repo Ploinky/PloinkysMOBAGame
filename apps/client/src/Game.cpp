@@ -46,6 +46,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_DEATH, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_UNIT_RESPAWN, addToPacket);
+    packet_manager.RegisterHandler(PacketType::PCK_PICKED_UP_ENTITY, addToPacket);
 
     // Let the network manager know about our new packet handler
     net_manager_->Initialize(handler->GetNetworkEngine(), &packet_manager);
@@ -129,6 +130,8 @@ void Game::MouseMoved(int screenX, int screenY) {
 
     if(idUnitUnderCursor != UNIT_ID_NONE && idUnitUnderCursor != my_unit_id_ && m_gameState.GetTargetable(idUnitUnderCursor)) {
         handler_->RequestCursor(CursorId::ATTACK_MOVE);
+    } else if(idUnitUnderCursor != UNIT_ID_NONE && m_gameState.GetPickupable(idUnitUnderCursor)) {
+        handler_->RequestCursor(CursorId::BUTTON_HOVER);
     } else {
         handler_->RequestCursor(CursorId::DEFAULT);
     }
@@ -695,6 +698,18 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
     if(entData.optNavigationData) {}
     if(entData.optNetworkData) {}
     if(entData.optIntentData) {}
+    if(entData.optPickupableData) {
+        m_gameState.AddPickupable(entId);
+    }
+    if(entData.optUseableData) {
+        UseableComponent_t* pUseable = m_gameState.AddUseable(entId);
+        pUseable->idUnit = entId;
+        pUseable->nUses = entData.optUseableData.value().nUses;
+        pUseable->strAbilityId = entData.optUseableData.value().strAbilityId;
+    }
+    if(entData.optInventoryData) {
+        m_gameState.AddInventory(entId);
+    }
 
     // TODO need to figure out if it's a player controlled unit or no
     // go->has_title = false;
@@ -704,6 +719,9 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
 
 void Game::DespawnUnit(uint64_t unitId) {
     // TODO
+    if(m_gameState.GetRenderable(unitId)) {
+        m_gameState.RemoveRenderable(unitId);
+    }
 }
 
 void Game::HandleTicks(float dt) {
@@ -1078,6 +1096,13 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             m_gameState.EmitEvent(&respawnEvent);
         }
 
+        if(header.type == PacketType::PCK_PICKED_UP_ENTITY) {
+            CPickedUpEntityPacket pck;
+            pck.Read(&vecData);
+
+            DespawnUnit(pck.idPickedUpUnit);
+        }
+
         Logger::Err("Received unknown packet type");
     }
 }
@@ -1146,7 +1171,11 @@ void Game::Action(EInputAction eAction) {
             atk_pk.target_unit = idUnitUnderCursor;
 
             net_manager_->SendPacket(&atk_pk);
-		} else if (idUnitUnderCursor == UNIT_ID_NONE) {
+		} else if(idUnitUnderCursor != UNIT_ID_NONE && m_gameState.GetPickupable(idUnitUnderCursor)) {
+            CPickUpEntityCommand pickUpCmd = CPickUpEntityCommand();
+            pickUpCmd.idUnit = idUnitUnderCursor;
+            net_manager_->SendPacket(&pickUpCmd);
+        } else if (idUnitUnderCursor == UNIT_ID_NONE) {
             float x, y;
             TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
 

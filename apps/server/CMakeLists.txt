@@ -29,6 +29,7 @@ add_executable(server
 	src/systems/ai-system.cpp
 	src/systems/attack-system.cpp
 	src/systems/damage-system.cpp
+	src/systems/inventory-system.cpp
 	src/systems/NavigationSystem.cpp
 	src/systems/NetworkSystem.cpp
 	src/systems/movement-system.cpp

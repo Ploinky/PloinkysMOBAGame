@@ -12,7 +12,7 @@ public:
     virtual ~IGameSystem() = default;
 
     virtual void Update(IGameState* pGameState, float fDelta) {};
-    void Process(IGameState* pGameState, IGameEvent* pGameEvent);
+    virtual void Process(IGameState* pGameState, IGameEvent* pGameEvent) = 0;
     virtual void Finalize(IGameState* pGameState) {};
 
 protected:

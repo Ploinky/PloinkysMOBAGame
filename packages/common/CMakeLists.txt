@@ -30,6 +30,8 @@ add_library(common
 	src/Packets/LobbySlotCommand.cpp
 	src/Packets/LobbySlotPacket.cpp
 	src/Packets/MoveCommand.cpp
+	src/Packets/pick-up-entity-command.cpp
+	src/Packets/picked-up-entity-packet.cpp
 	src/Packets/PlayParticlePacket.cpp
 	src/Packets/ScoreUpdatePacket.cpp
 	src/Packets/ServerInfoPacket.cpp

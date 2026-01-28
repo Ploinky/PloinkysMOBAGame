@@ -29,7 +29,15 @@ public:                                                                         
             return nullptr;                                                                                \
         }                                                                                                  \
         return &vec##ComponentType##Components.at(index) ;                                                 \
-    }                                                                                                      \
+    }                                                                                                        \
+    void Remove##ComponentType(UnitId idUnit) {                                     \
+        auto index = map##ComponentType##Indices.at(idUnit);                                               \
+        if(index == -1) {                                                                                  \
+            return;                                                                                \
+        }                                                                                                  \
+        vec##ComponentType##Components.erase(vec##ComponentType##Components.begin() + index) ;                                                 \
+        map##ComponentType##Indices[idUnit] = -1;                                               \
+    }                                                                                                       \
     std::vector<ComponentType##Component_t>& GetAll##ComponentType() {                                  \
         return vec##ComponentType##Components;                                                             \
     }                                                                                                      \
@@ -60,14 +68,17 @@ public:
     REGISTER_COMPONENT_TYPE(Attack)
     REGISTER_COMPONENT_TYPE(AudioEmitter)
     REGISTER_COMPONENT_TYPE(Health)
+    REGISTER_COMPONENT_TYPE(Inventory)
     REGISTER_COMPONENT_TYPE(Movement)
     REGISTER_COMPONENT_TYPE(Particle)
+    REGISTER_COMPONENT_TYPE(Pickupable)
     REGISTER_COMPONENT_TYPE(Renderable)
     REGISTER_COMPONENT_TYPE(SpellCast)
     REGISTER_COMPONENT_TYPE(Targetable)
     REGISTER_COMPONENT_TYPE(Team)
     REGISTER_COMPONENT_TYPE(Title)
     REGISTER_COMPONENT_TYPE(Transform)
+    REGISTER_COMPONENT_TYPE(Useable)
 
     uint64_t CurrentTick = 0;
     UnitId CurrentUnitId = 0;

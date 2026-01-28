@@ -270,6 +270,29 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         charData.optAudioData.emplace(audioData);
     }
 
+    pugi::xml_node pickupableNode = charDataNode.child("pickupable");
+    if(pickupableNode) {
+        CPickupableData pickupableData = CPickupableData();
+        charData.optPickupableData.emplace(pickupableData);
+    }
+
+    pugi::xml_node useableNode = charDataNode.child("useable");
+    if(useableNode) {
+        CUseableData useableData = CUseableData();
+        
+        if(pugi::xml_attribute usesAttribute = useableNode.attribute("uses")) {
+            useableData.nUses = usesAttribute.as_int();
+        }
+        useableData.strAbilityId = useableNode.attribute("abilityId").as_string();
+        charData.optUseableData.emplace(useableData);
+    }
+
+    pugi::xml_node inventoryNode = charDataNode.child("inventory");
+    if(inventoryNode) {
+        CInventoryData inventoryData = CInventoryData();
+        charData.optInventoryData.emplace(inventoryData);
+    }
+
     return charData;
 }
 

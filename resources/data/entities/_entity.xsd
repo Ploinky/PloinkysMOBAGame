@@ -65,6 +65,22 @@
                     <xs:attribute name="attack1" type="xs:string" use="optional" />
                 </xs:complexType>
             </xs:element>
+            <xs:element name="pickupable" minOccurs="0" maxOccurs="1">
+                <xs:complexType></xs:complexType>
+            </xs:element>
+            <xs:element name="useable" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="abilityId" type="xs:string" use="required"/>
+                    <xs:attribute name="uses" type="xs:positiveInteger" use="optional"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="inventory" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <!--
+                    <xs:attribute name="slots" type="xs:positiveInteger" use="required"/>
+                    -->
+                </xs:complexType>
+            </xs:element>
         </xs:all>
         <xs:attribute name="id" type="xs:string" use="required"/>
         <xs:attribute name="name" type="xs:string" use="required"/>

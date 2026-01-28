@@ -17,6 +17,7 @@
 #include "systems/respawn-system.h"
 #include "systems/attack-system.h"
 #include "systems/ai-system.h"
+#include "systems/inventory-system.h"
 #include <common/data/game-data.h>
 
 uint64_t g_unitId = 0;
@@ -121,6 +122,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(new CRespawnSystem());
     m_vecSystems.push_back(new CAttackSystem());
     m_vecSystems.push_back(new CAiSystem());
+    m_vecSystems.push_back(new CInventorySystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -203,7 +205,7 @@ void Client::Start() {
     GameState.GetHealth(id)->nHealth = 10;
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
 
-    UnitId idDevice = GameState.CreateEntity();
+    UnitId idDevice = GameState.SpawnUnit(handler_->GetGameData(), "device");
     GameState.AddTransform(idDevice)->SetPosition({500, 0, -500});
     GameState.AddDevice(idDevice);
 }
@@ -292,6 +294,22 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
         SpellTargetInfo* target_info = new SpellTargetInfo();
         target_info->target = cast_command.target;
         PlayerCastSpellCommand(playerId, cast_command.spell_slot, target_info);
+        break;
+    }
+    case PacketType::CMD_PICK_UP_ENTITY: {
+        CPickUpEntityCommand pickUpCommand = CPickUpEntityCommand();
+        pickUpCommand.Read(data);
+
+        CPickupableComponent* pPickupable = GameState.GetPickupable(pickUpCommand.idUnit);
+
+        if(pPickupable == nullptr) {
+            Logger::FormatErr("Failed to pick up entity <%d>; entity is not pickupable", pickUpCommand.idUnit);
+            break;
+        }
+
+        LobbyPlayer* pPlayer = players_.at(playerId);
+        CPickUpAttemptEvent* evt = new CPickUpAttemptEvent(pPlayer->unit, pickUpCommand.idUnit);
+        GameState.VecEvent.emplace(evt);
         break;
     }
     }

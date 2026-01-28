@@ -73,5 +73,19 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         AddIntent(id);
     }
 
+    if(entityData.optPickupableData.has_value()) {
+        AddPickupable(id);
+    }
+
+    if(entityData.optUseableData.has_value()) {
+        CUseableComponent* pUseableComponent = AddUseable(id);
+        pUseableComponent->nUses = entityData.optUseableData.value().nUses;
+        pUseableComponent->strAbilityId = entityData.optUseableData.value().strAbilityId;
+    }
+
+    if(entityData.optInventoryData.has_value()) {
+        AddInventory(id);
+    }
+
     return id;
 }
