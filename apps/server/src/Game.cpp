@@ -206,10 +206,6 @@ void Client::Start() {
     GameState.GetMovement(id)->vec3Target = {1000, 0, -1000};
     GameState.GetHealth(id)->nHealth = 10;
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
-
-    UnitId idDevice = GameState.SpawnUnit(handler_->GetGameData(), "device");
-    GameState.AddTransform(idDevice)->SetPosition({500, 0, -500});
-    GameState.AddDevice(idDevice);
 }
 
 void Client::Update(float dt) {
