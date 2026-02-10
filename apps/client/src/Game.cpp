@@ -623,6 +623,13 @@ void Game::SpawnUnit(uint64_t unitId) {
 }
 
 void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos) {
+    for(UnitId idExisting : m_gameState.vecUnits) {
+        if(entId == idExisting) {
+            // TODO do not double spawn
+            return;
+        }
+    }
+
     if(entId == my_unit_id_) {
         const CCharacterData entityData = assetManager_->GetGameData().mapCharacterData.at(entityId);
         for(int i = 0; i < 4; i++) {
