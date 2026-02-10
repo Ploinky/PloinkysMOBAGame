@@ -13,15 +13,9 @@ CParticleSystem::CParticleSystem(CClientAssetManager* pAssetManager) {
 }
 
 void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
-    for(const UnitId& id : pGameState->vecUnits) {
-        ParticleComponent_t* pParticleComp = pGameState->GetParticle(id);
-
-        if(pParticleComp == nullptr) {
-            return;
-        }
-
-        auto it = pParticleComp->vecEffects.begin();
-        while(it != pParticleComp->vecEffects.end()) {
+    for(ParticleComponent_t& particleComp : pGameState->GetAllParticle()) {
+        auto it = particleComp.vecEffects.begin();
+        while(it != particleComp.vecEffects.end()) {
             ParticleEffect* pEffect = *it;
 
             if(pEffect->attached_to_ != UNIT_ID_NONE) {
@@ -44,7 +38,7 @@ void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
 
             if(!bIsNotDone) {
                 pEffect->destroy = true;
-                it = pParticleComp->vecEffects.erase(it);
+                it = particleComp.vecEffects.erase(it);
             } else {
                 it++;
             }
