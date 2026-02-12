@@ -137,6 +137,9 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
 
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_1));
     GameState.AddBasicAttack(id, CBasicAttackComponent());
+    GameState.GetTransform(id)->SetPosition({250, 0, -750}); // TODO in data
+    GameState.GetMovement(id)->vec3Target = GameState.GetTransform(id)->GetPosition(); // TODO how to make this one call
+    GameState.GetNavigation(id)->vec3Destination = GameState.GetTransform(id)->GetPosition();
 
     // inform everybody TODO prettify
     UnitIdPacket packet = UnitIdPacket();
