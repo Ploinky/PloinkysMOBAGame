@@ -6,5 +6,5 @@
     xsi:schemaLocation="https://ploinky.de/mySchema _trigger.xsd"
     id="wave_team_1"
 >
-    <spawn_unit team="1" unit_type="minion" />
+    <spawn_unit team="1" unit_type="minion" count="3" time="5000"/>
 </trigger>

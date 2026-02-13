@@ -131,6 +131,9 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
         CSpawnUnitTrigger spawnUnitTrigger;
         spawnUnitTrigger.eTeam = spawnTriggerData.eTeam;
         spawnUnitTrigger.idUnitType = spawnTriggerData.idUnitType;
+        spawnUnitTrigger.nCount = spawnTriggerData.nCount;
+        spawnUnitTrigger.nTime = spawnTriggerData.nTime;
+        spawnUnitTrigger.nLastTime = -1;
         trigger.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
     }
     GameState.VecTriggers.push_back(trigger);

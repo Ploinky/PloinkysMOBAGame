@@ -12,6 +12,8 @@
                 <xs:complexType>
                     <xs:attribute name="team" type="xs:integer" use="required" />
                     <xs:attribute name="unit_type" type="xs:string" use="required" />
+                    <xs:attribute name="count" type="xs:integer" use="required" />
+                    <xs:attribute name="time" type="xs:integer" use="required" />
                 </xs:complexType>
             </xs:element>
         </xs:all>

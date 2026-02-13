@@ -57,6 +57,8 @@ CTriggerData CServerDataLoader::LoadTriggerData(pugi::xml_node node) {
         CTriggerSpawnUnitData spawnUnitData;
         spawnUnitData.eTeam = spawnUnitNode.attribute("team").as_int() == 1 ? Team::TEAM_1 : Team::TEAM_2;
         spawnUnitData.idUnitType = spawnUnitNode.attribute("unit_type").as_string();
+        spawnUnitData.nTime = spawnUnitNode.attribute("time").as_int();
+        spawnUnitData.nCount = spawnUnitNode.attribute("count").as_int();
         data.vecSpawnUnitTriggers.push_back(spawnUnitData);
     }
 

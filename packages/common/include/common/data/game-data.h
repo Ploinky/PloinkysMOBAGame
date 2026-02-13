@@ -184,6 +184,8 @@ class CTriggerSpawnUnitData {
 public:
     std::string idUnitType;
     Team eTeam;
+    int nCount;
+    int nTime;
 };
 
 class CTriggerData {
