@@ -5,6 +5,8 @@
 #include <map>
 #include <optional>
 
+#include "common/PMG_Common.h"
+
 enum class EAbilityTargetType {
     UNIT
 };
@@ -130,6 +132,17 @@ class CInventoryData {
 public:
 };
 
+class CSpawnUnitBehaviorData {
+public:
+    std::string idType;
+    Team team;
+};
+
+class CBehaviorData {
+public:
+    std::vector<CSpawnUnitBehaviorData> vecSpawUnitBehaviors;
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -147,6 +160,7 @@ public:
     std::optional<CPickupableData> optPickupableData;
     std::optional<CUseableData> optUseableData;
     std::optional<CInventoryData> optInventoryData;
+    std::optional<CBehaviorData> optBehaviorData;
 };
 
 class CMapCameraVolume {
@@ -166,6 +180,18 @@ public:
     CMapCameraVolume camVolume;
 };
 
+class CTriggerSpawnUnitData {
+public:
+    std::string idUnitType;
+    Team eTeam;
+};
+
+class CTriggerData {
+public:
+    std::string id;
+    std::vector<CTriggerSpawnUnitData> vecSpawnUnitTriggers;
+};
+
 class CGameData {
 public:
     std::map<std::string, CCharacterData> mapCharacterData;
@@ -175,4 +201,5 @@ public:
     std::map<std::string, CAudioAssetData> mapAudioData;
     std::map<std::string, CEffectData> mapEffectData;
     std::map<std::string, CMapData> mapMapData;
+    std::map<std::string, CTriggerData> mapTriggerData;
 };

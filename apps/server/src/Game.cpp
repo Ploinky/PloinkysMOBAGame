@@ -19,6 +19,7 @@
 #include "systems/ai-system.h"
 #include "systems/inventory-system.h"
 #include "systems/spawn-system.h"
+#include "systems/trigger-system.h"
 #include <common/data/game-data.h>
 
 uint64_t g_unitId = 0;
@@ -113,6 +114,27 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_pNetworkSystem = new CNetworkSystem(networkManager_);
     m_pNavigationSystem = new CNavigationSystem(m_navMap);
     GameState.SetNavMap(m_navMap);
+    GameState.m_pGameData = &handler_->GetGameData();
+
+    // =====================================
+    // THIS NEEDS TO GO SOMEWHERE
+    // THIS IS A MESS AND MAKES NO SENSE
+    // THIS IS GETTING WORSE AND WORSE
+    // HOW WILL I EVER MAKE A GAME WHEN I WRITE CODE LIKE THIS
+    // WHY AM I TOO STUPID TO MAKE IT WORK
+    // IT'S NOT ALL THAT DIFFICULT
+    // PLEASE FIGURE IT TF OUT
+    
+    CTriggerData trigData = handler_->GetGameData().mapTriggerData.at("wave_team_1");
+    CTrigger trigger = CTrigger();
+    for(CTriggerSpawnUnitData spawnTriggerData : trigData.vecSpawnUnitTriggers) {
+        CSpawnUnitTrigger spawnUnitTrigger;
+        spawnUnitTrigger.eTeam = spawnTriggerData.eTeam;
+        spawnUnitTrigger.idUnitType = spawnTriggerData.idUnitType;
+        trigger.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
+    }
+    GameState.VecTriggers.push_back(trigger);
+    // =====================================
 
     m_vecSystems.push_back(m_pNavigationSystem);
     m_vecSystems.push_back(&m_moveSystem);
@@ -125,6 +147,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_vecSystems.push_back(new CAiSystem());
     m_vecSystems.push_back(new CInventorySystem());
     m_vecSystems.push_back(new CSpawnSystem(&handler_->GetGameData()));
+    m_vecSystems.push_back(new CTriggerSystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -209,6 +232,10 @@ void Client::Start() {
     GameState.GetMovement(id)->vec3Target = {1000, 0, -1000};
     GameState.GetHealth(id)->nHealth = 10;
     GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
+
+    UnitId spawnerId = GameState.SpawnUnit(handler_->GetGameData(), "minion_spawner");
+    GameState.AddTeam(spawnerId, CTeamComponent(Team::TEAM_1));
+    GameState.GetTransform(spawnerId)->SetPosition({500, 0, -750});
 }
 
 void Client::Update(float dt) {
@@ -230,7 +257,6 @@ void Client::Update(float dt) {
         m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z + 25)->UnitId = transform.idUnit;
     }
     
-    // m_waveManager.Update(&GameState, TICKRATE);
     for(ISystem* system : m_vecSystems) {
         system->Update(&GameState, TICKRATE);
     }

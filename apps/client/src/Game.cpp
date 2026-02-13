@@ -161,6 +161,12 @@ void Game::Update(float dt) {
 	for (const RenderableComponent_t& renderable : m_gameState.GetAllRenderable()) {
         std::string desiredAnim;
         bool bLoop = false;
+
+        if(assetManager_->GetGameData().mapModelData.find(renderable.strRenderable) == assetManager_->GetGameData().mapModelData.end()) {
+            Logger::FormatErr("Unknown renderable model id: %s", renderable.strRenderable.c_str());
+            continue;
+        }
+
         const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(renderable.strRenderable);
     
         // TODO this is fucked up
@@ -694,7 +700,8 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
         audio->hEmitter = handler_->GetAudioEngine()->CreateEmitter(pos);
     }
 
-    if(!assetManager_->GetGameData().mapModelData.at(entData.modelId).mapAnimations.empty()) {
+    if(assetManager_->GetGameData().mapModelData.find(entData.modelId) != assetManager_->GetGameData().mapModelData.end()
+        && !assetManager_->GetGameData().mapModelData.at(entData.modelId).mapAnimations.empty()) {
         AnimationComponent_t* animation = m_gameState.AddAnimation(entId);
         animation->m_strAnimationName = "idle";
         animation->m_bLoop = true;

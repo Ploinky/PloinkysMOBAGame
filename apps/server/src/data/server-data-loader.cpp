@@ -35,8 +35,30 @@ CGameData CServerDataLoader::LoadManifest() {
             continue;
         }
 
+        if(pugi::xml_node triggerNode = doc.child("trigger")) {
+            CTriggerData triggerData = LoadTriggerData(triggerNode);
+            gameData.mapTriggerData.emplace(triggerData.id, triggerData);
+            continue;
+        }
+
         Logger::FormatMsg("Found no relevant data node in %s", fileName.c_str());
     }
     
     return gameData;
+}
+
+
+CTriggerData CServerDataLoader::LoadTriggerData(pugi::xml_node node) {
+    CTriggerData data;
+
+    data.id = node.attribute("id").as_string();
+
+    for(pugi::xml_node spawnUnitNode : node.children("spawn_unit")) {
+        CTriggerSpawnUnitData spawnUnitData;
+        spawnUnitData.eTeam = spawnUnitNode.attribute("team").as_int() == 1 ? Team::TEAM_1 : Team::TEAM_2;
+        spawnUnitData.idUnitType = spawnUnitNode.attribute("unit_type").as_string();
+        data.vecSpawnUnitTriggers.push_back(spawnUnitData);
+    }
+
+    return data;
 }

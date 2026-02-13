@@ -7,6 +7,7 @@
 #include <cstdint>
 #include "logger.h"
 #include <filesystem>
+#include "PMG_Common.h"
 
 
 AssetManager::AssetManager() {
@@ -299,6 +300,22 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
     if(inventoryNode) {
         CInventoryData inventoryData = CInventoryData();
         charData.optInventoryData.emplace(inventoryData);
+    }
+
+    if(pugi::xml_node behaviorsNode = charDataNode.child("behavior")) {
+        CBehaviorData behaviorData = CBehaviorData();
+
+        for(pugi::xml_node behaviorNode : behaviorsNode.children()) {
+            if(strcmp(behaviorNode.name(), "spawn_unit") != 0) {
+                continue;
+            }
+
+            CSpawnUnitBehaviorData spawnUnitBehaviorData;
+            spawnUnitBehaviorData.idType = behaviorNode.attribute("id").as_string();
+            spawnUnitBehaviorData.team = behaviorNode.attribute("id").as_int() == 1 ? Team::TEAM_1 : Team::TEAM_2;
+            behaviorData.vecSpawUnitBehaviors.push_back(spawnUnitBehaviorData);
+        }
+        charData.optBehaviorData.emplace(behaviorData);
     }
 
     return charData;

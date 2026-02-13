@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<entity
+    xmlns="https://ploinky.de/mySchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://ploinky.de/mySchema _entity.xsd"
+    id="minion_spawner"
+    name="minion"
+    model="minion"
+>
+    <transform collision_radius="100" />
+    <network sync_movement="true" />
+    <health max_health="500" />
+    <intent />
+    <targetable selection_radius="100" />
+    <audio />
+</entity>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model_data
+    id="minion"
+    model="assets/persons/minion/minion.glb"
+>
+    <animations>
+        <animation
+            slot="idle"
+            name="idle"
+            duration="272"
+        />
+    </animations>
+</model_data>

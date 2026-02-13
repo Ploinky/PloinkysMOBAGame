@@ -21,6 +21,7 @@
 #include "game/wave-manager.h"
 
 #include <game/server-game-state.h>
+#include "game/trigger.h"
 
 class Missile;
 static uint64_t current_network_id_ = 0;
@@ -117,4 +118,5 @@ private:
     CDamageSystem m_damageSystem;
     CSpellSystem m_spellSystem;
     CMovementSystem m_moveSystem;
+    std::vector<CTrigger> m_vecTriggers;
 };

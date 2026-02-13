@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<trigger
+    xmlns="https://ploinky.de/mySchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://ploinky.de/mySchema _trigger.xsd"
+    id="wave_team_1"
+>
+    <spawn_unit team="1" unit_type="minion" />
+</trigger>

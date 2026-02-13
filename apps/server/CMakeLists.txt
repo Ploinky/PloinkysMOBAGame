@@ -38,6 +38,7 @@ add_executable(server
 	src/systems/spawn-system.cpp
 	src/systems/spell-system.cpp
 	src/systems/system.cpp
+	src/systems/trigger-system.cpp
 )
 
 target_compile_definitions(server PUBLIC NOMINMAX)

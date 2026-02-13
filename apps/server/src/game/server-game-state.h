@@ -6,6 +6,8 @@
 
 #include <components/Components.h>
 
+#include "game/trigger.h"
+
 #ifndef REGISTER_COMPONENT_TYPE
 #define REGISTER_COMPONENT_TYPE(ComponentType) \
 public:                                                                                                    \
@@ -70,6 +72,7 @@ public:
     NavigationMap* GetNavMap() const;
 
     std::queue<IGameEvent*> VecEvent;
+    std::vector<CTrigger> VecTriggers;
 
     unsigned int uTeam1Points = 0;
     unsigned int uTeam2Points = 0;
@@ -81,6 +84,8 @@ public:
 
     UnitId SpawnUnit(const CGameData& gameData, std::string strId);
     UnitId CreateEntity();
+    const CGameData* m_pGameData;
+
 private:
     NavigationMap* m_pNavMap;
 };
