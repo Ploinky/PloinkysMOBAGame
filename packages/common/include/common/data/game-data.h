@@ -132,15 +132,9 @@ class CInventoryData {
 public:
 };
 
-class CSpawnUnitBehaviorData {
+class CAIData {
 public:
     std::string idType;
-    Team team;
-};
-
-class CBehaviorData {
-public:
-    std::vector<CSpawnUnitBehaviorData> vecSpawUnitBehaviors;
 };
 
 class CCharacterData {
@@ -160,7 +154,7 @@ public:
     std::optional<CPickupableData> optPickupableData;
     std::optional<CUseableData> optUseableData;
     std::optional<CInventoryData> optInventoryData;
-    std::optional<CBehaviorData> optBehaviorData;
+    std::optional<CAIData> optAIData;
 };
 
 class CMapCameraVolume {

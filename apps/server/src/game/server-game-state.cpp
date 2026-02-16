@@ -70,7 +70,8 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
 
     // ==================== INTENT COMPONENT ====================
     if(entityData.optIntentData.has_value()) {
-        AddIntent(id);
+        CIntentComponent* pIntent = AddIntent(id);
+        pIntent->eType = EIntentType::NONE;
     }
 
     if(entityData.optPickupableData.has_value()) {
@@ -85,6 +86,20 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
 
     if(entityData.optInventoryData.has_value()) {
         AddInventory(id);
+    }
+
+    if(entityData.optAIData.has_value()) {
+        CAiComponent* pAi = AddAi(id);
+
+        if(entityData.optAIData.value().idType == "minion") {
+            pAi->eType = EAiType::MINION;
+        } else {
+            pAi->eType = EAiType::MINION;
+        }
+
+        pAi->vecWaypoints.push_back({1200, 0, -750});
+
+        pAi->idUnit = id;
     }
 
     return id;

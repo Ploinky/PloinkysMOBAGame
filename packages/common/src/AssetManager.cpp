@@ -302,20 +302,10 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         charData.optInventoryData.emplace(inventoryData);
     }
 
-    if(pugi::xml_node behaviorsNode = charDataNode.child("behavior")) {
-        CBehaviorData behaviorData = CBehaviorData();
-
-        for(pugi::xml_node behaviorNode : behaviorsNode.children()) {
-            if(strcmp(behaviorNode.name(), "spawn_unit") != 0) {
-                continue;
-            }
-
-            CSpawnUnitBehaviorData spawnUnitBehaviorData;
-            spawnUnitBehaviorData.idType = behaviorNode.attribute("id").as_string();
-            spawnUnitBehaviorData.team = behaviorNode.attribute("id").as_int() == 1 ? Team::TEAM_1 : Team::TEAM_2;
-            behaviorData.vecSpawUnitBehaviors.push_back(spawnUnitBehaviorData);
-        }
-        charData.optBehaviorData.emplace(behaviorData);
+    if(pugi::xml_node aiNode = charDataNode.child("ai")) {
+        CAIData aiData = CAIData();
+        aiData.idType = aiNode.attribute("type").as_string();
+        charData.optAIData.emplace(aiData);
     }
 
     return charData;

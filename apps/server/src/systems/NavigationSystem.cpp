@@ -45,11 +45,11 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
         CMovementComponent* pMovement = pGameState->GetMovement(nav.idUnit);
 
         if(pTransform == nullptr || pMovement == nullptr) {
-            return;
+            continue;
         }
         
         if((nav.vec3Destination - pTransform->GetPosition()).Length() < 10) {
-            return;
+            continue;
         }
 
         if(nav.pNavGridAgent->path.size() == 0) {
@@ -57,7 +57,7 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
             
             if(nav.pNavGridAgent->path.size() == 0) {
                 // TODO this needs to be handled
-                return;
+                continue;
             }
         }
 
@@ -69,20 +69,20 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
             nav.pNavGridAgent->path.erase(nav.pNavGridAgent->path.begin());
 
             if(nav.pNavGridAgent->path.size() == 0) {
-                return;
+                continue;
             }
             vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
             vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
             pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
             pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
-            return;
+            continue;
         }
 
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
             // TODO this needs to be handled
-            return;
+            continue;
         }
 
         pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};

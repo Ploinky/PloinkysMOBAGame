@@ -16,4 +16,5 @@
     <intent />
     <targetable selection_radius="100" />
     <audio />
+    <ai type="minion" />
 </entity>
