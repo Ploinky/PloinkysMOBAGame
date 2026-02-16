@@ -10,6 +10,14 @@
         <xs:all>
             <xs:element name="spawn_unit" minOccurs="0">
                 <xs:complexType>
+                    <xs:all>
+                        <xs:element name="position" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:attribute name="x" type="xs:integer" use="required" />
+                                <xs:attribute name="y" type="xs:integer" use="required" />
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:all>
                     <xs:attribute name="team" type="xs:integer" use="required" />
                     <xs:attribute name="unit_type" type="xs:string" use="required" />
                     <xs:attribute name="count" type="xs:integer" use="required" />

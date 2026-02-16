@@ -9,7 +9,10 @@ void CTriggerSystem::Update(CServerGameState* pGameState, float fDelta) {
         for(CSpawnUnitTrigger& spawnUnitTrigger : trigger.vecSpawnUnitTriggers) {
             if(spawnUnitTrigger.nLastTime == -1 && currTime >= spawnUnitTrigger.nTime) {
                 spawnUnitTrigger.nLastTime = currTime;
-                pGameState->SpawnUnit(*pGameState->m_pGameData, spawnUnitTrigger.idUnitType);
+                UnitId idSpawnedUnit = pGameState->SpawnUnit(*pGameState->m_pGameData, spawnUnitTrigger.idUnitType);
+                pGameState->GetTransform(idSpawnedUnit)->SetPosition({spawnUnitTrigger.vec2Position.x, 0, spawnUnitTrigger.vec2Position.y});
+                pGameState->GetNavigation(idSpawnedUnit)->vec3Destination = pGameState->GetTransform(idSpawnedUnit)->GetPosition();
+                pGameState->GetMovement(idSpawnedUnit)->vec3Target = pGameState->GetTransform(idSpawnedUnit)->GetPosition();
             }
         }
     }

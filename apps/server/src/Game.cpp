@@ -134,6 +134,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
         spawnUnitTrigger.nCount = spawnTriggerData.nCount;
         spawnUnitTrigger.nTime = spawnTriggerData.nTime;
         spawnUnitTrigger.nLastTime = -1;
+        spawnUnitTrigger.vec2Position = spawnTriggerData.vec2Position;
         trigger.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
     }
     GameState.VecTriggers.push_back(trigger);

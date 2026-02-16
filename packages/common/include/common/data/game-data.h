@@ -186,6 +186,7 @@ public:
     Team eTeam;
     int nCount;
     int nTime;
+    Vector2 vec2Position;
 };
 
 class CTriggerData {

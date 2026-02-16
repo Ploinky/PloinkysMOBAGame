@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "common/PMG_Common.h"
+
 class CSpawnUnitTrigger {
 public:
     std::string idUnitType;
@@ -9,6 +11,7 @@ public:
     int nTime;
     int nCount;
     int nLastTime;
+    Vector2 vec2Position;
 };
 
 class CTrigger {

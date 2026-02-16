@@ -59,6 +59,13 @@ CTriggerData CServerDataLoader::LoadTriggerData(pugi::xml_node node) {
         spawnUnitData.idUnitType = spawnUnitNode.attribute("unit_type").as_string();
         spawnUnitData.nTime = spawnUnitNode.attribute("time").as_int();
         spawnUnitData.nCount = spawnUnitNode.attribute("count").as_int();
+        
+        if(pugi::xml_node spawnUnitPositionNode = spawnUnitNode.child("position")) {
+            int x = spawnUnitPositionNode.attribute("x").as_int();
+            int y = spawnUnitPositionNode.attribute("y").as_int();
+            spawnUnitData.vec2Position = {(float)x, (float)y};
+        }
+
         data.vecSpawnUnitTriggers.push_back(spawnUnitData);
     }
 
