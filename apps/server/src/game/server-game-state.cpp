@@ -14,6 +14,16 @@ UnitId CServerGameState::CreateEntity() {
     return CurrentUnitId++;
 }
 
+UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId, Vector2 vec2Pos) {
+    UnitId idSpawnedUnit = SpawnUnit(gameData, strId);
+
+    if(CTransformComponent* pTransform = GetTransform(idSpawnedUnit)) {
+        pTransform->SetPosition({vec2Pos.x, 0, vec2Pos.y});
+    }
+
+    return idSpawnedUnit;
+}
+
 UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId) {
     CCharacterData entityData = gameData.mapCharacterData.at(strId);
 

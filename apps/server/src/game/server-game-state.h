@@ -83,6 +83,8 @@ public:
     };
 
     UnitId SpawnUnit(const CGameData& gameData, std::string strId);
+    UnitId SpawnUnit(const CGameData& gameData, std::string strId, Vector2 vec2Pos);
+
     UnitId CreateEntity();
     const CGameData* m_pGameData;
 

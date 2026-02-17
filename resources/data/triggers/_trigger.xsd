@@ -7,8 +7,8 @@
 
 <xs:element name="trigger">
     <xs:complexType>
-        <xs:all>
-            <xs:element name="spawn_unit" minOccurs="0">
+        <xs:sequence>
+            <xs:element name="spawn_unit" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                     <xs:all>
                         <xs:element name="position" minOccurs="1" maxOccurs="1">
@@ -24,7 +24,7 @@
                     <xs:attribute name="time" type="xs:integer" use="required" />
                 </xs:complexType>
             </xs:element>
-        </xs:all>
+        </xs:sequence>
         <xs:attribute name="id" type="xs:string" use="required" />
     </xs:complexType>
 </xs:element>
