@@ -714,16 +714,6 @@ void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
 		return;
 	}
 
-	// actually render the particle
-	RenderCommand_t cmd{};
-	cmd.eType = ERenderCommandType::PARTICLE_SYSTEM;
-	cmd.uInstanceCount = pParticleEmitter->particle_count;
-	cmd.hInstanceBuffer = pParticleEmitter->instance_buffer_;
-	cmd.hVertexBuffer = m_hParticleVertexBuffer;
-	cmd.hTexture = m_pAssetManager->LoadTexture(pParticleEmitter->texture_name_);
-	cmd.vec3Scale = Vector3(pParticleEmitter->particle_scale.x, pParticleEmitter->particle_scale.y, pParticleEmitter->particle_scale.z);
-	cmd.vec3Position = pParticleEmitter->position;
-
 	
 	std::vector<ParticleShaderVertexInstance_t> instances;
 
@@ -748,6 +738,16 @@ void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
 	} else {
 		m_pGraphicsEngine->UpdateBuffer(pParticleEmitter->instance_buffer_, (void*) instances.data(), sizeof(ParticleShaderVertexInstance_t) * instances.size());
 	}
+
+	// actually render the particle
+	RenderCommand_t cmd{};
+	cmd.eType = ERenderCommandType::PARTICLE_SYSTEM;
+	cmd.uInstanceCount = pParticleEmitter->particle_count;
+	cmd.hInstanceBuffer = pParticleEmitter->instance_buffer_;
+	cmd.hVertexBuffer = m_hParticleVertexBuffer;
+	cmd.hTexture = m_pAssetManager->LoadTexture(pParticleEmitter->texture_name_);
+	cmd.vec3Scale = Vector3(pParticleEmitter->particle_scale.x, pParticleEmitter->particle_scale.y, pParticleEmitter->particle_scale.z);
+	cmd.vec3Position = pParticleEmitter->position;
 
 	Submit(cmd);
 }
