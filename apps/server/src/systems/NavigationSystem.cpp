@@ -85,6 +85,10 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
             continue;
         }
 
+        if(pMovement->vec3Target.x == nav.pNavGridAgent->path.at(0).x && pMovement->vec3Target.z == nav.pNavGridAgent->path.at(0).y) {
+            continue;
+        }
+
         pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
         pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
     }
