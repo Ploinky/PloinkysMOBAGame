@@ -33,12 +33,12 @@ void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         Vector3 vec3Move = move.vec3Target - vec3OldPosition;
 
-        if(vec3Move.Length() < (330.0f * (fDelta / 1000))) {
+        if(vec3Move.Length() < (move.fSpeed * (fDelta / 1000.0f))) {
             pTransform->SetPosition(move.vec3Target);
             return;
         }
 
-        vec3Move = vec3Move.ScaleToLength(330.0f * (fDelta / 1000));
+        vec3Move = vec3Move.ScaleToLength(move.fSpeed * (fDelta / 1000.0f));
 
         pTransform->SetPosition(vec3OldPosition + vec3Move);
         pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});

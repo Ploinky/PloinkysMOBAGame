@@ -689,6 +689,7 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
     if(entData.optMovementData) {
         MovementComponent_t* movement = m_gameState.AddMovement(entId);
         movement->vec3Target = pos;
+        movement->fSpeed = entData.optMovementData.value().nSpeed;
     }
 
     if(entData.optTargetableData) {
@@ -900,6 +901,12 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
                 pSpellCastComponent->bIsCasting = false;
             }
 
+            MovementComponent_t* pMove = m_gameState.GetMovement(move.unit);
+
+            if(pMove == nullptr) {
+                continue;
+            }
+
             TransformComponent_t* transform = m_gameState.GetTransform(move.unit);
 
             //  We're trying to go here
@@ -913,9 +920,9 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             double dRemaining = 1.0 - diff;
 
             // If we just run we'll manage
-            double dPredictedDistance = 330.0 / (1000.0 / 16.66666) * dRemaining;
+            double dPredictedDistance = pMove->fSpeed / (1000.0 / 16.66666) * dRemaining;
 
-            Vector3 vec3ActualMove = vec3Move.ScaleToLength(330.0 / (1000.0 / 16.66666) * dRemaining);
+            Vector3 vec3ActualMove = vec3Move.ScaleToLength(pMove->fSpeed / (1000.0 / 16.66666) * dRemaining);
             transform->vec3Position = vec3Dest - vec3ActualMove;
 
             transform->vec3Rotation.y = move.r; // move.r; // this actually looks less fucked for now :O
