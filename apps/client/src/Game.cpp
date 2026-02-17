@@ -1032,6 +1032,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             pMovementComponent->vec3Target = vec3NewTarget;
             pMovementComponent->bIsMoving = true;
+            continue;
         }
 
         if(header.type == PacketType::PCK_SPELL_CAST_START) {
@@ -1123,7 +1124,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             DespawnUnit(pck.idPickedUpUnit);
         }
 
-        Logger::Err("Received unknown packet type");
+        Logger::FormatErr("Received unknown packet type %d", header.type);
     }
 }
 
