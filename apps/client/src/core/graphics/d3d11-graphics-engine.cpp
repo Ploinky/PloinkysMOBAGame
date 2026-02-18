@@ -187,9 +187,7 @@ bool CD3D11GraphicsEngine::CreateDevice() {
 
     // Check if device was created successfully
     if (FAILED(hr) || m_pDevice == 0) {
-        std::wostringstream os;
-        os << L"Failed to create CD3D11GraphicsEngine device. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Failed to create CD3D11GraphicsEngine device. %s", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -241,9 +239,7 @@ bool CD3D11GraphicsEngine::CreateSwapChain(bool full_screen) {
     HRESULT hr = m_pDevice->QueryInterface(__uuidof(IDXGIDevice1), (void**)&dxgiDevice);
 
     if (FAILED(hr) || dxgiDevice == 0) {
-        std::wostringstream os;
-        os << L"Could not query IDXGIDevice. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not query IDXGIDevice. %s", _com_error(hr).ErrorMessage());
         return false;
     }
         
@@ -256,9 +252,7 @@ bool CD3D11GraphicsEngine::CreateSwapChain(bool full_screen) {
     hr = dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter);
 
     if (FAILED(hr) || dxgiAdapter == 0) {
-        std::wostringstream os;
-        os << L"Could not get IDXGIAdapter from IDXGIDevice. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not get IDXGIAdapter from IDXGIDevice. %s", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -268,9 +262,7 @@ bool CD3D11GraphicsEngine::CreateSwapChain(bool full_screen) {
     hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&dxgiFactory);
 
     if (FAILED(hr) || dxgiFactory == 0) {
-        std::wostringstream os;
-        os << L"Could not get IDXGIFactory from IDXGIAdapter. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not get IDXGIFactory from IDXGIAdapter. %s", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -279,9 +271,7 @@ bool CD3D11GraphicsEngine::CreateSwapChain(bool full_screen) {
 
 
     if (FAILED(hr) || swapChain == 0) {
-        std::wostringstream os;
-        os << L"Could not create IDXGISwapChain. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not create IDXGISwapChain. %s", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -311,9 +301,7 @@ bool CD3D11GraphicsEngine::CreateBackBuffer() {
     HRESULT hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
 
     if (FAILED(hr) || backBuffer == 0) {
-        std::wostringstream os;
-        os << L"Could not create back buffer. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not create back buffer. ", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -321,9 +309,7 @@ bool CD3D11GraphicsEngine::CreateBackBuffer() {
     hr = m_pDevice->CreateRenderTargetView(backBuffer, 0, &renderTargetView);
 
     if (FAILED(hr) || renderTargetView == 0) {
-        std::wostringstream os;
-        os << L"Could not create render target view. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not create render target view. ", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -340,7 +326,7 @@ bool CD3D11GraphicsEngine::CreateDepthBuffer() {
     HRESULT hr = swapChain->GetDesc1(&swapChainDesc);
 
     if (FAILED(hr)) {
-        Logger::WErr(L"Failed to get window dimension when trying to create depth buffer.");
+        Logger::FormatErr("Failed to get window dimension when trying to create depth buffer.");
         return false;
     }
 
@@ -367,9 +353,7 @@ bool CD3D11GraphicsEngine::CreateDepthBuffer() {
     hr = m_pDevice->CreateTexture2D(&ds, 0, &depthBuffer);
 
     if (FAILED(hr) || depthBuffer == 0) {
-        std::wostringstream os;
-        os << L"Could not create depth buffer. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not create depth buffer. ", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -378,9 +362,7 @@ bool CD3D11GraphicsEngine::CreateDepthBuffer() {
     hr = m_pDevice->CreateDepthStencilView(depthBuffer, 0, &depthView);
 
     if (FAILED(hr) || depthView == 0) {
-        std::wostringstream os;
-        os << L"Could not create depth view. " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Could not create depth view. ", _com_error(hr).ErrorMessage());
         return false;
     }
 
@@ -553,7 +535,7 @@ void CD3D11GraphicsEngine::SetViewport() {
     RECT winRect;
 
     if (!GetClientRect(windowHandle, &winRect)) {
-        Logger::WErr(L"Failed to get window dimension when trying to set viewport.");
+        Logger::FormatErr("Failed to get window dimension when trying to set viewport.");
         return;
     }
 
@@ -587,9 +569,7 @@ bool CD3D11GraphicsEngine::Present() {
         hr = swapChain->Present(1, 0);
 
     if(FAILED(hr)) {
-        std::wostringstream os;
-        os << L"Error trying to present rendered image. <" << hr << ">: " << _com_error(hr).ErrorMessage();
-        Logger::WErr(os.str());
+        Logger::FormatErr("Error trying to present rendered image. <%d>: %s", hr, _com_error(hr).ErrorMessage());
         return false;
     }
 

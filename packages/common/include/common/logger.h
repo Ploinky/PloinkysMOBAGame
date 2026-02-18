@@ -6,9 +6,7 @@
 class Logger {
     public:
         static void Msg(std::string message);
-        static void WMsg(std::wstring wmessage);
         static void Err(std::string error);
-        static void WErr(std::wstring werror);
 
         template< typename... Args >
         static void FormatMsg(const char* format, Args... args) {

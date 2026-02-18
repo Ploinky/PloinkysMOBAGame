@@ -39,16 +39,6 @@ void Logger::Msg(std::string message) {
 #endif
 }
 
-void Logger::WMsg(std::wstring wmessage) {
-    wmessage.append(L"\n");
-
-#ifdef _DEBUG
-    OutputDebugStringW(wmessage.c_str());
-#else
-    std::wcout << wmessage;
-#endif
-}
-
 void Logger::Err(std::string error) {
     error = PrependTimeAndDate(error).append("\n");
 
@@ -56,15 +46,5 @@ void Logger::Err(std::string error) {
     OutputDebugStringA(error.c_str());
 #else
     std::cerr << error;
-#endif
-}
-
-void Logger::WErr(std::wstring werror) {
-    werror.append(L"\n");
-
-#ifdef _DEBUG
-    OutputDebugStringW(werror.c_str());
-#else
-    std::wcerr << werror;
 #endif
 }
