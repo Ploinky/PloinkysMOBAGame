@@ -14,6 +14,8 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(CNavigationComponent& nav : pGameState->GetAllNavigation()) {
+
+        // Do not path dead units
         if(pGameState->GetHealth(nav.idUnit) && pGameState->GetHealth(nav.idUnit)->bIsDead) {
             nav.bIsNavigating = false;
             nav.vec3Destination = Vector3::ZERO;
@@ -25,6 +27,7 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
             continue;
         }
 
+        // Update nav components target if intent is to walk somewhere
         CIntentComponent* pIntentComp = pGameState->GetIntent(nav.idUnit);
         if(pIntentComp != nullptr) {
             if(pIntentComp->eType == EIntentType::MOVE) {
@@ -48,11 +51,22 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
             continue;
         }
         
+        // TODO Close enough, unit does not move
         if((nav.vec3Destination - pTransform->GetPosition()).Length() < 10) {
             continue;
         }
 
+        // Trying to path, but no path currently set
         if(nav.pNavGridAgent->path.size() == 0) {
+            Logger::FormatMsg("Planning initial path for %d to <%f, %f>", pTransform->idUnit, nav.vec3Destination.x, nav.vec3Destination.z);
+            nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+            
+            if(nav.pNavGridAgent->path.size() == 0) {
+                // TODO this needs to be handled
+                continue;
+            }
+        } else if(nav.vec3Destination.x != nav.pNavGridAgent->path.back().x && nav.vec3Destination.z != nav.pNavGridAgent->path.back().y) {
+            Logger::FormatMsg("Changing destination, planning new path for %d to <%f, %f>", pTransform->idUnit, nav.vec3Destination.x, nav.vec3Destination.z);
             nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
             
             if(nav.pNavGridAgent->path.size() == 0) {
@@ -60,12 +74,17 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
                 continue;
             }
         }
-
+            // Already pathing, but to the wrong target!
+        
         Vector2 vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
         Vector3 vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
 
+        // Close enough to the current waypoint, so move on to the next one
         // TODO magic number
         if((vec3IntermediateTarget - pTransform->GetPosition()).Length() < 10) {
+            Logger::FormatMsg("%d arrived at waypoint <%d, %d> on the way to <%f, %f>, moving on to the next waypoint",
+                pTransform->idUnit, vec3IntermediateTarget.x, vec3IntermediateTarget.z, nav.vec3Destination.x, nav.vec3Destination.z);
+
             nav.pNavGridAgent->path.erase(nav.pNavGridAgent->path.begin());
 
             if(nav.pNavGridAgent->path.size() == 0) {
@@ -77,8 +96,9 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
             pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
             continue;
         }
-
-        nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+        
+        // Logger::FormatMsg("And we're planning again for some reason?");
+        // nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
             // TODO this needs to be handled
