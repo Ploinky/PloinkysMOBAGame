@@ -5,6 +5,6 @@
 class CNavigationComponent : public IComponent {
 public:
     Vector3 vec3Destination;
-    NavigationGridAgent* pNavGridAgent = new NavigationGridAgent();
+    NavigationGridAgent* pNavGridAgent = nullptr;
     bool bIsNavigating;
 };

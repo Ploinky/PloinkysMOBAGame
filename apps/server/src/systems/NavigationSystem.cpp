@@ -14,7 +14,8 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
     for(CNavigationComponent& nav : pGameState->GetAllNavigation()) {
-
+        CTransformComponent* pTransform = pGameState->GetTransform(nav.idUnit);
+        nav.pNavGridAgent->position = {pTransform->GetPosition().x, pTransform->GetPosition().z};
         // Do not path dead units
         if(pGameState->GetHealth(nav.idUnit) && pGameState->GetHealth(nav.idUnit)->bIsDead) {
             nav.bIsNavigating = false;
@@ -44,9 +45,8 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         NavigationMap* pNavMap = pGameState->GetNavMap();
 
-        CTransformComponent* pTransform = pGameState->GetTransform(nav.idUnit);
         CMovementComponent* pMovement = pGameState->GetMovement(nav.idUnit);
-
+        
         if(pTransform == nullptr || pMovement == nullptr) {
             continue;
         }

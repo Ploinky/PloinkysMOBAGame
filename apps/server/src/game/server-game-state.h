@@ -88,6 +88,5 @@ public:
     UnitId CreateEntity();
     const CGameData* m_pGameData;
 
-private:
     NavigationMap* m_pNavMap;
 };

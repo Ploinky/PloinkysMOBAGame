@@ -66,13 +66,11 @@ public:
 	NavMesh();
 	void LoadFromFile(std::string mapName);
 	void LoadFromData(std::list<std::string> data);
-	std::list<vertex_t> PlanPath(NavigationGridAgent* pAgent, vertex_t from, vertex_t to);
 	bool PointInMesh(vertex_t pt);
 
 	nav_agent_t* AddAgent(vertex_t startPosition);
 	Vector2 GetNextStep(nav_agent_t* agent);
 
-private:
 	void FindNeighbours();
 	void PullString();
 	polygon_t* FindPolygonAt(vertex_t pt);
@@ -125,8 +123,6 @@ public:
 
 	NavigationCell* GetCellAt(float x, float y);
 	void SetCellAt(float x, float y, NavigationCell* cell);
-	std::vector<Vector2> GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	std::vector<Vector2> GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen);
 	void Reset();
 
 	int GridWidth;
@@ -139,11 +135,9 @@ public:
 	int CellCountY;
 	NavigationCell** Cells;
 
-private:
 	float Distance(NavigationCell* a, NavigationCell* b);
 	float Heuristic(NavigationCell* a, NavigationCell* b, NavigationCell* c);
 	float Cross(const NavigationCell* v1, const NavigationCell* v2, const NavigationCell* v3);
-	bool IsClearPath(NavigationGridAgent* pAgent, NavigationCell* node1, const NavigationCell* node2);
 	NavigationCell* currCell;
 };
 
@@ -151,10 +145,20 @@ private:
 class NavigationMap {
 public:
 	std::vector<Vector2> GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen);
+	bool IsClearPath(NavigationGridAgent* pAgent, NavigationCell* node1, const NavigationCell* node2);
 	Vector2 Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist);
+	NavigationGridAgent* CreateAgent();
+	bool CheckCell(NavigationGridAgent* pAgent, Vector2 vec2NewPos);
 
 	NavigationCellGrid* m_pGrid;
 	NavMesh* m_pMesh;
+
+private:
+	std::list<vertex_t> PlanPath(NavigationGridAgent* pAgent, vertex_t from, vertex_t to);
+
+	std::vector<NavigationGridAgent*> m_vecAgents;
 };
 
 #endif

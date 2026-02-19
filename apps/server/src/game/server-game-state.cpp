@@ -76,8 +76,9 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     // ==================== NAVIGATION COMPONENT ====================
     if(entityData.optNavigationData.has_value()) {
         CNavigationComponent* pNav = AddNavigation(id);
+        pNav->pNavGridAgent = m_pNavMap->CreateAgent();
         pNav->pNavGridAgent->UnitId = id;
-
+        pNav->pNavGridAgent->IgnoreCollision = false;
     }
 
     // ==================== INTENT COMPONENT ====================

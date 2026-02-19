@@ -31,16 +31,20 @@ void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
             continue;
         }
 
-        Vector3 vec3Move = move.vec3Target - vec3OldPosition;
+        // For navigating units, use the nav map...
+        if(CNavigationComponent* pNavComp = pGameState->GetNavigation(move.idUnit)) {
+            Vector2 vec2Step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, move.fSpeed * (fDelta / 1000.0f));
 
-        if(vec3Move.Length() < (move.fSpeed * (fDelta / 1000.0f))) {
-            pTransform->SetPosition(move.vec3Target);
-            return;
+            pTransform->SetPosition({vec2Step.x, vec3OldPosition.y, vec2Step.y});
+        } else {
+            Vector3 vec3Move = move.vec3Target - vec3OldPosition;
+
+            if(vec3Move.Length() >= (move.fSpeed * (fDelta / 1000.0f))) {
+                vec3Move = vec3Move.ScaleToLength(move.fSpeed * (fDelta / 1000.0f));
+            }
+            pTransform->SetPosition(vec3OldPosition + vec3Move);
         }
-
-        vec3Move = vec3Move.ScaleToLength(move.fSpeed * (fDelta / 1000.0f));
-
-        pTransform->SetPosition(vec3OldPosition + vec3Move);
+        
         pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
 
         pGameState->VecEvent.emplace(new CMoveEvent(move.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
