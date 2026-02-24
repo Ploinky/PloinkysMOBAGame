@@ -27,6 +27,10 @@ Vector2 Vector2::operator*(float scale) const {
 	return { x * scale, y * scale };
 }
 
+float Vector2::operator*(const Vector2& other) const {
+	return x * other.x + y * other.y;
+}
+
 float Vector2::Length() const {
 	return sqrtf(x * x + y * y);
 }

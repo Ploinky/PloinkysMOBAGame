@@ -16,6 +16,8 @@ public:
 
 	Vector2 operator*(float scale) const;
 
+	float operator*(const Vector2& other) const;
+
 	float Length() const;
 
 	Vector2 Normalize() const;

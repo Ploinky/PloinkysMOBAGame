@@ -76,77 +76,31 @@ bool TestCollision(Circle circle_a, Circle circle_b) {
     return dist <= circle_a.radius + circle_b.radius;
 }
 
+// with thanks to bobobobo & co.
+// https://stackoverflow.com/a/1084899
 Vector2 TestCollision(Line line, Circle circle) {
-    float x1 = line.Start.x - circle.position.x;
-    float x2 = line.End.x - circle.position.x;
-    float y1 = line.Start.y - circle.position.y;
-    float y2 = line.End.y - circle.position.y;
+    Vector2 d = line.End - line.Start;
+    Vector2 f = line.Start - circle.position;
+    float r = circle.radius;
+    float a = d * d;
+    float b = 2 * (f * d);
+    float c = (f * f) - r * r;
 
-    float dx = x2 - x1;
-    float dy = y2 - y1;
-
-    float dr = sqrtf(dx * dx + dy * dy);
-    float D = x1 * y2 - x2 * y1;
-
-    float discriminant = circle.radius * circle.radius * dr * dr - D * D;
-
-    if (discriminant < 0) {
-        // No intersection
+    float discriminant = b * b - 4 * a * c;
+    if (discriminant < 0)
+    {
         return { 0, 0 };
     }
-    else if (discriminant == 0) {
-        // Tangent
-        // intersections[0].x = (D * dy) / (dr * dr) + circle.center.x;
-        // intersections[0].y = (-D * dx) / (dr * dr) + circle.center.y;
-        return { 0, 0 };
-    }
-    else {
-        // Two intersections
-        float sqrtDiscriminant = sqrtf(discriminant);
-        float x_factor = sqrtDiscriminant * dy / (dr * dr);
-        float y_factor = sqrtDiscriminant * dx / (dr * dr);
-        
-        return { (D * dy + dx * (dy > 0 ? 1 : -1) * sqrtDiscriminant) / (dr * dr) + circle.position.x,
-   (-D * dx + (float)fabs(dy) * sqrtDiscriminant) / (dr * dr) + circle.position.y };
+
+    discriminant = sqrt(discriminant);
+
+    float t1 = (-b - discriminant) / (2 * a);
+    float t2 = (-b + discriminant) / (2 * a);
+
+    if (t1 >= 0 && t1 <= 1)
+    {
+        return line.Start + (line.End - line.Start).ScaleToLength((line.End - line.Start).Length() * t1);
     }
 
-    /*
-
-    float x1 = line.Start.x;
-    float x2 = line.End.x;
-    float y1 = line.Start.y;
-    float y2 = line.End.y;
-
-    float dx = x2 - x1;
-    float dy = y2 - y1;
-
-    float dr = sqrtf((dx * dx) + (dy * dy));
-
-    float D = x1 * y2 - x2 * y1;
-
-    float sign = dy > 0 ? 1 : -1;
-
-    float x = (D * dy + sign * dx * sqrtf((circle.radius * circle.radius) * (dr * dr) - (D * D)));
-    float x0 = (D * dy - sign * dx * sqrtf((circle.radius * circle.radius) * (dr * dr) - (D * D)));
-    float y = (-D * dx + fabs(dy) * sqrtf((circle.radius * circle.radius) * (dr * dr) - (D * D)));
-    float y0 = (-D * dx - fabs(dy) * sqrtf((circle.radius * circle.radius) * (dr * dr) - (D * D)));
-
-    float wtf = (circle.radius * circle.radius) * (dr * dr) - (D * D);
-
-    if (wtf < 0) {
-        // no intersection
-        OutputDebugStringA("NO INTERSECT\n");
-    }
-    else if (wtf == 0) {
-        // tangent
-        OutputDebugStringA("TANGENT\n");
-    }
-    else {
-        // intersection
-        OutputDebugStringA("INTERSECT\n");
-    }
-
-    return 0;
-    */
-
+    return { 0, 0 };
 }

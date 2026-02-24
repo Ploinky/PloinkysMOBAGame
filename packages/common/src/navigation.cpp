@@ -899,17 +899,98 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		return {};
 	}
 
-	std::vector<Vector2> vecShortPath = GetGridPath(pAgent, from, vecLongPath[0], pAgent->IgnoreCollision);
+	Vector2 start = from;
+	Vector2 end = vecLongPath.at(0);
+	std::vector<Vector2> vecShortPath = { };
 
-	if (vecShortPath.size()) {
-		vecShortPath.pop_back();
+	if (start == end) {
+		return {};
+	}
+#define COLLISION_DIST 250
+	struct Collision_t {
+		NavigationGridAgent* pAgent;
+		Vector2 position;
+	};
+	auto GetObstruction = [this, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent) -> Collision_t {
+		NavigationGridAgent* pCollAg= nullptr;
+		float dist = std::numeric_limits<float>::max();
+		struct Collision_t detected;
+		detected.pAgent = nullptr;
+		detected.position = { 0, 0 };
+
+		for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
+			if (pOtherAgent == pIgnoreAgent) {
+				continue;
+			}
+
+			Line line;
+			line.Start = vec2Position;
+			line.End = vec2Destination;
+			Circle circle;
+			circle.position = { pOtherAgent->position.x, pOtherAgent->position.z };
+			circle.radius = COLLISION_DIST;
+
+			Vector2 coll = TestCollision(line, circle);
+
+			if (coll.Length() > 0 && (coll - vec2Position).Length() < dist){
+				dist = (coll - vec2Position).Length();
+				detected.position = coll;
+				detected.pAgent = pOtherAgent;
+			}
+		}
+		return detected;
+	};
+	int nMaxIter = 100;
+	int nIter = 0;
+	Vector2 position = start;
+
+	Collision_t collision = GetObstruction(position, end, nullptr);
+	if (collision.pAgent != nullptr) {
+		position = collision.position;
+		vecShortPath.push_back(position);
+	}
+
+	while (collision.pAgent != nullptr) {
+		Vector2 vec2OtherPos = { collision.pAgent->position.x, collision.pAgent->position.z };
+		float fCurrentAngle = CalculateAngle(vec2OtherPos, position);
+		float fNextAngle = fCurrentAngle + 10;
+		Vector2 dir = CalculateDirectionVector(vec2OtherPos, fNextAngle).ScaleToLength(COLLISION_DIST + 10);
+		Vector2 next = vec2OtherPos + dir;
+
+		Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
+		if (newCollision.pAgent != nullptr) {
+			collision = newCollision;
+			position = newCollision.position;
+			vecShortPath.push_back(position);
+		}
+		else {
+			position = next;
+			vecShortPath.push_back(position);
+		}
+
+		Line line;
+		line.Start = start;
+		line.End = end;
+		Circle circle;
+		circle.position = next;
+		circle.radius = 200;
+		if (GetObstruction(position, end, nullptr).pAgent == nullptr) {
+			// back on track?
+			break;
+		}
+		
+
+		nIter++;
+		if (nIter >= nMaxIter) {
+			break;
+		}
 	}
 
 	for (Vector2 vec : vecLongPath) {
 		vecShortPath.push_back(vec);
 	}
 
-	
+
 	return vecShortPath;
 }
 Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {

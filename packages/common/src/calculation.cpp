@@ -15,6 +15,14 @@ float CalculateAngle(Vector2 from, Vector2 to) {
 	return ToDegrees(atan2(dx, dy));
 }
 
+Vector2 CalculateDirectionVector(Vector2 from, float angle) {
+	angle = ToRadians(angle);
+	float x = sin(angle);
+	float y = cos(angle);
+	Vector2 ret = { x, y };
+	return ret.Normalize();
+}
+
 float ToRadians(float degrees) {
 	return degrees * (M_PI / 180);
 }
