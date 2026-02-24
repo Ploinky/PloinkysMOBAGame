@@ -1,9 +1,11 @@
 #include "world-map.h"
 
+#define SCALING_FACTOR 5
+
 HBRUSH hBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
 HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 HBRUSH hBrushLightGray = CreateSolidBrush(RGB(200, 200, 200));
-HBRUSH hBrushGray = CreateSolidBrush(RGB(100, 100, 100));
+HBRUSH hBrushGray = CreateSolidBrush(RGB(100,100, 100));
 HPEN hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 HBITMAP hBitMap;
 
@@ -45,7 +47,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			// draw blockers
 			for (NavigationGridAgent* pBlocker : pSharedData->pMap->m_vecAgents) {
 				SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
-				if (!Ellipse(hdcMem, (pBlocker->position.x - 25) / 10, -(pBlocker->position.z - 25) / 10, (pBlocker->position.x + 25) / 10, -(pBlocker->position.z + 25) / 10)) {
+				if (!Ellipse(hdcMem, (pBlocker->position.x - 25) /SCALING_FACTOR, -(pBlocker->position.z - 25) /SCALING_FACTOR, (pBlocker->position.x + 25) /SCALING_FACTOR, -(pBlocker->position.z + 25) /SCALING_FACTOR)) {
 					MessageBox(hWnd, "KAPUTT", "Total Kaputt", MB_ICONERROR);
 				}
 			}
@@ -56,33 +58,33 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 				for (Vector3 vert : pol->vertices) {
 					if (c == 0) {
 						POINT p;
-						MoveToEx(hdcMem, vert.x / 10, -(vert.z / 10), &p);
+						MoveToEx(hdcMem, vert.x /SCALING_FACTOR, -(vert.z /SCALING_FACTOR), &p);
 					}
 					else {
-						LineTo(hdcMem, vert.x / 10, -(vert.z / 10));
+						LineTo(hdcMem, vert.x /SCALING_FACTOR, -(vert.z /SCALING_FACTOR));
 					}
 					c++;
 				}
-				LineTo(hdcMem, pol->vertices[0].x / 10, -(pol->vertices[0].z / 10));
+				LineTo(hdcMem, pol->vertices[0].x /SCALING_FACTOR, -(pol->vertices[0].z /SCALING_FACTOR));
 			}
 
 			// draw the player
 			NavigationCell* cell = pSharedData->pMap->m_pGrid->GetCellAt(pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y);
 			RECT rect;
-			rect.left = cell->X / 10;
-			rect.right = (cell->X / 10) + 5;
-			rect.bottom = -cell->Y / 10;
-			rect.top = (-cell->Y / 10) + 5;
+			rect.left = cell->X /SCALING_FACTOR;
+			rect.right = (cell->X /SCALING_FACTOR) + 5;
+			rect.bottom = -cell->Y /SCALING_FACTOR;
+			rect.top = (-cell->Y /SCALING_FACTOR) + 5;
 			FillRect(hdcMem, &rect, hBrushBlue);
 
 			// draw the path
 			if (pSharedData->pAgent->path.size() > 1) {
 				SelectObject(hdcMem, hPen);
 				POINT p;
-				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x / 10, -(pSharedData->vec2CurrPos.y / 10), &p);
+				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
 				for (int i = 0; i < pSharedData->pAgent->path.size(); i++) {
 					Vector2 to = pSharedData->pAgent->path.at(i);
-					if (!LineTo(hdcMem, to.x / 10, -(to.y / 10))) {
+					if (!LineTo(hdcMem, to.x /SCALING_FACTOR, -(to.y /SCALING_FACTOR))) {
 						MessageBeep(MB_ICONERROR);
 					}
 				}
@@ -104,8 +106,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 		case WM_LBUTTONDOWN: {
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-			pSharedData->vec2CurrPos.x = GET_X_LPARAM(lParam) * 10;
-			pSharedData->vec2CurrPos.y = -(GET_Y_LPARAM(lParam) * 10);
+			pSharedData->vec2CurrPos.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
+			pSharedData->vec2CurrPos.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
 			pSharedData->pAgent->path = pSharedData->pMap->GetPath(pSharedData->pAgent,
@@ -125,8 +127,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 		case WM_RBUTTONDOWN: {
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-			pSharedData->pAgent->target.x = GET_X_LPARAM(lParam) * 10;
-			pSharedData->pAgent->target.z = -(GET_Y_LPARAM(lParam) * 10);
+			pSharedData->pAgent->target.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
+			pSharedData->pAgent->target.z = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
 			pSharedData->pAgent->path = pSharedData->pMap->GetPath(
