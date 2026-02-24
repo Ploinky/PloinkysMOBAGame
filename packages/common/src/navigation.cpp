@@ -906,7 +906,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	if (start == end) {
 		return {};
 	}
-#define COLLISION_DIST 250
+#define COLLISION_DIST 25
 	struct Collision_t {
 		NavigationGridAgent* pAgent;
 		Vector2 position;
