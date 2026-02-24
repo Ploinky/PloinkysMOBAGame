@@ -144,10 +144,10 @@ public:
 	NavigationCellGrid* m_pGrid;
 	NavMesh* m_pMesh;
 
+	std::vector<NavigationGridAgent*> m_vecAgents;
 private:
 	std::list<Vector3> PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to);
 
-	std::vector<NavigationGridAgent*> m_vecAgents;
 };
 
 #endif

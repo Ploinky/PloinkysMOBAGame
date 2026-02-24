@@ -1,0 +1,158 @@
+#include "world-map.h"
+
+HBRUSH hBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
+HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
+HBRUSH hBrushLightGray = CreateSolidBrush(RGB(200, 200, 200));
+HBRUSH hBrushGray = CreateSolidBrush(RGB(100, 100, 100));
+HPEN hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+HBITMAP hBitMap;
+
+LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	PAINTSTRUCT ps;
+
+
+	switch (msg) {
+		case WM_CREATE: {
+			CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
+			AppData_t* pSharedData = (AppData_t*)cs->lpCreateParams;
+
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pSharedData);
+			return 0;
+		}
+		case WM_ERASEBKGND:
+			return 0;
+		case WM_PAINT: {
+			RECT rc;
+			HDC hdcMem;
+			HBITMAP hbmMem, hbmOld;
+			HBRUSH hbrBkGnd;
+			HFONT hfntOld;
+
+			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+			HDC hDc = BeginPaint(hWnd, &ps);
+
+
+			GetClientRect(hWnd, &rc);
+			hdcMem = CreateCompatibleDC(ps.hdc);
+			hbmMem = CreateCompatibleBitmap(ps.hdc, rc.right - rc.left, rc.bottom - rc.top);
+			hbmOld = (HBITMAP) SelectObject(hdcMem, hbmMem);
+
+			hbrBkGnd = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+			FillRect(hdcMem, &rc, hbrBkGnd);
+			DeleteObject(hbrBkGnd);
+
+			// draw blockers
+			for (NavigationGridAgent* pBlocker : pSharedData->pMap->m_vecAgents) {
+				SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
+				if (!Ellipse(hdcMem, (pBlocker->position.x - 200) / 10, -(pBlocker->position.z - 200) / 10, (pBlocker->position.x + 200) / 10, -(pBlocker->position.z + 200) / 10)) {
+					MessageBox(hWnd, "KAPUTT", "Total Kaputt", MB_ICONERROR);
+				}
+			}
+
+			// draw the mesh
+			for (polygon_t* pol : pSharedData->pMap->m_pMesh->mesh) {
+				int c = 0;
+				for (Vector3 vert : pol->vertices) {
+					if (c == 0) {
+						POINT p;
+						MoveToEx(hdcMem, vert.x / 10, -(vert.z / 10), &p);
+					}
+					else {
+						LineTo(hdcMem, vert.x / 10, -(vert.z / 10));
+					}
+					c++;
+				}
+				LineTo(hdcMem, pol->vertices[0].x / 10, -(pol->vertices[0].z / 10));
+			}
+
+			// draw the player
+			NavigationCell* cell = pSharedData->pMap->m_pGrid->GetCellAt(pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y);
+			RECT rect;
+			rect.left = cell->X / 10;
+			rect.right = (cell->X / 10) + 5;
+			rect.bottom = -cell->Y / 10;
+			rect.top = (-cell->Y / 10) + 5;
+			FillRect(hdcMem, &rect, hBrushBlue);
+
+			// draw the path
+			if (pSharedData->pAgent->path.size() > 1) {
+				SelectObject(hdcMem, hPen);
+				POINT p;
+				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x / 10, -(pSharedData->vec2CurrPos.y / 10), &p);
+				for (int i = 0; i < pSharedData->pAgent->path.size(); i++) {
+					Vector2 to = pSharedData->pAgent->path.at(i);
+					if (!LineTo(hdcMem, to.x / 10, -(to.y / 10))) {
+						MessageBeep(MB_ICONERROR);
+					}
+				}
+			}
+
+
+			BitBlt(ps.hdc,
+				rc.left, rc.top,
+				rc.right - rc.left, rc.bottom - rc.top,
+				hdcMem,
+				0, 0,
+				SRCCOPY);
+
+			SelectObject(hdcMem, hbmOld);
+			DeleteObject(hbmMem);
+			DeleteDC(hdcMem);
+			EndPaint(hWnd, &ps);
+			return 0;
+		}
+		case WM_LBUTTONDOWN: {
+			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+			pSharedData->vec2CurrPos.x = GET_X_LPARAM(lParam) * 10;
+			pSharedData->vec2CurrPos.y = -(GET_Y_LPARAM(lParam) * 10);
+
+			auto start = std::chrono::high_resolution_clock::now();
+			pSharedData->pAgent->path = pSharedData->pMap->GetPath(pSharedData->pAgent,
+				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
+				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.z }
+			);
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double, std::milli> elapsed = end - start;
+
+			// Print to console (use OutputDebugString in Win32)
+			std::string timeStr = "Execution time: " + std::to_string(elapsed.count()) + " ms\n";
+			OutputDebugStringA(timeStr.c_str());
+
+			InvalidateRect(hWnd, NULL, false);
+
+			return 0;
+		}
+		case WM_RBUTTONDOWN: {
+			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+			pSharedData->pAgent->target.x = GET_X_LPARAM(lParam) * 10;
+			pSharedData->pAgent->target.z = -(GET_Y_LPARAM(lParam) * 10);
+
+			auto start = std::chrono::high_resolution_clock::now();
+			pSharedData->pAgent->path = pSharedData->pMap->GetPath(
+				pSharedData->pAgent,
+				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
+				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.z }
+			);
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double, std::milli> elapsed = end - start;
+
+			// Print to console (use OutputDebugString in Win32)
+			std::string timeStr = "Execution time: " + std::to_string(elapsed.count()) + " ms\n";
+			OutputDebugStringA(timeStr.c_str());
+
+			InvalidateRect(hWnd, NULL, false);
+			return 0;
+		}
+	}
+	return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+void RegisterWorldMap() {
+	WNDCLASS wc{};
+	wc.lpszClassName = WC_WORLD_MAP;
+	wc.lpfnWndProc = WorldMap_WndProc;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	RegisterClass(&wc);
+}
