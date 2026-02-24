@@ -15,20 +15,8 @@
 #include "common/PMG_Common.h"
 #include <queue>
 
-bool operator==(const vertex_t& lhs, const vertex_t& rhs) {
-	return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
-}
-
-vertex_t operator-(const vertex_t& lhs, const vertex_t& rhs) {
-	return { lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z };
-}
-
-vertex_t CenterOf(vertex_t v1, vertex_t v2, vertex_t v3) {
+Vector3 CenterOf(Vector3 v1, Vector3 v2, Vector3 v3) {
 	return { (v1.x + v2.x + v3.x) / 3, (v1.y + v2.y + v3.y) / 3, (v1.z + v2.z + v3.z) / 3 };
-}
-
-float Length(vertex_t v) {
-	return sqrt((v.x * v.x) + v.y * v.y + v.z * v.z);
 }
 
 unsigned int polygonId = 0;
@@ -55,7 +43,7 @@ NavMesh::NavMesh() {
 	to = { 0, 0, 0 };
 }
 
-polygon_t* NavMesh::CreatePolygon(vertex_t v1, vertex_t v2, vertex_t v3) {
+polygon_t* NavMesh::CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3) {
 	polygon_t* p = new polygon_t;
 	p->id = polygonId++;
 	p->center = CenterOf(v1, v2, v3);
@@ -66,11 +54,11 @@ polygon_t* NavMesh::CreatePolygon(vertex_t v1, vertex_t v2, vertex_t v3) {
 	return p;
 }
 
-float NavMesh::Sign(vertex_t p1, vertex_t p2, vertex_t p3) {
+float NavMesh::Sign(Vector3 p1, Vector3 p2, Vector3 p3) {
 	return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
 }
 
-bool NavMesh::PointInTriangle(vertex_t pt, vertex_t v1, vertex_t v2, vertex_t v3) {
+bool NavMesh::PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
 	float d1, d2, d3;
 	bool has_neg, has_pos;
 
@@ -84,7 +72,7 @@ bool NavMesh::PointInTriangle(vertex_t pt, vertex_t v1, vertex_t v2, vertex_t v3
 	return !(has_neg && has_pos);
 }
 
-bool NavMesh::PointInMesh(vertex_t pt) {
+bool NavMesh::PointInMesh(Vector3 pt) {
 	for (polygon_t* poly : mesh) {
 		if (PointInTriangle(pt, poly->vertices[0], poly->vertices[1], poly->vertices[2])) {
 			return true;
@@ -94,7 +82,7 @@ bool NavMesh::PointInMesh(vertex_t pt) {
 	return false;
 }
 
-polygon_t* NavMesh::FindPolygonAt(vertex_t pt) {
+polygon_t* NavMesh::FindPolygonAt(Vector3 pt) {
 	for (polygon_t* poly : mesh) {
 		if (PointInTriangle(pt, poly->vertices[0], poly->vertices[1], poly->vertices[2])) {
 			return poly;
@@ -118,7 +106,7 @@ bool NavMesh::IsNeighbour(polygon_t poly, polygon_t potentialNeighbour) {
 	return std::find(poly.neighbours.begin(), poly.neighbours.end(), potentialNeighbour.id) != poly.neighbours.end();
 }
 
-float NavMesh::Distance(vertex_t a, vertex_t b) {
+float NavMesh::Distance(Vector3 a, Vector3 b) {
 	return abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z);
 }
 
@@ -126,11 +114,11 @@ float NavMesh::Distance(polygon_t* a, polygon_t* b) {
 	return Distance(a->center, b->center);
 }
 
-float NavMesh::Cross(const vertex_t v1, const vertex_t v2) {
+float NavMesh::Cross(const Vector3 v1, const Vector3 v2) {
 	return v1.x * v2.z - v1.z * v2.x;
 }
 
-float NavMesh::AngleBetween(vertex_t a, vertex_t b) {
+float NavMesh::AngleBetween(Vector3 a, Vector3 b) {
 	return std::atan2(b.z - a.z, b.x - a.x);
 }
 
@@ -143,10 +131,10 @@ void NavMesh::PullString() {
 		return;
 	}
 
-	std::list<vertex_t> leftVertices;
-	std::list<vertex_t> rightVertices;
+	std::list<Vector3> leftVertices;
+	std::list<Vector3> rightVertices;
 
-	vertex_t apex = path.front()->center;
+	Vector3 apex = path.front()->center;
 
 	std::list<portal_t> portals;
 
@@ -159,16 +147,16 @@ void NavMesh::PullString() {
 		p->from = *poly;
 		p->to = *std::next(poly);
 
-		vertex_t vf1 = p->from->vertices[0];
-		vertex_t vf2 = p->from->vertices[1];
-		vertex_t vf3 = p->from->vertices[2];
+		Vector3 vf1 = p->from->vertices[0];
+		Vector3 vf2 = p->from->vertices[1];
+		Vector3 vf3 = p->from->vertices[2];
 
-		vertex_t vt1 = p->to->vertices[0];
-		vertex_t vt2 = p->to->vertices[1];
-		vertex_t vt3 = p->to->vertices[2];
+		Vector3 vt1 = p->to->vertices[0];
+		Vector3 vt2 = p->to->vertices[1];
+		Vector3 vt3 = p->to->vertices[2];
 
-		vertex_t av1 = { 0 };
-		vertex_t av2 = { 0 };
+		Vector3 av1 = { 0, 0, 0 };
+		Vector3 av2 = { 0, 0, 0 };
 
 		bool av1b = false;
 		if (vf1 == vt1 || vf1 == vt2 || vf1 == vt3)
@@ -212,7 +200,7 @@ void NavMesh::PullString() {
 		portals.push_back(*p);
 	}
 
-	vertex_t currVert = from;
+	Vector3 currVert = from;
 	
 	auto leftFrom = portals.begin();
 	auto rightFrom = portals.begin();
@@ -222,13 +210,13 @@ void NavMesh::PullString() {
 	while (!(currVert == to)) {
 		// std::cout << "Apex: " << currVert.x << ", " << currVert.y << std::endl;
 
-		vertex_t tunnelLeft = from->left;
-		vertex_t tunnelRight = from->right;
+		Vector3 tunnelLeft = from->left;
+		Vector3 tunnelRight = from->right;
 
 		for (auto portal = from; portal != portals.end(); portal++) {
 			// std::cout << "Portal: " << portal->from->id << " -> " << portal->to->id << std::endl;
-			vertex_t rightTo = portal->right;
-			vertex_t leftTo = portal->left;
+			Vector3 rightTo = portal->right;
+			Vector3 leftTo = portal->left;
 
 			float rightNext = Cross(tunnelRight - currVert, rightTo - currVert);
 			float rightCross = Cross(rightTo - currVert, tunnelLeft - currVert);
@@ -330,7 +318,7 @@ void NavMesh::PullString() {
 	}
 }
 
-std::list<vertex_t> NavigationMap::PlanPath(NavigationGridAgent* pAgent, vertex_t from, vertex_t to) {
+std::list<Vector3> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to) {
 	m_pMesh->from = from;
 	m_pMesh->to = to;
 
@@ -436,7 +424,7 @@ void NavMesh::FindNeighbours() {
 
 void NavMesh::LoadFromData(std::list<std::string> data) {
 	mesh.clear();
-	std::vector<vertex_t> vertices;
+	std::vector<Vector3> vertices;
 
 	for (std::string line : data ) {
 		std::list<std::string> tokens = Util::SplitString(line, " ");
@@ -462,7 +450,7 @@ void NavMesh::LoadFromData(std::list<std::string> data) {
 			float z = std::stof(tokens.front());
 			tokens.pop_front();
 
-			vertex_t v;
+			Vector3 v;
 			v.x = x;
 			v.y = y;
 			v.z = z;
@@ -484,7 +472,7 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	}
 
 	mesh.clear();
-	std::vector<vertex_t> vertices;
+	std::vector<Vector3> vertices;
 
 	for (std::string line; std::getline(file, line); ) {
 		std::list<std::string> tokens = Util::SplitString(line, " ");
@@ -510,7 +498,7 @@ void NavMesh::LoadFromFile(std::string mapName) {
 			float z = std::stof(tokens.front());
 			tokens.pop_front();
 
-			vertex_t v;
+			Vector3 v;
 			v.x = x;
 			v.y = y;
 			v.z = z;
@@ -521,7 +509,7 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	FindNeighbours();
 }
 
-nav_agent_t* NavMesh::AddAgent(vertex_t startPosition) {
+nav_agent_t* NavMesh::AddAgent(Vector3 startPosition) {
 	nav_agent_t* agent = new nav_agent_t();
 	agent->position = startPosition;
 	agents_.push_back(agent);
@@ -533,14 +521,14 @@ Vector2 NavMesh::GetNextStep(nav_agent_t* agent) {
 		return {0, 0};
 	}
 
-	vertex_t next = agent->path.front();
+	Vector3 next = agent->path.front();
 
 	next = (next - agent->position);
 
 	Vector2 vec = { next.x, next.z };
 	vec = vec.Normalize();
 
-	vertex_t newPosVert = (agent->path.front() - agent->position);
+	Vector3 newPosVert = (agent->path.front() - agent->position);
 	Vector2 newPos = { newPosVert.x, newPosVert.z };
 
 	if (newPos.Length() < 0.01f) {
@@ -559,7 +547,7 @@ Vector2 NavMesh::GetNextStep(nav_agent_t* agent) {
 		coll = coll - Vector2({ agent->position.x, agent->position.z });
 
 		if (coll.Length() <= 2) {
-			vertex_t vectorInOtherDirection = otherAgent->position - agent->position;
+			Vector3 vectorInOtherDirection = otherAgent->position - agent->position;
 			float dot = coll.Normalize().x * -vectorInOtherDirection.z + coll.Normalize().y * vectorInOtherDirection.x;
 			bool isLeft = dot > 0;
 
@@ -726,7 +714,7 @@ bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, NavigationCell* nod
 			return false; // Path goes out of bounds
 		}
 
-		if (!CheckCell(pAgent, {square->X, square->Y})) {
+		if (!CheckCell(pAgent, square)) {
 			return false; // Path is blocked
 		}
 
@@ -812,7 +800,7 @@ std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vec
 			c++;
 			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
 
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CheckCell(pAgent, {neighbour->X, neighbour->Y})) {
+			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CheckCell(pAgent, neighbour)) {
 				continue;
 			}
 
@@ -901,9 +889,9 @@ void NavigationCellGrid::SetCellAt(float x, float y, NavigationCell* cell) {
 std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
 	std::vector<Vector2> vecLongPath;
 	
-	std::list<vertex_t> vecPath = PlanPath(pAgent, { from.x, 0, from.y }, { to.x, 0, to.y });
+	std::list<Vector3> vecPath = PlanPath(pAgent, { from.x, 0, from.y }, { to.x, 0, to.y });
 
-	for (vertex_t vert : vecPath) {
+	for (Vector3 vert : vecPath) {
 		vecLongPath.push_back({ vert.x, vert.z });
 	}
 
@@ -925,6 +913,10 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	return vecShortPath;
 }
 Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {
+	if(pAgent->path.empty()) {
+		return vec2CurrPos;
+	}
+
 	Vector2 vec2Move = pAgent->path.front() - vec2CurrPos;
 
 	if (vec2Move.Length() > fDist) {
@@ -939,7 +931,8 @@ Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, fl
 
 	NavigationCell* pNewCell = m_pGrid->GetCellAt(vec2NewPos.x, vec2NewPos.y);
 
-	if(!CheckCell(pAgent, {pNewCell->X, pNewCell->Y})) {
+	if(!CheckCell(pAgent, pNewCell)) {
+		pAgent->path.clear();
 		// Collision if I got there!
 		return vec2CurrPos;
 	}
@@ -948,15 +941,20 @@ Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, fl
 }
 
 
-bool NavigationMap::CheckCell(NavigationGridAgent* pAgent, Vector2 vec2NewPos) {
+bool NavigationMap::CheckCell(NavigationGridAgent* pAgent, NavigationCell* pCell) {
+	NavigationCell* pCurrCell = m_pGrid->GetCellAt(pAgent->position.x, pAgent->position.z);
+
+	if(pCurrCell == pCell) {
+		return true;
+	}
+
 	for(NavigationGridAgent* pOtherAgent : m_vecAgents) {
-		if(pOtherAgent->UnitId == pAgent->UnitId) {
+		if(pOtherAgent == pAgent) {
 			continue;
 		}
-
-		Vector2 vec2OtherAgentPos = {pOtherAgent->position.x, pOtherAgent->position.y};
-		if((vec2OtherAgentPos - vec2NewPos).Length() < 100) {
-			// Collision if I got there!
+		Vector3 vec3NewPos = Vector3(pCell->X, 0, pCell->Y);
+		if((pOtherAgent->position - vec3NewPos).Length() < 60
+			&& (pOtherAgent->position - pAgent->position).Length() > 60) {
 			return false;
 		}
 	}

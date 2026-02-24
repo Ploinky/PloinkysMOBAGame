@@ -10,11 +10,6 @@ CRenderer::~CRenderer() {
 	for (auto model_it : models_) {
 		delete model_it.second;
 	}
-
-#ifdef NAV_DEBUG
-	((ID3D11Buffer*) m_pNavGridIndexBuffer.ptr)->Release();
-	((ID3D11Buffer*) m_pNavGridVertexBuffer.ptr)->Release();
-#endif
 }
 
 CRenderer::CRenderer(IGraphicsEngine* pGraphicsEngine) {
@@ -541,12 +536,10 @@ void CRenderer::RenderNavGrid(NavigationCellGrid* pNavGrid) {
 			continue;
 		}
 		ModelConstants_t modelData{};
-		DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationRollPitchYaw(
-			DirectX::XMConvertToRadians(0),
-			DirectX::XMConvertToRadians(0),
-			DirectX::XMConvertToRadians(0));
-		DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(pCell->X, 0, pCell->Y);
-		DirectX::XMStoreFloat4x4(&modelData.modelMatrix, DirectX::XMMatrixTranspose(rotMat * transMat));
+		
+		mat_t rotMat = PMathMatRollPitchYaw(ToRadians(0), ToRadians(0), ToRadians(0));
+		mat_t transMat = PMathMatTranslation(pCell->X, 0, pCell->Y);
+		modelData.modelMatrix = rotMat * transMat;
 		m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
 		m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
 

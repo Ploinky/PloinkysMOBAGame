@@ -6,27 +6,16 @@
 #include <list>
 #include "pmg_physics.h"
 #include <stdint.h>
+#include "common/util/frame-timer.h"
 
-typedef struct {
-	float x;
-	float y;
-	float z;
-} vertex_t;
-
-bool operator==(const vertex_t& lhs, const vertex_t& rhs);
-
-vertex_t operator-(const vertex_t& lhs, const vertex_t& rhs);
-
-vertex_t CenterOf(vertex_t v1, vertex_t v2, vertex_t v3);
-
-float Length(vertex_t v);
+Vector3 CenterOf(Vector3 v1, Vector3 v2, Vector3 v3);
 
 extern unsigned int polygonId;
 
 typedef struct {
 	unsigned int id;
-	vertex_t center;
-	vertex_t vertices[3];
+	Vector3 center;
+	Vector3 vertices[3];
 	std::vector<unsigned int> neighbours;
 	float globalValue;
 	float localValue;
@@ -40,9 +29,9 @@ bool operator==(const polygon_t& lhs, const polygon_t& rhs);
 bool operator!=(const polygon_t& lhs, const polygon_t& rhs);
 
 typedef struct {
-	std::list<vertex_t> path;
-	vertex_t target;
-	vertex_t position;
+	std::list<Vector3> path;
+	Vector3 target;
+	Vector3 position;
 } nav_agent_t;
 
 class NavigationMap;
@@ -50,8 +39,8 @@ class NavigationMap;
 typedef struct {
 	uint64_t UnitId;
 	std::vector<Vector2> path;
-	vertex_t target;
-	vertex_t position;
+	Vector3 target;
+	Vector3 position;
 	bool IgnoreCollision;
 } NavigationGridAgent;
 
@@ -59,30 +48,30 @@ class NavMesh {
 public:
 	std::vector<polygon_t*> mesh;
 	std::list<polygon_t*> path;
-	std::list<vertex_t> movePath;
-	vertex_t from;
-	vertex_t to;
+	std::list<Vector3> movePath;
+	Vector3 from;
+	Vector3 to;
 
 	NavMesh();
 	void LoadFromFile(std::string mapName);
 	void LoadFromData(std::list<std::string> data);
-	bool PointInMesh(vertex_t pt);
+	bool PointInMesh(Vector3 pt);
 
-	nav_agent_t* AddAgent(vertex_t startPosition);
+	nav_agent_t* AddAgent(Vector3 startPosition);
 	Vector2 GetNextStep(nav_agent_t* agent);
 
 	void FindNeighbours();
 	void PullString();
-	polygon_t* FindPolygonAt(vertex_t pt);
+	polygon_t* FindPolygonAt(Vector3 pt);
 	polygon_t* GetById(unsigned int id);
-	polygon_t* CreatePolygon(vertex_t v1, vertex_t v2, vertex_t v3);
-	float Sign(vertex_t p1, vertex_t p2, vertex_t p3);
-	bool PointInTriangle(vertex_t pt, vertex_t v1, vertex_t v2, vertex_t v3);
+	polygon_t* CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3);
+	float Sign(Vector3 p1, Vector3 p2, Vector3 p3);
+	bool PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3);
 	bool IsNeighbour(polygon_t poly, polygon_t potentialNeighbour);
-	float Distance(vertex_t a, vertex_t b);
+	float Distance(Vector3 a, Vector3 b);
 	float Distance(polygon_t* a, polygon_t* b);
-	float Cross(const vertex_t v1, const vertex_t v2);
-	float AngleBetween(vertex_t a, vertex_t b);
+	float Cross(const Vector3 v1, const Vector3 v2);
+	float AngleBetween(Vector3 a, Vector3 b);
 
 	std::vector<nav_agent_t*> agents_;
 };
@@ -90,8 +79,8 @@ public:
 typedef struct {
 	polygon_t* from;
 	polygon_t* to;
-	vertex_t left;
-	vertex_t right;
+	Vector3 left;
+	Vector3 right;
 } portal_t;
 
 
@@ -150,13 +139,13 @@ public:
 	bool IsClearPath(NavigationGridAgent* pAgent, NavigationCell* node1, const NavigationCell* node2);
 	Vector2 Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist);
 	NavigationGridAgent* CreateAgent();
-	bool CheckCell(NavigationGridAgent* pAgent, Vector2 vec2NewPos);
+	bool CheckCell(NavigationGridAgent* pAgent, NavigationCell* pCell);
 
 	NavigationCellGrid* m_pGrid;
 	NavMesh* m_pMesh;
 
 private:
-	std::list<vertex_t> PlanPath(NavigationGridAgent* pAgent, vertex_t from, vertex_t to);
+	std::list<Vector3> PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to);
 
 	std::vector<NavigationGridAgent*> m_vecAgents;
 };

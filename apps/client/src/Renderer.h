@@ -18,6 +18,7 @@
 #include "core/rendering/render-command.h"
 #include "game/client-game-state.h"
 
+#define NAV_DEBUG
 class ParticleEffect;
 class ParticleEmitter;
 
