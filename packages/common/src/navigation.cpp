@@ -945,7 +945,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	Vector2 position = start;
 
 	Collision_t collision = GetObstruction(position, end, nullptr);
-	if (collision.pAgent != nullptr) {
+	if (collision.pAgent != nullptr && collision.position != start) {
 		position = collision.position;
 		vecShortPath.push_back(position);
 	}
@@ -953,8 +953,8 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	while (collision.pAgent != nullptr) {
 		Vector2 vec2OtherPos = { collision.pAgent->position.x, collision.pAgent->position.z };
 		float fCurrentAngle = CalculateAngle(vec2OtherPos, position);
-		float fNextAngle = fCurrentAngle + 10;
-		Vector2 dir = CalculateDirectionVector(vec2OtherPos, fNextAngle).ScaleToLength(COLLISION_DIST + 10);
+		float fNextAngle = fCurrentAngle + 30;
+		Vector2 dir = CalculateDirectionVector(vec2OtherPos, fNextAngle).ScaleToLength(COLLISION_DIST + 1);
 		Vector2 next = vec2OtherPos + dir;
 
 		Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
