@@ -973,7 +973,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		line.End = end;
 		Circle circle;
 		circle.position = next;
-		circle.radius = 200;
+		circle.radius = 25;
 		if (GetObstruction(position, end, nullptr).pAgent == nullptr) {
 			// back on track?
 			break;
