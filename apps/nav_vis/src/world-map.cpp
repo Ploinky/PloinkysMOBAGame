@@ -69,16 +69,15 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			}
 
 			// draw the player
-			NavigationCell* cell = pSharedData->pMap->m_pGrid->GetCellAt(pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y);
 			RECT rect;
-			rect.left = cell->X /SCALING_FACTOR;
-			rect.right = (cell->X /SCALING_FACTOR) + 5;
-			rect.bottom = -cell->Y /SCALING_FACTOR;
-			rect.top = (-cell->Y /SCALING_FACTOR) + 5;
+			rect.left = pSharedData->vec2CurrPos.x /SCALING_FACTOR - 2;
+			rect.right = (pSharedData->vec2CurrPos.x /SCALING_FACTOR) + 2;
+			rect.bottom = -pSharedData->vec2CurrPos.y /SCALING_FACTOR - 2;
+			rect.top = (-pSharedData->vec2CurrPos.y /SCALING_FACTOR) + 2;
 			FillRect(hdcMem, &rect, hBrushBlue);
 
 			// draw the path
-			if (pSharedData->pAgent->path.size() > 1) {
+			if (pSharedData->pAgent->path.size() > 0) {
 				SelectObject(hdcMem, hPen);
 				POINT p;
 				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);

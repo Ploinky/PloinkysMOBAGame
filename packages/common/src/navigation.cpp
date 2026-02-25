@@ -958,9 +958,14 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		Vector2 next = vec2OtherPos + dir;
 
 		Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
+		Collision_t newCollisionToEnd = GetObstruction(position, end, nullptr);
 		if (newCollision.pAgent != nullptr) {
 			collision = newCollision;
 			position = newCollision.position;
+			vecShortPath.push_back(position);
+		} else  if (newCollisionToEnd.pAgent != nullptr && newCollisionToEnd.pAgent != collision.pAgent) {
+			collision = newCollisionToEnd;
+			position = newCollisionToEnd.position;
 			vecShortPath.push_back(position);
 		}
 		else {
@@ -1007,7 +1012,12 @@ Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, fl
 	Vector2 vec2NewPos = vec2CurrPos + vec2Move;
 
 	if (CompareFloat((vec2NewPos - pAgent->path.front()).Length(), 0)) {
-		pAgent->path = GetPath(pAgent, vec2NewPos, { pAgent->target.x, pAgent->target.z });
+		
+		std::vector<Vector2> path;
+		for(int i = 1; i < pAgent->path.size(); i++) {
+			path.push_back(pAgent->path.at(i));
+		}
+		pAgent->path = path;
 	}
 
 	NavigationCell* pNewCell = m_pGrid->GetCellAt(vec2NewPos.x, vec2NewPos.y);
