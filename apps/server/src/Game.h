@@ -82,7 +82,6 @@ public:
 
 
     virtual void Update(float dt) override;
-    NavigationCellGrid* m_navGrid;
     NavMesh* m_navMesh;
     NavigationMap* m_navMap;
 

@@ -33,7 +33,6 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	data.pAgent = new NavigationGridAgent();
 	data.pAgent->position = { 1000, 0, -1000 };
 	data.pMap->m_pMesh->LoadFromFile("map1");
-	data.pMap->m_pGrid = new NavigationCellGrid(data.pMap->m_pMesh);
 	NavigationGridAgent* agt = data.pMap->CreateAgent();
 	agt->position = { 1500, 0, -1500 };
 	agt->UnitId = 0;

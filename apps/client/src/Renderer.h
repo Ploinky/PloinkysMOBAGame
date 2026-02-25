@@ -79,10 +79,6 @@ public:
 
     void RenderChat(std::vector<std::string> vecMsgs);
 
-#ifdef NAV_DEBUG
-    // Renders the navigation cell grid over the map
-    void RenderNavGrid(NavigationCellGrid* grid);
-#endif
     void QueueParticle(ParticleEmitter* pParticleEmitter);
     void Submit(RenderCommand_t command);
 

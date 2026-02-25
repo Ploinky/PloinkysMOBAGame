@@ -85,63 +85,13 @@ typedef struct {
 
 
 
-// =============== GRID NAVIGATION ===============
-class NavigationCell {
-public:
-	float X;
-	float Y;
-	bool IsWalkable;
-	bool IsOpen;
-	uint64_t UnitId;
-	int Index;
-	std::vector<int> Neighbours;
-
-	// ==== Navigation ====
-	float GlobalValue;
-	float LocalValue;
-	int Parent;
-	bool Done;
-
-	void CalculateNeighbours(int gridWidth, int gridHeight, int cellWidth, int cellHeight, int gridOffsetX, int gridOffsetY);
-};
-
-class NavigationCellGrid {
-public:
-	NavigationCellGrid(NavMesh* navMesh);
-
-
-	NavigationCell* GetCellAt(float x, float y);
-	void SetCellAt(float x, float y, NavigationCell* cell);
-	void Reset();
-
-	int GridWidth;
-	int GridHeight;
-	int GridCenterX;
-	int GridCenterY;
-	int CellWidth;
-	int CellHeight;
-	int CellCountX;
-	int CellCountY;
-	NavigationCell** Cells;
-
-	float Distance(NavigationCell* a, NavigationCell* b);
-	float Heuristic(NavigationCell* a, NavigationCell* b, NavigationCell* c);
-	float Cross(const NavigationCell* v1, const NavigationCell* v2, const NavigationCell* v3);
-	NavigationCell* currCell;
-};
-
 
 class NavigationMap {
 public:
 	std::vector<Vector2> GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen);
-	bool IsClearPath(NavigationGridAgent* pAgent, NavigationCell* node1, const NavigationCell* node2);
 	Vector2 Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist);
 	NavigationGridAgent* CreateAgent();
-	bool CheckCell(NavigationGridAgent* pAgent, NavigationCell* pCell);
 
-	NavigationCellGrid* m_pGrid;
 	NavMesh* m_pMesh;
 
 	std::vector<NavigationGridAgent*> m_vecAgents;

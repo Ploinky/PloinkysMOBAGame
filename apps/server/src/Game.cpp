@@ -38,9 +38,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_navMesh = new NavMesh();
     m_navMesh->LoadFromData(assetManager->LoadPlainFile(handler_->GetGameData().mapMapData.at("map1").navMeshDataFile));
 
-    m_navGrid = new NavigationCellGrid(m_navMesh);
     m_navMap = new NavigationMap();
-    m_navMap->m_pGrid = m_navGrid;
     m_navMap->m_pMesh = m_navMesh;
 
 
@@ -246,21 +244,6 @@ void Client::Update(float dt) {
     // first lets see what the clients have to say
     networkManager_->Update();
 
-    for(auto index = 0; index < m_navGrid->CellCountX * m_navGrid->CellCountY; index++) {
-        m_navGrid->Cells[index]->IsOpen = true;
-    }
-
-    for(CTransformComponent& transform : GameState.GetAllTransform()) {
-        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z - 25)->UnitId = transform.idUnit;
-        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z - 25)->UnitId = transform.idUnit;
-        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(transform.GetPosition().x + 25, transform.GetPosition().z + 25)->UnitId = transform.idUnit;
-        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(transform.GetPosition().x - 25, transform.GetPosition().z + 25)->UnitId = transform.idUnit;
-    }
-    
     for(ISystem* system : m_vecSystems) {
         system->Update(&GameState, TICKRATE);
     }

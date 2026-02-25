@@ -19,9 +19,6 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     m_navMesh = new NavMesh();
     m_navMesh->LoadFromData(handler->GetAssetManager()->LoadPlainFile(m_map.navMeshDataFile));
 
-    // Convert the navigation mesh to a cell grid we can actually use
-    m_navGrid = new NavigationCellGrid(m_navMesh);
-
     // NetworkManager is persistent from the lobby scene
     net_manager_ = server;
 
@@ -417,29 +414,6 @@ void Game::Render(CRenderer* renderer) {
 }
 
 void Game::RenderGameUI(CRenderer* renderer) {
-#ifdef NAV_DEBUG
-    for (int c = 0; c < m_navGrid->CellCountX * m_navGrid->CellCountY; c++) {
-        m_navGrid->Cells[c]->IsOpen = true;
-    }
-    m_navGrid->Reset();
-    for (UnitId unit : m_gameState.vecUnits) {
-        TransformComponent_t* pTransform = m_gameState.GetTransform(unit);
-
-        if (!pTransform) {
-            continue;   
-        }
-        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z - 25)->UnitId = unit;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z - 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z - 25)->UnitId = unit;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x + 25, pTransform->vec3Position.z + 25)->UnitId = unit;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z + 25)->IsOpen = false;
-        m_navGrid->GetCellAt(pTransform->vec3Position.x - 25, pTransform->vec3Position.z + 25)->UnitId = unit;
-    }
-    renderer->RenderNavGrid(m_navGrid);
-#endif
-
     for (const HealthComponent_t& health : m_gameState.GetAllHealth()) {
        double health_bar_height = 5;
 

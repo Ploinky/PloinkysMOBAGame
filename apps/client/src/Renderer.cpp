@@ -522,37 +522,6 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 	}
 }
 
-#ifdef NAV_DEBUG
-void CRenderer::RenderNavGrid(NavigationCellGrid* pNavGrid) {
-	FrameConstants_t data{};
-	data.cameraMatrix = cameraMatrix;
-	data.projMatrix = m_projMatrix;
-	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
-	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
-
-	for (int i = 0; i < pNavGrid->CellCountX * pNavGrid->CellCountY; i++) {
-		NavigationCell* pCell = pNavGrid->Cells[i];
-		if (pCell->IsWalkable && pCell->IsOpen) {
-			continue;
-		}
-		ModelConstants_t modelData{};
-		
-		mat_t rotMat = PMathMatRollPitchYaw(ToRadians(0), ToRadians(0), ToRadians(0));
-		mat_t transMat = PMathMatTranslation(pCell->X, 0, pCell->Y);
-		modelData.modelMatrix = rotMat * transMat;
-		m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
-		m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
-
-		m_pGraphicsEngine->BindShaderProgram(m_hFlatUnlitShaderProgram);
-
-		m_pGraphicsEngine->SetVertexBuffer(0, m_pNavGridVertexBuffer, sizeof(FlatUnlitShaderVertex_t), 0);
-		m_pGraphicsEngine->SetIndexBuffer(m_pNavGridIndexBuffer);
-
-		m_pGraphicsEngine->DrawIndexed(6);
-	}
-}
-#endif
-
 void CRenderer::RenderChat(std::vector<std::string> vecMsgs) {
 	if (vecMsgs.size() == 0) {
 		return;
