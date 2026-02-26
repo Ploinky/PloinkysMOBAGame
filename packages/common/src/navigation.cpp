@@ -505,64 +505,6 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	FindNeighbours();
 }
 
-nav_agent_t* NavMesh::AddAgent(Vector3 startPosition) {
-	nav_agent_t* agent = new nav_agent_t();
-	agent->position = startPosition;
-	agents_.push_back(agent);
-	return agent;
-}
-
-Vector2 NavMesh::GetNextStep(nav_agent_t* agent) {
-	if (agent->path.empty()) {
-		return {0, 0};
-	}
-
-	Vector3 next = agent->path.front();
-
-	next = (next - agent->position);
-
-	Vector2 vec = { next.x, next.z };
-	vec = vec.Normalize();
-
-	Vector3 newPosVert = (agent->path.front() - agent->position);
-	Vector2 newPos = { newPosVert.x, newPosVert.z };
-
-	if (newPos.Length() < 0.01f) {
-		agent->path.pop_front();
-	}
-
-	for (auto otherAgent : agents_) {
-		if (otherAgent == agent) {
-			// pls do not avoid ourselves
-			continue;
-		}
-		Vector2 coll = TestCollision(
-			Line({ agent->position.x, agent->position.z }, { agent->position.x + vec.x * 5, agent->position.z + vec.y * 5 }),
-			Circle({ otherAgent->position.x, otherAgent->position.z }, 0.5f));
-
-		coll = coll - Vector2({ agent->position.x, agent->position.z });
-
-		if (coll.Length() <= 2) {
-			Vector3 vectorInOtherDirection = otherAgent->position - agent->position;
-			float dot = coll.Normalize().x * -vectorInOtherDirection.z + coll.Normalize().y * vectorInOtherDirection.x;
-			bool isLeft = dot > 0;
-
-			Vector2 resultVector = isLeft ? Vector2(-vectorInOtherDirection.z, vectorInOtherDirection.x) : Vector2(vectorInOtherDirection.z, -vectorInOtherDirection.x);
-			resultVector = resultVector.Normalize() * (1 - (coll.Length() / 2));
-			vec = vec.Normalize() * (coll.Length() / 2);
-
-			resultVector = (resultVector + vec).Normalize();
-
-			return { resultVector.x, resultVector.y };
-		}
-	}
-
-	return { 
-		(newPos.Length() < 1 ? newPos.x : vec.x),
-		(newPos.Length() < 1 ? newPos.y : vec.y)
-	};
-}
-
 std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
 	std::vector<Vector2> vecLongPath;
 	
@@ -590,7 +532,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		NavigationGridAgent* pAgent;
 		Vector2 position;
 	};
-	auto GetObstruction = [this, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent) -> Collision_t {
+	auto GetObstruction1 = [this, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
 		NavigationGridAgent* pCollAg= nullptr;
 		float dist = std::numeric_limits<float>::max();
 		struct Collision_t detected;
@@ -607,7 +549,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 			line.End = vec2Destination;
 			Circle circle;
 			circle.position = { pOtherAgent->position.x, pOtherAgent->position.z };
-			circle.radius = COLLISION_DIST;
+			circle.radius = collDist;
 
 			Vector2 coll = TestCollision(line, circle);
 
@@ -618,6 +560,9 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 			}
 		}
 		return detected;
+	};
+	auto GetObstruction = [this, end, GetObstruction1](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent) -> Collision_t {
+		return GetObstruction1(vec2Position, vec2Destination, pIgnoreAgent, COLLISION_DIST);
 	};
 
 	int nMaxIter = 100;
@@ -666,6 +611,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		circle.radius = 25;
 		if (GetObstruction(position, end, nullptr).pAgent == nullptr) {
 			// back on track?
+			vecShortPath.push_back(end);
 			break;
 		}
 		
@@ -676,12 +622,25 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		}
 	}
 
+	std::vector<Vector2> vec2ShortPathSmoothed = {};
+	Vector2 vec2Anchor = start;
+	Vector2 vec2Previous = start;
+	for(Vector2 vec : vecShortPath) {
+		Collision_t coll = GetObstruction1(vec2Anchor, vec, nullptr, COLLISION_DIST - 1);
+		if(coll.pAgent != nullptr) {
+			vec2ShortPathSmoothed.push_back(vec2Previous);
+			vec2Anchor = vec2Previous;
+		} else {
+			vec2Previous = vec;
+		}
+	}
+
 	for (Vector2 vec : vecLongPath) {
-		vecShortPath.push_back(vec);
+		vec2ShortPathSmoothed.push_back(vec);
 	}
 
 
-	return vecShortPath;
+	return vec2ShortPathSmoothed;
 }
 Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {
 	if(pAgent->path.empty()) {

@@ -28,12 +28,6 @@ bool operator==(const polygon_t& lhs, const polygon_t& rhs);
 
 bool operator!=(const polygon_t& lhs, const polygon_t& rhs);
 
-typedef struct {
-	std::list<Vector3> path;
-	Vector3 target;
-	Vector3 position;
-} nav_agent_t;
-
 class NavigationMap;
 
 typedef struct {
@@ -57,9 +51,6 @@ public:
 	void LoadFromData(std::list<std::string> data);
 	bool PointInMesh(Vector3 pt);
 
-	nav_agent_t* AddAgent(Vector3 startPosition);
-	Vector2 GetNextStep(nav_agent_t* agent);
-
 	void FindNeighbours();
 	void PullString();
 	polygon_t* FindPolygonAt(Vector3 pt);
@@ -72,8 +63,6 @@ public:
 	float Distance(polygon_t* a, polygon_t* b);
 	float Cross(const Vector3 v1, const Vector3 v2);
 	float AngleBetween(Vector3 a, Vector3 b);
-
-	std::vector<nav_agent_t*> agents_;
 };
 
 typedef struct {
