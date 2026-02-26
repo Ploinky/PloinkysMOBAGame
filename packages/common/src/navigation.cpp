@@ -583,7 +583,9 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	if (start == end) {
 		return {};
 	}
-#define COLLISION_DIST 25
+#define COLLISION_DIST 50
+#define STEP_SIZE 10
+
 	struct Collision_t {
 		NavigationGridAgent* pAgent;
 		Vector2 position;
@@ -617,34 +619,40 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		}
 		return detected;
 	};
+
 	int nMaxIter = 100;
 	int nIter = 0;
+	
 	Vector2 position = start;
-
 	Collision_t collision = GetObstruction(position, end, nullptr);
+	NavigationGridAgent* pTracing = nullptr;
+
 	if (collision.pAgent != nullptr && collision.position != start) {
 		position = collision.position;
+		pTracing = collision.pAgent;
 		vecShortPath.push_back(position);
 	}
 
-	while (collision.pAgent != nullptr) {
+	while (pTracing != nullptr) {
 		Vector2 vec2OtherPos = { collision.pAgent->position.x, collision.pAgent->position.z };
-		float fCurrentAngle = CalculateAngle(vec2OtherPos, position);
-		float fNextAngle = fCurrentAngle + 30;
-		Vector2 dir = CalculateDirectionVector(vec2OtherPos, fNextAngle).ScaleToLength(COLLISION_DIST + 1);
-		Vector2 next = vec2OtherPos + dir;
+		Vector2 vec2CircleCenterToAgent = vec2OtherPos - position;
+		Vector2 vec2Tangent = {-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x};
+		vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
+		Vector2 next = position + vec2Tangent;
 
 		Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
 		Collision_t newCollisionToEnd = GetObstruction(position, end, nullptr);
 		if (newCollision.pAgent != nullptr) {
+			pTracing = newCollision.pAgent;
 			collision = newCollision;
 			position = newCollision.position;
 			vecShortPath.push_back(position);
-		} else  if (newCollisionToEnd.pAgent != nullptr && newCollisionToEnd.pAgent != collision.pAgent) {
-			collision = newCollisionToEnd;
-			position = newCollisionToEnd.position;
-			vecShortPath.push_back(position);
 		}
+		//  else  if (newCollisionToEnd.pAgent != nullptr && newCollisionToEnd.pAgent != collision.pAgent) {
+		// 	collision = newCollisionToEnd;
+		// 	position = newCollisionToEnd.position;
+		// 	vecShortPath.push_back(position);
+		// }
 		else {
 			position = next;
 			vecShortPath.push_back(position);
@@ -689,7 +697,6 @@ Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, fl
 	Vector2 vec2NewPos = vec2CurrPos + vec2Move;
 
 	if (CompareFloat((vec2NewPos - pAgent->path.front()).Length(), 0)) {
-		
 		std::vector<Vector2> path;
 		for(int i = 1; i < pAgent->path.size(); i++) {
 			path.push_back(pAgent->path.at(i));

@@ -14,6 +14,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				data.vec2CurrPos = move;
 				InvalidateRect(hWnd, nullptr, true);
 			}
+			if (wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+			}
 			return 0;
 		}
 		case WM_CLOSE: {
@@ -37,10 +40,10 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	agt->position = { 1500, 0, -1500 };
 	agt->UnitId = 0;
 	NavigationGridAgent* agt1 = data.pMap->CreateAgent();
-	agt1->position = { 1800, 0, -1400 };
+	agt1->position = { 1525, 0, -1475 };
 	agt1->UnitId = 1;
 	NavigationGridAgent* agt2 = data.pMap->CreateAgent();
-	agt2->position = { 1200, 0, -1400 };
+	agt2->position = { 1530, 0, -1445 };
 	agt2->UnitId = 2;
 	NavigationGridAgent* agt3 = data.pMap->CreateAgent();
 	agt3->position = { 2000, 0, -900 };
