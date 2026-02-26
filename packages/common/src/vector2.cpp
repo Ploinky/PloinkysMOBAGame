@@ -1,5 +1,5 @@
-#include "vector2.h"
-#include "calculation.h"
+#include "common/vector2.h"
+#include "common/calculation.h"
 #include <math.h>
 
 Vector2::Vector2() {
@@ -21,6 +21,10 @@ Vector2 Vector2::operator-(const Vector2& other) const {
 
 bool Vector2::operator==(const Vector2& other) const {
 	return CompareFloat(x, other.x) && CompareFloat(y, other.y);
+}
+
+bool Vector2::operator!=(const Vector2& other) const {
+	return !CompareFloat(x, other.x) || !CompareFloat(y, other.y);
 }
 
 Vector2 Vector2::operator*(float scale) const {

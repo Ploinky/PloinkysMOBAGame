@@ -104,3 +104,36 @@ Vector2 TestCollision(Line line, Circle circle) {
 
     return { 0, 0 };
 }
+
+// with thanks to Paul Bourke
+// https://web.archive.org/web/20060911055655/http://local.wasp.uwa.edu.au/%7Epbourke/geometry/lineline2d/
+std::optional<Vector2> TestCollision(Line a, Line b) {
+    float x1 = a.Start.x;
+    float y1 = a.Start.y;
+    float x2 = a.End.x;
+    float y2 = a.End.y;
+    float x3 = b.Start.x;
+    float y3 = b.Start.y;
+    float x4 = b.End.x;
+    float y4 = b.End.y;
+
+    float denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+    if(denominator == 0) {
+        return std::nullopt;
+    }
+
+    
+    float ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+    
+    
+    float ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+    if(ua > 1 || ua < 0 || ub > 1 || ub < 0) {
+        return std::nullopt;
+    }
+    float x = x1 + ua * (x2 - x1);
+    float y = y1 + ua * (y2 - y1);
+
+
+    return std::make_optional<Vector2>({x, y});
+}

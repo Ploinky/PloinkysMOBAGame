@@ -4,14 +4,14 @@
 #include <algorithm>
 #include <limits>
 #include <list>
-#include "navigation.h"
-#include "util.h"
+#include "common/navigation.h"
+#include "common/util.h"
 #include <fstream>
 #include <cstring>
 #include <climits>
 #include <cfloat>
 #include <cmath>
-#include "pmg_physics.h"
+#include "common/pmg_physics.h"
 #include "common/PMG_Common.h"
 #include <queue>
 
@@ -567,54 +567,82 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 
 	int nMaxIter = 100;
 	int nIter = 0;
+	vecShortPath.push_back(start);
 	
 	Vector2 position = start;
+	Vector2 initialColl = position;
 	Collision_t collision = GetObstruction(position, end, nullptr);
 	NavigationGridAgent* pTracing = nullptr;
 
 	if (collision.pAgent != nullptr && collision.position != start) {
 		position = collision.position;
 		pTracing = collision.pAgent;
+		initialColl = position;
 		vecShortPath.push_back(position);
 	}
 
-	while (pTracing != nullptr) {
-		Vector2 vec2OtherPos = { collision.pAgent->position.x, collision.pAgent->position.z };
-		Vector2 vec2CircleCenterToAgent = vec2OtherPos - position;
-		Vector2 vec2Tangent = {-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x};
-		vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
-		Vector2 next = position + vec2Tangent;
+	while (position != end) {
+		// tracing
+		if (pTracing != nullptr) {
+			Vector2 vec2OtherPos = { pTracing->position.x, pTracing->position.z };
+			Vector2 vec2CircleCenterToAgent = vec2OtherPos - position;
+			Vector2 vec2Tangent = {-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x};
+			vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
+			Vector2 next = position + vec2Tangent;
 
-		Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
-		Collision_t newCollisionToEnd = GetObstruction(position, end, nullptr);
-		if (newCollision.pAgent != nullptr) {
-			pTracing = newCollision.pAgent;
-			collision = newCollision;
-			position = newCollision.position;
-			vecShortPath.push_back(position);
-		}
-		//  else  if (newCollisionToEnd.pAgent != nullptr && newCollisionToEnd.pAgent != collision.pAgent) {
-		// 	collision = newCollisionToEnd;
-		// 	position = newCollisionToEnd.position;
-		// 	vecShortPath.push_back(position);
-		// }
-		else {
-			position = next;
-			vecShortPath.push_back(position);
-		}
+			
+			Line line;
+			line.Start = start;
+			line.End = end;
+			Line otherLine;
+			otherLine.Start = position;
+			otherLine.End = next;
+			std::optional<Vector2> vec2GoalLineIntersect = TestCollision(line, otherLine);
 
-		Line line;
-		line.Start = start;
-		line.End = end;
-		Circle circle;
-		circle.position = next;
-		circle.radius = 25;
-		if (GetObstruction(position, end, nullptr).pAgent == nullptr) {
-			// back on track?
-			vecShortPath.push_back(end);
-			break;
+			Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
+
+			bool bIsValidIntersect = vec2GoalLineIntersect.has_value()
+				&& (end - vec2GoalLineIntersect.value()).Length() - (end - initialColl).Length() < -1;
+
+			if(bIsValidIntersect && newCollision.pAgent != nullptr) {
+				if((vec2GoalLineIntersect.value() - position).Length() < (newCollision.position - position).Length()) {
+					// back on track?
+					pTracing = nullptr;
+					vecShortPath.push_back(vec2GoalLineIntersect.value());
+					position = vec2GoalLineIntersect.value();
+				} else {
+					pTracing = newCollision.pAgent;
+					collision = newCollision;
+					position = newCollision.position;
+					vecShortPath.push_back(position);
+				}
+			} else if (newCollision.pAgent != nullptr) {
+				pTracing = newCollision.pAgent;
+				collision = newCollision;
+				position = newCollision.position;
+				vecShortPath.push_back(position);
+			} else if (bIsValidIntersect) {
+				// back on track?
+				pTracing = nullptr;
+				vecShortPath.push_back(vec2GoalLineIntersect.value());
+				position = vec2GoalLineIntersect.value();
+			} else {
+				position = next;
+				vecShortPath.push_back(position);
+			}
+
 		}
-		
+		// not tracing
+		else if(pTracing == nullptr) {
+			Collision_t newCollision = GetObstruction(position, end, nullptr);
+			if(newCollision.pAgent) {
+				position = newCollision.position;
+				pTracing = newCollision.pAgent;
+				collision = newCollision;
+				initialColl = collision.position;
+				vecShortPath.push_back(position);
+			}
+		}
 
 		nIter++;
 		if (nIter >= nMaxIter) {
@@ -622,24 +650,43 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		}
 	}
 
+	vecShortPath.push_back(end);
 	std::vector<Vector2> vec2ShortPathSmoothed = {};
 	Vector2 vec2Anchor = start;
 	Vector2 vec2Previous = start;
-	for(Vector2 vec : vecShortPath) {
-		Collision_t coll = GetObstruction1(vec2Anchor, vec, nullptr, COLLISION_DIST - 1);
-		if(coll.pAgent != nullptr) {
-			vec2ShortPathSmoothed.push_back(vec2Previous);
-			vec2Anchor = vec2Previous;
-		} else {
-			vec2Previous = vec;
+	for(int i = 0; i < vecShortPath.size(); ) {
+		vec2Anchor = vecShortPath.at(i);
+		int next = i + 1;
+
+		for(int j = next; j < vecShortPath.size(); j++) {
+			Vector2 vec = vecShortPath.at(j);
+			Collision_t coll = GetObstruction1(vec2Anchor, vec, nullptr, COLLISION_DIST - 1);
+			if(coll.pAgent == nullptr) {
+				next = j;
+			}
 		}
+
+		if(i == vecShortPath.size() - 1) {
+			break;
+		}
+		vec2ShortPathSmoothed.push_back(vecShortPath.at(next));
+		if(i == next) {
+			break;
+		}
+
+		i = next;
 	}
 
 	for (Vector2 vec : vecLongPath) {
 		vec2ShortPathSmoothed.push_back(vec);
 	}
 
-
+	for (Vector2 vec : vecLongPath) {
+		vecShortPath.push_back(vec);
+	}
+	
+	
+	// return vecShortPath;
 	return vec2ShortPathSmoothed;
 }
 Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {

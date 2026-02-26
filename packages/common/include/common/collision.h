@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "ray.h"
 #include "sphere.h"
 #include "circle.h"
@@ -11,3 +13,4 @@ bool TestCollision(Ray ray, Sphere sphere);
 bool TestCollision(Sphere sphere_a, Sphere sphere_b);
 bool TestCollision(Circle circle_a, Circle circle_b);
 Vector2 TestCollision(Line line, Circle circle);
+std::optional<Vector2> TestCollision(Line a, Line b);

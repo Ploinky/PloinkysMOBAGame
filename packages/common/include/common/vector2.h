@@ -14,6 +14,8 @@ public:
 
 	bool operator==(const Vector2& other) const;
 
+	bool operator!=(const Vector2& other) const;
+
 	Vector2 operator*(float scale) const;
 
 	float operator*(const Vector2& other) const;
