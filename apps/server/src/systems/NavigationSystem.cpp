@@ -64,6 +64,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
+            pGameState->VecEvent.emplace(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
@@ -74,6 +75,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
+            pGameState->VecEvent.emplace(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
@@ -86,6 +88,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
+            pGameState->VecEvent.emplace(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             return;

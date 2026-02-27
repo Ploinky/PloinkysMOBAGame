@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
-#include <vector>
+#include <deque>
 
 enum class EAiType {
     MINION
@@ -13,5 +13,5 @@ public:
     
     EAiType eType;
     // minion
-    std::vector<Vector3> vecWaypoints;
+    std::deque<Vector3> vecWaypoints;
 };

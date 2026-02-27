@@ -11,6 +11,7 @@
 #include "events/move-attempt-event.h"
 #include "events/move-event.h"
 #include "events/move-intention-event.h"
+#include "events/nav-dest-event.h"
 #include "events/pick-up-attempt-event.h"
 #include "events/picked-up-event.h"
 #include "events/respawn-event.h"

@@ -11,5 +11,5 @@ public:
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
-    void OnMove(CServerGameState* pGameState, CMoveEvent* pMoveEvent);
+    void OnNavDest(CServerGameState* pGameState, CNavDestEvent* pNavDestEvt);
 };
