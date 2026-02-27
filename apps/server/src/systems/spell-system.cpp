@@ -65,7 +65,7 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
 
                 if(pNavigationComponent->vec3Destination != pTargetTransform->GetPosition()) {
                     pNavigationComponent->vec3Destination = pTargetTransform->GetPosition();
-                    pNavigationComponent->bIsNavigating = true;
+                    pNavigationComponent->eStatus = ENavigationStatus::PATHING;
                 }
 
                 break;
@@ -176,7 +176,7 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
 
     // TODO stop movement
 
-    pGameState->GetNavigation(pSpellCtx->idCaster)->bIsNavigating = false;
+    pGameState->GetNavigation(pSpellCtx->idCaster)->eStatus = ENavigationStatus::IDLE;
     pGameState->GetNavigation(pSpellCtx->idCaster)->vec3Destination = Vector3::ZERO;
     if(CMovementComponent* pMovement = pGameState->GetMovement(pGameState->GetNavigation(pSpellCtx->idCaster)->idUnit)) {
         if(CTransformComponent* pTransform = pGameState->GetTransform(pGameState->GetNavigation(pSpellCtx->idCaster)->idUnit)) {

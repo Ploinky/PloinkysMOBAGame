@@ -14,6 +14,7 @@ public:
 	float operator*(const Vector3& other) const;
 	Vector3 operator*(float scale) const;
 	bool operator==(const Vector3& other) const;
+	bool operator!=(const Vector3& other) const;
 	float Length() const;
 	Vector3 Normalize() const;
 	Vector3 ScaleToLength(float length) const;

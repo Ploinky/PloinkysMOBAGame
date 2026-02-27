@@ -1,6 +1,6 @@
-#include "vector3.h"
+#include "common/vector3.h"
 
-#include "calculation.h"
+#include "common/calculation.h"
 #include <math.h>
 
 Vector3 Vector3::ZERO = {0, 0, 0};
@@ -30,6 +30,10 @@ bool Vector3::operator==(const Vector3& other) const {
 	return CompareFloat(x, other.x)
 		&& CompareFloat(y, other.y)
 		&& CompareFloat(z, other.z);
+}
+
+bool Vector3::operator!=(const Vector3& other) const {
+	return !CompareFloat(x, other.x) || !CompareFloat(y, other.y) || !CompareFloat(z, other.z);
 }
 
 Vector3 Vector3::operator*(float scale) const {

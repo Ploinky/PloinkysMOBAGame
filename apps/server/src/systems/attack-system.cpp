@@ -51,7 +51,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
 
                 if(pNavigationComponent->vec3Destination != pTargetTransform->GetPosition()) {
                     pNavigationComponent->vec3Destination = pTargetTransform->GetPosition();
-                    pNavigationComponent->bIsNavigating = true;
+                    pNavigationComponent->eStatus = ENavigationStatus::PATHING;
                 }
 
                 break;

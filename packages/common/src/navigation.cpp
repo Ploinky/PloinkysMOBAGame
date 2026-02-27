@@ -506,6 +506,20 @@ void NavMesh::LoadFromFile(std::string mapName) {
 }
 
 std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+	// TODO properly do this, find closest spot inside navmesh as well
+	for(NavigationGridAgent* pOther : m_vecAgents) {
+		if(pOther->UnitId == pAgent->UnitId) {
+			continue;
+		}
+		Vector2 vec2OtherPos = Vector2(pOther->position.x, pOther->position.z);
+		if((vec2OtherPos - to).Length() < 50) {
+			// destination currently blocked
+			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
+			to = vec2OtherPos + (from - vec2OtherPos).ScaleToLength(50);
+		}
+	}
+
+
 	std::vector<Vector2> vecLongPath;
 	
 	std::list<Vector3> vecPath = PlanPath(pAgent, { from.x, 0, from.y }, { to.x, 0, to.y });

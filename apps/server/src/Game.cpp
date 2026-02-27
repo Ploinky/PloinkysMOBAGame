@@ -197,10 +197,10 @@ void Client::PlayerStopCommand(PlayerID playerId) {
             }
         }
         if(CNavigationComponent* pNavComp = GameState.GetNavigation(player->unit)) {
-            pNavComp->bIsNavigating = false;
+            // TODO this belongsn't here!
+            pNavComp->eStatus = ENavigationStatus::IDLE;
             pNavComp->vec3Destination = Vector3::ZERO;
             
-            // TODO this belongsn't here
             Vector3 pos = GameState.GetTransform(player->unit)->GetPosition();
             GameState.VecEvent.emplace(new CMoveIntentionEvent(player->unit, pos, 0));
         }
