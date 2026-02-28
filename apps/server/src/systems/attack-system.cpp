@@ -3,10 +3,6 @@
 #include <game/server-game-state.h>
 
 CAttackSystem::CAttackSystem() {
-    REGISTER_EVENT_HANDLER(CAttackIntentionEvent, OnAttackIntention)
-    REGISTER_EVENT_HANDLER(CAttackHitEvent, OnAttackHit)
-    REGISTER_EVENT_HANDLER(CMoveIntentionEvent, OnMoveIntention)
-    REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellCastAttempt)
 }
 
 void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
@@ -45,7 +41,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                     activeAttack.eState = EAttackState::ATTACKING;
                     activeAttack.fTimeInState = 0.0f;
 
-                    pGameState->VecEvent.emplace(new CAttackStartEvent(attackComp.idUnit, activeAttack.idTarget));
+                    pGameState->EmitEvent(new CAttackStartEvent(attackComp.idUnit, activeAttack.idTarget));
                     break;
                 }
 
@@ -57,7 +53,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::ATTACKING:
                 if(activeAttack.fTimeInState >= attackComp.fAttackPoint) {
-                    pGameState->VecEvent.emplace(new CAttackHitEvent(attackComp.idUnit, activeAttack.idTarget));
+                    pGameState->EmitEvent(new CAttackHitEvent(attackComp.idUnit, activeAttack.idTarget));
                     activeAttack.eState = EAttackState::BACKSWING;
                     activeAttack.fTimeInState = 0.0f;
                 }
@@ -70,13 +66,13 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::FINISHED:
                 // TODO
-                pGameState->VecEvent.emplace(new CAttackFinishedEvent(attackComp.idUnit));
+                pGameState->EmitEvent(new CAttackFinishedEvent(attackComp.idUnit));
                 attackComp.optCurrentAttack.value().eState = EAttackState::IDLE;
                 attackComp.optCurrentAttack.value().fTimeInState = 0.0f;
                 break;
                 case EAttackState::CANCELLED:
                 // TODO
-                pGameState->VecEvent.emplace(new CAttackFinishedEvent(attackComp.idUnit));
+                pGameState->EmitEvent(new CAttackFinishedEvent(attackComp.idUnit));
                 attackComp.optCurrentAttack.reset(); // Done
                 break;
             default:
@@ -132,7 +128,7 @@ void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* p
         return;
     }
 
-    pGameState->VecEvent.emplace(new CDamageEvent(pEvt->idAttacker, pEvt->idTarget, 10));
+    pGameState->EmitEvent(new CDamageEvent(pEvt->idAttacker, pEvt->idTarget, 10));
 
 }
 

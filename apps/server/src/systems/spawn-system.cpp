@@ -1,7 +1,6 @@
 #include "systems/spawn-system.h"
 
 CSpawnSystem::CSpawnSystem(const CGameData* pGameData) : m_pGameData(pGameData) {
-    REGISTER_EVENT_HANDLER(CUnitSpawnEvent, OnUnitSpawn)
 }
 
 void CSpawnSystem::Update(CServerGameState* pGameState, float fDelta) {

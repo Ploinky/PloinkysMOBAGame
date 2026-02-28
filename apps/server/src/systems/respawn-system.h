@@ -1,9 +1,9 @@
 #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
-class CRespawnSystem : public ISystem {
+class CRespawnSystem : public IGameSystem<CServerGameState> {
 public:
     CRespawnSystem();
 

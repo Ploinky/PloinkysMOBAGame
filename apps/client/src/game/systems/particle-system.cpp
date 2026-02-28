@@ -8,8 +8,6 @@
 
 CParticleSystem::CParticleSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
-    
-    REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellHit)
 }
 
 void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {

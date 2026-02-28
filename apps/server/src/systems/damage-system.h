@@ -1,16 +1,18 @@
 #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 
 class CDamageEvent;
 class CHealEvent;
+class CServerGameState;
 
-class CDamageSystem : public ISystem {
+class CDamageSystem : public IGameSystem<CServerGameState> {
 public:
     CDamageSystem();
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
     virtual void Finalize(CServerGameState* pGameState) override;
-    void OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* pEvt);
-    void OnUnitHealed(CServerGameState* pGameState, CHealEvent* pEvt);
+
+    REGISTER_EVENT_HANDLER(CDamageSystem, CDamageEvent, OnUnitDamaged);
+    REGISTER_EVENT_HANDLER(CDamageSystem, CHealEvent, OnUnitHealed);
 };

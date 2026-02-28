@@ -3,13 +3,9 @@
 #include <unordered_map>
 #include "common/PMG_Common.h"
 #include "common/game/game-system.h"
+#include "common/game/game-event.h"
 
-class IGameEvent {
-public:
-  virtual ~IGameEvent() = default;
-    virtual std::type_index GetType() const = 0;
-};
-
+template<typename TGameState>
 class IGameState {
 public:
     template <typename T>
@@ -32,13 +28,17 @@ public:
     }
 
     void EmitEvent(IGameEvent* pGameEvent) {
-        for(IGameSystem* pSys : m_vecGameSystems) {
-            pSys->Process(this, pGameEvent);
+        for(IGameSystem<TGameState>* pSys : m_vecGameSystems) {
+            pSys->Process(static_cast<TGameState*>(this), pGameEvent);
         }
     }
 
-    void AddSystem(IGameSystem* pGameSystem) {
+    void AddSystem(IGameSystem<TGameState>* pGameSystem) {
         m_vecGameSystems.push_back(pGameSystem);
+    }
+
+    std::vector<IGameSystem<TGameState>*> AllSystems() {
+        return m_vecGameSystems;
     }
 
     std::vector<UnitId> vecUnits;
@@ -48,5 +48,5 @@ public:
         return map;
     }
 
-    std::vector<IGameSystem*> m_vecGameSystems;
+    std::vector<IGameSystem<TGameState>*> m_vecGameSystems;
 };

@@ -6,18 +6,6 @@
 
 CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     m_pNetworkManager = pManager;
-
-    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart);
-    REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellhit);
-    REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
-    REGISTER_EVENT_HANDLER(CRespawnEvent, OnRespawn);
-    REGISTER_EVENT_HANDLER(CMoveEvent, OnMove);
-    REGISTER_EVENT_HANDLER(CMoveIntentionEvent, OnMoveIntention);
-    REGISTER_EVENT_HANDLER(CCooldownStartedEvent, OnCooldownStarted);
-    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart);
-    REGISTER_EVENT_HANDLER(CAttackHitEvent, OnAttackHit);
-    REGISTER_EVENT_HANDLER(CAttackFinishedEvent, OnAttackFinished);
-    REGISTER_EVENT_HANDLER(CPickedUpEvent, OnPickedUp);
 }
 
 CNetworkSystem::~CNetworkSystem() {

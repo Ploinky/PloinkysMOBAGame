@@ -5,10 +5,12 @@
 #include "client-asset-manager.h"
 #include "core/audio/audio-engine.h"
 #include "game/client-game-state.h"
-#include "game/client-game-system.h"
+#include "common/game/game-system.h"
 #include "game/events/events.h"
 
-class AudioSystem : public ISystem{
+class CClientGameState;
+
+class AudioSystem : public IGameSystem<CClientGameState> {
 public:
 	AudioSystem(IAudioEngine* pEngine, CClientAssetManager* pAssetManager);
 	virtual void Update(CClientGameState* pGameState, float fDelta) override;
@@ -16,9 +18,9 @@ public:
 	void PlaySoundOnUnit(CClientGameState* pGameState, HSound hSound, UnitId idUnit);
 
 	void SetListenerPosition(Vector3 vec3LisPos);
-	void OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* pHitEvent);
-	void OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pHitEvent);
-	void OnEntityDeath(CClientGameState* pGameState, CEntityDeathEvent* pDeathEvent);
+	REGISTER_EVENT_HANDLER(AudioSystem, CEntityDeathEvent, OnEntityDeath)
+	REGISTER_EVENT_HANDLER(AudioSystem, CSpellHitEvent, OnSpellHit)
+	REGISTER_EVENT_HANDLER(AudioSystem, CAttackStartEvent, OnAttackStart)
 
 private:
 	CClientAssetManager* m_pAssetManager;

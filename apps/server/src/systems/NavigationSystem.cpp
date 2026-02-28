@@ -9,10 +9,6 @@
 
 CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     m_pMap = pMap;
-    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart);
-    REGISTER_EVENT_HANDLER(CMoveAttemptEvent, OnMoveAttempt);
-    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart);
-    REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
 }
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
@@ -64,7 +60,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
-            pGameState->VecEvent.emplace(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
+            pGameState->EmitEvent(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
@@ -75,7 +71,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
-            pGameState->VecEvent.emplace(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
+            pGameState->EmitEvent(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
@@ -88,7 +84,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.pNavGridAgent->path = pNavMap->GetPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if(nav.pNavGridAgent->path.size() == 0) {
-            pGameState->VecEvent.emplace(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
+            pGameState->EmitEvent(new CNavDestEvent(nav.idUnit, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             return;
@@ -112,7 +108,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
         vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
         pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
-        pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
+        pGameState->EmitEvent(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
         return;
     }
     
@@ -126,7 +122,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
     }
 
     pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
-    pGameState->VecEvent.emplace(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
+    pGameState->EmitEvent(new CMoveIntentionEvent(nav.idUnit, pMovement->vec3Target, 0));
 }
 
 void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {

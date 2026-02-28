@@ -25,10 +25,10 @@ public:
 protected:
 	void LoadPakFiles();
 
-    pugi::xml_document LoadXMLFile(std::string strFileName);
+	pugi::xml_document LoadXMLFile(std::string strFileName);
 
-    CCharacterData LoadCharacter(pugi::xml_node& characterNode);
-    CAbilityData LoadAbility(pugi::xml_node& abilityNode);
+	CCharacterData LoadCharacter(pugi::xml_node& characterNode);
+	CAbilityData LoadAbility(pugi::xml_node& abilityNode);
 	CMapData LoadMapData(pugi::xml_node& mapNode);
 	std::vector<float> ParseFloatVec(std::string str);
 };

@@ -382,7 +382,7 @@ void Game::Update(float dt) {
     m_camPos[2] = std::max(std::min(m_camPos[2], m_map.camVolume.fFront), m_map.camVolume.fBack);
 
     m_pAudioSystem->SetListenerPosition({m_camPos[0], m_camPos[1], m_camPos[2]});
-    for(ISystem* pSystem : m_gameState.m_vecGameSystems) {
+    for(IGameSystem<CClientGameState>* pSystem : m_gameState.m_vecGameSystems) {
         pSystem->Update(&m_gameState, dt);
     }
 }

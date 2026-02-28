@@ -1,14 +1,14 @@
 #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
-class CMovementSystem : public ISystem {
+class CMovementSystem : public IGameSystem<CServerGameState> {
 public:
     CMovementSystem();
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
     virtual void UpdateEntity(CServerGameState* pGameState, float fDelta, CMovementComponent& move) const;
 
-    void OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt);
+    REGISTER_EVENT_HANDLER(CMovementSystem, CDeathEvent, OnDeath);
 };

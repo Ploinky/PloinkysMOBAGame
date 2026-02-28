@@ -6,10 +6,6 @@
 
 CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
-
-    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
-    REGISTER_EVENT_HANDLER(CSpellCastStartEvent, OnSpellCastStart)
-    REGISTER_EVENT_HANDLER(CEntityRespawnEvent, OnEntityRespawn)
 }
 
 void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& bonePositions, std::vector<mat_t>& boneTransforms) {

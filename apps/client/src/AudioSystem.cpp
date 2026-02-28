@@ -8,10 +8,6 @@
 AudioSystem::AudioSystem(IAudioEngine* pEngine, CClientAssetManager* pAssetManager) {
     m_pEngine = pEngine;
     m_pAssetManager = pAssetManager;
-
-    REGISTER_EVENT_HANDLER(CEntityDeathEvent, OnEntityDeath)
-    REGISTER_EVENT_HANDLER(CSpellHitEvent, OnSpellHit)
-    REGISTER_EVENT_HANDLER(CAttackStartEvent, OnAttackStart)
 }
 
 void AudioSystem::PlaySoundOnUnit(CClientGameState* pGameState, HSound hSound, UnitId idUnit) {

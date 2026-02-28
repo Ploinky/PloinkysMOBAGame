@@ -4,7 +4,8 @@
 #include <typeindex>
 
 #include <game/components/components.h>
-#include <game/client-game-system.h>
+#include "common/game/game-system.h"
+#include "common/game/game-state.h"
 #include "common/data/game-data.h"
 
 #ifndef REGISTER_COMPONENT_TYPE
@@ -56,13 +57,7 @@ typedef struct {
     float fAngle;
 } SpawnPoint_t;
 
-class IGameEvent {
-public:
-  virtual ~IGameEvent() = default;
-    virtual std::type_index GetType() const = 0;
-};
-
-class CClientGameState {
+class CClientGameState : public IGameState<CClientGameState> {
 public:
     REGISTER_COMPONENT_TYPE(Animation)
     REGISTER_COMPONENT_TYPE(Attack)
@@ -101,17 +96,6 @@ public:
     };
 
 
-    void EmitEvent(IGameEvent* pGameEvent) {
-        for(ISystem* pSys : m_vecGameSystems) {
-            pSys->Process(this, pGameEvent);
-        }
-    }
-
-    void AddSystem(ISystem* pGameSystem) {
-        m_vecGameSystems.push_back(pGameSystem);
-    }
-
-    std::vector<ISystem*> m_vecGameSystems;
 private:
     NavigationMap* m_pNavMap;
 };

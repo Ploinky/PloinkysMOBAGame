@@ -29,11 +29,11 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
                         }
                     }
 
-                    pGameState->VecEvent.emplace(new CMoveEvent(health.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
+                    pGameState->EmitEvent(new CMoveEvent(health.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
                 }
 
 
-                pGameState->VecEvent.emplace(new CRespawnEvent(health.idUnit));
+                pGameState->EmitEvent(new CRespawnEvent(health.idUnit));
             }
         }
     }

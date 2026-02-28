@@ -6,7 +6,6 @@
 #include "events.h"
 
 CMovementSystem::CMovementSystem() {
-    REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
 }
 
 void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
@@ -65,7 +64,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, C
     
     pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
 
-    pGameState->VecEvent.emplace(new CMoveEvent(move.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
+    pGameState->EmitEvent(new CMoveEvent(move.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
 }
 
 void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {

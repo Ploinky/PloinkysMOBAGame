@@ -138,18 +138,18 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     GameState.VecTriggers.push_back(trigger);
     // =====================================
 
-    m_vecSystems.push_back(m_pNavigationSystem);
-    m_vecSystems.push_back(&m_moveSystem);
-    m_vecSystems.push_back(&m_spellSystem);
-    m_vecSystems.push_back(&m_damageSystem);
-    m_vecSystems.push_back(m_pNetworkSystem);
-    m_vecSystems.push_back(new CPointsSystem());
-    m_vecSystems.push_back(new CRespawnSystem());
-    m_vecSystems.push_back(new CAttackSystem());
-    m_vecSystems.push_back(new CAiSystem());
-    m_vecSystems.push_back(new CInventorySystem());
-    m_vecSystems.push_back(new CSpawnSystem(&handler_->GetGameData()));
-    m_vecSystems.push_back(new CTriggerSystem());
+    GameState.AddSystem(m_pNavigationSystem);
+    GameState.AddSystem(&m_moveSystem);
+    GameState.AddSystem(&m_spellSystem);
+    GameState.AddSystem(&m_damageSystem);
+    GameState.AddSystem(m_pNetworkSystem);
+    GameState.AddSystem(new CPointsSystem());
+    GameState.AddSystem(new CRespawnSystem());
+    GameState.AddSystem(new CAttackSystem());
+    GameState.AddSystem(new CAiSystem());
+    GameState.AddSystem(new CInventorySystem());
+    GameState.AddSystem(new CSpawnSystem(&handler_->GetGameData()));
+    GameState.AddSystem(new CTriggerSystem());
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -179,7 +179,7 @@ void Client::PlayerMoveCommand(PlayerID playerId, float nx, float ny) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
 
-        GameState.VecEvent.emplace(new CMoveAttemptEvent(
+        GameState.EmitEvent(new CMoveAttemptEvent(
             player->unit,
             {nx, 0, ny},
             0
@@ -202,14 +202,14 @@ void Client::PlayerStopCommand(PlayerID playerId) {
             pNavComp->vec3Destination = Vector3::ZERO;
             
             Vector3 pos = GameState.GetTransform(player->unit)->GetPosition();
-            GameState.VecEvent.emplace(new CMoveIntentionEvent(player->unit, pos, 0));
+            GameState.EmitEvent(new CMoveIntentionEvent(player->unit, pos, 0));
         }
     }
 }
 
 void Client::PlayerAttackCommand(PlayerID playerId, uint64_t target_id) {
     if (players_.find(playerId) != players_.end()) {
-        GameState.VecEvent.emplace(new CAttackIntentionEvent(players_.find(playerId)->second->unit, target_id));
+        GameState.EmitEvent(new CAttackIntentionEvent(players_.find(playerId)->second->unit, target_id));
     }
 }
 
@@ -220,7 +220,7 @@ void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTarg
     }
 
     CSpellAttemptCastEvent* pSpellEvent = new CSpellAttemptCastEvent(players_.find(playerId)->second->unit, *target_info, spell_slot);
-    GameState.VecEvent.emplace(pSpellEvent);
+    GameState.EmitEvent(pSpellEvent);
 }
 
 void Client::Start() {
@@ -244,21 +244,11 @@ void Client::Update(float dt) {
     // first lets see what the clients have to say
     networkManager_->Update();
 
-    for(ISystem* system : m_vecSystems) {
+    for(IGameSystem<CServerGameState>* system : GameState.AllSystems()) {
         system->Update(&GameState, TICKRATE);
     }
     
-    // TODO this appears wrong
-    while(!GameState.VecEvent.empty()) {
-        IGameEvent* pEvt = GameState.VecEvent.front();
-        for(ISystem* system : m_vecSystems) {
-            system->Process(&GameState, pEvt);
-        }
-        GameState.VecEvent.pop();
-        delete pEvt;
-    }
-
-    for(ISystem* system : m_vecSystems) {
+    for(IGameSystem<CServerGameState>* system : GameState.AllSystems()) {
         system->Finalize(&GameState);
     }
 
@@ -323,7 +313,7 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
 
         LobbyPlayer* pPlayer = players_.at(playerId);
         CPickUpAttemptEvent* evt = new CPickUpAttemptEvent(pPlayer->unit, pickUpCommand.idUnit);
-        GameState.VecEvent.emplace(evt);
+        GameState.EmitEvent(evt);
         break;
     }
     case PacketType::CMD_USE_ENTITY_POINT: {
@@ -334,7 +324,7 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
         CUseEntityAttemptEvent* evt = new CUseEntityAttemptEvent();
         evt->idUser = pPlayer->unit;
         evt->idEntity = useCommand.idEntity;
-        GameState.VecEvent.emplace(evt);
+        GameState.EmitEvent(evt);
     }
     }
 }

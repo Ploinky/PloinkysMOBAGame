@@ -10,16 +10,16 @@ CSpellCastApi::CSpellCastApi(CServerGameState* pGameState) {
 }
 
 void CSpellCastApi::ApplyDamage(UnitId idSource, UnitId idTarget, float fDamage) {
-    m_pGameState->VecEvent.emplace(new CDamageEvent(idSource, idTarget, fDamage));
+    m_pGameState->EmitEvent(new CDamageEvent(idSource, idTarget, fDamage));
 }
 
 void CSpellCastApi::ApplyHeal(UnitId idSource, UnitId idTarget, float fDamage) {
-    m_pGameState->VecEvent.emplace(new CHealEvent(idSource, idTarget, fDamage));
+    m_pGameState->EmitEvent(new CHealEvent(idSource, idTarget, fDamage));
 }
 
 void CSpellCastApi::SpawnEntity(UnitId idSpawner, std::string strTemplateId, Vector2 vec2Destination) {
     CUnitSpawnEvent* pEvt = new CUnitSpawnEvent();
     pEvt->strTemplateId = strTemplateId;
     pEvt->vec2Destination = vec2Destination;
-    m_pGameState->VecEvent.emplace(pEvt);
+    m_pGameState->EmitEvent(pEvt);
 }

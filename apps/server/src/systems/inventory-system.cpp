@@ -7,8 +7,6 @@
 
 
 CInventorySystem::CInventorySystem() {
-    REGISTER_EVENT_HANDLER(CPickUpAttemptEvent, OnPickUpEntityAttempt);
-    REGISTER_EVENT_HANDLER(CUseEntityAttemptEvent, OnUseEntityAttempt);
 }
 
 void CInventorySystem::Update(CServerGameState* pGameState, float fDelta) { 
@@ -35,7 +33,7 @@ void CInventorySystem::OnPickUpEntityAttempt(CServerGameState* pGameState, CPick
     pInventory->vecEntitiesInInventory.push_back(pPickUpEvt->idTargetUnit);
 
     CPickedUpEvent* pEvt = new CPickedUpEvent(pPickUpEvt->idUnit, pPickUpEvt->idTargetUnit);
-    pGameState->VecEvent.emplace(pEvt);
+    pGameState->EmitEvent(pEvt);
 }
 
 void CInventorySystem::OnUseEntityAttempt(CServerGameState* pGameState, CUseEntityAttemptEvent* pEvt) {
@@ -59,5 +57,5 @@ void CInventorySystem::OnUseEntityAttempt(CServerGameState* pGameState, CUseEnti
     pUseEvent->idEntity = pEvt->idEntity;
     pUseEvent->x = pEvt->x;
     pUseEvent->y = pEvt->y;
-    pGameState->VecEvent.emplace(pUseEvent);
+    pGameState->EmitEvent(pUseEvent);
 }

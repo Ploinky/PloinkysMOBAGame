@@ -1,8 +1,8 @@
 #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
-class CTriggerSystem : public ISystem {
+class CTriggerSystem : public IGameSystem<CServerGameState> {
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 };

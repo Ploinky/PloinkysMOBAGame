@@ -1,7 +1,6 @@
 #include "points-system.h"
 
 CPointsSystem::CPointsSystem() {
-    REGISTER_EVENT_HANDLER(CDeathEvent, OnDeath);
 }
 
 void CPointsSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {

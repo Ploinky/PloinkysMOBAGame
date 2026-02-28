@@ -1,22 +1,22 @@
 #pragma once
 
 #include <game/server-game-state.h>
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
 class NavigationMap;
 
-class CNavigationSystem : public ISystem {
+class CNavigationSystem : public IGameSystem<CServerGameState> {
 public:
     CNavigationSystem(NavigationMap* pMap);
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
     void UpdateEntity(CServerGameState* pGameState, float fDelta, CNavigationComponent& nav);
 
-    void OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent);
-    void OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent);
-    void OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt);
-    void OnDeath(CServerGameState* pGameState, CDeathEvent* pEvt);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CSpellCastStartEvent, OnSpellCastStart);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CMoveAttemptEvent, OnMoveAttempt);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CAttackStartEvent, OnAttackStart);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CDeathEvent, OnDeath);
 
 private:
     NavigationMap* m_pMap;

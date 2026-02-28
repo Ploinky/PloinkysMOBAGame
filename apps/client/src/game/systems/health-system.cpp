@@ -2,9 +2,6 @@
 
 CHealthSystem::CHealthSystem(CClientAssetManager* pAssetManager) {
     this->m_pAssetManager = pAssetManager;
-
-    REGISTER_EVENT_HANDLER(CStatsEvent, OnDamage)
-    REGISTER_EVENT_HANDLER(CEntityDeathEvent, OnDeath)
 }
 
 void CHealthSystem::Update(CClientGameState* pGameState, float fDelta) {

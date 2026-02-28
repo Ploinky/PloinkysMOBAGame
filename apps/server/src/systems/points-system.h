@@ -1,13 +1,13 @@
 #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
-class CPointsSystem : public ISystem {
+class CPointsSystem : public IGameSystem<CServerGameState> {
 public:
     CPointsSystem();
 
-    void OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt);
+    REGISTER_EVENT_HANDLER(CPointsSystem, CDeathEvent, OnDeath);
 
     unsigned int uTeam1Points = 0;
     unsigned int uTeam2Points = 0;

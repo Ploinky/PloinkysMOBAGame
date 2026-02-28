@@ -9,8 +9,6 @@
 
 
 CDamageSystem::CDamageSystem() {
-    REGISTER_EVENT_HANDLER(CDamageEvent, OnUnitDamaged);
-    REGISTER_EVENT_HANDLER(CHealEvent, OnUnitHealed);
 }
 
 void CDamageSystem::Update(CServerGameState* pGameState, float fDelta) { 
@@ -24,7 +22,7 @@ void CDamageSystem::Finalize(CServerGameState* pGameState) {
                 health.bIsDead = true;
                 health.fTimeSinceDeath = 0.0f;
     
-                pGameState->VecEvent.emplace(new CDeathEvent(health.idUnit));
+                pGameState->EmitEvent(new CDeathEvent(health.idUnit));
             }
 
             if(health.nHealth > health.nMaxHealth) {

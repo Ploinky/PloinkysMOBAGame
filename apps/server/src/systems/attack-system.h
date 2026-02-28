@@ -1,20 +1,21 @@
 #pragma once
 
-#include "systems/system.h"
+#include "common/game/game-system.h"
+
 #include "events.h"
 #include "components/Components.h"
 
 class CServerGameState;
 
-class CAttackSystem : public ISystem {
+class CAttackSystem : public IGameSystem<CServerGameState> {
 public:
     CAttackSystem();
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
     virtual void Finalize(CServerGameState* pGameState) override;
 
-    void OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt);
-    void OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt);
-    void OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt);
-    void OnSpellCastAttempt(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt);
+    REGISTER_EVENT_HANDLER(CAttackSystem, CAttackIntentionEvent, OnAttackIntention)
+    REGISTER_EVENT_HANDLER(CAttackSystem, CAttackHitEvent, OnAttackHit)
+    REGISTER_EVENT_HANDLER(CAttackSystem, CMoveIntentionEvent, OnMoveIntention)
+    REGISTER_EVENT_HANDLER(CAttackSystem, CSpellAttemptCastEvent, OnSpellCastAttempt)
 };

@@ -5,7 +5,8 @@
 #include <map>
 #include <optional>
 
-#include "common/PMG_Common.h"
+#include "common/pmg_types.h"
+#include "common/pmg_physics.h"
 
 enum class EAbilityTargetType {
     UNIT

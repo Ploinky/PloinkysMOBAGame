@@ -5,10 +5,6 @@
 #include "spell-cast-api.h"
 
 CSpellSystem::CSpellSystem() {
-    REGISTER_EVENT_HANDLER(CSpellAttemptCastEvent, OnSpellAttemptCast);
-    REGISTER_EVENT_HANDLER(CSpellCastEvent, OnSpellCast);
-    REGISTER_EVENT_HANDLER(CAttackIntentionEvent, OnAttackIntention);
-    REGISTER_EVENT_HANDLER(CUseEntityEvent, OnUseEntity);
 }
 
 void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
@@ -59,7 +55,7 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
                     // vecSpells[activeCast.nIndex].pSpell->OnCastStart(CSpellCastApi(pGameState), activeCast.spellCtx);
 
                     CSpellCastStartEvent* pStartEvt = new CSpellCastStartEvent(activeCast.spellCtx);
-                    pGameState->VecEvent.emplace(pStartEvt);
+                    pGameState->EmitEvent(pStartEvt);
                     break;
                 }
 
@@ -71,7 +67,7 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case ESpellCastState::CASTING:
                 if(activeCast.fTimeInState >= vecSpells[activeCast.nIndex].data.fCastPoint) {
-                    pGameState->VecEvent.emplace(new CSpellCastEvent(activeCast.spellCtx));
+                    pGameState->EmitEvent(new CSpellCastEvent(activeCast.spellCtx));
                     activeCast.eState = ESpellCastState::BACKSWING;
                     activeCast.fTimeInState = 0.0f;
                 }
@@ -84,7 +80,7 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
                 }
             case ESpellCastState::FINISHED:
                 vecSpells[activeCast.nIndex].fCooldownRemaining = vecSpells[activeCast.nIndex].data.fCooldown;
-                pGameState->VecEvent.emplace(new CCooldownStartedEvent(spellComp.idUnit, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
+                pGameState->EmitEvent(new CCooldownStartedEvent(spellComp.idUnit, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
                 spellComp.optCurrentCast.reset();
                 break;
             case ESpellCastState::CANCELLED:
@@ -140,7 +136,7 @@ void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCt
         api.ApplyHeal(pCtx->idCaster, pCtx->idTarget, healEffect.vecHeal[0]);
     }
 
-    pGameState->VecEvent.emplace(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));
+    pGameState->EmitEvent(new CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));
 }
 
 void CSpellSystem::SpellPointHit(CServerGameState* pGameState, SpellCastContext_t context) {
@@ -184,7 +180,7 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
         }
     }
     Vector3 pos = pGameState->GetTransform(pSpellCtx->idCaster)->GetPosition();
-    pGameState->VecEvent.emplace(new CMoveIntentionEvent(pSpellCtx->idCaster, pos, 0));
+    pGameState->EmitEvent(new CMoveIntentionEvent(pSpellCtx->idCaster, pos, 0));
 
     ActiveCast_t cast;
     cast.eState = ESpellCastState::IDLE;

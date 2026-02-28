@@ -5,7 +5,6 @@
 #include "components/Components.h"
 
 CAiSystem::CAiSystem() {
-    REGISTER_EVENT_HANDLER(CNavDestEvent, OnNavDest);
 };
 
 void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {

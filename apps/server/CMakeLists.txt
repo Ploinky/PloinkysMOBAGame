@@ -37,7 +37,6 @@ add_executable(server
 	src/systems/respawn-system.cpp
 	src/systems/spawn-system.cpp
 	src/systems/spell-system.cpp
-	src/systems/system.cpp
 	src/systems/trigger-system.cpp
 )
 

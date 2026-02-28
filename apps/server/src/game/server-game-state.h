@@ -47,7 +47,7 @@ typedef struct {
     float fAngle;
 } SpawnPoint_t;
 
-class CServerGameState : public IGameState {
+class CServerGameState : public IGameState<CServerGameState> {
 public:
     REGISTER_COMPONENT_TYPE(Movement)
     REGISTER_COMPONENT_TYPE(Character)
@@ -71,7 +71,6 @@ public:
     void SetNavMap(NavigationMap* pNavMap);
     NavigationMap* GetNavMap() const;
 
-    std::queue<IGameEvent*> VecEvent;
     std::vector<CTrigger> VecTriggers;
 
     unsigned int uTeam1Points = 0;

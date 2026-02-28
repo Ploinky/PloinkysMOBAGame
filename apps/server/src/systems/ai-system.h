@@ -1,15 +1,15 @@
 #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
 class CServerGameState;
 
-class CAiSystem : public ISystem {
+class CAiSystem : public IGameSystem<CServerGameState> {
 public:
     CAiSystem();
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
-    void OnNavDest(CServerGameState* pGameState, CNavDestEvent* pNavDestEvt);
+    REGISTER_EVENT_HANDLER(CAiSystem, CNavDestEvent, OnNavDest);
 };

@@ -110,8 +110,6 @@ private:
     // LobbyPlayer* players_[10];
     std::map<PlayerID, LobbyPlayer*> players_;
 
-    std::vector<ISystem*> m_vecSystems;
-
     CNavigationSystem* m_pNavigationSystem;
     CNetworkSystem* m_pNetworkSystem;
     CDamageSystem m_damageSystem;

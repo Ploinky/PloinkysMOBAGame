@@ -1,22 +1,21 @@
-#pragma once
+ #pragma once
 
-#include "system.h"
+#include "common/game/game-system.h"
 #include "events.h"
 
 class CDeathEvent;
 
-class CSpellSystem : public ISystem {
+class CSpellSystem : public IGameSystem<CServerGameState> {
 public:
     CSpellSystem();
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
-    void OnSpellAttemptCast(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt);
-    void OnSpellCast(CServerGameState* pGameState, CSpellCastEvent* pCastEvent);
-    
-    void OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pCastEvent);
-    void OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvent);
-    void OnUseEntity(CServerGameState* pGameState, CUseEntityEvent* pEvt);
+    REGISTER_EVENT_HANDLER(CSpellSystem, CSpellAttemptCastEvent, OnSpellAttemptCast)
+    REGISTER_EVENT_HANDLER(CSpellSystem, CSpellCastEvent, OnSpellCast)
+    REGISTER_EVENT_HANDLER(CSpellSystem, CAttackIntentionEvent, OnAttackIntention)
+    REGISTER_EVENT_HANDLER(CSpellSystem, CUseEntityEvent, OnUseEntity)
+    REGISTER_EVENT_HANDLER(CSpellSystem, CDeathEvent, OnDeath)
 
 private:
     void TryCastSpell(CServerGameState* pGameState, CSpellCastContext* pSpellContext);
