@@ -23,7 +23,7 @@ void CWaveManager::Update(CServerGameState* pGameState, float fDelta) {
     UnitId id = pGameState->SpawnUnit({}, "minion"); // TODO fix
     pGameState->GetTransform(id)->SetPosition({2000, 0, -3000});
 
-    pGameState->AddTeam(id, CTeamComponent(Team::TEAM_1));
+    pGameState->AddTeam(id, TeamComponent_t(Team::TEAM_1));
     pGameState->AddAi(id);
     pGameState->GetAi(id)->eType = EAiType::MINION;
     pGameState->GetAi(id)->vecWaypoints.push_back({3000, 0, -2000});

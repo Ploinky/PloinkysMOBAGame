@@ -1,8 +1,9 @@
 #pragma once
 
+#include "common/pmg_types.h"
 
-class CUseableComponent : public IComponent {
-public:
+typedef struct UseableComponent_t {
+    UnitId idUnit;
     int nUses = -1;
     CAbilityData abilityData;
-};
+} UseableComponent_t;

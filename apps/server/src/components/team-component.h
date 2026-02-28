@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GameObject.h"
+#include "common/pmg_types.h"
 
-class CTeamComponent : public IComponent{
-public:
-    CTeamComponent() : CTeamComponent(Team::NEUTRAL) {};
-    CTeamComponent(Team eTeam) : eTeam(eTeam) {};
-
+typedef struct TeamComponent_t {
+    TeamComponent_t() : TeamComponent_t(Team::NEUTRAL) {};
+    TeamComponent_t(Team eTeam) : eTeam(eTeam) {};
+    
+    UnitId idUnit;
     Team eTeam = Team::NEUTRAL;
-};
+} TeamComponent_t;

@@ -5,6 +5,47 @@
 #include "common/game/game-system.h"
 #include "common/game/game-event.h"
 
+#ifndef REGISTER_COMPONENT_TYPE
+#define REGISTER_COMPONENT_TYPE(ComponentType) \
+public:                                                                                                    \
+    ComponentType##Component_t* Add##ComponentType(UnitId idUnit) {                                       \
+        ComponentType##Component_t comp;                                                                  \
+        comp.idUnit = idUnit;                                                                              \
+        map##ComponentType##Indices[idUnit] = (int)vec##ComponentType##Components.size();                  \
+        vec##ComponentType##Components.push_back(comp);                                                    \
+        return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
+    }                                                                                                      \
+    ComponentType##Component_t* Add##ComponentType(UnitId idUnit, ComponentType##Component_t comp) {     \
+        comp.idUnit = idUnit;                                                                              \
+        map##ComponentType##Indices[idUnit] = (int)vec##ComponentType##Components.size();                  \
+        vec##ComponentType##Components.push_back(comp);                                                    \
+        return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
+    }                                                                                                      \
+    ComponentType##Component_t* Get##ComponentType(UnitId idUnit) {                                     \
+        auto index = map##ComponentType##Indices.at(idUnit);                                               \
+        if(index == -1) {                                                                                  \
+            return nullptr;                                                                                \
+        }                                                                                                  \
+        return &vec##ComponentType##Components.at(index) ;                                                 \
+    }                                                                                                        \
+    void Remove##ComponentType(UnitId idUnit) {                                     \
+        auto index = map##ComponentType##Indices.at(idUnit);                                               \
+        if(index == -1) {                                                                                  \
+            return;                                                                                \
+        }                                                                                                  \
+        vec##ComponentType##Components.erase(vec##ComponentType##Components.begin() + index) ;                                                 \
+        map##ComponentType##Indices[idUnit] = -1;                                               \
+    }                                                                                                       \
+    std::vector<ComponentType##Component_t>& GetAll##ComponentType() {                                  \
+        return vec##ComponentType##Components;                                                             \
+    }                                                                                                      \
+private:                                                                                                   \
+    std::vector<ComponentType##Component_t> vec##ComponentType##Components;                               \
+    std::vector<int> map##ComponentType##Indices = std::vector<int>(10000, -1);                                \
+public:
+#endif
+
+
 template<typename TGameState>
 class IGameState {
 public:

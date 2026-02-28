@@ -12,17 +12,17 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 }
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(CNavigationComponent& nav : pGameState->GetAllNavigation()) {
+    for(NavigationComponent_t& nav : pGameState->GetAllNavigation()) {
         UpdateEntity(pGameState, fDelta, nav);
     }
 }
 
-void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, CNavigationComponent& nav) {
-    CTransformComponent* pTransform = pGameState->GetTransform(nav.idUnit);
+void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, NavigationComponent_t& nav) {
+    TransformComponent_t* pTransform = pGameState->GetTransform(nav.idUnit);
     nav.pNavGridAgent->position = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
 
     // Update nav components target if intent is to walk somewhere
-    if(CIntentComponent* pIntentComp = pGameState->GetIntent(nav.idUnit)) {
+    if(IntentComponent_t* pIntentComp = pGameState->GetIntent(nav.idUnit)) {
         if(pIntentComp->eType == EIntentType::MOVE) {
             if(nav.eStatus == ENavigationStatus::ARRIVED) {
                 nav.eStatus = ENavigationStatus::IDLE;
@@ -40,7 +40,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
 
     NavigationMap* pNavMap = pGameState->GetNavMap();
 
-    CMovementComponent* pMovement = pGameState->GetMovement(nav.idUnit);
+    MovementComponent_t* pMovement = pGameState->GetMovement(nav.idUnit);
     
     if(pTransform == nullptr || pMovement == nullptr) {
         return;
@@ -126,8 +126,8 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
 }
 
 void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pCastStartEvent->pCtx->idCaster);
-    CTransformComponent* pTransformComp = pGameState->GetTransform(pCastStartEvent->pCtx->idCaster);
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pCastStartEvent->pCtx->idCaster);
+    TransformComponent_t* pTransformComp = pGameState->GetTransform(pCastStartEvent->pCtx->idCaster);
 
     if(pNavComp == nullptr) {
         return;
@@ -135,8 +135,8 @@ void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCas
 
     pNavComp->eStatus = ENavigationStatus::IDLE;
     pNavComp->vec3Destination = Vector3::ZERO;
-    if(CMovementComponent* pMovement = pGameState->GetMovement(pNavComp->idUnit)) {
-        if(CTransformComponent* pTransform = pGameState->GetTransform(pNavComp->idUnit)) {
+    if(MovementComponent_t* pMovement = pGameState->GetMovement(pNavComp->idUnit)) {
+        if(TransformComponent_t* pTransform = pGameState->GetTransform(pNavComp->idUnit)) {
             pMovement->vec3Target = pTransform->GetPosition();
         }
     }
@@ -144,7 +144,7 @@ void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCas
 
 
 void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt) {
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pEvt->idAttacker);
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pEvt->idAttacker);
 
     if(pNavComp == nullptr) {
         return;
@@ -153,14 +153,14 @@ void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStart
 
     pNavComp->eStatus = ENavigationStatus::IDLE;
     pNavComp->vec3Destination = Vector3::ZERO;
-    if(CMovementComponent* pMovement = pGameState->GetMovement(pNavComp->idUnit)) {
-        if(CTransformComponent* pTransform = pGameState->GetTransform(pNavComp->idUnit)) {
+    if(MovementComponent_t* pMovement = pGameState->GetMovement(pNavComp->idUnit)) {
+        if(TransformComponent_t* pTransform = pGameState->GetTransform(pNavComp->idUnit)) {
             pMovement->vec3Target = pTransform->GetPosition();
         }
     }
 }
 void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pMoveAttemptEvent->idUnit);
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pMoveAttemptEvent->idUnit);
 
     if(pNavComp == nullptr) {
         return;
@@ -169,16 +169,16 @@ void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttempt
     pNavComp->vec3Destination = pMoveAttemptEvent->vec3Position;
     pNavComp->eStatus = ENavigationStatus::PATHING;
 
-    if(CSpellCastComponent* pSpellCastComp = pGameState->GetSpellCast(pMoveAttemptEvent->idUnit)) {
+    if(SpellCastComponent_t* pSpellCastComp = pGameState->GetSpellCast(pMoveAttemptEvent->idUnit)) {
         pSpellCastComp->optCurrentCast.reset();
     }
-    if(CBasicAttackComponent* pAtkComp = pGameState->GetBasicAttack(pMoveAttemptEvent->idUnit)) {
+    if(BasicAttackComponent_t* pAtkComp = pGameState->GetBasicAttack(pMoveAttemptEvent->idUnit)) {
         pAtkComp->optCurrentAttack.reset();
     }
 }
 
 void CNavigationSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pEvt) {
-    CNavigationComponent* pNavComp = pGameState->GetNavigation(pEvt->idTarget);
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pEvt->idTarget);
 
     if(pNavComp == nullptr) {
         return;

@@ -1,17 +1,17 @@
 #pragma once
 
-#include "GameObject.h"
 #include <deque>
+#include "common/pmg_types.h"
+#include "common/vector3.h"
+
 
 enum class EAiType {
     MINION
 };
 
-class CAiComponent : public IComponent {
-public:
-    CAiComponent() {};
-    
+typedef struct {
+    UnitId idUnit;
     EAiType eType;
     // minion
     std::deque<Vector3> vecWaypoints;
-};
+} AiComponent_t;

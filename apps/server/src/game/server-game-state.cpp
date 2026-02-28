@@ -17,7 +17,7 @@ UnitId CServerGameState::CreateEntity() {
 UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId, Vector2 vec2Pos) {
     UnitId idSpawnedUnit = SpawnUnit(gameData, strId);
 
-    if(CTransformComponent* pTransform = GetTransform(idSpawnedUnit)) {
+    if(TransformComponent_t* pTransform = GetTransform(idSpawnedUnit)) {
         pTransform->SetPosition({vec2Pos.x, 0, vec2Pos.y});
     }
 
@@ -30,11 +30,11 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     UnitId id = CurrentUnitId++;
 
     // ==================== CHARACTER COMPONENT ====================
-    AddCharacter(id, CCharacterComponent(entityData.strId));
+    AddCharacter(id, CharacterComponent_t { id, entityData.strId });
 
     // ==================== SPELL CAST COMPONENT ====================
     if(!entityData.mapAbilityIds.empty()) {
-        CSpellCastComponent* spellComp = AddSpellCast(id);
+        SpellCastComponent_t* spellComp = AddSpellCast(id);
 
         for(auto it : entityData.mapAbilityIds) {
             if(spellComp->vecSpellSlots.size() < it.first + 1) {
@@ -57,25 +57,25 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
 
     // ==================== NETWORK COMPONENT ====================
     if(entityData.optNetworkData.has_value()) {
-        CNetworkComponent* netComp = AddNetwork(id);
+        NetworkComponent_t* netComp = AddNetwork(id);
         netComp->SetSyncMovement(entityData.optNetworkData.value().bSyncMovement);
     }
 
     // ==================== MOVEMENT COMPONENT ====================
     if(entityData.optMovementData.has_value()) {
-        CMovementComponent* moveComp = AddMovement(id);
+        MovementComponent_t* moveComp = AddMovement(id);
         moveComp->fSpeed = entityData.optMovementData.value().nSpeed;
     }
 
     // ==================== HEALTH COMPONENT ====================
     if(entityData.optHealthData.has_value()) {
-        CHealthComponent* healthComp = AddHealth(id);
+        HealthComponent_t* healthComp = AddHealth(id);
         healthComp->nMaxHealth = entityData.optHealthData.value().nMaxHealth;
     }
 
     // ==================== NAVIGATION COMPONENT ====================
     if(entityData.optNavigationData.has_value()) {
-        CNavigationComponent* pNav = AddNavigation(id);
+        NavigationComponent_t* pNav = AddNavigation(id);
         pNav->pNavGridAgent = m_pNavMap->CreateAgent();
         pNav->pNavGridAgent->UnitId = id;
         pNav->pNavGridAgent->IgnoreCollision = false;
@@ -83,7 +83,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
 
     // ==================== INTENT COMPONENT ====================
     if(entityData.optIntentData.has_value()) {
-        CIntentComponent* pIntent = AddIntent(id);
+        IntentComponent_t* pIntent = AddIntent(id);
         pIntent->eType = EIntentType::NONE;
     }
 
@@ -92,7 +92,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     }
 
     if(entityData.optUseableData.has_value()) {
-        CUseableComponent* pUseableComponent = AddUseable(id);
+        UseableComponent_t* pUseableComponent = AddUseable(id);
         pUseableComponent->nUses = entityData.optUseableData.value().nUses;
         pUseableComponent->abilityData = gameData.mapAbilityData.at(entityData.optUseableData.value().strAbilityId);
     }
@@ -102,7 +102,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     }
 
     if(entityData.optAIData.has_value()) {
-        CAiComponent* pAi = AddAi(id);
+        AiComponent_t* pAi = AddAi(id);
 
         if(entityData.optAIData.value().idType == "minion") {
             pAi->eType = EAiType::MINION;

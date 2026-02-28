@@ -1,13 +1,9 @@
 #pragma once
 
 #include <string>
+#include "common/pmg_types.h"
 
-#include "GameObject.h"
-
-class CCharacterComponent : public IComponent {
-public:
-    CCharacterComponent() : prefab("") {};
-    CCharacterComponent(std::string prefab) : prefab(prefab) {};
-
-    std::string prefab = "";
-};
+typedef struct {
+    UnitId idUnit;
+    std::string prefab;
+} CharacterComponent_t;

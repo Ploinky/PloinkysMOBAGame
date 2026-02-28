@@ -1,7 +1,7 @@
 #pragma once
 
-#include "GameObject.h"
+#include "common/pmg_types.h"
 
-class CDeviceComponent : public IComponent{
-public:
-};
+typedef struct {
+        UnitId idUnit;
+} DeviceComponent_t;

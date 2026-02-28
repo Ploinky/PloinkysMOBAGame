@@ -8,40 +8,6 @@
 
 #include "game/trigger.h"
 
-#ifndef REGISTER_COMPONENT_TYPE
-#define REGISTER_COMPONENT_TYPE(ComponentType) \
-public:                                                                                                    \
-    C##ComponentType##Component* Add##ComponentType(UnitId idUnit) {                                       \
-        C##ComponentType##Component comp;                                                                  \
-        comp.idUnit = idUnit;                                                                              \
-        map##ComponentType##Indices[idUnit] = (int)vec##ComponentType##Components.size();                  \
-        vec##ComponentType##Components.push_back(comp);                                                    \
-        return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
-    }                                                                                                      \
-    C##ComponentType##Component* Add##ComponentType(UnitId idUnit, C##ComponentType##Component comp) {     \
-        comp.idUnit = idUnit;                                                                              \
-        map##ComponentType##Indices[idUnit] = (int)vec##ComponentType##Components.size();                  \
-        vec##ComponentType##Components.push_back(comp);                                                    \
-        return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
-    }                                                                                                      \
-    C##ComponentType##Component* Get##ComponentType##(UnitId idUnit) {                                     \
-        auto index = map##ComponentType##Indices.at(idUnit);                                               \
-        if(index == -1) {                                                                                  \
-            return nullptr;                                                                                \
-        }                                                                                                  \
-        return &vec##ComponentType##Components.at(index) ;                                                 \
-    }                                                                                                      \
-    std::vector<C##ComponentType##Component>& GetAll##ComponentType##() {                                  \
-        return vec##ComponentType##Components;                                                             \
-    }                                                                                                      \
-private:                                                                                                   \
-    std::vector<C##ComponentType##Component> vec##ComponentType##Components;                               \
-    std::vector<int> map##ComponentType##Indices = std::vector<int>(10000, -1);                                \
-public:
-#endif
-
-class CGameState;
-
 typedef struct {
     Vector2 vec2Pos;
     float fAngle;

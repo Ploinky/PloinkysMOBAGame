@@ -1,7 +1,8 @@
 #pragma once
 
-#include "GameObject.h"
 #include <optional>
+
+#include "common/pmg_types.h"
 
 enum class EAttackState {
     IDLE,
@@ -18,12 +19,10 @@ typedef struct {
 	float fTimeInState;
 } ActiveAttack_t;
 
-class CBasicAttackComponent : public IComponent {
-public:
-    CBasicAttackComponent() {};
-    
-    float fRange = 150;
-    float fAttackTime = 1000;
-    float fAttackPoint = 666;
+typedef struct {
+    UnitId idUnit;
+    float fRange;
+    float fAttackTime;
+    float fAttackPoint;
 	std::optional<ActiveAttack_t> optCurrentAttack;
-};
+}  BasicAttackComponent_t;

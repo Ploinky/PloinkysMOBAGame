@@ -9,18 +9,18 @@ CMovementSystem::CMovementSystem() {
 }
 
 void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(CMovementComponent& move : pGameState->GetAllMovement()) {
+    for(MovementComponent_t& move : pGameState->GetAllMovement()) {
         UpdateEntity(pGameState, fDelta, move);
     }
 }
 
-void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, CMovementComponent& move) const {
-    CHealthComponent* pHealthComp = pGameState->GetHealth(move.idUnit);
+void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, MovementComponent_t& move) const {
+    HealthComponent_t* pHealthComp = pGameState->GetHealth(move.idUnit);
     if(pHealthComp != nullptr && pHealthComp->bIsDead) {
         return;
     }
 
-    CTransformComponent* pTransform = pGameState->GetTransform(move.idUnit);
+    TransformComponent_t* pTransform = pGameState->GetTransform(move.idUnit);
     if(!pTransform) {
         // TODO we can't move
         return;
@@ -35,13 +35,13 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, C
     }
 
     // For navigating units, use the nav map...
-    if(CNavigationComponent* pNavComp = pGameState->GetNavigation(move.idUnit)) {
+    if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(move.idUnit)) {
         Vector2 vec2Step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, move.fSpeed * (fDelta / 1000.0f));
 
         
         // TODO only check units in my vicinity
         // TODO improve collisioning code
-        for(CTransformComponent& transform : pGameState->GetAllTransform()) {
+        for(TransformComponent_t& transform : pGameState->GetAllTransform()) {
             if(pTransform->idUnit == transform.idUnit) {
                 continue;
             }
@@ -68,8 +68,8 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, C
 }
 
 void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
-    CMovementComponent* pMoveComp = pGameState->GetMovement(pDeathEvt->idTarget);
-    CTransformComponent* pTransformComp = pGameState->GetTransform(pDeathEvt->idTarget);
+    MovementComponent_t* pMoveComp = pGameState->GetMovement(pDeathEvt->idTarget);
+    TransformComponent_t* pTransformComp = pGameState->GetTransform(pDeathEvt->idTarget);
     if(pMoveComp == nullptr) {
         return;
     }

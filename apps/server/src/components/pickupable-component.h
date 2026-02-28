@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GameObject.h"
 #include <vector>
+#include "common/pmg_types.h"
 
-class CPickupableComponent : public IComponent {
-public:
-    CPickupableComponent() {};
-};
+typedef struct PickupableComponent_t {
+    UnitId idUnit;
+    PickupableComponent_t() {};
+} PickupableComponent_t;

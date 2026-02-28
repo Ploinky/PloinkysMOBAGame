@@ -15,7 +15,7 @@ void CDamageSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CDamageSystem::Finalize(CServerGameState* pGameState) {
-    for(CHealthComponent& health : pGameState->GetAllHealth()) {
+    for(HealthComponent_t& health : pGameState->GetAllHealth()) {
         if(!health.bIsDead) {
             if(health.nHealth <= 0) {
                 health.nHealth = 0;
@@ -34,7 +34,7 @@ void CDamageSystem::Finalize(CServerGameState* pGameState) {
 }
 
 void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dmgEvt) {
-    CHealthComponent* pHealthComponent = pGameState->GetHealth(dmgEvt->m_idTarget);
+    HealthComponent_t* pHealthComponent = pGameState->GetHealth(dmgEvt->m_idTarget);
 
     if(pHealthComponent == nullptr) {
         Logger::FormatErr("Invalid damage event: target unit (%d) does nmot have a health component", dmgEvt->m_idTarget);
@@ -49,6 +49,6 @@ void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dm
 }
 
 void CDamageSystem::OnUnitHealed(CServerGameState* pGameState, CHealEvent* healEvt) {
-    CHealthComponent* pHealthComponent = pGameState->GetHealth(healEvt->m_idTarget);
+    HealthComponent_t* pHealthComponent = pGameState->GetHealth(healEvt->m_idTarget);
     pHealthComponent->nHealth += healEvt->m_nHeal;
 }

@@ -16,13 +16,13 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
     tickPck.tick = pGameState->CurrentTick++;
     m_pNetworkManager->SendToAllClients(tickPck);
 
-    for(CNetworkComponent& networkComp : pGameState->GetAllNetwork()) {
+    for(NetworkComponent_t& networkComp : pGameState->GetAllNetwork()) {
         if(!networkComp.IsSpawnSynced()) {
             SpawnPacket spawn;
             spawn.strEntId = pGameState->GetCharacter(networkComp.idUnit)->prefab;
             spawn.team = Team::TEAM_1;
             spawn.unit = networkComp.idUnit;
-            if(CTransformComponent* pTransform = pGameState->GetTransform(networkComp.idUnit)) {
+            if(TransformComponent_t* pTransform = pGameState->GetTransform(networkComp.idUnit)) {
                 spawn.x = pTransform->GetPosition().x;
                 spawn.y = pTransform->GetPosition().y;
                 spawn.z = pTransform->GetPosition().z;
@@ -35,7 +35,7 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
 
             networkComp.SetSpawnSynced();
         }
-        if(CHealthComponent* pHealth = pGameState->GetHealth(networkComp.idUnit)) {
+        if(HealthComponent_t* pHealth = pGameState->GetHealth(networkComp.idUnit)) {
             UnitStatsPacket pck = UnitStatsPacket();
             pck.max_health = pHealth->nMaxHealth;
             pck.health = pHealth->nHealth;
@@ -43,7 +43,7 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
             m_pNetworkManager->SendToAllClients(pck);
         }
 
-        if(CSpellCastComponent* pSpellCast = pGameState->GetSpellCast(networkComp.idUnit)) {
+        if(SpellCastComponent_t* pSpellCast = pGameState->GetSpellCast(networkComp.idUnit)) {
         }
     }
 

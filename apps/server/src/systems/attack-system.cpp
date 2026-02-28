@@ -6,7 +6,7 @@ CAttackSystem::CAttackSystem() {
 }
 
 void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(CBasicAttackComponent& attackComp : pGameState->GetAllBasicAttack()) {
+    for(BasicAttackComponent_t& attackComp : pGameState->GetAllBasicAttack()) {
         if(!attackComp.optCurrentAttack.has_value()) {
             continue;
         }
@@ -14,16 +14,16 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         ActiveAttack_t& activeAttack = attackComp.optCurrentAttack.value();
         activeAttack.fTimeInState += fDelta;
 
-        CTransformComponent* pAttackerTransform = nullptr;
-        CTransformComponent* pTargetTransform = nullptr;
-        CNavigationComponent* pNavigationComponent = nullptr;
+        TransformComponent_t* pAttackerTransform = nullptr;
+        TransformComponent_t* pTargetTransform = nullptr;
+        NavigationComponent_t* pNavigationComponent = nullptr;
 
         if(pGameState->GetHealth(attackComp.idUnit) && pGameState->GetHealth(attackComp.idUnit)->bIsDead) {
             attackComp.optCurrentAttack.reset();
             continue;
         }
 
-        if(CHealthComponent* pHealthComp = pGameState->GetHealth(activeAttack.idTarget)) {
+        if(HealthComponent_t* pHealthComp = pGameState->GetHealth(activeAttack.idTarget)) {
             if(pHealthComp->bIsDead) {
                 attackComp.optCurrentAttack.reset();
                 continue;
@@ -91,7 +91,7 @@ void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackInten
         return;
     }
 
-    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pEvt->idUnit);
+    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(pEvt->idUnit);
 
     if(attackComp == nullptr) {
         Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idUnit, pEvt->idTarget);
@@ -121,7 +121,7 @@ void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* p
         .fTimeInState = 0.0f
     };
 
-    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pEvt->idAttacker);
+    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(pEvt->idAttacker);
 
     if(attackComp == nullptr) {
         Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idAttacker, pEvt->idTarget);
@@ -142,7 +142,7 @@ void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, CMoveIntention
 }
 
 void CAttackSystem::OnSpellCastAttempt(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt) {
-    CBasicAttackComponent* attackComp = pGameState->GetBasicAttack(pEvt->m_idCaster);
+    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(pEvt->m_idCaster);
     
     if(attackComp->optCurrentAttack.has_value()) {
         ActiveAttack_t& atk = attackComp->optCurrentAttack.value();

@@ -1,7 +1,8 @@
 #pragma once
+#include "common/pmg_types.h"
 
 typedef struct {
-    UnitId idUnit;
+	UnitId idUnit;
 	int nHealth;
 	int nMaxHealth;
 	bool bIsDead;

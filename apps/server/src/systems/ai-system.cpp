@@ -8,8 +8,8 @@ CAiSystem::CAiSystem() {
 };
 
 void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
-    CIntentComponent* pIntentComp = nullptr;
-    for(CAiComponent& aiComp : pGameState->GetAllAi()) {
+    IntentComponent_t* pIntentComp = nullptr;
+    for(AiComponent_t& aiComp : pGameState->GetAllAi()) {
         switch(aiComp.eType) {
             case EAiType::MINION:
                 pIntentComp = pGameState->GetIntent(aiComp.idUnit);
@@ -30,7 +30,7 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CAiSystem::OnNavDest(CServerGameState* pGameState, CNavDestEvent* pNavDestEvt) {
-    CAiComponent* pAiComp = pGameState->GetAi(pNavDestEvt->idUnit);
+    AiComponent_t* pAiComp = pGameState->GetAi(pNavDestEvt->idUnit);
 
     if(pAiComp == nullptr) {
         return;

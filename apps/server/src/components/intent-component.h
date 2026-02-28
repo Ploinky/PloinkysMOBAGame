@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameObject.h"
+#include "common/pmg_types.h"
 
 enum class EIntentType {
     NONE,
@@ -9,8 +9,8 @@ enum class EIntentType {
     ATTACK
 };
 
-class CIntentComponent : public IComponent {
-public:
+typedef struct IntentComponent_t {
+    UnitId idUnit;
     EIntentType eType;
     Vector3 vec3Target;
-};
+} IntentComponent_t;

@@ -160,8 +160,8 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     // always present
     UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "stormcaller");
 
-    GameState.AddTeam(id, CTeamComponent(Team::TEAM_1));
-    GameState.AddBasicAttack(id, CBasicAttackComponent());
+    GameState.AddTeam(id, TeamComponent_t(Team::TEAM_1));
+    GameState.AddBasicAttack(id, BasicAttackComponent_t());
     GameState.GetTransform(id)->SetPosition({250, 0, -750}); // TODO in data
     GameState.GetMovement(id)->vec3Target = GameState.GetTransform(id)->GetPosition(); // TODO how to make this one call
     GameState.GetNavigation(id)->vec3Destination = GameState.GetTransform(id)->GetPosition();
@@ -191,12 +191,12 @@ void Client::PlayerStopCommand(PlayerID playerId) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
 
-        if(CMovementComponent* pMovement = GameState.GetMovement(player->unit)) {
-            if(CTransformComponent* pTransform = GameState.GetTransform(player->unit)) {
+        if(MovementComponent_t* pMovement = GameState.GetMovement(player->unit)) {
+            if(TransformComponent_t* pTransform = GameState.GetTransform(player->unit)) {
                 pMovement->vec3Target = pTransform->GetPosition();
             }
         }
-        if(CNavigationComponent* pNavComp = GameState.GetNavigation(player->unit)) {
+        if(NavigationComponent_t* pNavComp = GameState.GetNavigation(player->unit)) {
             // TODO this belongsn't here!
             pNavComp->eStatus = ENavigationStatus::IDLE;
             pNavComp->vec3Destination = Vector3::ZERO;
@@ -233,10 +233,10 @@ void Client::Start() {
     GameState.GetTransform(id)->SetPosition({1000, 0, -1000});
     GameState.GetMovement(id)->vec3Target = {1000, 0, -1000};
     GameState.GetHealth(id)->nHealth = 10;
-    GameState.AddTeam(id, CTeamComponent(Team::TEAM_2));
+    GameState.AddTeam(id, TeamComponent_t(Team::TEAM_2));
 
     UnitId spawnerId = GameState.SpawnUnit(handler_->GetGameData(), "minion_spawner");
-    GameState.AddTeam(spawnerId, CTeamComponent(Team::TEAM_1));
+    GameState.AddTeam(spawnerId, TeamComponent_t(Team::TEAM_1));
     GameState.GetTransform(spawnerId)->SetPosition({500, 0, -750});
 }
 
@@ -304,7 +304,7 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
         CPickUpEntityCommand pickUpCommand = CPickUpEntityCommand();
         pickUpCommand.Read(data);
 
-        CPickupableComponent* pPickupable = GameState.GetPickupable(pickUpCommand.idUnit);
+        PickupableComponent_t* pPickupable = GameState.GetPickupable(pickUpCommand.idUnit);
 
         if(pPickupable == nullptr) {
             Logger::FormatErr("Failed to pick up entity <%d>; entity is not pickupable", pickUpCommand.idUnit);

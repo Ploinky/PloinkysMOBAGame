@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GameObject.h"
 #include "GameObject/Spell.h"
 #include "SpellTargetInfo.h"
 #include "components/Components.h"
 #include <optional>
 #include <common/data/game-data.h>
+#include "common/pmg_types.h"
 
 enum class ESpellCastState {
 	IDLE,
@@ -30,11 +30,11 @@ typedef struct ActiveCast_s {
 	CSpellCastContext* spellCtx = nullptr;
 } ActiveCast_t;
 
-class CSpellCastComponent : public IComponent {
-public:
-	CSpellCastComponent() : CSpellCastComponent(std::vector<SpellSlot_t>()) {};
-	CSpellCastComponent(std::vector<SpellSlot_t> vecSpells);
-
+typedef struct SpellCastComponent_t {
+	SpellCastComponent_t() : SpellCastComponent_t(std::vector<SpellSlot_t>()) {};
+	SpellCastComponent_t(std::vector<SpellSlot_t> vecSpells);
+	
+	UnitId idUnit;
 	std::vector<SpellSlot_t> vecSpellSlots;
 	std::optional<ActiveCast_t> optCurrentCast;
-};
+} SpellCastComponent_t;

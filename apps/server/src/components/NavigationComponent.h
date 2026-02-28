@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameObject.h"
+#include "common/pmg_types.h"
 
 enum class ENavigationStatus {
     IDLE,
@@ -10,9 +10,9 @@ enum class ENavigationStatus {
     ARRIVED // navigation system thinks entity is as close as it will get
 };
 
-class CNavigationComponent : public IComponent {
-public:
+typedef struct NavigationComponent_t {
+    UnitId idUnit;
     Vector3 vec3Destination;
     NavigationGridAgent* pNavGridAgent = nullptr;
     ENavigationStatus eStatus;
-};
+} NavigationComponent_t;

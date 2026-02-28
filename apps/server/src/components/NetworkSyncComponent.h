@@ -1,6 +1,9 @@
 #pragma once
 
+#include "common/pmg_types.h"
+
 typedef struct NetworkSyncComponent_s {
+    UnitId idUnit;
     bool SyncSpawn;
     bool SyncDespawn;
     bool SyncTransform;

@@ -5,7 +5,7 @@ CRespawnSystem::CRespawnSystem() {
 }
 
 void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(CHealthComponent& health : pGameState->GetAllHealth()) {
+    for(HealthComponent_t& health : pGameState->GetAllHealth()) {
         if(health.bIsDead) {
             health.fTimeSinceDeath += fDelta;
 
@@ -14,8 +14,8 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
                 health.bIsDead = false;
                 health.fTimeSinceDeath = 0.0f;
 
-                CTransformComponent* pTransform = pGameState->GetTransform(health.idUnit);
-                CTeamComponent* pTeam = pGameState->GetTeam(health.idUnit);
+                TransformComponent_t* pTransform = pGameState->GetTransform(health.idUnit);
+                TeamComponent_t* pTeam = pGameState->GetTeam(health.idUnit);
 
                 if(pTeam != nullptr && pTransform != nullptr) {
                     SpawnPoint_t spawn = pGameState->mapTeamSpawnPoints[pTeam->eTeam].at(0);
@@ -23,7 +23,7 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
                     pTransform->SetRotation({0, spawn.fAngle, 0});
 
                     if(pGameState->GetMovement(health.idUnit)) {
-                        if(CTransformComponent* pTransform =pGameState->GetTransform(health.idUnit)) {
+                        if(TransformComponent_t* pTransform =pGameState->GetTransform(health.idUnit)) {
                             pGameState->GetMovement(health.idUnit)->vec3Target = pTransform->GetPosition();
 
                         }
