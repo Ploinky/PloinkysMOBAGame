@@ -11,7 +11,6 @@ enum class ENavigationStatus {
 };
 
 typedef struct NavigationComponent_t {
-    UnitId idUnit;
     Vector3 vec3Destination;
     NavigationGridAgent* pNavGridAgent = nullptr;
     ENavigationStatus eStatus;

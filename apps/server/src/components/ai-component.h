@@ -10,7 +10,6 @@ enum class EAiType {
 };
 
 typedef struct {
-    UnitId idUnit;
     EAiType eType;
     // minion
     std::deque<Vector3> vecWaypoints;

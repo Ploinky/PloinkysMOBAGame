@@ -8,7 +8,7 @@ public:
     CMovementSystem();
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
-    virtual void UpdateEntity(CServerGameState* pGameState, float fDelta, MovementComponent_t& move) const;
+    virtual void UpdateEntity(CServerGameState* pGameState, float fDelta, MovementComponent_t& move, UnitId id) const;
 
     REGISTER_EVENT_HANDLER(CMovementSystem, CDeathEvent, OnDeath);
 };

@@ -20,7 +20,6 @@ typedef struct {
 } ActiveAttack_t;
 
 typedef struct {
-    UnitId idUnit;
     float fRange;
     float fAttackTime;
     float fAttackPoint;

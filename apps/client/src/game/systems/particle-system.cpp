@@ -11,7 +11,7 @@ CParticleSystem::CParticleSystem(CClientAssetManager* pAssetManager) {
 }
 
 void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
-    for(ParticleComponent_t& particleComp : pGameState->GetAllParticle()) {
+    for(auto& [id, particleComp] : pGameState->GetAllParticle()) {
         auto it = particleComp.vecEffects.begin();
         while(it != particleComp.vecEffects.end()) {
             ParticleEffect* pEffect = *it;

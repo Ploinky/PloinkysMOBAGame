@@ -9,10 +9,10 @@ CAiSystem::CAiSystem() {
 
 void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
     IntentComponent_t* pIntentComp = nullptr;
-    for(AiComponent_t& aiComp : pGameState->GetAllAi()) {
+    for(auto& [id, aiComp] : pGameState->GetAllAi()) {
         switch(aiComp.eType) {
             case EAiType::MINION:
-                pIntentComp = pGameState->GetIntent(aiComp.idUnit);
+                pIntentComp = pGameState->GetIntent(id);
                 if(pIntentComp == nullptr) {
                     continue;
                 }

@@ -715,59 +715,57 @@ void CRenderer::QueueParticle(ParticleEmitter* pParticleEmitter) {
 }
 
 void CRenderer::Render(CClientGameState* pGameState) {
-	for(UnitId idUnit : pGameState->vecUnits) {
-		if(RenderableComponent_t* pRenderable = pGameState->GetRenderable(idUnit)) {
+	for(auto& [idUnit, rend] : pGameState->GetAllRenderable()) {
 			
-			HModel hModel = m_pAssetManager->LoadModel(pRenderable->strRenderable);
-			ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
+		HModel hModel = m_pAssetManager->LoadModel(rend.strRenderable);
+		ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
 
-			if(modelAsset.pModel == nullptr) {
-				UploadModelToGPU(modelAsset);
-			}
-			
-			for(const auto& meshPair : modelAsset.pModel->Meshes) {
-				Mesh* mesh = meshPair.second;
-
-				if(mesh == nullptr) {
-					continue;
-				}
-
-				RenderCommand_t cmd {
-					.eType = ERenderCommandType::SKINNED_MESH,
-					.worldMatrix = {},
-					.hModel = hModel,
-					.vecBones = {},
-				};
-		
-				if(mesh->MaterialIndex != -1 && modelAsset.pModel->Materials.size() > mesh->MaterialIndex) {
-					cmd.hTexture = modelAsset.pModel->Materials.at(mesh->MaterialIndex)->hTexture;
-				}
-
-				cmd.hVertexBuffer = mesh->VertexBuffer;
-				cmd.hIndexBuffer = mesh->IndexBuffer;
-				cmd.uIndexCount = mesh->IndexCount;
-				
-				if(TransformComponent_t* pTransform = pGameState->GetTransform(idUnit)) {
-					cmd.vec3Position = pTransform->vec3Position;
-					cmd.vec3Rotation = pTransform->vec3Rotation;
-				}
-				cmd.vec3Scale = Vector3(1, 1, 1);
-
-				if(AnimationComponent_t* pAnim = pGameState->GetAnimation(idUnit)) {
-					for(int i = 0; i < 256; i++) {
-						cmd.vecBones[i] = pAnim->vecBones[i];
-					}
-				}
-
-				Submit(cmd);
-			}
+		if(modelAsset.pModel == nullptr) {
+			UploadModelToGPU(modelAsset);
 		}
+		
+		for(const auto& meshPair : modelAsset.pModel->Meshes) {
+			Mesh* mesh = meshPair.second;
 
-		if(ParticleComponent_t* pParticleComponent = pGameState->GetParticle(idUnit)) {
-			for(const ParticleEffect* pParticleEffect : pParticleComponent->vecEffects) {
-				for(ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
-					QueueParticle(pParticleEmitter);
+			if(mesh == nullptr) {
+				continue;
+			}
+
+			RenderCommand_t cmd {
+				.eType = ERenderCommandType::SKINNED_MESH,
+				.worldMatrix = {},
+				.hModel = hModel,
+				.vecBones = {},
+			};
+	
+			if(mesh->MaterialIndex != -1 && modelAsset.pModel->Materials.size() > mesh->MaterialIndex) {
+				cmd.hTexture = modelAsset.pModel->Materials.at(mesh->MaterialIndex)->hTexture;
+			}
+
+			cmd.hVertexBuffer = mesh->VertexBuffer;
+			cmd.hIndexBuffer = mesh->IndexBuffer;
+			cmd.uIndexCount = mesh->IndexCount;
+			
+			if(TransformComponent_t* pTransform = pGameState->GetTransform(idUnit)) {
+				cmd.vec3Position = pTransform->vec3Position;
+				cmd.vec3Rotation = pTransform->vec3Rotation;
+			}
+			cmd.vec3Scale = Vector3(1, 1, 1);
+
+			if(AnimationComponent_t* pAnim = pGameState->GetAnimation(idUnit)) {
+				for(int i = 0; i < 256; i++) {
+					cmd.vecBones[i] = pAnim->vecBones[i];
 				}
+			}
+
+			Submit(cmd);
+		}
+	}
+
+	for(auto& [id, particle] : pGameState->GetAllParticle()) {
+		for(const ParticleEffect* pParticleEffect : particle.vecEffects) {
+			for(ParticleEmitter* pParticleEmitter : pParticleEffect->emitters_) {
+				QueueParticle(pParticleEmitter);
 			}
 		}
 	}

@@ -10,38 +10,32 @@
 public:                                                                                                    \
     ComponentType##Component_t* Add##ComponentType(UnitId idUnit) {                                       \
         ComponentType##Component_t comp;                                                                  \
-        comp.idUnit = idUnit;                                                                              \
-        map##ComponentType##Indices[idUnit] = (int)vec##ComponentType##Components.size();                  \
-        vec##ComponentType##Components.push_back(comp);                                                    \
-        return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
+        map##ComponentType##Components.emplace(idUnit, comp);                                                    \
+        return &map##ComponentType##Components.at(idUnit);                    \
     }                                                                                                      \
     ComponentType##Component_t* Add##ComponentType(UnitId idUnit, ComponentType##Component_t comp) {     \
-        comp.idUnit = idUnit;                                                                              \
-        map##ComponentType##Indices[idUnit] = (int)vec##ComponentType##Components.size();                  \
-        vec##ComponentType##Components.push_back(comp);                                                    \
-        return &vec##ComponentType##Components.at(map##ComponentType##Indices[idUnit]);                    \
+        map##ComponentType##Components.emplace(idUnit, comp);                                                    \
+        return &map##ComponentType##Components.at(idUnit);                    \
     }                                                                                                      \
     ComponentType##Component_t* Get##ComponentType(UnitId idUnit) {                                     \
-        auto index = map##ComponentType##Indices.at(idUnit);                                               \
-        if(index == -1) {                                                                                  \
+        auto it = map##ComponentType##Components.find(idUnit);                                               \
+        if(it == map##ComponentType##Components.end()) {                                                                                  \
             return nullptr;                                                                                \
         }                                                                                                  \
-        return &vec##ComponentType##Components.at(index) ;                                                 \
+        return &it->second;                                                 \
     }                                                                                                        \
     void Remove##ComponentType(UnitId idUnit) {                                     \
-        auto index = map##ComponentType##Indices.at(idUnit);                                               \
-        if(index == -1) {                                                                                  \
+        auto it = map##ComponentType##Components.find(idUnit);                                               \
+        if(it == map##ComponentType##Components.end()) {                                                                                  \
             return;                                                                                \
         }                                                                                                  \
-        vec##ComponentType##Components.erase(vec##ComponentType##Components.begin() + index) ;                                                 \
-        map##ComponentType##Indices[idUnit] = -1;                                               \
+        map##ComponentType##Components.erase(it) ;                                                 \
     }                                                                                                       \
-    std::vector<ComponentType##Component_t>& GetAll##ComponentType() {                                  \
-        return vec##ComponentType##Components;                                                             \
+    std::map<UnitId, ComponentType##Component_t>& GetAll##ComponentType() {                                  \
+        return map##ComponentType##Components;                                                             \
     }                                                                                                      \
 private:                                                                                                   \
-    std::vector<ComponentType##Component_t> vec##ComponentType##Components;                               \
-    std::vector<int> map##ComponentType##Indices = std::vector<int>(10000, -1);                                \
+    std::map<UnitId, ComponentType##Component_t> map##ComponentType##Components;                               \
 public:
 #endif
 
@@ -82,7 +76,6 @@ public:
         return m_vecGameSystems;
     }
 
-    std::vector<UnitId> vecUnits;
     template <typename T>
     static std::unordered_map<UnitId, T>& GetMap() {
         static std::unordered_map<UnitId, T> map;

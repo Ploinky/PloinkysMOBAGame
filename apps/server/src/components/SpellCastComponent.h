@@ -34,7 +34,6 @@ typedef struct SpellCastComponent_t {
 	SpellCastComponent_t() : SpellCastComponent_t(std::vector<SpellSlot_t>()) {};
 	SpellCastComponent_t(std::vector<SpellSlot_t> vecSpells);
 	
-	UnitId idUnit;
 	std::vector<SpellSlot_t> vecSpellSlots;
 	std::optional<ActiveCast_t> optCurrentCast;
 } SpellCastComponent_t;

@@ -10,7 +10,6 @@ enum class EIntentType {
 };
 
 typedef struct IntentComponent_t {
-    UnitId idUnit;
     EIntentType eType;
     Vector3 vec3Target;
 } IntentComponent_t;

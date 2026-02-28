@@ -21,9 +21,9 @@ void AudioSystem::PlaySoundOnUnit(CClientGameState* pGameState, HSound hSound, U
 }
 
 void AudioSystem::Update(CClientGameState* pGameState, float fDelta) {
-    for(UnitId idUnit : pGameState->vecUnits) {
-        if(AudioEmitterComponent_t* pEmitterComp = pGameState->GetAudioEmitter(idUnit)) {
-            if(TransformComponent_t* pTransformComp = pGameState->GetTransform(idUnit)) {
+    for(auto& [id, audio] : pGameState->GetAllAudioEmitter()) {
+        if(AudioEmitterComponent_t* pEmitterComp = pGameState->GetAudioEmitter(id)) {
+            if(TransformComponent_t* pTransformComp = pGameState->GetTransform(id)) {
                 for(HVoice hVoice : pEmitterComp->vecCurrentSounds) {
                     m_pEngine->UpdateVoicePosition(hVoice, pEmitterComp->hEmitter, pTransformComp->vec3Position);
                 }

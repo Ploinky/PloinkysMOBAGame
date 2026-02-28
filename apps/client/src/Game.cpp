@@ -111,7 +111,7 @@ void Game::MouseMoved(int screenX, int screenY) {
 	float hp = static_cast<float>(M_PI / 180.0);
 	Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(screenX), static_cast<float>(screenY) }, windowWidth_, (float)windowHeight_);
 
-    for(const TransformComponent_t& pTransform : m_gameState.GetAllTransform()) {
+    for(const auto& [id, pTransform] : m_gameState.GetAllTransform()) {
         Capsule_t capsule = Capsule_t {
             .vec3Start = Vector3(pTransform.vec3Position.x, 0, pTransform.vec3Position.z),
             .vec3End = Vector3(pTransform.vec3Position.x, 200, pTransform.vec3Position.z),
@@ -120,7 +120,7 @@ void Game::MouseMoved(int screenX, int screenY) {
 
 		if (TestCollision(ray, capsule)) {
 			// TODO does this work for multiple objects right behind each other?
-			idUnitUnderCursor = pTransform.idUnit;
+			idUnitUnderCursor = id;
 			break;
 		}
     }
@@ -155,7 +155,7 @@ void Game::Update(float dt) {
         m_mouseClicked[2] = 1;
     }
 
-	for (const RenderableComponent_t& renderable : m_gameState.GetAllRenderable()) {
+    for (const auto& [id, renderable] : m_gameState.GetAllRenderable()) {
         std::string desiredAnim;
         bool bLoop = false;
 
@@ -167,17 +167,17 @@ void Game::Update(float dt) {
         const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(renderable.strRenderable);
     
         // TODO this is fucked up
-        HealthComponent_t* health  = m_gameState.GetHealth(renderable.idUnit);
+        HealthComponent_t* health  = m_gameState.GetHealth(id);
         if (health != nullptr && health->nHealth <= 0.0f) {
             desiredAnim = "death";
             bLoop = false;
-        } else if (m_gameState.GetMovement(renderable.idUnit) && m_gameState.GetMovement(renderable.idUnit)->bIsMoving) {
+        } else if (m_gameState.GetMovement(id) && m_gameState.GetMovement(id)->bIsMoving) {
             desiredAnim = "run";
             bLoop = true;
-        } else if(m_gameState.GetSpellCast(renderable.idUnit) && m_gameState.GetSpellCast(renderable.idUnit)->bIsCasting) {
+        } else if(m_gameState.GetSpellCast(id) && m_gameState.GetSpellCast(id)->bIsCasting) {
             desiredAnim = "ability1";
             bLoop = false;
-        } else if(m_gameState.GetAttack(renderable.idUnit) && m_gameState.GetAttack(renderable.idUnit)->bIsAttacking) {
+        } else if(m_gameState.GetAttack(id) && m_gameState.GetAttack(id)->bIsAttacking) {
             // desiredAnim = "attack1";
             // bLoop = true;
         } else {
@@ -192,7 +192,7 @@ void Game::Update(float dt) {
         CAnimationData animData = modelData.mapAnimations.at(desiredAnim);
         desiredAnim = animData.name;
         
-        AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(renderable.idUnit);
+        AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(id);
         if (pAnimComp && pAnimComp->m_strAnimationName != desiredAnim) {
             Logger::FormatMsg("Playing animation %s", desiredAnim.c_str());
             pAnimComp->m_strAnimationName = desiredAnim;
@@ -207,7 +207,7 @@ void Game::Update(float dt) {
 	float hp = static_cast<float>(M_PI / 180.0);
 	Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) }, windowWidth_, (float)windowHeight_);
 
-    for(const TransformComponent_t& pTransform : m_gameState.GetAllTransform()) {
+    for(const auto& [id, pTransform] : m_gameState.GetAllTransform()) {
         Capsule_t capsule = Capsule_t {
             .vec3Start = Vector3(pTransform.vec3Position.x, 0, pTransform.vec3Position.z),
             .vec3End = Vector3(pTransform.vec3Position.x, 200, pTransform.vec3Position.z),
@@ -216,7 +216,7 @@ void Game::Update(float dt) {
 
 		if (TestCollision(ray, capsule)) {
 			// TODO does this work for multiple objects right behind each other?
-			idUnitUnderCursor = pTransform.idUnit;
+			idUnitUnderCursor = id;
 			break;
 		}
     }
@@ -414,17 +414,17 @@ void Game::Render(CRenderer* renderer) {
 }
 
 void Game::RenderGameUI(CRenderer* renderer) {
-    for (const HealthComponent_t& health : m_gameState.GetAllHealth()) {
+    for (const auto& [id, health] : m_gameState.GetAllHealth()) {
        double health_bar_height = 5;
 
-       if(TransformComponent_t* pTransform = m_gameState.GetTransform(health.idUnit)) {
+       if(TransformComponent_t* pTransform = m_gameState.GetTransform(id)) {
 
         Vector2 vec2Screen = renderer->m_camera.UnprojectWorldPoint({pTransform->vec3Position.x, pTransform->vec3Position.y + 200, pTransform->vec3Position.z}, windowWidth_, windowHeight_);
             double x = vec2Screen.x;
             double y = vec2Screen.y;
 
             // TODO when to show title?
-            if (const TitleComponent_t* titleComp = m_gameState.GetTitle(health.idUnit)) {
+            if (const TitleComponent_t* titleComp = m_gameState.GetTitle(id)) {
                 renderer->RenderText(x - 50, y - 50, 100, 50, "Ploinky");
                 renderer->FillRect(x - 71, y - 12, 20, 20, new float[3] { 0.0f, 0.0f, 0.0f });
                 renderer->RenderText(x - 71, y - 12, 20, 20, "1");
@@ -434,7 +434,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
             float color[3]{ 0, 1, 0 };
 
-            if (m_gameState.GetTeam(health.idUnit)->eTeam == Team::TEAM_2) {
+            if (m_gameState.GetTeam(id)->eTeam == Team::TEAM_2) {
                 color[0] = 1;
                 color[1] = 0;
                 color[2] = 0;
@@ -532,10 +532,10 @@ void Game::RenderGameUI(CRenderer* renderer) {
     float hp = static_cast<float>(M_PI / 180.0);
     Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) }, windowWidth_, windowHeight_);
 
-    for (const TransformComponent_t& transform : m_gameState.GetAllTransform()) {
+    for (const auto& [id, transform] : m_gameState.GetAllTransform()) {
         Sphere sphere(Vector3(transform.vec3Position.x, 25, transform.vec3Position.z), 50);
-        if (TestCollision(ray, sphere) && m_gameState.GetHealth(transform.idUnit)
-            && m_gameState.GetTeam(transform.idUnit)->eTeam != m_gameState.GetTeam(my_unit_id_)->eTeam) {
+        if (TestCollision(ray, sphere) && m_gameState.GetHealth(id)
+            && m_gameState.GetTeam(id)->eTeam != m_gameState.GetTeam(my_unit_id_)->eTeam) {
             handler_->RequestCursor(CursorId::ATTACK_MOVE);
             break;
         }
@@ -603,12 +603,10 @@ void Game::SpawnUnit(uint64_t unitId) {
 }
 
 void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos) {
-    for(UnitId idExisting : m_gameState.vecUnits) {
-        if(entId == idExisting) {
+        if(m_gameState.GetRenderable(entId)) {
             // TODO do not double spawn
             return;
         }
-    }
 
     if(entId == my_unit_id_) {
         const CCharacterData entityData = assetManager_->GetGameData().mapCharacterData.at(entityId);
@@ -632,8 +630,6 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
             };
         }
     }
-
-    m_gameState.vecUnits.push_back(entId);
 
     auto entMapIt = assetManager_->GetGameData().mapCharacterData.find(entityId);
 
@@ -692,7 +688,6 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
     }
     if(entData.optUseableData) {
         UseableComponent_t* pUseable = m_gameState.AddUseable(entId);
-        pUseable->idUnit = entId;
         pUseable->nUses = entData.optUseableData.value().nUses;
         pUseable->strAbilityId = entData.optUseableData.value().strAbilityId;
     }
@@ -1135,7 +1130,7 @@ void Game::Action(EInputAction eAction) {
 	float hp = static_cast<float>(M_PI / 180.0);
 	Ray ray = renderer->m_camera.CameraRay({ static_cast<float>(m_mousePos[0]), static_cast<float>(m_mousePos[1]) }, windowWidth_, (float)windowHeight_);
 
-    for(const TransformComponent_t& pTransform : m_gameState.GetAllTransform()) {
+    for(const auto& [id, pTransform] : m_gameState.GetAllTransform()) {
         Capsule_t capsule = Capsule_t {
             .vec3Start = Vector3(pTransform.vec3Position.x, 0, pTransform.vec3Position.z),
             .vec3End = Vector3(pTransform.vec3Position.x, 200, pTransform.vec3Position.z),
@@ -1144,7 +1139,7 @@ void Game::Action(EInputAction eAction) {
 
 		if (TestCollision(ray, capsule)) {
 			// TODO does this work for multiple objects right behind each other?
-			idUnitUnderCursor = pTransform.idUnit;
+			idUnitUnderCursor = id;
 			break;
 		}
     }

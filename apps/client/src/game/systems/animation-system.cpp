@@ -39,7 +39,7 @@ void DoThingsWithBones(Armature* skin, int i, std::map<int, BonePosition>& boneP
 }
 
 void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
-    for(const UnitId& id : pGameState->vecUnits) {
+    for(const auto& [id, anim] : pGameState->GetAllAnimation()) {
         AnimationComponent_t* pAnimComp = pGameState->GetAnimation(id);
         RenderableComponent_t* pRendercomp = pGameState->GetRenderable(id);
 

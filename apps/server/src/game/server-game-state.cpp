@@ -30,7 +30,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     UnitId id = CurrentUnitId++;
 
     // ==================== CHARACTER COMPONENT ====================
-    AddCharacter(id, CharacterComponent_t { id, entityData.strId });
+    AddCharacter(id, CharacterComponent_t { entityData.strId });
 
     // ==================== SPELL CAST COMPONENT ====================
     if(!entityData.mapAbilityIds.empty()) {
@@ -111,8 +111,6 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         }
 
         pAi->vecWaypoints.push_back({1200, 0, -750});
-
-        pAi->idUnit = id;
     }
 
     return id;

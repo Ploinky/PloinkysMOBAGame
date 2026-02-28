@@ -11,7 +11,6 @@ typedef struct TransformComponent_t {
     
     void SetPosition(Vector3 vec3NewRotation);
     void SetRotation(Vector3 vec3NewRotation);
-    UnitId idUnit;
 
     private:
     Vector3 m_vec3Position;

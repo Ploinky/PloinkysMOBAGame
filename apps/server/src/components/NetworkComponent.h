@@ -10,7 +10,6 @@ typedef struct NetworkComponent_t {
     void SetSyncMovement(bool bSyncMovement) { m_bSyncMovement = bSyncMovement; };
     bool IsSpawnSynced() { return m_bIsSpawnSynced; };
     void SetSpawnSynced() { m_bIsSpawnSynced = true; };
-    UnitId idUnit;
 
 private:
     bool m_bIsSpawnSynced = false;

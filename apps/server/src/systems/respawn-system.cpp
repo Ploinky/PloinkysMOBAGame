@@ -5,7 +5,7 @@ CRespawnSystem::CRespawnSystem() {
 }
 
 void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(HealthComponent_t& health : pGameState->GetAllHealth()) {
+    for(auto& [id, health] : pGameState->GetAllHealth()) {
         if(health.bIsDead) {
             health.fTimeSinceDeath += fDelta;
 
@@ -14,26 +14,26 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
                 health.bIsDead = false;
                 health.fTimeSinceDeath = 0.0f;
 
-                TransformComponent_t* pTransform = pGameState->GetTransform(health.idUnit);
-                TeamComponent_t* pTeam = pGameState->GetTeam(health.idUnit);
+                TransformComponent_t* pTransform = pGameState->GetTransform(id);
+                TeamComponent_t* pTeam = pGameState->GetTeam(id);
 
                 if(pTeam != nullptr && pTransform != nullptr) {
                     SpawnPoint_t spawn = pGameState->mapTeamSpawnPoints[pTeam->eTeam].at(0);
                     pTransform->SetPosition({spawn.vec2Pos.x, 0, spawn.vec2Pos.y});
                     pTransform->SetRotation({0, spawn.fAngle, 0});
 
-                    if(pGameState->GetMovement(health.idUnit)) {
-                        if(TransformComponent_t* pTransform =pGameState->GetTransform(health.idUnit)) {
-                            pGameState->GetMovement(health.idUnit)->vec3Target = pTransform->GetPosition();
+                    if(pGameState->GetMovement(id)) {
+                        if(TransformComponent_t* pTransform =pGameState->GetTransform(id)) {
+                            pGameState->GetMovement(id)->vec3Target = pTransform->GetPosition();
 
                         }
                     }
 
-                    pGameState->EmitEvent(new CMoveEvent(health.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
+                    pGameState->EmitEvent(new CMoveEvent(id, pTransform->GetPosition(), pTransform->GetRotation().y));
                 }
 
 
-                pGameState->EmitEvent(new CRespawnEvent(health.idUnit));
+                pGameState->EmitEvent(new CRespawnEvent(id));
             }
         }
     }

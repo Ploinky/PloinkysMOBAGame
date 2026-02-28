@@ -44,9 +44,6 @@ public:
     // ========================================================
     std::vector<CGameObject*> GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const;
 
-    std::queue<IGameEvent*> VecEvent;
-    std::vector<UnitId> vecUnits;
-
     unsigned int uTeam1Points = 0;
     unsigned int uTeam2Points = 0;
 

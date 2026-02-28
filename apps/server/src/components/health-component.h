@@ -7,7 +7,6 @@ typedef struct HealthComponent_t {
     HealthComponent_t() : HealthComponent_t(100) {};
     HealthComponent_t(int nMaxHealth) : nMaxHealth(nMaxHealth), nHealth(nMaxHealth) {};
     
-    UnitId idUnit;
     int nMaxHealth = 100;
     int nHealth = 100;
     bool bIsDead = false;

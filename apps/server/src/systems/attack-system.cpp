@@ -6,7 +6,7 @@ CAttackSystem::CAttackSystem() {
 }
 
 void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(BasicAttackComponent_t& attackComp : pGameState->GetAllBasicAttack()) {
+    for(auto& [id, attackComp] : pGameState->GetAllBasicAttack()) {
         if(!attackComp.optCurrentAttack.has_value()) {
             continue;
         }
@@ -18,7 +18,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         TransformComponent_t* pTargetTransform = nullptr;
         NavigationComponent_t* pNavigationComponent = nullptr;
 
-        if(pGameState->GetHealth(attackComp.idUnit) && pGameState->GetHealth(attackComp.idUnit)->bIsDead) {
+        if(pGameState->GetHealth(id) && pGameState->GetHealth(id)->bIsDead) {
             attackComp.optCurrentAttack.reset();
             continue;
         }
@@ -33,15 +33,15 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         switch(activeAttack.eState) {
             case EAttackState::IDLE:
             case EAttackState::APPROACHING:
-                pAttackerTransform = pGameState->GetTransform(attackComp.idUnit);
+                pAttackerTransform = pGameState->GetTransform(id);
                 pTargetTransform = pGameState->GetTransform(activeAttack.idTarget);
 
-                pNavigationComponent = pGameState->GetNavigation(attackComp.idUnit);
+                pNavigationComponent = pGameState->GetNavigation(id);
                 if(attackComp.fRange > (pAttackerTransform->GetPosition() - pTargetTransform->GetPosition()).Length()) {
                     activeAttack.eState = EAttackState::ATTACKING;
                     activeAttack.fTimeInState = 0.0f;
 
-                    pGameState->EmitEvent(new CAttackStartEvent(attackComp.idUnit, activeAttack.idTarget));
+                    pGameState->EmitEvent(new CAttackStartEvent(id, activeAttack.idTarget));
                     break;
                 }
 
@@ -53,7 +53,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::ATTACKING:
                 if(activeAttack.fTimeInState >= attackComp.fAttackPoint) {
-                    pGameState->EmitEvent(new CAttackHitEvent(attackComp.idUnit, activeAttack.idTarget));
+                    pGameState->EmitEvent(new CAttackHitEvent(id, activeAttack.idTarget));
                     activeAttack.eState = EAttackState::BACKSWING;
                     activeAttack.fTimeInState = 0.0f;
                 }
@@ -66,13 +66,13 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::FINISHED:
                 // TODO
-                pGameState->EmitEvent(new CAttackFinishedEvent(attackComp.idUnit));
+                pGameState->EmitEvent(new CAttackFinishedEvent(id));
                 attackComp.optCurrentAttack.value().eState = EAttackState::IDLE;
                 attackComp.optCurrentAttack.value().fTimeInState = 0.0f;
                 break;
                 case EAttackState::CANCELLED:
                 // TODO
-                pGameState->EmitEvent(new CAttackFinishedEvent(attackComp.idUnit));
+                pGameState->EmitEvent(new CAttackFinishedEvent(id));
                 attackComp.optCurrentAttack.reset(); // Done
                 break;
             default:

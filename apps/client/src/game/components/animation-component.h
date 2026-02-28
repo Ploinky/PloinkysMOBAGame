@@ -4,7 +4,6 @@
 #include "common/PMG_Common.h"
 
 typedef struct {
-    UnitId idUnit;
     std::string m_strAnimationName;
     bool m_bLoop;
     float m_fAnimationTime;

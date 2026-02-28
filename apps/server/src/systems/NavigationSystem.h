@@ -11,7 +11,7 @@ public:
     CNavigationSystem(NavigationMap* pMap);
 
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
-    void UpdateEntity(CServerGameState* pGameState, float fDelta, NavigationComponent_t& nav);
+    void UpdateEntity(CServerGameState* pGameState, float fDelta, NavigationComponent_t& nav, UnitId id);
 
     REGISTER_EVENT_HANDLER(CNavigationSystem, CSpellCastStartEvent, OnSpellCastStart);
     REGISTER_EVENT_HANDLER(CNavigationSystem, CMoveAttemptEvent, OnMoveAttempt);

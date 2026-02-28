@@ -15,14 +15,14 @@ void CDamageSystem::Update(CServerGameState* pGameState, float fDelta) {
 }
 
 void CDamageSystem::Finalize(CServerGameState* pGameState) {
-    for(HealthComponent_t& health : pGameState->GetAllHealth()) {
+    for(auto& [id, health] : pGameState->GetAllHealth()) {
         if(!health.bIsDead) {
             if(health.nHealth <= 0) {
                 health.nHealth = 0;
                 health.bIsDead = true;
                 health.fTimeSinceDeath = 0.0f;
     
-                pGameState->EmitEvent(new CDeathEvent(health.idUnit));
+                pGameState->EmitEvent(new CDeathEvent(id));
             }
 
             if(health.nHealth > health.nMaxHealth) {

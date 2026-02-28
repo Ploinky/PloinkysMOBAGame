@@ -9,18 +9,18 @@ CMovementSystem::CMovementSystem() {
 }
 
 void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(MovementComponent_t& move : pGameState->GetAllMovement()) {
-        UpdateEntity(pGameState, fDelta, move);
+    for(auto& [id, move] : pGameState->GetAllMovement()) {
+        UpdateEntity(pGameState, fDelta, move, id);
     }
 }
 
-void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, MovementComponent_t& move) const {
-    HealthComponent_t* pHealthComp = pGameState->GetHealth(move.idUnit);
+void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, MovementComponent_t& move, UnitId id) const {
+    HealthComponent_t* pHealthComp = pGameState->GetHealth(id);
     if(pHealthComp != nullptr && pHealthComp->bIsDead) {
         return;
     }
 
-    TransformComponent_t* pTransform = pGameState->GetTransform(move.idUnit);
+    TransformComponent_t* pTransform = pGameState->GetTransform(id);
     if(!pTransform) {
         // TODO we can't move
         return;
@@ -35,14 +35,14 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
     }
 
     // For navigating units, use the nav map...
-    if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(move.idUnit)) {
+    if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(id)) {
         Vector2 vec2Step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, move.fSpeed * (fDelta / 1000.0f));
 
         
         // TODO only check units in my vicinity
         // TODO improve collisioning code
-        for(TransformComponent_t& transform : pGameState->GetAllTransform()) {
-            if(pTransform->idUnit == transform.idUnit) {
+        for(auto& [otherId, transform] : pGameState->GetAllTransform()) {
+            if(otherId == id) {
                 continue;
             }
             Vector2 vec2OtherPos = {transform.GetPosition().x, transform.GetPosition().z};
@@ -64,7 +64,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
     
     pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
 
-    pGameState->EmitEvent(new CMoveEvent(move.idUnit, pTransform->GetPosition(), pTransform->GetRotation().y));
+    pGameState->EmitEvent(new CMoveEvent(id, pTransform->GetPosition(), pTransform->GetRotation().y));
 }
 
 void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {

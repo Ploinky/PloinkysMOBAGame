@@ -5,7 +5,6 @@
 #include "common/pmg_types.h"
 
 typedef struct MovementComponent_t {
-    UnitId idUnit;
     Vector3 vec3Target;
     float fSpeed;
 } MovementComponent_t;

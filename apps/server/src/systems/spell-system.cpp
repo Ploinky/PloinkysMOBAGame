@@ -8,7 +8,7 @@ CSpellSystem::CSpellSystem() {
 }
 
 void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
-    for(SpellCastComponent_t& spellComp : pGameState->GetAllSpellCast()) {
+    for(auto& [id, spellComp] : pGameState->GetAllSpellCast()) {
 
         std::vector<SpellSlot_t>& vecSpells = spellComp.vecSpellSlots;
 
@@ -80,7 +80,7 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
                 }
             case ESpellCastState::FINISHED:
                 vecSpells[activeCast.nIndex].fCooldownRemaining = vecSpells[activeCast.nIndex].data.fCooldown;
-                pGameState->EmitEvent(new CCooldownStartedEvent(spellComp.idUnit, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
+                pGameState->EmitEvent(new CCooldownStartedEvent(id, activeCast.nIndex, vecSpells[activeCast.nIndex].data.fCooldown));
                 spellComp.optCurrentCast.reset();
                 break;
             case ESpellCastState::CANCELLED:
@@ -174,8 +174,8 @@ void CSpellSystem::TryCastSpell(CServerGameState* pGameState, CSpellCastContext*
 
     pGameState->GetNavigation(pSpellCtx->idCaster)->eStatus = ENavigationStatus::IDLE;
     pGameState->GetNavigation(pSpellCtx->idCaster)->vec3Destination = Vector3::ZERO;
-    if(MovementComponent_t* pMovement = pGameState->GetMovement(pGameState->GetNavigation(pSpellCtx->idCaster)->idUnit)) {
-        if(TransformComponent_t* pTransform = pGameState->GetTransform(pGameState->GetNavigation(pSpellCtx->idCaster)->idUnit)) {
+    if(MovementComponent_t* pMovement = pGameState->GetMovement(pSpellCtx->idCaster)) {
+        if(TransformComponent_t* pTransform = pGameState->GetTransform(pSpellCtx->idCaster)) {
             pMovement->vec3Target = pTransform->GetPosition();
         }
     }

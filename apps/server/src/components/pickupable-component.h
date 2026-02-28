@@ -4,6 +4,5 @@
 #include "common/pmg_types.h"
 
 typedef struct PickupableComponent_t {
-    UnitId idUnit;
     PickupableComponent_t() {};
 } PickupableComponent_t;
