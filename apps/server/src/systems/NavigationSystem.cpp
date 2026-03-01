@@ -6,6 +6,7 @@
 #include "events.h"
 
 #define GOAL_THRESHOLD 10
+#define WAIT_BLOCKED 250
 
 CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     m_pMap = pMap;
@@ -78,6 +79,11 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             return;
         }
     } else if (nav.eStatus == ENavigationStatus::BLOCKED) {
+        nav.fTimeBlocked += fDelta;
+        if(nav.fTimeBlocked < WAIT_BLOCKED) {
+            Logger::FormatMsg("Entity %d blocked, waiting for renav", id);
+            return;
+        }
         // OH NO!
         Logger::FormatMsg("Entity %d blocked on its way to <%f, %f>, needs renav",
             id, nav.vec3Destination.x, nav.vec3Destination.z);
@@ -88,6 +94,8 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             return;
+        } else {
+            nav.eStatus = ENavigationStatus::PATHING;
         }
     }
 

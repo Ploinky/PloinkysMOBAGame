@@ -14,4 +14,5 @@ typedef struct NavigationComponent_t {
     Vector3 vec3Destination;
     NavigationGridAgent* pNavGridAgent = nullptr;
     ENavigationStatus eStatus;
+    float fTimeBlocked = 0.0f;
 } NavigationComponent_t;
