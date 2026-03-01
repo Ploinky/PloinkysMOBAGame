@@ -12,7 +12,7 @@
     <network sync_movement="true" />
     <movement speed="300" />
     <health max_health="50" />
-    <navigation />
+    <navigation collision_radius="50" />
     <intent />
     <targetable selection_radius="100" />
     <audio />

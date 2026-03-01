@@ -54,7 +54,9 @@
                 </xs:complexType>
             </xs:element>
             <xs:element name="navigation" minOccurs="0" maxOccurs="1">
-                <xs:complexType></xs:complexType>
+                <xs:complexType>
+                    <xs:attribute name="collision_radius" type="xs:integer" use="required" />
+                </xs:complexType>
             </xs:element>
             <xs:element name="intent" minOccurs="0" maxOccurs="1">
                 <xs:complexType></xs:complexType>

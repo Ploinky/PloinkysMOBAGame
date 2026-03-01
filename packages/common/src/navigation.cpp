@@ -512,10 +512,10 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 			continue;
 		}
 		Vector2 vec2OtherPos = Vector2(pOther->position.x, pOther->position.z);
-		if((vec2OtherPos - to).Length() < 50) {
+		if((vec2OtherPos - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
 			// destination currently blocked
 			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
-			to = vec2OtherPos + (from - vec2OtherPos).ScaleToLength(50);
+			to = vec2OtherPos + (from - vec2OtherPos).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
 		}
 	}
 
@@ -539,7 +539,6 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	if (start == end) {
 		return {};
 	}
-#define COLLISION_DIST 50
 #define STEP_SIZE 10
 
 	struct Collision_t {
@@ -563,7 +562,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 			line.End = vec2Destination;
 			Circle circle;
 			circle.position = { pOtherAgent->position.x, pOtherAgent->position.z };
-			circle.radius = collDist;
+			circle.radius = (collDist / 2) + (pOtherAgent->nCollisionRadius / 2);
 
 			Vector2 coll = TestCollision(line, circle);
 
@@ -576,7 +575,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		return detected;
 	};
 	auto GetObstruction = [this, end, GetObstruction1](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent) -> Collision_t {
-		return GetObstruction1(vec2Position, vec2Destination, pIgnoreAgent, COLLISION_DIST);
+		return GetObstruction1(vec2Position, vec2Destination, pIgnoreAgent, 50);
 	};
 
 	int nMaxIter = 100;
@@ -674,7 +673,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 
 		for(int j = next; j < vecShortPath.size(); j++) {
 			Vector2 vec = vecShortPath.at(j);
-			Collision_t coll = GetObstruction1(vec2Anchor, vec, nullptr, COLLISION_DIST - 1);
+			Collision_t coll = GetObstruction1(vec2Anchor, vec, nullptr, pAgent->nCollisionRadius - 1);
 			if(coll.pAgent == nullptr) {
 				next = j;
 			}

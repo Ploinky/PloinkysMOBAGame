@@ -47,7 +47,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			// draw blockers
 			for (NavigationGridAgent* pBlocker : pSharedData->pMap->m_vecAgents) {
 				SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
-				if (!Ellipse(hdcMem, (pBlocker->position.x - 25) /SCALING_FACTOR, -(pBlocker->position.z - 25) /SCALING_FACTOR, (pBlocker->position.x + 25) /SCALING_FACTOR, -(pBlocker->position.z + 25) /SCALING_FACTOR)) {
+				float fHalfRadius = pBlocker->nCollisionRadius / 2.0f;
+				if (!Ellipse(hdcMem, (pBlocker->position.x - fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.z - fHalfRadius) /SCALING_FACTOR, (pBlocker->position.x + fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.z + fHalfRadius) /SCALING_FACTOR)) {
 					MessageBox(hWnd, "KAPUTT", "Total Kaputt", MB_ICONERROR);
 				}
 			}

@@ -35,6 +35,7 @@ typedef struct {
 	std::vector<Vector2> path;
 	Vector3 target;
 	Vector3 position;
+	int nCollisionRadius;
 	bool IgnoreCollision;
 } NavigationGridAgent;
 

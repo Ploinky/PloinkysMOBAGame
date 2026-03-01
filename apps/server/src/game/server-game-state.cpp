@@ -79,6 +79,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         pNav->pNavGridAgent = m_pNavMap->CreateAgent();
         pNav->pNavGridAgent->UnitId = id;
         pNav->pNavGridAgent->IgnoreCollision = false;
+        pNav->pNavGridAgent->nCollisionRadius = entityData.optNavigationData.value().nCollisionRadius;
     }
 
     // ==================== INTENT COMPONENT ====================

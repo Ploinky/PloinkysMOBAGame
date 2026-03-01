@@ -98,7 +98,8 @@ public:
 };
 
 class CNavigationData {
-
+public:
+    int nCollisionRadius;
 };
 
 class CIntentData {

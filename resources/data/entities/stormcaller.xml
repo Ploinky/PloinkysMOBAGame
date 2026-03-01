@@ -22,7 +22,7 @@
     <network sync_movement="true" />
     <movement speed="300" />
     <health max_health="200" />
-    <navigation />
+    <navigation collision_radius="50" />
     <targetable selection_radius="100" />
     <inventory />
     <audio

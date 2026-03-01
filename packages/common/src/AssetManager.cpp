@@ -252,6 +252,7 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
     pugi::xml_node navigationNode = charDataNode.child("navigation");
     if(navigationNode) {
         CNavigationData navigationData{};
+        navigationData.nCollisionRadius = navigationNode.attribute("collision_radius").as_int();
         charData.optNavigationData.emplace(navigationData);
     }
 
