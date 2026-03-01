@@ -572,86 +572,120 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 
 	int nMaxIter = 100;
 	int nIter = 0;
-	vecShortPath.push_back(start);
 	
-	Vector2 position = start;
-	Vector2 initialColl = position;
-	Collision_t collision = GetObstruction(position, end, nullptr, pAgent->nCollisionRadius);
-	NavigationGridAgent* pTracing = nullptr;
+	struct Trace_t {
+		Collision_t collision;
+		NavigationGridAgent* pTracing;
+		Vector2 vec2Position;
+		float fTotalDist;
+		std::vector<Vector2> vecPath;
+		Vector2 vec2InitialColl;
+	};
 
-	if (collision.pAgent != nullptr && collision.position != start) {
-		position = collision.position;
-		pTracing = collision.pAgent;
-		initialColl = position;
-		vecShortPath.push_back(position);
+	Trace_t cw { .pTracing = nullptr, .vec2Position = start, .fTotalDist = 0.0f, };
+	Trace_t ccw { .pTracing = nullptr, .vec2Position = start, .fTotalDist = 0.0f };
+
+	cw.collision = GetObstruction(cw.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+	ccw.collision = GetObstruction(ccw.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+	cw.vecPath.push_back(start);
+	ccw.vecPath.push_back(start);
+
+	if (cw.collision.pAgent != nullptr && cw.collision.position != start) {
+		cw.vec2Position = cw.collision.position;
+		cw.vec2InitialColl = cw.collision.position;
+		cw.pTracing = cw.collision.pAgent;
+		cw.vecPath.push_back(cw.vec2Position);
 	}
 
-	while (position != end) {
+	if (ccw.collision.pAgent != nullptr && ccw.collision.position != start) {
+		ccw.vec2Position = ccw.collision.position;
+		ccw.vec2InitialColl = ccw.collision.position;
+		ccw.pTracing = ccw.collision.pAgent;
+		ccw.vecPath.push_back(ccw.vec2Position);
+	}
+
+	while (cw.vec2Position != end && ccw.vec2Position != end) {
+		// only trace one direction each time
+		bool traceCW = cw.fTotalDist <= ccw.fTotalDist;
+		Trace_t& trace = traceCW ? cw : ccw;
+
 		// tracing
-		if (pTracing != nullptr) {
+		if (trace.pTracing != nullptr) {
 			// find next tangent to traced target
-			Vector2 vec2CircleCenterToAgent = pTracing->position - position;
-			Vector2 vec2Tangent = {-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x};
+			Vector2 vec2CircleCenterToAgent = trace.pTracing->position - trace.vec2Position;
+			Vector2 vec2Tangent = traceCW ? Vector2(-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x)
+				: Vector2(vec2CircleCenterToAgent.y, -vec2CircleCenterToAgent.x);
 			vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
-			Vector2 next = position + vec2Tangent;
+			Vector2 next = trace.vec2Position + vec2Tangent;
 			
 			// check if tangent is free
-			Collision_t newCollision = GetObstruction(position, next, collision.pAgent, pAgent->nCollisionRadius);
+			Collision_t newCollision = GetObstruction(trace.vec2Position, next, trace.collision.pAgent, pAgent->nCollisionRadius);
 			
 			// check if we're back on target
 			Line line;
 			line.Start = start;
 			line.End = end;
 			Line otherLine;
-			otherLine.Start = position;
+			otherLine.Start = trace.vec2Position;
 			otherLine.End = next;
 			std::optional<Vector2> vec2GoalLineIntersect = TestCollision(line, otherLine);
 			bool bIsValidIntersect = vec2GoalLineIntersect.has_value()
-				&& (end - vec2GoalLineIntersect.value()).Length() - (end - initialColl).Length() < -1;
+				&& (end - vec2GoalLineIntersect.value()).Length() - (end - trace.vec2InitialColl).Length() < -1;
 
 			
 
 			// crossing the target line but also running into something
 			if(bIsValidIntersect && newCollision.pAgent != nullptr) {
-				if((vec2GoalLineIntersect.value() - position).Length() < (newCollision.position - position).Length()) {
+				if((vec2GoalLineIntersect.value() - trace.vec2Position).Length() < (newCollision.position - trace.vec2Position).Length()) {
 					// back on track?
-					pTracing = nullptr;
-					vecShortPath.push_back(vec2GoalLineIntersect.value());
-					position = vec2GoalLineIntersect.value();
+					trace.pTracing = nullptr;
+					trace.vecPath.push_back(vec2GoalLineIntersect.value());
+					trace.fTotalDist += (vec2GoalLineIntersect.value() - trace.vec2Position).Length();
+					trace.vec2Position = vec2GoalLineIntersect.value();
 				} else {
-					pTracing = newCollision.pAgent;
-					collision = newCollision;
-					position = newCollision.position;
-					vecShortPath.push_back(position);
+					trace.pTracing = newCollision.pAgent;
+					trace.collision = newCollision;
+					trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+					trace.vec2Position = newCollision.position;
+					trace.vecPath.push_back(trace.vec2Position);
 				}
 			// running into something
 			} else if (newCollision.pAgent != nullptr) {
-				pTracing = newCollision.pAgent;
-				collision = newCollision;
-				position = newCollision.position;
-				vecShortPath.push_back(position);
+				trace.pTracing = newCollision.pAgent;
+				trace.collision = newCollision;
+				trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+				trace.vec2Position = newCollision.position;
+				trace.vecPath.push_back(trace.vec2Position);
 			// back on target line
 			} else if (bIsValidIntersect) {
 				// back on track?
-				pTracing = nullptr;
-				vecShortPath.push_back(vec2GoalLineIntersect.value());
-				position = vec2GoalLineIntersect.value();
+				trace.pTracing = nullptr;
+				trace.vecPath.push_back(vec2GoalLineIntersect.value());
+				trace.fTotalDist += (vec2GoalLineIntersect.value() - trace.vec2Position).Length();
+				trace.vec2Position = vec2GoalLineIntersect.value();
 			// keep going tangent
 			} else {
-				position = next;
-				vecShortPath.push_back(position);
+				trace.fTotalDist += (next - trace.vec2Position).Length();
+				trace.vec2Position = next;
+				trace.vecPath.push_back(trace.vec2Position);
 			}
 
 		}
 		// not tracing
-		else if(pTracing == nullptr) {
-			Collision_t newCollision = GetObstruction(position, end, nullptr, pAgent->nCollisionRadius);
+		else if(trace.pTracing == nullptr) {
+			Collision_t newCollision = GetObstruction(trace.vec2Position, end, nullptr, pAgent->nCollisionRadius);
 			if(newCollision.pAgent) {
-				position = newCollision.position;
-				pTracing = newCollision.pAgent;
-				collision = newCollision;
-				initialColl = collision.position;
-				vecShortPath.push_back(position);
+				trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+				trace.vec2Position = newCollision.position;
+				trace.pTracing = newCollision.pAgent;
+				trace.collision = newCollision;
+				trace.vec2InitialColl = trace.collision.position;
+				trace.vecPath.push_back(trace.vec2Position);
+			} else {
+				// not tracing & no obstruction - done?
+				trace.fTotalDist += (end - trace.vec2Position).Length();
+				trace.vec2Position = end;
+				trace.vecPath.push_back(end);
 			}
 		}
 
@@ -661,7 +695,12 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		}
 	}
 
-	vecShortPath.push_back(end);
+	if(cw.vec2Position == end) {
+		vecShortPath = cw.vecPath;
+	} else {
+		vecShortPath = ccw.vecPath;
+	}
+
 	std::vector<Vector2> vec2ShortPathSmoothed = {};
 	Vector2 vec2Anchor = start;
 	Vector2 vec2Previous = start;
@@ -692,12 +731,6 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		vec2ShortPathSmoothed.push_back(vec);
 	}
 
-	for (Vector2 vec : vecLongPath) {
-		vecShortPath.push_back(vec);
-	}
-	
-	
-	// return vecShortPath;
 	return vec2ShortPathSmoothed;
 }
 Vector2 NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {
