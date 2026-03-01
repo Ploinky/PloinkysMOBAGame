@@ -511,11 +511,10 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		if(pOther->UnitId == pAgent->UnitId) {
 			continue;
 		}
-		Vector2 vec2OtherPos = Vector2(pOther->position.x, pOther->position.z);
-		if((vec2OtherPos - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
+		if((pOther->position - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
 			// destination currently blocked
 			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
-			to = vec2OtherPos + (from - vec2OtherPos).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
+			to = pOther->position + (from - pOther->position).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
 		}
 	}
 
@@ -545,7 +544,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		NavigationGridAgent* pAgent;
 		Vector2 position;
 	};
-	auto GetObstruction1 = [this, pAgent, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
+	auto GetObstruction = [this, pAgent, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
 		NavigationGridAgent* pCollAg= nullptr;
 		float dist = std::numeric_limits<float>::max();
 		struct Collision_t detected;
@@ -557,12 +556,8 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 				continue;
 			}
 
-			Line line;
-			line.Start = vec2Position;
-			line.End = vec2Destination;
-			Circle circle;
-			circle.position = { pOtherAgent->position.x, pOtherAgent->position.z };
-			circle.radius = (collDist / 2) + (pOtherAgent->nCollisionRadius / 2);
+			Line line = Line(vec2Position, vec2Destination);
+			Circle circle = Circle(pOtherAgent->position, (collDist / 2) + (pOtherAgent->nCollisionRadius / 2));
 
 			Vector2 coll = TestCollision(line, circle);
 
@@ -574,9 +569,6 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		}
 		return detected;
 	};
-	auto GetObstruction = [this, end, GetObstruction1](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent) -> Collision_t {
-		return GetObstruction1(vec2Position, vec2Destination, pIgnoreAgent, 50);
-	};
 
 	int nMaxIter = 100;
 	int nIter = 0;
@@ -584,7 +576,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	
 	Vector2 position = start;
 	Vector2 initialColl = position;
-	Collision_t collision = GetObstruction(position, end, nullptr);
+	Collision_t collision = GetObstruction(position, end, nullptr, pAgent->nCollisionRadius);
 	NavigationGridAgent* pTracing = nullptr;
 
 	if (collision.pAgent != nullptr && collision.position != start) {
@@ -597,13 +589,16 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	while (position != end) {
 		// tracing
 		if (pTracing != nullptr) {
-			Vector2 vec2OtherPos = { pTracing->position.x, pTracing->position.z };
-			Vector2 vec2CircleCenterToAgent = vec2OtherPos - position;
+			// find next tangent to traced target
+			Vector2 vec2CircleCenterToAgent = pTracing->position - position;
 			Vector2 vec2Tangent = {-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x};
 			vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
 			Vector2 next = position + vec2Tangent;
-
 			
+			// check if tangent is free
+			Collision_t newCollision = GetObstruction(position, next, collision.pAgent, pAgent->nCollisionRadius);
+			
+			// check if we're back on target
 			Line line;
 			line.Start = start;
 			line.End = end;
@@ -611,12 +606,12 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 			otherLine.Start = position;
 			otherLine.End = next;
 			std::optional<Vector2> vec2GoalLineIntersect = TestCollision(line, otherLine);
-
-			Collision_t newCollision = GetObstruction(position, next, collision.pAgent);
-
 			bool bIsValidIntersect = vec2GoalLineIntersect.has_value()
 				&& (end - vec2GoalLineIntersect.value()).Length() - (end - initialColl).Length() < -1;
 
+			
+
+			// crossing the target line but also running into something
 			if(bIsValidIntersect && newCollision.pAgent != nullptr) {
 				if((vec2GoalLineIntersect.value() - position).Length() < (newCollision.position - position).Length()) {
 					// back on track?
@@ -629,16 +624,19 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 					position = newCollision.position;
 					vecShortPath.push_back(position);
 				}
+			// running into something
 			} else if (newCollision.pAgent != nullptr) {
 				pTracing = newCollision.pAgent;
 				collision = newCollision;
 				position = newCollision.position;
 				vecShortPath.push_back(position);
+			// back on target line
 			} else if (bIsValidIntersect) {
 				// back on track?
 				pTracing = nullptr;
 				vecShortPath.push_back(vec2GoalLineIntersect.value());
 				position = vec2GoalLineIntersect.value();
+			// keep going tangent
 			} else {
 				position = next;
 				vecShortPath.push_back(position);
@@ -647,7 +645,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		}
 		// not tracing
 		else if(pTracing == nullptr) {
-			Collision_t newCollision = GetObstruction(position, end, nullptr);
+			Collision_t newCollision = GetObstruction(position, end, nullptr, pAgent->nCollisionRadius);
 			if(newCollision.pAgent) {
 				position = newCollision.position;
 				pTracing = newCollision.pAgent;
@@ -673,7 +671,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 
 		for(int j = next; j < vecShortPath.size(); j++) {
 			Vector2 vec = vecShortPath.at(j);
-			Collision_t coll = GetObstruction1(vec2Anchor, vec, nullptr, pAgent->nCollisionRadius - 1);
+			Collision_t coll = GetObstruction(vec2Anchor, vec, nullptr, pAgent->nCollisionRadius - 1);
 			if(coll.pAgent == nullptr) {
 				next = j;
 			}

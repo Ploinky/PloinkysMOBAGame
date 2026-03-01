@@ -19,7 +19,7 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
 
 void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, NavigationComponent_t& nav, UnitId id) {
     TransformComponent_t* pTransform = pGameState->GetTransform(id);
-    nav.pNavGridAgent->position = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
+    nav.pNavGridAgent->position = {pTransform->GetPosition().x, pTransform->GetPosition().z};
 
     // Update nav components target if intent is to walk somewhere
     if(IntentComponent_t* pIntentComp = pGameState->GetIntent(id)) {

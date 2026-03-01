@@ -48,7 +48,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			for (NavigationGridAgent* pBlocker : pSharedData->pMap->m_vecAgents) {
 				SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
 				float fHalfRadius = pBlocker->nCollisionRadius / 2.0f;
-				if (!Ellipse(hdcMem, (pBlocker->position.x - fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.z - fHalfRadius) /SCALING_FACTOR, (pBlocker->position.x + fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.z + fHalfRadius) /SCALING_FACTOR)) {
+				if (!Ellipse(hdcMem, (pBlocker->position.x - fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.y - fHalfRadius) /SCALING_FACTOR, (pBlocker->position.x + fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.y + fHalfRadius) /SCALING_FACTOR)) {
 					MessageBox(hWnd, "KAPUTT", "Total Kaputt", MB_ICONERROR);
 				}
 			}
@@ -112,7 +112,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			auto start = std::chrono::high_resolution_clock::now();
 			pSharedData->pAgent->path = pSharedData->pMap->GetPath(pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
-				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.z }
+				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
 			);
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
@@ -128,13 +128,13 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 		case WM_RBUTTONDOWN: {
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			pSharedData->pAgent->target.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
-			pSharedData->pAgent->target.z = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
+			pSharedData->pAgent->target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
 			pSharedData->pAgent->path = pSharedData->pMap->GetPath(
 				pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
-				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.z }
+				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
 			);
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;

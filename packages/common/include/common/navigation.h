@@ -33,8 +33,8 @@ class NavigationMap;
 typedef struct {
 	uint64_t UnitId;
 	std::vector<Vector2> path;
-	Vector3 target;
-	Vector3 position;
+	Vector2 target;
+	Vector2 position;
 	int nCollisionRadius;
 	bool IgnoreCollision;
 } NavigationGridAgent;
