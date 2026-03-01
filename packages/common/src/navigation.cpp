@@ -545,7 +545,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		NavigationGridAgent* pAgent;
 		Vector2 position;
 	};
-	auto GetObstruction1 = [this, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
+	auto GetObstruction1 = [this, pAgent, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
 		NavigationGridAgent* pCollAg= nullptr;
 		float dist = std::numeric_limits<float>::max();
 		struct Collision_t detected;
@@ -553,7 +553,7 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 		detected.position = { 0, 0 };
 
 		for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
-			if (pOtherAgent == pIgnoreAgent) {
+			if (pOtherAgent == pIgnoreAgent || pOtherAgent == pAgent) {
 				continue;
 			}
 

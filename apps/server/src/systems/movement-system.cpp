@@ -42,7 +42,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
         // TODO only check units in my vicinity
         // TODO improve collisioning code
         for(auto& [otherId, transform] : pGameState->GetAllTransform()) {
-            if(otherId == id) {
+            if(otherId == id || !pGameState->GetNavigation(otherId)) {
                 continue;
             }
             Vector2 vec2OtherPos = {transform.GetPosition().x, transform.GetPosition().z};

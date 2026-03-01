@@ -1,4 +1,4 @@
-#include "collision.h"
+#include "common/collision.h"
 #include <math.h>
 #include <algorithm>
 
@@ -99,6 +99,8 @@ Vector2 TestCollision(Line line, Circle circle) {
 
     if (t1 >= 0 && t1 <= 1)
     {
+        return line.Start + (line.End - line.Start).ScaleToLength((line.End - line.Start).Length() * t1);
+    } else if(t1 < 0 && t2 >= 0 && t2 <= 1) {
         return line.Start + (line.End - line.Start).ScaleToLength((line.End - line.Start).Length() * t1);
     }
 
