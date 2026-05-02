@@ -107,7 +107,10 @@ if(WIN32)
     target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 glfw3)
 
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/data)
-        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
+        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")
+    endif()
+    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/assets)
+        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/assets\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
     endif()
 endif()
 

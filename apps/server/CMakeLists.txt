@@ -52,7 +52,7 @@ target_link_libraries(server PUBLIC common)
 
 if(WIN32)
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/server/data)
-        add_custom_command(TARGET server POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/server/data\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
+        add_custom_command(TARGET server POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/server/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")
 	endif()
 	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:server>/server.exe ${server_out_dir}/server.exe)
 endif()

@@ -1,5 +1,6 @@
 build
 linuxbuild
+_build
 .vscode
 TODO.txt
 _out

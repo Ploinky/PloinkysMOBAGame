@@ -60,6 +60,4 @@ target_include_directories(common PUBLIC include)
 # TODO fix this but not right now pls
 target_include_directories(common PRIVATE include/common)
 
-find_package(paklib)
-
-target_link_libraries(common PUBLIC ploinky::paklib)
+target_link_libraries(common PUBLIC paklib)

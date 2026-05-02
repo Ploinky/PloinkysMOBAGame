@@ -13,6 +13,7 @@ project(PloinkysMOBAGame)
 
 # add projects, common first since the others need it'
 add_subdirectory(packages/common)
+add_subdirectory(packages/paklib)
 add_subdirectory(apps/server)
 add_subdirectory(apps/client)
 add_subdirectory(apps/nav_vis)

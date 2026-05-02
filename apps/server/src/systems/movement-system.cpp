@@ -46,7 +46,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
                 continue;
             }
             Vector2 vec2OtherPos = {transform.GetPosition().x, transform.GetPosition().z};
-            if((vec2Step - vec2OtherPos).Length() < 50
+            if((vec2Step - vec2OtherPos).Length() < 45
                 && (vec2Step - vec2OtherPos).Length() < (Vector2(vec3OldPosition.x, vec3OldPosition.z) - vec2OtherPos).Length()) {
                 if(pNavComp->eStatus != ENavigationStatus::BLOCKED) {
                     pNavComp->eStatus = ENavigationStatus::BLOCKED;
