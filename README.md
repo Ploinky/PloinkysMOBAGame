@@ -1,8 +1,10 @@
-# PloinksMOBAGame
+# PloinkysMOBAGame
 
 Multiplayer Online Battle Arena game. Does some of the things that games like League of Legends, DotA or HOTS do, except much worse.
 
 This project contains the code for the client application, the game server, the code that is shared between the two, and all assets as well as tools. Basically you should be able to add some third party dependencies (enet, GLFW), compile and run!
+
+![Screenshot of PloinkysMOBAGame gameplay](/img/screen.png)
 
 ## Client
 
