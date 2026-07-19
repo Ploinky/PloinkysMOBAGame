@@ -36,24 +36,19 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
 
     // For navigating units, use the nav map...
     if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(id)) {
-        Vector2 vec2Step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, move.fSpeed * (fDelta / 1000.0f));
+        StepResult_t step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, move.fSpeed * (fDelta / 1000.0f));
+        Vector2 vec2Step = step.vec2Pos;
 
         
         // TODO only check units in my vicinity
         // TODO improve collisioning code
-        for(auto& [otherId, transform] : pGameState->GetAllTransform()) {
-            if(otherId == id || !pGameState->GetNavigation(otherId)) {
-                continue;
+        if (step.bBlocked) {
+            if(pNavComp->eStatus != ENavigationStatus::BLOCKED) {
+                pNavComp->eStatus = ENavigationStatus::BLOCKED;
+                pNavComp->fTimeBlocked = 0.0f;
             }
-            Vector2 vec2OtherPos = {transform.GetPosition().x, transform.GetPosition().z};
-            if((vec2Step - vec2OtherPos).Length() < 45
-                && (vec2Step - vec2OtherPos).Length() < (Vector2(vec3OldPosition.x, vec3OldPosition.z) - vec2OtherPos).Length()) {
-                if(pNavComp->eStatus != ENavigationStatus::BLOCKED) {
-                    pNavComp->eStatus = ENavigationStatus::BLOCKED;
-                    pNavComp->fTimeBlocked = 0.0f;
-                }
-                return;
-            }
+            Logger::FormatMsg("Unit %d unable to move to %f, %f - blocked! Stopping!", id, vec2Step.x, vec2Step.y);
+            return;
         }
         pTransform->SetPosition({vec2Step.x, vec3OldPosition.y, vec2Step.y});
     } else {

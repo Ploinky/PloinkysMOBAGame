@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Common/navigation.h>
+#include <common/navigation.h>
 
 typedef struct AppData {
 	NavigationMap* pMap;

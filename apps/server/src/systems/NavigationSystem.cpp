@@ -105,7 +105,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
     // Close enough to the current waypoint, so move on to the next one
     // TODO magic number
     if((vec3IntermediateTarget - pTransform->GetPosition()).Length() < GOAL_THRESHOLD) {
-        Logger::FormatMsg("%d arrived at waypoint <%d, %d> on the way to <%f, %f>, moving on to the next waypoint",
+        Logger::FormatMsg("%d arrived at waypoint <%f, %f> on the way to <%f, %f>, moving on to the next waypoint",
             id, vec3IntermediateTarget.x, vec3IntermediateTarget.z, nav.vec3Destination.x, nav.vec3Destination.z);
 
         nav.pNavGridAgent->path.erase(nav.pNavGridAgent->path.begin());

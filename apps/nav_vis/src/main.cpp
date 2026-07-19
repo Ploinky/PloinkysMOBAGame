@@ -11,7 +11,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case WM_KEYDOWN: {
  			if (wParam == VK_SPACE) {
 				auto move = data.pMap->Step(data.pAgent, data.vec2CurrPos, 100);
-				data.vec2CurrPos = move;
+				data.vec2CurrPos = move.vec2Pos;
 				InvalidateRect(hWnd, nullptr, true);
 			}
 			if (wParam == VK_ESCAPE) {
@@ -37,6 +37,7 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	data.pAgent->position = { 1000, -1000 };
 	data.pAgent->nCollisionRadius = 50;
 	data.pMap->m_pMesh->LoadFromFile("map1");
+	data.pMap->m_pGrid = new NavigationCellGrid(data.pMap->m_pMesh);
 	NavigationGridAgent* agt = data.pMap->CreateAgent();
 	agt->position = { 1500, -1500 };
 	agt->nCollisionRadius = 60;
@@ -57,8 +58,23 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	agt4->position = { 1000, -900 };
 	agt4->nCollisionRadius = 200;
 	agt4->UnitId = 4;
-	/*
-	*/
+
+
+	std::vector<Vector2> path = data.pMap->GetPath(agt3, agt3->position, {2200, -900});
+	agt3->path = data.pMap->GetPath(agt3, agt3->position, {2200, -900});
+
+	NavigationGridAgent* agt5 = data.pMap->CreateAgent();
+	agt5->position = { 2100, -900 };
+	agt5->nCollisionRadius = 10;
+
+	while(agt3->position != Vector2(2200, -900)) {
+		StepResult_t stepResult = data.pMap->Step(agt3, agt3->position, 10);
+		if (stepResult.bBlocked) {
+			agt3->path = data.pMap->GetPath(agt3, agt3->position, {2200, -900});
+		}
+
+		agt3->position = stepResult.vec2Pos;
+	}
 
 	WNDCLASS wc{};
 	wc.lpszClassName = TEXT("Window");

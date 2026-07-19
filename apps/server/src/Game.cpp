@@ -40,6 +40,7 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
 
     m_navMap = new NavigationMap();
     m_navMap->m_pMesh = m_navMesh;
+    m_navMap->m_pGrid = new NavigationCellGrid(m_navMesh);
 
 
     networkManager_ = networkManager;
