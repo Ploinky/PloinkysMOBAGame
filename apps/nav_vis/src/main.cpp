@@ -39,20 +39,20 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	data.pMap->m_pMesh->LoadFromFile("map1");
 	data.pMap->m_pGrid = new NavigationCellGrid(data.pMap->m_pMesh);
 	NavigationGridAgent* agt = data.pMap->CreateAgent();
-	agt->position = { 1500, -1500 };
-	agt->nCollisionRadius = 60;
+	agt->position = { 1500, -800 };
+	agt->nCollisionRadius = 50;
 	agt->UnitId = 0;
 	NavigationGridAgent* agt1 = data.pMap->CreateAgent();
-	agt1->position = { 1525, -1475 };
+	agt1->position = { 1550, -800 };
 	agt1->nCollisionRadius = 50;
 	agt1->UnitId = 1;
 	NavigationGridAgent* agt2 = data.pMap->CreateAgent();
-	agt2->position = { 1530, -1445 };
-	agt2->nCollisionRadius = 40;
+	agt2->position = { 1600, -800 };
+	agt2->nCollisionRadius = 50;
 	agt2->UnitId = 2;
 	NavigationGridAgent* agt3 = data.pMap->CreateAgent();
-	agt3->position = { 2000, -900 };
-	agt3->nCollisionRadius = 30;
+	agt3->position = { 705, -845 };
+	agt3->nCollisionRadius = 50;
 	agt3->UnitId = 3;
 	NavigationGridAgent* agt4 = data.pMap->CreateAgent();
 	agt4->position = { 1000, -900 };
@@ -60,21 +60,8 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	agt4->UnitId = 4;
 
 
-	std::vector<Vector2> path = data.pMap->GetPath(agt3, agt3->position, {2200, -900});
-	agt3->path = data.pMap->GetPath(agt3, agt3->position, {2200, -900});
-
-	NavigationGridAgent* agt5 = data.pMap->CreateAgent();
-	agt5->position = { 2100, -900 };
-	agt5->nCollisionRadius = 10;
-
-	while(agt3->position != Vector2(2200, -900)) {
-		StepResult_t stepResult = data.pMap->Step(agt3, agt3->position, 10);
-		if (stepResult.bBlocked) {
-			agt3->path = data.pMap->GetPath(agt3, agt3->position, {2200, -900});
-		}
-
-		agt3->position = stepResult.vec2Pos;
-	}
+	std::vector<Vector2> path = data.pMap->GetPath(agt3, agt3->position, {2250, -950});
+	agt3->path = data.pMap->GetPath(agt3, agt3->position, {2250, -950});
 
 	WNDCLASS wc{};
 	wc.lpszClassName = TEXT("Window");

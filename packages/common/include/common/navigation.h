@@ -142,7 +142,7 @@ public:
 	NavigationGridAgent* CreateAgent();
 	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
 	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen);
-	bool IsClearPath(NavigationGridAgent* pAgent, NavigationCell* node1, const NavigationCell* node2);
+	bool IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, const NavigationCell* node2);
 	NavMesh* m_pMesh;
 	NavigationCellGrid* m_pGrid;
 	void Reset();

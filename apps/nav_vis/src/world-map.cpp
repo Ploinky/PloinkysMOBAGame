@@ -108,6 +108,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			pSharedData->vec2CurrPos.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
 			pSharedData->vec2CurrPos.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
+			pSharedData->pAgent->position = pSharedData->vec2CurrPos;
 
 			auto start = std::chrono::high_resolution_clock::now();
 			pSharedData->pAgent->path = pSharedData->pMap->GetPath(pSharedData->pAgent,
