@@ -147,9 +147,10 @@ public:
 	NavigationCellGrid* m_pGrid;
 	void Reset();
 	std::vector<NavigationGridAgent*> m_vecAgents;
+	bool CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell);
+	std::vector<Vector2> GetCoarseGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
 
 private:
-	bool CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell);
 	std::list<Vector3> PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to);
 };
 
