@@ -509,13 +509,17 @@ std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2
 	return GetGridPath(pAgent, from, to);
 }
 
-bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell) {
+bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell, bool bIgnoreMoving) {
 	if (!pCell->IsWalkable) {
 		return false;
 	}
 
 	for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
 		if (pOtherAgent == pAgent) {
+			continue;
+		}
+
+		if (bIgnoreMoving && !pOtherAgent->path.empty()) {
 			continue;
 		}
 
@@ -722,7 +726,7 @@ bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, 
 			return false; // Path goes out of bounds
 		}
 
-		if (!CanMoveTo(pAgent, square)) {
+		if (!CanMoveTo(pAgent, square, true)) {
 			Logger::FormatMsg("\t\tBlocked from (%f, %f) to %d?", vec2Start.x, vec2Start.y, square->Index);
 			return false; // Path is blocked
 		}
@@ -809,7 +813,7 @@ std::vector<Vector2> NavigationMap::GetCoarseGridPath(NavigationGridAgent* pAgen
 			c++;
 			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
 
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour)) {
+			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour, true)) {
 				continue;
 			}
 
@@ -902,7 +906,7 @@ std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vec
 			c++;
 			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
 
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour)) {
+			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour, true)) {
 				continue;
 			}
 

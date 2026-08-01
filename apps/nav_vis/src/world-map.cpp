@@ -71,7 +71,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 					LineTo(hdcMem, (x * pGrid->CellWidth + pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight + pGrid->CellHeight) /SCALING_FACTOR));
 					LineTo(hdcMem, (x * pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight + pGrid->CellHeight) /SCALING_FACTOR));
 					LineTo(hdcMem, (x * pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight) /SCALING_FACTOR));
-					if (!pSharedData->pMap->CanMoveTo(pSharedData->pAgent, pGrid->Cells[x + y * pGrid->CellCountX])) {
+					if (!pSharedData->pMap->CanMoveTo(pSharedData->pAgent, pGrid->Cells[x + y * pGrid->CellCountX], false)) {
 						RECT rect;
 						rect.left = (x * pGrid->CellWidth) / SCALING_FACTOR;
 						rect.right = rect.left + (pGrid->CellWidth / SCALING_FACTOR);
