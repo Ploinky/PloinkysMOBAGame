@@ -35,8 +35,8 @@ bool operator!=(const polygon_t& lhs, const polygon_t& rhs) {
 }
 
 NavMesh::NavMesh() {
-	from = { 0, 0, 0 };
-	to = { 0, 0, 0 };
+	from = { 0, 0 };
+	to = { 0, 0 };
 }
 
 polygon_t* NavMesh::CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3) {
@@ -50,11 +50,11 @@ polygon_t* NavMesh::CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3) {
 	return p;
 }
 
-float NavMesh::Sign(Vector3 p1, Vector3 p2, Vector3 p3) {
-	return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
+float NavMesh::Sign(Vector2 p1, Vector3 p2, Vector3 p3) {
+	return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.y - p3.z);
 }
 
-bool NavMesh::PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
+bool NavMesh::PointInTriangle(Vector2 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
 	float d1, d2, d3;
 	bool has_neg, has_pos;
 
@@ -68,7 +68,7 @@ bool NavMesh::PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
 	return !(has_neg && has_pos);
 }
 
-bool NavMesh::PointInMesh(Vector3 pt) {
+bool NavMesh::PointInMesh(Vector2 pt) {
 	for (polygon_t* poly : mesh) {
 		if (PointInTriangle(pt, poly->vertices[0], poly->vertices[1], poly->vertices[2])) {
 			return true;
@@ -78,7 +78,7 @@ bool NavMesh::PointInMesh(Vector3 pt) {
 	return false;
 }
 
-polygon_t* NavMesh::FindPolygonAt(Vector3 pt) {
+polygon_t* NavMesh::FindPolygonAt(Vector2 pt) {
 	for (polygon_t* poly : mesh) {
 		if (PointInTriangle(pt, poly->vertices[0], poly->vertices[1], poly->vertices[2])) {
 			return poly;
@@ -102,20 +102,20 @@ bool NavMesh::IsNeighbour(polygon_t poly, polygon_t potentialNeighbour) {
 	return std::find(poly.neighbours.begin(), poly.neighbours.end(), potentialNeighbour.id) != poly.neighbours.end();
 }
 
-float NavMesh::Distance(Vector3 a, Vector3 b) {
-	return abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z);
+float NavMesh::Distance(Vector2 a, Vector2 b) {
+	return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
 float NavMesh::Distance(polygon_t* a, polygon_t* b) {
-	return Distance(a->center, b->center);
+	return Distance({a->center.x, a->center.z}, {b->center.x, b->center.z});
 }
 
-float NavMesh::Cross(const Vector3 v1, const Vector3 v2) {
-	return v1.x * v2.z - v1.z * v2.x;
+float NavMesh::Cross(const Vector2 v1, const Vector2 v2) {
+	return v1.x * v2.y - v1.y * v2.x;
 }
 
-float NavMesh::AngleBetween(Vector3 a, Vector3 b) {
-	return std::atan2(b.z - a.z, b.x - a.x);
+float NavMesh::AngleBetween(Vector2 a, Vector2 b) {
+	return std::atan2(b.y - a.y, b.x - a.x);
 }
 
 void NavMesh::PullString() {
@@ -196,7 +196,7 @@ void NavMesh::PullString() {
 		portals.push_back(*p);
 	}
 
-	Vector3 currVert = from;
+	Vector2 currVert = from;
 	
 	auto leftFrom = portals.begin();
 	auto rightFrom = portals.begin();
@@ -206,13 +206,13 @@ void NavMesh::PullString() {
 	while (!(currVert == to)) {
 		// std::cout << "Apex: " << currVert.x << ", " << currVert.y << std::endl;
 
-		Vector3 tunnelLeft = from->left;
-		Vector3 tunnelRight = from->right;
+		Vector2 tunnelLeft = {from->left.x, from->left.z};
+		Vector2 tunnelRight = {from->right.x, from->right.z};
 
 		for (auto portal = from; portal != portals.end(); portal++) {
 			// std::cout << "Portal: " << portal->from->id << " -> " << portal->to->id << std::endl;
-			Vector3 rightTo = portal->right;
-			Vector3 leftTo = portal->left;
+			Vector2 rightTo = {portal->right.x, portal->right.z};
+			Vector2 leftTo = {portal->left.x, portal->left.z};
 
 			float rightNext = Cross(tunnelRight - currVert, rightTo - currVert);
 			float rightCross = Cross(rightTo - currVert, tunnelLeft - currVert);
@@ -220,8 +220,8 @@ void NavMesh::PullString() {
 			if (rightCross > 0) {
 				// Left is new Apex!
 				currVert = tunnelLeft;
-				tunnelLeft = from->left;
-				tunnelRight = from->right;
+				tunnelLeft = {from->left.x, from->left.z};
+				tunnelRight = {from->right.x, from->right.z};
 				from = leftFrom;
 				movePath.push_back(currVert);
 				// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
@@ -241,8 +241,8 @@ void NavMesh::PullString() {
 			if (leftCross < 0) {
 				// Right is new Apex!
 				currVert = tunnelRight;
-				tunnelLeft = from->left;
-				tunnelRight = from->right;
+				tunnelLeft = {from->left.x, from->left.z};
+				tunnelRight = {from->right.x, from->left.z};
 				from = rightFrom;
 				movePath.push_back(currVert);
 				// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
@@ -314,7 +314,7 @@ void NavMesh::PullString() {
 	}
 }
 
-std::list<Vector3> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to) {
+std::vector<Vector2> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
 	m_pMesh->from = from;
 	m_pMesh->to = to;
 
@@ -357,13 +357,13 @@ std::list<Vector3> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector3 
 				continue;
 			}
 
-			float newLocal = currCell->localValue + (currCell == startPoly ? m_pMesh->Distance(from, neighbour->center) : m_pMesh->Distance(currCell, neighbour));
-			float newGlobal = newLocal + m_pMesh->Distance(neighbour->center, to);
+			float newLocal = currCell->localValue + (currCell == startPoly ? m_pMesh->Distance(from, {neighbour->center.x, neighbour->center.z}) : m_pMesh->Distance(currCell, neighbour));
+			float newGlobal = newLocal + m_pMesh->Distance({neighbour->center.x, neighbour->center.z}, to);
 			if (newLocal + newGlobal < neighbour->globalValue)
 			{
 				neighbour->parent = currCell->id;
 				neighbour->localValue = newLocal;
-				neighbour->globalValue = neighbour->localValue + m_pMesh->Distance(neighbour->center, to);
+				neighbour->globalValue = neighbour->localValue + m_pMesh->Distance({neighbour->center.x, neighbour->center.z}, to);
 				nodesToTest.emplace(neighbour);
 			}
 		}
@@ -505,33 +505,309 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	FindNeighbours();
 }
 
-std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	return GetGridPath(pAgent, from, to);
+Paths_t NavigationMap::GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+	
+	std::vector<Vector2> vecLongPath = PlanPath(pAgent, { from.x, from.y }, { to.x, to.y });
+
+	std::vector<Vector2> vecShortPath = RefinePath(pAgent, vecLongPath, from, to);
+
+	std::vector<Vector2> vec2ShortPathSmoothed = SmoothPath(pAgent, vecShortPath, from, to);
+	
+	std::vector<Vector2> vecVec2FinalPath = vec2ShortPathSmoothed;
+	
+	for (Vector2 vec : vecLongPath) {
+		vecVec2FinalPath.push_back(vec);
+	}
+
+	Paths_t paths;
+	paths.vecVec2FinalPath = vecVec2FinalPath;
+	paths.vecVec2LongPath = vecLongPath;
+	paths.vecVec2ShortPath = vecShortPath;
+
+	return paths;
 }
 
-bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell, bool bIgnoreMoving) {
-	if (!pCell->IsWalkable) {
-		return false;
+std::vector<Vector2> NavigationMap::SmoothPath(NavigationGridAgent* pAgent, const std::vector<Vector2>& vecShortPath, Vector2 start, Vector2 end) {
+	std::vector<Vector2> vec2ShortPathSmoothed = {};
+	Vector2 vec2Anchor = start;
+	Vector2 vec2Previous = start;
+
+	
+	struct Collision_t {
+		NavigationGridAgent* pAgent;
+		Vector2 position;
+	};
+
+	auto GetObstruction = [this, pAgent, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
+		NavigationGridAgent* pCollAg= nullptr;
+		float dist = std::numeric_limits<float>::max();
+		struct Collision_t detected;
+		detected.pAgent = nullptr;
+		detected.position = { 0, 0 };
+
+		for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
+			if (pOtherAgent == pIgnoreAgent || pOtherAgent == pAgent) {
+				continue;
+			}
+
+			if (!pOtherAgent->path.empty()) {
+				continue;
+			}
+
+			Line line = Line(vec2Position, vec2Destination);
+			Circle circle = Circle(pOtherAgent->position, (collDist + pOtherAgent->nCollisionRadius));
+
+			Vector2 coll = TestCollision(line, circle);
+
+			if (coll.Length() > 0 && (coll - vec2Position).Length() < dist){
+				dist = (coll - vec2Position).Length();
+				detected.position = coll;
+				detected.pAgent = pOtherAgent;
+			}
+		}
+		return detected;
+	};
+
+
+	for(int i = 0; i < vecShortPath.size(); ) {
+		vec2Anchor = vecShortPath.at(i);
+		int next = i + 1;
+
+		for(int j = next; j < vecShortPath.size(); j++) {
+			Vector2 vec = vecShortPath.at(j);
+			Collision_t coll = GetObstruction(vec2Anchor, vec, nullptr, pAgent->nCollisionRadius);
+			if(coll.pAgent == nullptr) {
+				next = j;
+			}
+		}
+
+		if(i == vecShortPath.size() - 1) {
+			break;
+		}
+		vec2ShortPathSmoothed.push_back(vecShortPath.at(next));
+		if(i == next) {
+			break;
+		}
+
+		i = next;
 	}
 
-	for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
-		if (pOtherAgent == pAgent) {
-			continue;
+	return vec2ShortPathSmoothed;
+}
+
+std::vector<Vector2> NavigationMap::RefinePath(NavigationGridAgent* pAgent, const std::vector<Vector2>& vecLongPath, Vector2 from, Vector2 to) {
+	if (vecLongPath.empty()) {
+		return {};
+	}
+
+	Vector2 start = from;
+	Vector2 end = vecLongPath.at(0);
+	std::vector<Vector2> vecShortPath = { };
+
+	if (start == end) {
+		return {};
+	}
+
+	struct Collision_t {
+		NavigationGridAgent* pAgent;
+		Vector2 position;
+	};
+
+	auto GetObstruction = [this, pAgent, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
+		NavigationGridAgent* pCollAg= nullptr;
+		float dist = std::numeric_limits<float>::max();
+		struct Collision_t detected;
+		detected.pAgent = nullptr;
+		detected.position = { 0, 0 };
+
+		for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
+			if (pOtherAgent == pIgnoreAgent || pOtherAgent == pAgent) {
+				continue;
+			}
+
+			if (!pOtherAgent->path.empty()) {
+				continue;
+			}
+
+			Line line = Line(vec2Position, vec2Destination);
+			Circle circle = Circle(pOtherAgent->position, (collDist + pOtherAgent->nCollisionRadius));
+
+			Vector2 coll = TestCollision(line, circle);
+
+			if (coll.Length() > 0 && (coll - vec2Position).Length() < dist){
+				dist = (coll - vec2Position).Length();
+				detected.position = coll;
+				detected.pAgent = pOtherAgent;
+			}
+		}
+		return detected;
+	};
+
+	
+
+	int nMaxIter = 10000;
+	int nIter = 0;
+	
+	struct Trace_t {
+		Collision_t collision;
+		NavigationGridAgent* pTracing;
+		Vector2 vec2Position;
+		float fTotalDist;
+		std::vector<Vector2> vecPath;
+		Vector2 vec2InitialColl;
+	};
+
+	Trace_t cw { .pTracing = nullptr, .vec2Position = start, .fTotalDist = 0.0f, };
+	Trace_t ccw { .pTracing = nullptr, .vec2Position = start, .fTotalDist = 0.0f };
+
+	cw.collision = GetObstruction(cw.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+	ccw.collision = GetObstruction(ccw.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+	cw.vecPath.push_back(start);
+	ccw.vecPath.push_back(start);
+
+	if (cw.collision.pAgent != nullptr && cw.collision.position != start) {
+		cw.vec2Position = cw.collision.position;
+		cw.vec2InitialColl = cw.collision.position;
+		cw.pTracing = cw.collision.pAgent;
+		cw.vecPath.push_back(cw.vec2Position);
+	}
+
+	if (ccw.collision.pAgent != nullptr && ccw.collision.position != start) {
+		ccw.vec2Position = ccw.collision.position;
+		ccw.vec2InitialColl = ccw.collision.position;
+		ccw.pTracing = ccw.collision.pAgent;
+		ccw.vecPath.push_back(ccw.vec2Position);
+	}
+
+#define STEP_SIZE 50
+	while (cw.vec2Position != end && ccw.vec2Position != end) {
+		// only trace one direction each time
+		bool traceCW = cw.fTotalDist <= ccw.fTotalDist;
+		Trace_t& trace = traceCW ? cw : ccw;
+
+		// tracing
+		if (trace.pTracing != nullptr) {
+			// find next tangent to traced target
+			Vector2 vec2CircleCenterToAgent = trace.pTracing->position - trace.vec2Position;
+			Vector2 vec2Tangent = traceCW ? Vector2(-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x)
+				: Vector2(vec2CircleCenterToAgent.y, -vec2CircleCenterToAgent.x);
+			vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
+			Vector2 next = trace.vec2Position + vec2Tangent;
+			
+			// check if tangent is free
+			Collision_t newCollision = GetObstruction(trace.vec2Position, next, trace.collision.pAgent, pAgent->nCollisionRadius);
+			
+			// check if we're back on target
+			Line line;
+			line.Start = start;
+			line.End = end;
+			Line otherLine;
+			otherLine.Start = trace.vec2Position;
+			otherLine.End = next;
+			std::optional<Vector2> vec2GoalLineIntersect = TestCollision(line, otherLine);
+			bool bIsValidIntersect = vec2GoalLineIntersect.has_value()
+				&& (end - vec2GoalLineIntersect.value()).Length() - (end - trace.vec2InitialColl).Length() < -1;
+
+			
+
+			// crossing the target line but also running into something
+			if(bIsValidIntersect && newCollision.pAgent != nullptr) {
+				if((vec2GoalLineIntersect.value() - trace.vec2Position).Length() < (newCollision.position - trace.vec2Position).Length()) {
+					// back on track?
+					trace.pTracing = nullptr;
+					trace.vecPath.push_back(vec2GoalLineIntersect.value());
+					trace.fTotalDist += (vec2GoalLineIntersect.value() - trace.vec2Position).Length();
+					trace.vec2Position = vec2GoalLineIntersect.value();
+				} else {
+					trace.pTracing = newCollision.pAgent;
+					trace.collision = newCollision;
+					trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+					trace.vec2Position = newCollision.position;
+					trace.vecPath.push_back(trace.vec2Position);
+				}
+			// running into something
+			} else if (newCollision.pAgent != nullptr) {
+				trace.pTracing = newCollision.pAgent;
+				trace.collision = newCollision;
+				trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+				trace.vec2Position = newCollision.position;
+				trace.vecPath.push_back(trace.vec2Position);
+			// back on target line
+			} else if (bIsValidIntersect) {
+				// back on track?
+				trace.pTracing = nullptr;
+				trace.vecPath.push_back(vec2GoalLineIntersect.value());
+				trace.fTotalDist += (vec2GoalLineIntersect.value() - trace.vec2Position).Length();
+				trace.vec2Position = vec2GoalLineIntersect.value();
+			// keep going tangent
+			} else {
+				trace.fTotalDist += (next - trace.vec2Position).Length();
+				trace.vec2Position = next;
+				trace.vecPath.push_back(trace.vec2Position);
+			}
+
+		}
+		// not tracing
+		else if(trace.pTracing == nullptr) {
+			Collision_t newCollision = GetObstruction(trace.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+			if(newCollision.pAgent) {
+				trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+				trace.vec2Position = newCollision.position;
+				trace.pTracing = newCollision.pAgent;
+				trace.collision = newCollision;
+				trace.vec2InitialColl = trace.collision.position;
+				trace.vecPath.push_back(trace.vec2Position);
+			} else {
+				// not tracing & no obstruction - done?
+				trace.fTotalDist += (end - trace.vec2Position).Length();
+				trace.vec2Position = end;
+				trace.vecPath.push_back(end);
+			}
 		}
 
-		if (bIgnoreMoving && !pOtherAgent->path.empty()) {
-			continue;
-		}
-
-		if (CompareFloat(pOtherAgent->nCollisionRadius, 0)) {
-			return false;
-		}
-		if ((pOtherAgent->position - Vector2(pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2)).Length() <= pOtherAgent->nCollisionRadius) {
-			return false;
+		nIter++;
+		if (nIter >= nMaxIter) {
+			break;
 		}
 	}
 
-	return true;
+	if(cw.vec2Position == end) {
+		vecShortPath = cw.vecPath;
+	} else {
+		vecShortPath = ccw.vecPath;
+	}
+
+	return vecShortPath;
+}
+std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+	// TODO properly do this, find closest spot inside navmesh as well
+	for(NavigationGridAgent* pOther : m_vecAgents) {
+		if(pOther->UnitId == pAgent->UnitId) {
+			continue;
+		}
+		if((pOther->position - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
+			// destination currently blocked
+			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
+			to = pOther->position + (from - pOther->position).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
+		}
+	}
+
+	if (from == to) {
+		return {};
+	}
+
+	
+	std::vector<Vector2> vecLongPath = PlanPath(pAgent, { from.x, from.y }, { to.x, to.y });
+
+	std::vector<Vector2> vecShortPath = RefinePath(pAgent, vecLongPath, from, to);
+
+	std::vector<Vector2> vec2ShortPathSmoothed = SmoothPath(pAgent, vecShortPath, from, to);
+	
+	for (Vector2 vec : vecLongPath) {
+		vec2ShortPathSmoothed.push_back(vec);
+	}
+
+	return vec2ShortPathSmoothed;
 }
 
 StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {
@@ -576,417 +852,216 @@ NavigationGridAgent* NavigationMap::CreateAgent() {
 	return pAgent;
 }
 
-
-
-
-
-// =============== GRID NAVIGATION ===============
-NavigationCellGrid::NavigationCellGrid(NavMesh* navMesh) {
-	float maxX = -100000;
-	float minX = 100000;
-	float maxY = -100000;
-	float minY = 100000;
-
-	for(auto pol : navMesh->mesh) {
-		for(auto vert : pol->vertices) {
-			maxX = std::max(vert.x, maxX);
-			minX = std::min(vert.x, minX);
-			maxY = std::max(vert.z, maxY);
-			minY = std::min(vert.z, minY);
-		}
-	}
-
-	GridWidth = maxX - minX;
-	GridHeight = minY - maxY;
-
-	CellWidth = 50;
-	CellHeight = -50;
-
-	CellCountX = GridWidth / CellWidth;
-	CellCountY = std::abs(GridHeight / CellHeight);
-
-	GridCenterX = 0;
-	GridCenterY = 0;
-
-	Cells = new NavigationCell*[CellCountX * CellCountY];
-
-	for (int y = 0; y < CellCountY; y++) {
-		for (int x = 0; x < CellCountX; x++) {
-			NavigationCell* cell = new NavigationCell();
-			cell->X = x * CellWidth + minX;
-			cell->Y = y * CellHeight + maxY;
-			cell->IsOpen = true;
-			cell->IsWalkable = true;
-
-			if (!navMesh->PointInMesh({ (float)cell->X + CellWidth / 2, 0, (float)cell->Y + CellHeight / 2})) {
-				cell->IsWalkable = false;
-			}
-
-			cell->CalculateNeighbours(CellCountX, CellCountY, CellWidth, CellHeight, GridCenterX, GridCenterY);
-
-			SetCellAt(x * CellWidth, y * CellHeight, cell);
-		}
-	}
-}
-
-const float D = 1, D2 = sqrt(2);
-float NavigationCellGrid::Heuristic(NavigationCell* pStartCell, NavigationCell* pNeighbourCell, NavigationCell* pEndCell) {
-	float x = abs(pNeighbourCell->X - pEndCell->X);
-	float y = abs(pNeighbourCell->Y - pEndCell->Y);
-	float cross = Cross(pStartCell, pNeighbourCell, pEndCell);
-	return (x + y) + cross;
-}
-
-float NavigationCellGrid::Distance(NavigationCell* a, NavigationCell* b) {
-	float x = b->X - a->X;
-	float y = b->Y - a->Y;
-	return sqrt(x * x + y * y);
-}	
-
-void NavigationCell::CalculateNeighbours(int gridWidth, int gridHeight, int cellWidth, int cellHeight, int gridOffsetX, int gridOffsetY) {
-	Neighbours.clear();
-	bool allowDiagonal = false;
-
-	int x = (X + gridOffsetX) / cellWidth;
-	int y = (Y + gridOffsetY) / cellHeight;
-
-	if (x > 0) {
-		if (y > 0 && allowDiagonal) {
-			Neighbours.push_back(x - 1 + (y - 1) * gridWidth);
-		}
-
-		Neighbours.push_back(x - 1 + y * gridWidth);
-
-		if (y < gridHeight - 1 && allowDiagonal) {
-			Neighbours.push_back(x - 1 + (y + 1) * gridWidth);
-		}
-	}
-	if (y > 0) {
-		Neighbours.push_back(x + (y - 1) * gridWidth);
-	}
-
-	if (y < gridHeight - 1) {
-		Neighbours.push_back(x + (y + 1) * gridWidth);
-	}
-
-	if (x < gridWidth - 1) {
-		if (y > 0 && allowDiagonal) {
-			Neighbours.push_back(x + 1 + (y - 1) * gridWidth);
-		}
-
-		Neighbours.push_back(x + 1 + y * gridWidth);
-
-		if (y < gridHeight - 1 && allowDiagonal) {
-			Neighbours.push_back(x + 1 + (y + 1) * gridWidth);
-		}
-	}
-
-	for(auto n : Neighbours) {
-		if(n > gridWidth * gridHeight) {
-			Neighbours.clear();
-		}
-	}
-}
-
-
-float NavigationCellGrid::Cross(const NavigationCell* v1, const NavigationCell* v2, const NavigationCell* v3) {
-	float dx1 = v1->X - v3->X;
-	float dy1 = v1->Y - v3->Y;
-	float dx2 = v2->X - v3->X;
-	float dy2 = v2->Y - v3->Y;
-	return abs(dx1 * dy2 - dx2 * dy1);
-}
-
-bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, const NavigationCell* node2) {
-	Logger::FormatMsg("Is path free for %d from (%f, %f) to %d(%f,%f)?", pAgent->UnitId, vec2Start.x, vec2Start.y, node2->Index, node2->X, node2->Y);
-	
-	float x1 = vec2Start.x;
-	float y1 = vec2Start.y;
-	float x2 = node2->X + m_pGrid->CellWidth / 2;
-	float y2 = node2->Y + m_pGrid->CellHeight / 2;
-
-	float dx = (x2 - x1) / m_pGrid->CellWidth;
-	float dy = (y2 - y1) / m_pGrid->CellHeight;
-
-	float sx = dx == 0 ? 9999.0f : std::sqrt(1 + std::pow(dy/dx, 2));
-	float sy = dy == 0 ? 9999.0f : std::sqrt(1 + std::pow(dx/dy, 2));
-
-	float x = x1 / m_pGrid->CellWidth;
-	float y = y1 / m_pGrid->CellHeight;
-	
-	NavigationCell* square = m_pGrid->GetCellAt(x1, y1);
-	
-	float fx = (x - ((int) x));
-	float fy = (y - ((int) y));
-	float distX = sx * (dx > 0 ? 1 - fx : fx);
-	float distY = sy * (dy > 0 ? 1 - fy : fy);
-
-	while (square != nullptr && square != node2) {
-		if (x < 0 || x >= m_pGrid->GridWidth || y < 0 || y <= m_pGrid->GridHeight) {
-			return false; // Path goes out of bounds
-		}
-
-		if (!CanMoveTo(pAgent, square, true)) {
-			Logger::FormatMsg("\t\tBlocked from (%f, %f) to %d?", vec2Start.x, vec2Start.y, square->Index);
-			return false; // Path is blocked
-		}
-
-		if(std::abs(distX) < std::abs(distY)) {
-			if(x == x1) {
-				x += dx > 0 ? 1 : -1;
-				distX += distX;
-			} else {
-				x += dx > 0 ? 1 : -1;
-				distX += sx;
-			}
-		} else {
-			if(y == y1) {
-				y += dy > 0 ? 1 : -1;
-				distY += distY;
-			} else {
-				y += dy > 0 ? 1 : -1;
-				distY += sy;
-			}
-		}
-
-		square = m_pGrid->GetCellAt(x * m_pGrid->CellWidth, y * m_pGrid->CellHeight);
-	}
-
-	return true;
-}
-
 void NavigationMap::Reset() {
-	m_pGrid->Reset();
 }
 
-void NavigationCellGrid::Reset() {
-	for (int i = 0; i < CellCountX * CellCountY; i++) {
-		NavigationCell* cell = Cells[i];
-		cell->GlobalValue = FLT_MAX;
-		cell->LocalValue = FLT_MAX;
-		cell->Parent = INT_MAX;
-		cell->Done = false;
+std::vector<Vector2> NavigationMap::GetCoarseGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {	
+	// TODO properly do this, find closest spot inside navmesh as well
+	for(NavigationGridAgent* pOther : m_vecAgents) {
+		if(pOther->UnitId == pAgent->UnitId) {
+			continue;
+		}
+		if((pOther->position - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
+			// destination currently blocked
+			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
+			to = pOther->position + (from - pOther->position).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
+		}
 	}
-}
 
-
-auto tiebreaker = [](NavigationCell* left, NavigationCell* right) {
-	return left->GlobalValue > right->GlobalValue;
-};
-
-std::priority_queue<NavigationCell*, std::vector<NavigationCell*>, decltype(tiebreaker)> nodesToTest(tiebreaker);
-
-std::vector<Vector2> NavigationMap::GetCoarseGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	m_pGrid->Reset();
-	NavigationCell* startCell = m_pGrid->GetCellAt(from.x, from.y);
-	NavigationCell* anchor = startCell;
-	NavigationCell* endCell = m_pGrid->GetCellAt(to.x, to.y);
-
-	if (startCell == nullptr || endCell == nullptr) {
+	if (from == to) {
 		return {};
 	}
 
-	if(!startCell->IsWalkable || !endCell->IsWalkable) {
+	std::vector<Vector2> vecLongPath = PlanPath(pAgent, { from.x, from.y }, { to.x, to.y });
+	Vector2 start = from;
+	Vector2 end = vecLongPath.at(0);
+	std::vector<Vector2> vecShortPath = { };
+
+	if (start == end) {
 		return {};
 	}
 
-	if(startCell == endCell) {
-		return {};
-	}
+	struct Collision_t {
+		NavigationGridAgent* pAgent;
+		Vector2 position;
+	};
 
-	m_pGrid->currCell = startCell;
+	auto GetObstruction = [this, pAgent, end](Vector2 vec2Position, Vector2 vec2Destination, NavigationGridAgent* pIgnoreAgent, float collDist) -> Collision_t {
+		NavigationGridAgent* pCollAg= nullptr;
+		float dist = std::numeric_limits<float>::max();
+		struct Collision_t detected;
+		detected.pAgent = nullptr;
+		detected.position = { 0, 0 };
 
-	startCell->GlobalValue = 0;
-	startCell->LocalValue = 0;
-
-	while (!nodesToTest.empty()) {
-		nodesToTest.pop();
-	}
-	nodesToTest.emplace(startCell);
-
-	int c = 0;
-	while (!nodesToTest.empty()) {
-		m_pGrid->currCell = nodesToTest.top();
-		nodesToTest.pop();
-
-		for (unsigned int neighbourIndex : m_pGrid->currCell->Neighbours) {
-			c++;
-			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
-
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour, true)) {
+		for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
+			if (pOtherAgent == pIgnoreAgent || pOtherAgent == pAgent) {
 				continue;
 			}
 
-			float newLocal = m_pGrid->currCell->LocalValue + D;
+			if (!pOtherAgent->path.empty()) {
+				continue;
+			}
 
-			if (newLocal < neighbour->LocalValue)
-			{
-				neighbour->Parent = m_pGrid->currCell->Index;
-				neighbour->LocalValue = newLocal;
-				neighbour->GlobalValue = newLocal + m_pGrid->Heuristic(startCell, neighbour, endCell);
-				nodesToTest.emplace(neighbour);
+			Line line = Line(vec2Position, vec2Destination);
+			Circle circle = Circle(pOtherAgent->position, (collDist + pOtherAgent->nCollisionRadius));
+
+			Vector2 coll = TestCollision(line, circle);
+
+			if (coll.Length() > 0 && (coll - vec2Position).Length() < dist){
+				dist = (coll - vec2Position).Length();
+				detected.position = coll;
+				detected.pAgent = pOtherAgent;
+			}
+		}
+		return detected;
+	};
+
+	
+
+	int nMaxIter = 10000;
+	int nIter = 0;
+	
+	struct Trace_t {
+		Collision_t collision;
+		NavigationGridAgent* pTracing;
+		Vector2 vec2Position;
+		float fTotalDist;
+		std::vector<Vector2> vecPath;
+		Vector2 vec2InitialColl;
+	};
+
+	Trace_t cw { .pTracing = nullptr, .vec2Position = start, .fTotalDist = 0.0f, };
+	Trace_t ccw { .pTracing = nullptr, .vec2Position = start, .fTotalDist = 0.0f };
+
+	cw.collision = GetObstruction(cw.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+	ccw.collision = GetObstruction(ccw.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+	cw.vecPath.push_back(start);
+	ccw.vecPath.push_back(start);
+
+	if (cw.collision.pAgent != nullptr && cw.collision.position != start) {
+		cw.vec2Position = cw.collision.position;
+		cw.vec2InitialColl = cw.collision.position;
+		cw.pTracing = cw.collision.pAgent;
+		cw.vecPath.push_back(cw.vec2Position);
+	}
+
+	if (ccw.collision.pAgent != nullptr && ccw.collision.position != start) {
+		ccw.vec2Position = ccw.collision.position;
+		ccw.vec2InitialColl = ccw.collision.position;
+		ccw.pTracing = ccw.collision.pAgent;
+		ccw.vecPath.push_back(ccw.vec2Position);
+	}
+
+#define STEP_SIZE 50
+	while (cw.vec2Position != end && ccw.vec2Position != end) {
+		// only trace one direction each time
+		bool traceCW = cw.fTotalDist <= ccw.fTotalDist;
+		Trace_t& trace = traceCW ? cw : ccw;
+
+		// tracing
+		if (trace.pTracing != nullptr) {
+			// find next tangent to traced target
+			Vector2 vec2CircleCenterToAgent = trace.pTracing->position - trace.vec2Position;
+			Vector2 vec2Tangent = traceCW ? Vector2(-vec2CircleCenterToAgent.y, vec2CircleCenterToAgent.x)
+				: Vector2(vec2CircleCenterToAgent.y, -vec2CircleCenterToAgent.x);
+			vec2Tangent = vec2Tangent.ScaleToLength(STEP_SIZE);
+			Vector2 next = trace.vec2Position + vec2Tangent;
+			
+			// check if tangent is free
+			Collision_t newCollision = GetObstruction(trace.vec2Position, next, trace.collision.pAgent, pAgent->nCollisionRadius);
+			
+			// check if we're back on target
+			Line line;
+			line.Start = start;
+			line.End = end;
+			Line otherLine;
+			otherLine.Start = trace.vec2Position;
+			otherLine.End = next;
+			std::optional<Vector2> vec2GoalLineIntersect = TestCollision(line, otherLine);
+			bool bIsValidIntersect = vec2GoalLineIntersect.has_value()
+				&& (end - vec2GoalLineIntersect.value()).Length() - (end - trace.vec2InitialColl).Length() < -1;
+
+			
+
+			// crossing the target line but also running into something
+			if(bIsValidIntersect && newCollision.pAgent != nullptr) {
+				if((vec2GoalLineIntersect.value() - trace.vec2Position).Length() < (newCollision.position - trace.vec2Position).Length()) {
+					// back on track?
+					trace.pTracing = nullptr;
+					trace.vecPath.push_back(vec2GoalLineIntersect.value());
+					trace.fTotalDist += (vec2GoalLineIntersect.value() - trace.vec2Position).Length();
+					trace.vec2Position = vec2GoalLineIntersect.value();
+				} else {
+					trace.pTracing = newCollision.pAgent;
+					trace.collision = newCollision;
+					trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+					trace.vec2Position = newCollision.position;
+					trace.vecPath.push_back(trace.vec2Position);
+				}
+			// running into something
+			} else if (newCollision.pAgent != nullptr) {
+				trace.pTracing = newCollision.pAgent;
+				trace.collision = newCollision;
+				trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+				trace.vec2Position = newCollision.position;
+				trace.vecPath.push_back(trace.vec2Position);
+			// back on target line
+			} else if (bIsValidIntersect) {
+				// back on track?
+				trace.pTracing = nullptr;
+				trace.vecPath.push_back(vec2GoalLineIntersect.value());
+				trace.fTotalDist += (vec2GoalLineIntersect.value() - trace.vec2Position).Length();
+				trace.vec2Position = vec2GoalLineIntersect.value();
+			// keep going tangent
+			} else {
+				trace.fTotalDist += (next - trace.vec2Position).Length();
+				trace.vec2Position = next;
+				trace.vecPath.push_back(trace.vec2Position);
+			}
+
+		}
+		// not tracing
+		else if(trace.pTracing == nullptr) {
+			Collision_t newCollision = GetObstruction(trace.vec2Position, end, nullptr, pAgent->nCollisionRadius);
+			if(newCollision.pAgent) {
+				trace.fTotalDist += (newCollision.position - trace.vec2Position).Length();
+				trace.vec2Position = newCollision.position;
+				trace.pTracing = newCollision.pAgent;
+				trace.collision = newCollision;
+				trace.vec2InitialColl = trace.collision.position;
+				trace.vecPath.push_back(trace.vec2Position);
+			} else {
+				// not tracing & no obstruction - done?
+				trace.fTotalDist += (end - trace.vec2Position).Length();
+				trace.vec2Position = end;
+				trace.vecPath.push_back(end);
 			}
 		}
 
-		if (m_pGrid->currCell == endCell) {
+		nIter++;
+		if (nIter >= nMaxIter) {
 			break;
 		}
 	}
 
-	std::vector<NavigationCell*> path;
-
-	NavigationCell* pathCell = endCell;
-
-	path.push_back(pathCell);
-
-	while (pathCell != startCell) {
-		if (pathCell->Parent == INT_MAX || pathCell == m_pGrid->Cells[pathCell->Parent] ) {
-			return {};
-		}
-		pathCell = m_pGrid->Cells[pathCell->Parent];
-		if (pathCell == nullptr) {
-			return {};
-		}
-		path.push_back(pathCell);
+	if(cw.vec2Position == end) {
+		vecShortPath = cw.vecPath;
+	} else {
+		vecShortPath = ccw.vecPath;
 	}
 
-
-	std::vector<Vector2> smoothedPath;
-	std::reverse(path.begin(), path.end());
-
-	Logger::FormatMsg("Original path:");
-	for (NavigationCell* pCell : path) {
-		Logger::FormatMsg("\t%d: (%f,%f)", pCell->Index, pCell->X, pCell->Y);
-		smoothedPath.push_back({ pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2 });
+	std::vector<Vector2> vec2ShortPathSmoothed = {};
+	Vector2 vec2Anchor = start;
+	Vector2 vec2Previous = start;
+	for(int i = 0; i < vecShortPath.size(); i++) {
+		vec2ShortPathSmoothed.push_back(vecShortPath.at(i));
 	}
 
-	smoothedPath.push_back(to);
-
-	return smoothedPath;
-}
-
-std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	return GetGridPath(pAgent, from, to, false);
-}
-
-std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen) {
-	m_pGrid->Reset();
-	NavigationCell* startCell = m_pGrid->GetCellAt(from.x, from.y);
-	NavigationCell* anchor = startCell;
-	NavigationCell* endCell = m_pGrid->GetCellAt(to.x, to.y);
-
-	if (startCell == nullptr || endCell == nullptr) {
-		return {};
+	for (Vector2 vec : vecLongPath) {
+		vec2ShortPathSmoothed.push_back(vec);
 	}
 
-	if(!startCell->IsWalkable || !endCell->IsWalkable) {
-		return {};
-	}
+	Logger::FormatMsg("Unit %d going from %f, %f to %f, %f via %d cells", pAgent->UnitId, from.x, from.y, to.x, to.y, vec2ShortPathSmoothed.size());
 
-	if(startCell == endCell) {
-		return {};
-	}
-
-	m_pGrid->currCell = startCell;
-
-	startCell->GlobalValue = 0;
-	startCell->LocalValue = 0;
-
-	while (!nodesToTest.empty()) {
-		nodesToTest.pop();
-	}
-	nodesToTest.emplace(startCell);
-
-	int c = 0;
-	while (!nodesToTest.empty()) {
-		m_pGrid->currCell = nodesToTest.top();
-		nodesToTest.pop();
-
-		for (unsigned int neighbourIndex : m_pGrid->currCell->Neighbours) {
-			c++;
-			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
-
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour, true)) {
-				continue;
-			}
-
-			float newLocal = m_pGrid->currCell->LocalValue + D;
-
-			if (newLocal < neighbour->LocalValue)
-			{
-				neighbour->Parent = m_pGrid->currCell->Index;
-				neighbour->LocalValue = newLocal;
-				neighbour->GlobalValue = newLocal + m_pGrid->Heuristic(startCell, neighbour, endCell);
-				nodesToTest.emplace(neighbour);
-			}
-		}
-
-		if (m_pGrid->currCell == endCell) {
-			break;
-		}
-	}
-
-	std::vector<NavigationCell*> path;
-
-	NavigationCell* pathCell = endCell;
-
-	path.push_back(pathCell);
-
-	while (pathCell != startCell) {
-		if (pathCell->Parent == INT_MAX || pathCell == m_pGrid->Cells[pathCell->Parent] ) {
-			return {};
-		}
-		pathCell = m_pGrid->Cells[pathCell->Parent];
-		if (pathCell == nullptr) {
-			return {};
-		}
-		path.push_back(pathCell);
-	}
-
-
-	std::vector<Vector2> smoothedPath;
-	std::reverse(path.begin(), path.end());
-
-	Logger::FormatMsg("Original path:");
-	for (NavigationCell* pCell : path) {
-		Logger::FormatMsg("\t%d: (%f,%f)", pCell->Index, pCell->X, pCell->Y);
-	}
-
-	Vector2 smoothAnchor = from;
-	int i = 1;
-	while (i < path.size()) {
-		if (IsClearPath(pAgent, smoothAnchor, path[i])) {
-			i++;
-		}
-		else {
-			smoothedPath.push_back({ path[i - 1]->X + m_pGrid->CellWidth / 2, path[i - 1]->Y + m_pGrid->CellHeight / 2 });
-			smoothAnchor = smoothedPath.back();
-		}
-	}
-
-	// Add the goal node
-	smoothedPath.push_back(to);
-
-	return smoothedPath;
-}
-
-NavigationCell* NavigationCellGrid::GetCellAt(float x, float y) {
-	int index = ((int)(x + GridCenterX) / CellWidth) + ((int)(y + GridCenterY) / CellHeight * CellCountX);
-
-	if (index < 0 || index > CellCountX * CellCountY) {
-		return nullptr;
-	}
-
-	return Cells[index];
-}
-
-void NavigationCellGrid::SetCellAt(float x, float y, NavigationCell* cell) {
-	int index = (x + GridCenterX) / CellWidth + (y + GridCenterY) / CellHeight * CellCountX;
-
-	if (index < 0 || index > CellCountX * CellCountY) {
-		return;
-	}
-
-	Cells[index] = cell;
-	cell->Index = index;
+	return vec2ShortPathSmoothed;
 }

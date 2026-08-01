@@ -8,5 +8,6 @@ typedef struct AppData {
 	std::vector<Vector2> vecVec2Blocker = { { 1500, -1500} };
 
 	Vector2 vec2CurrPos = { 1000, -1000 };
-	std::vector<Vector2> vecVec2CoarsePath = {};
+	std::vector<Vector2> vecVec2ShortPath = {};
+	std::vector<Vector2> vecVec2LongPath = {};
 } AppData_t;
