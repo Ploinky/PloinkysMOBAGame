@@ -43,27 +43,27 @@ class NavMesh {
 public:
 	std::vector<polygon_t*> mesh;
 	std::list<polygon_t*> path;
-	std::list<Vector3> movePath;
-	Vector3 from;
-	Vector3 to;
+	std::vector<Vector2> movePath;
+	Vector2 from;
+	Vector2 to;
 
 	NavMesh();
 	void LoadFromFile(std::string mapName);
 	void LoadFromData(std::list<std::string> data);
-	bool PointInMesh(Vector3 pt);
+	bool PointInMesh(Vector2 pt);
 
 	void FindNeighbours();
 	void PullString();
-	polygon_t* FindPolygonAt(Vector3 pt);
+	polygon_t* FindPolygonAt(Vector2 pt);
 	polygon_t* GetById(unsigned int id);
 	polygon_t* CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3);
-	float Sign(Vector3 p1, Vector3 p2, Vector3 p3);
-	bool PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3);
+	float Sign(Vector2 p1, Vector3 p2, Vector3 p3);
+	bool PointInTriangle(Vector2 pt, Vector3 v1, Vector3 v2, Vector3 v3);
 	bool IsNeighbour(polygon_t poly, polygon_t potentialNeighbour);
-	float Distance(Vector3 a, Vector3 b);
+	float Distance(Vector2 a, Vector2 b);
 	float Distance(polygon_t* a, polygon_t* b);
-	float Cross(const Vector3 v1, const Vector3 v2);
-	float AngleBetween(Vector3 a, Vector3 b);
+	float Cross(const Vector2 v1, const Vector2 v2);
+	float AngleBetween(Vector2 a, Vector2 b);
 };
 
 typedef struct {
@@ -135,9 +135,28 @@ typedef struct {
 	Vector2 vec2Pos;
 } StepResult_t;
 
+#ifdef _DEBUG
+typedef struct {
+	std::vector<Vector2> vecVec2LongPath;
+	std::vector<Vector2> vecVec2ShortPath;
+	std::vector<Vector2> vecVec2FinalPath;
+} DebugPath_t;
+#endif
+
+enum class EPathResultType {
+	FOUND,
+	UNREACHABLE,
+	OCCUPIED
+};
+
+typedef struct {
+	EPathResultType eResultType;
+	std::vector<Vector2> vecVec2Path;
+} PathResult_t;
+
 class NavigationMap {
 public:
-	std::vector<Vector2> GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	PathResult_t RequestPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
 	StepResult_t Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist);
 	NavigationGridAgent* CreateAgent();
 	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
@@ -148,10 +167,16 @@ public:
 	void Reset();
 	std::vector<NavigationGridAgent*> m_vecAgents;
 	bool CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell, bool bIgnoreMoving);
-	std::vector<Vector2> GetCoarseGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	std::vector<Vector2> GetLongPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	Vector2 ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 vec2Target);
+
+#ifdef _DEBUG
+	DebugPath_t GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+#endif
 
 private:
-	std::list<Vector3> PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to);
+	std::vector<Vector2> PlanPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	std::vector<Vector2> GetSmoothPath(NavigationGridAgent* pAgent, std::vector<Vector2> vecVec2CoarsePath);
 };
 
 

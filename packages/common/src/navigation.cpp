@@ -35,8 +35,8 @@ bool operator!=(const polygon_t& lhs, const polygon_t& rhs) {
 }
 
 NavMesh::NavMesh() {
-	from = { 0, 0, 0 };
-	to = { 0, 0, 0 };
+	from = { 0, 0 };
+	to = { 0, 0 };
 }
 
 polygon_t* NavMesh::CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3) {
@@ -50,11 +50,11 @@ polygon_t* NavMesh::CreatePolygon(Vector3 v1, Vector3 v2, Vector3 v3) {
 	return p;
 }
 
-float NavMesh::Sign(Vector3 p1, Vector3 p2, Vector3 p3) {
-	return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
+float NavMesh::Sign(Vector2 p1, Vector3 p2, Vector3 p3) {
+	return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.y - p3.z);
 }
 
-bool NavMesh::PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
+bool NavMesh::PointInTriangle(Vector2 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
 	float d1, d2, d3;
 	bool has_neg, has_pos;
 
@@ -68,7 +68,7 @@ bool NavMesh::PointInTriangle(Vector3 pt, Vector3 v1, Vector3 v2, Vector3 v3) {
 	return !(has_neg && has_pos);
 }
 
-bool NavMesh::PointInMesh(Vector3 pt) {
+bool NavMesh::PointInMesh(Vector2 pt) {
 	for (polygon_t* poly : mesh) {
 		if (PointInTriangle(pt, poly->vertices[0], poly->vertices[1], poly->vertices[2])) {
 			return true;
@@ -78,7 +78,7 @@ bool NavMesh::PointInMesh(Vector3 pt) {
 	return false;
 }
 
-polygon_t* NavMesh::FindPolygonAt(Vector3 pt) {
+polygon_t* NavMesh::FindPolygonAt(Vector2 pt) {
 	for (polygon_t* poly : mesh) {
 		if (PointInTriangle(pt, poly->vertices[0], poly->vertices[1], poly->vertices[2])) {
 			return poly;
@@ -102,20 +102,20 @@ bool NavMesh::IsNeighbour(polygon_t poly, polygon_t potentialNeighbour) {
 	return std::find(poly.neighbours.begin(), poly.neighbours.end(), potentialNeighbour.id) != poly.neighbours.end();
 }
 
-float NavMesh::Distance(Vector3 a, Vector3 b) {
-	return abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z);
+float NavMesh::Distance(Vector2 a, Vector2 b) {
+	return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
 float NavMesh::Distance(polygon_t* a, polygon_t* b) {
-	return Distance(a->center, b->center);
+	return Distance({a->center.x, a->center.z}, {b->center.x, b->center.z});
 }
 
-float NavMesh::Cross(const Vector3 v1, const Vector3 v2) {
-	return v1.x * v2.z - v1.z * v2.x;
+float NavMesh::Cross(const Vector2 v1, const Vector2 v2) {
+	return v1.x * v2.y - v1.y * v2.x;
 }
 
-float NavMesh::AngleBetween(Vector3 a, Vector3 b) {
-	return std::atan2(b.z - a.z, b.x - a.x);
+float NavMesh::AngleBetween(Vector2 a, Vector2 b) {
+	return std::atan2(b.y - a.y, b.x - a.x);
 }
 
 void NavMesh::PullString() {
@@ -196,7 +196,7 @@ void NavMesh::PullString() {
 		portals.push_back(*p);
 	}
 
-	Vector3 currVert = from;
+	Vector2 currVert = from;
 	
 	auto leftFrom = portals.begin();
 	auto rightFrom = portals.begin();
@@ -206,13 +206,13 @@ void NavMesh::PullString() {
 	while (!(currVert == to)) {
 		// std::cout << "Apex: " << currVert.x << ", " << currVert.y << std::endl;
 
-		Vector3 tunnelLeft = from->left;
-		Vector3 tunnelRight = from->right;
+		Vector2 tunnelLeft = {from->left.x, from->left.z};
+		Vector2 tunnelRight = {from->right.x, from->right.z};
 
 		for (auto portal = from; portal != portals.end(); portal++) {
 			// std::cout << "Portal: " << portal->from->id << " -> " << portal->to->id << std::endl;
-			Vector3 rightTo = portal->right;
-			Vector3 leftTo = portal->left;
+			Vector2 rightTo = {portal->right.x, portal->right.z};
+			Vector2 leftTo = {portal->left.x, portal->left.z};
 
 			float rightNext = Cross(tunnelRight - currVert, rightTo - currVert);
 			float rightCross = Cross(rightTo - currVert, tunnelLeft - currVert);
@@ -220,8 +220,8 @@ void NavMesh::PullString() {
 			if (rightCross > 0) {
 				// Left is new Apex!
 				currVert = tunnelLeft;
-				tunnelLeft = from->left;
-				tunnelRight = from->right;
+				tunnelLeft = {from->left.x, from->left.z};
+				tunnelRight = {from->right.x, from->right.z};
 				from = leftFrom;
 				movePath.push_back(currVert);
 				// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
@@ -241,8 +241,8 @@ void NavMesh::PullString() {
 			if (leftCross < 0) {
 				// Right is new Apex!
 				currVert = tunnelRight;
-				tunnelLeft = from->left;
-				tunnelRight = from->right;
+				tunnelLeft = {from->left.x, from->left.z};
+				tunnelRight = {from->right.x, from->right.z};
 				from = rightFrom;
 				movePath.push_back(currVert);
 				// std::cout << "\tNew apex: " << currVert.x << ", " << currVert.y << std::endl;
@@ -314,7 +314,7 @@ void NavMesh::PullString() {
 	}
 }
 
-std::list<Vector3> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector3 from, Vector3 to) {
+std::vector<Vector2> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
 	m_pMesh->from = from;
 	m_pMesh->to = to;
 
@@ -357,13 +357,13 @@ std::list<Vector3> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector3 
 				continue;
 			}
 
-			float newLocal = currCell->localValue + (currCell == startPoly ? m_pMesh->Distance(from, neighbour->center) : m_pMesh->Distance(currCell, neighbour));
-			float newGlobal = newLocal + m_pMesh->Distance(neighbour->center, to);
+			float newLocal = currCell->localValue + (currCell == startPoly ? m_pMesh->Distance(from, {neighbour->center.x, neighbour->center.z}) : m_pMesh->Distance(currCell, neighbour));
+			float newGlobal = newLocal + m_pMesh->Distance({neighbour->center.x, neighbour->center.z}, to);
 			if (newLocal + newGlobal < neighbour->globalValue)
 			{
 				neighbour->parent = currCell->id;
 				neighbour->localValue = newLocal;
-				neighbour->globalValue = neighbour->localValue + m_pMesh->Distance(neighbour->center, to);
+				neighbour->globalValue = neighbour->localValue + m_pMesh->Distance({neighbour->center.x, neighbour->center.z}, to);
 				nodesToTest.emplace(neighbour);
 			}
 		}
@@ -505,8 +505,37 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	FindNeighbours();
 }
 
-std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	return GetGridPath(pAgent, from, to);
+PathResult_t NavigationMap::RequestPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+	if (!m_pMesh->PointInMesh(to) || !CanMoveTo(pAgent, m_pGrid->GetCellAt(to.x, to.y), true)) {
+		PathResult_t result;
+		result.eResultType = EPathResultType::OCCUPIED;
+		result.vecVec2Path = {};
+		return result;
+	}
+
+	std::vector<Vector2> vecVec2LongPath = PlanPath(pAgent, from, to);
+
+	if (vecVec2LongPath.size() < 1) {
+		PathResult_t result;
+		result.eResultType = EPathResultType::UNREACHABLE;
+		result.vecVec2Path = {};
+		return result;
+	}
+
+	Vector2 vec2Intermediate = vecVec2LongPath.front();
+
+	std::vector<Vector2> vecVec2ShortPath = GetGridPath(pAgent, from, vec2Intermediate);
+
+	for (int i = 1; i < vecVec2LongPath.size(); i++) {
+		vecVec2ShortPath.push_back(vecVec2LongPath[i]);
+	}
+
+	std::vector<Vector2> vecVec2FinalPath = GetSmoothPath(pAgent, vecVec2ShortPath);
+
+	PathResult_t result;
+	result.eResultType = EPathResultType::FOUND;
+	result.vecVec2Path = vecVec2FinalPath;
+	return result;
 }
 
 bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell, bool bIgnoreMoving) {
@@ -548,15 +577,10 @@ StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPo
 
 	Vector2 vec2NewPos = vec2CurrPos + vec2Move;
 
-	for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
-		if (pAgent->UnitId == pOtherAgent->UnitId) {{
-			continue;
-		}}
+	NavigationCell* pCell = m_pGrid->GetCellAt(vec2NewPos.x, vec2NewPos.y);
 
-		if ((pAgent->position - pOtherAgent->position).Length() <= pOtherAgent->nCollisionRadius
-				&& (vec2NewPos - pOtherAgent->position).Length() < (pAgent->position - pOtherAgent->position).Length()) {
-			return {true, vec2CurrPos};
-		}
+	if (!CanMoveTo(pAgent, pCell, false)) {
+		return {true, vec2CurrPos};
 	}
 
 	if (CompareFloat((vec2NewPos - pAgent->path.front()).Length(), 0)) {
@@ -618,7 +642,13 @@ NavigationCellGrid::NavigationCellGrid(NavMesh* navMesh) {
 			cell->IsOpen = true;
 			cell->IsWalkable = true;
 
-			if (!navMesh->PointInMesh({ (float)cell->X + CellWidth / 2, 0, (float)cell->Y + CellHeight / 2})) {
+			if (
+				!navMesh->PointInMesh({ (float)cell->X, (float)cell->Y})
+				&& !navMesh->PointInMesh({ (float)cell->X + CellWidth, (float)cell->Y})
+				&& !navMesh->PointInMesh({ (float)cell->X + CellWidth, (float)cell->Y + CellHeight})
+				&& !navMesh->PointInMesh({ (float)cell->X, (float)cell->Y + CellHeight})
+				
+			) {
 				cell->IsWalkable = false;
 			}
 
@@ -698,8 +728,6 @@ float NavigationCellGrid::Cross(const NavigationCell* v1, const NavigationCell* 
 }
 
 bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, const NavigationCell* node2) {
-	Logger::FormatMsg("Is path free for %d from (%f, %f) to %d(%f,%f)?", pAgent->UnitId, vec2Start.x, vec2Start.y, node2->Index, node2->X, node2->Y);
-	
 	float x1 = vec2Start.x;
 	float y1 = vec2Start.y;
 	float x2 = node2->X + m_pGrid->CellWidth / 2;
@@ -727,7 +755,6 @@ bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, 
 		}
 
 		if (!CanMoveTo(pAgent, square, true)) {
-			Logger::FormatMsg("\t\tBlocked from (%f, %f) to %d?", vec2Start.x, vec2Start.y, square->Index);
 			return false; // Path is blocked
 		}
 
@@ -776,97 +803,64 @@ auto tiebreaker = [](NavigationCell* left, NavigationCell* right) {
 
 std::priority_queue<NavigationCell*, std::vector<NavigationCell*>, decltype(tiebreaker)> nodesToTest(tiebreaker);
 
-std::vector<Vector2> NavigationMap::GetCoarseGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	m_pGrid->Reset();
-	NavigationCell* startCell = m_pGrid->GetCellAt(from.x, from.y);
-	NavigationCell* anchor = startCell;
-	NavigationCell* endCell = m_pGrid->GetCellAt(to.x, to.y);
-
-	if (startCell == nullptr || endCell == nullptr) {
-		return {};
-	}
-
-	if(!startCell->IsWalkable || !endCell->IsWalkable) {
-		return {};
-	}
-
-	if(startCell == endCell) {
-		return {};
-	}
-
-	m_pGrid->currCell = startCell;
-
-	startCell->GlobalValue = 0;
-	startCell->LocalValue = 0;
-
-	while (!nodesToTest.empty()) {
-		nodesToTest.pop();
-	}
-	nodesToTest.emplace(startCell);
-
-	int c = 0;
-	while (!nodesToTest.empty()) {
-		m_pGrid->currCell = nodesToTest.top();
-		nodesToTest.pop();
-
-		for (unsigned int neighbourIndex : m_pGrid->currCell->Neighbours) {
-			c++;
-			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
-
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour, true)) {
-				continue;
-			}
-
-			float newLocal = m_pGrid->currCell->LocalValue + D;
-
-			if (newLocal < neighbour->LocalValue)
-			{
-				neighbour->Parent = m_pGrid->currCell->Index;
-				neighbour->LocalValue = newLocal;
-				neighbour->GlobalValue = newLocal + m_pGrid->Heuristic(startCell, neighbour, endCell);
-				nodesToTest.emplace(neighbour);
-			}
-		}
-
-		if (m_pGrid->currCell == endCell) {
-			break;
-		}
-	}
-
-	std::vector<NavigationCell*> path;
-
-	NavigationCell* pathCell = endCell;
-
-	path.push_back(pathCell);
-
-	while (pathCell != startCell) {
-		if (pathCell->Parent == INT_MAX || pathCell == m_pGrid->Cells[pathCell->Parent] ) {
-			return {};
-		}
-		pathCell = m_pGrid->Cells[pathCell->Parent];
-		if (pathCell == nullptr) {
-			return {};
-		}
-		path.push_back(pathCell);
-	}
-
-
-	std::vector<Vector2> smoothedPath;
-	std::reverse(path.begin(), path.end());
-
-	Logger::FormatMsg("Original path:");
-	for (NavigationCell* pCell : path) {
-		Logger::FormatMsg("\t%d: (%f,%f)", pCell->Index, pCell->X, pCell->Y);
-		smoothedPath.push_back({ pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2 });
-	}
-
-	smoothedPath.push_back(to);
-
-	return smoothedPath;
+std::vector<Vector2> NavigationMap::GetLongPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+	return PlanPath(pAgent, from, to);
 }
+
+#ifdef _DEBUG
+DebugPath_t NavigationMap::GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+	DebugPath_t result;
+
+	result.vecVec2LongPath = PlanPath(pAgent, from, to);
+
+	if (result.vecVec2LongPath.size() < 1) {
+		return {};
+	}
+
+	Vector2 vec2Intermediate = result.vecVec2LongPath.front();
+
+	std::vector<Vector2> vecVec2ShortPath = GetGridPath(pAgent, from, vec2Intermediate);
+	result.vecVec2ShortPath = vecVec2ShortPath;
+
+	std::vector<Vector2> vecVec2SmoothPath = GetSmoothPath(pAgent, vecVec2ShortPath);
+
+	for (int i = 1; i < result.vecVec2LongPath.size(); i++) {
+		vecVec2SmoothPath.push_back(result.vecVec2LongPath[i]);
+	}
+	result.vecVec2FinalPath = vecVec2SmoothPath;
+	return result;
+}
+#endif
 
 std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
 	return GetGridPath(pAgent, from, to, false);
+}
+
+std::vector<Vector2> NavigationMap::GetSmoothPath(NavigationGridAgent* pAgent, std::vector<Vector2> vecVec2CoarsePath) {
+	std::vector<Vector2> smoothedPath;
+	if (vecVec2CoarsePath.empty()) {
+		return {};
+	}
+	Vector2 smoothAnchor = pAgent->position;
+	int i = 0;
+	while (i < vecVec2CoarsePath.size()) {
+		NavigationCell* pCell = m_pGrid->GetCellAt(vecVec2CoarsePath[i].x, vecVec2CoarsePath[i].y);
+		if (IsClearPath(pAgent, smoothAnchor, pCell)) {
+			i++;
+		}
+		else {
+			Vector2 vec2NewPt = { vecVec2CoarsePath[i - 1].x, vecVec2CoarsePath[i - 1].y};
+			if (!smoothedPath.empty() && vec2NewPt == smoothedPath.back()) {
+				i++;
+				continue;
+			}
+			smoothedPath.push_back(vec2NewPt);
+			smoothAnchor = smoothedPath.back();
+		}
+	}
+
+	smoothedPath.push_back(vecVec2CoarsePath.back());
+	return smoothedPath;
 }
 
 std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen) {
@@ -943,31 +937,17 @@ std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vec
 		path.push_back(pathCell);
 	}
 
-
-	std::vector<Vector2> smoothedPath;
 	std::reverse(path.begin(), path.end());
 
-	Logger::FormatMsg("Original path:");
+	std::vector<Vector2> vecVec2CoarsePath;
+
 	for (NavigationCell* pCell : path) {
-		Logger::FormatMsg("\t%d: (%f,%f)", pCell->Index, pCell->X, pCell->Y);
+		vecVec2CoarsePath.push_back({ pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2 });
 	}
 
-	Vector2 smoothAnchor = from;
-	int i = 1;
-	while (i < path.size()) {
-		if (IsClearPath(pAgent, smoothAnchor, path[i])) {
-			i++;
-		}
-		else {
-			smoothedPath.push_back({ path[i - 1]->X + m_pGrid->CellWidth / 2, path[i - 1]->Y + m_pGrid->CellHeight / 2 });
-			smoothAnchor = smoothedPath.back();
-		}
-	}
+	vecVec2CoarsePath.push_back(to);
 
-	// Add the goal node
-	smoothedPath.push_back(to);
-
-	return smoothedPath;
+	return vecVec2CoarsePath;
 }
 
 NavigationCell* NavigationCellGrid::GetCellAt(float x, float y) {
@@ -989,4 +969,84 @@ void NavigationCellGrid::SetCellAt(float x, float y, NavigationCell* cell) {
 
 	Cells[index] = cell;
 	cell->Index = index;
+}
+
+Vector2 NavigationMap::ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 vec2Target) {
+	// first, clamp coordinates to map bounds - everything else is nonesense
+	vec2Target.x = std::fmax(0.0f, std::fmin(vec2Target.x, m_pGrid->GridWidth));
+	vec2Target.y = std::fmin(0.0f, std::fmax(vec2Target.y, m_pGrid->GridHeight));
+
+	// this is the cell we would like to get if it's free
+	NavigationCell* pPreferredCell = m_pGrid->GetCellAt(vec2Target.x, vec2Target.y);
+
+	if (pPreferredCell == nullptr) {
+		// TODO this must be no inside the grid?
+		return pAgent->position;
+	}
+
+	// just extend outward in circles.... I can imagine this has lots of problems
+	// but it just has to be good enough for now, and probably will be in 99.99% of cases
+	// might look in the direction of the player first?
+	int nWest = pPreferredCell->Index - 1;
+	int nNorthWest = nWest - m_pGrid->CellCountX;
+	int nNorth = nNorthWest + 1;
+	int nNorthEast = nNorth + 1;
+	int nEast = nNorthEast + m_pGrid->CellCountX;
+	int nSouthEast = nEast + m_pGrid->CellCountX;
+	int nSouth = nSouthEast - 1;
+	int nSouthWest = nSouth - 1;
+
+	auto fnCheckCell = [this, pAgent](int nIndex) {
+		return nIndex > 0 && nIndex < m_pGrid->CellCountX + m_pGrid->CellCountX * m_pGrid->CellCountY && m_pGrid->Cells[nIndex] && m_pGrid->Cells[nIndex]->IsWalkable && CanMoveTo(pAgent, m_pGrid->Cells[nIndex], true);
+	};
+
+	auto fnToCoord = [this](int nIndex) {
+		return Vector2(m_pGrid->Cells[nIndex]->X + m_pGrid->CellWidth / 2.0f, m_pGrid->Cells[nIndex]->Y + m_pGrid->CellHeight / 2.0f);
+	};
+
+	while (nNorthWest <= m_pGrid->CellCountX + m_pGrid->CellCountX * m_pGrid->CellCountY && nSouthEast >= 0) {
+		if (fnCheckCell(nWest)) {
+			return fnToCoord(nWest);
+		}
+
+		if (fnCheckCell(nNorthWest)) {
+			return fnToCoord(nNorthWest);
+		}
+
+		if (fnCheckCell(nNorth)) {
+			return fnToCoord(nNorth);
+		}
+
+		if (fnCheckCell(nNorthEast)) {
+			return fnToCoord(nNorthEast);
+		}
+
+		if (fnCheckCell(nEast)) {
+			return fnToCoord(nEast);
+		}
+
+		if (fnCheckCell(nSouthEast)) {
+			return fnToCoord(nSouthEast);
+		}
+
+		if (fnCheckCell(nSouth)) {
+			return fnToCoord(nSouth);
+		}
+
+		if (fnCheckCell(nSouthWest)) {
+			return fnToCoord(nSouthWest);
+		}
+
+		// TODO this is for sure wrong btw but it's better than nothing.
+		nWest -= 1;
+		nNorthWest = nWest - m_pGrid->CellCountX;
+		nNorth = nNorthWest + 1;
+		nNorthEast = nNorth + 1;
+		nEast = nNorthEast + m_pGrid->CellCountX;
+		nSouthEast = nEast + m_pGrid->CellCountX;
+		nSouth = nSouthEast - 1;
+		nSouthWest = nSouth - 1;
+	}
+
+	return vec2Target;
 }

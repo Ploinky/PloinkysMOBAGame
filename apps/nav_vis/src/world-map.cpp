@@ -8,6 +8,7 @@ HBRUSH hBrushLightGray = CreateSolidBrush(RGB(200, 200, 200));
 HBRUSH hBrushGray = CreateSolidBrush(RGB(100,100, 100));
 HPEN hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+HPEN hPenBlue = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
 HBITMAP hBitMap;
 
 LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -101,13 +102,26 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SelectObject(hdcMem, hBrushBlue);
 			Ellipse(hdcMem, (pSharedData->vec2CurrPos.x - fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y - fHalfRadius) /SCALING_FACTOR, (pSharedData->vec2CurrPos.x + fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y + fHalfRadius) /SCALING_FACTOR);
 
-			// draw the coarse path
-			if (pSharedData->vecVec2CoarsePath.size() > 0) {
+			// draw the long path
+			if (pSharedData->vecVec2LongPath.size() > 0) {
+				SelectObject(hdcMem, hPenBlue);
+				POINT p;
+				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
+				for (int i = 0; i < pSharedData->vecVec2LongPath.size(); i++) {
+					Vector2 to = pSharedData->vecVec2LongPath.at(i);
+					if (!LineTo(hdcMem, to.x /SCALING_FACTOR, -(to.y /SCALING_FACTOR))) {
+						MessageBeep(MB_ICONERROR);
+					}
+				}
+			}
+
+			// draw the short path
+			if (pSharedData->vecVec2ShortPath.size() > 0) {
 				SelectObject(hdcMem, hPenGreen);
 				POINT p;
 				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
-				for (int i = 0; i < pSharedData->vecVec2CoarsePath.size(); i++) {
-					Vector2 to = pSharedData->vecVec2CoarsePath.at(i);
+				for (int i = 0; i < pSharedData->vecVec2ShortPath.size(); i++) {
+					Vector2 to = pSharedData->vecVec2ShortPath.at(i);
 					if (!LineTo(hdcMem, to.x /SCALING_FACTOR, -(to.y /SCALING_FACTOR))) {
 						MessageBeep(MB_ICONERROR);
 					}
@@ -126,8 +140,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 					}
 				}
 			}
-
-
+		
 			BitBlt(ps.hdc,
 				rc.left, rc.top,
 				rc.right - rc.left, rc.bottom - rc.top,
@@ -148,19 +161,19 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->pAgent->position = pSharedData->vec2CurrPos;
 
 			auto start = std::chrono::high_resolution_clock::now();
-			pSharedData->pAgent->path = pSharedData->pMap->GetPath(pSharedData->pAgent,
+			DebugPath_t path = pSharedData->pMap->GetDebugPath(pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
 			);
+			pSharedData->pAgent->path = path.vecVec2FinalPath;
+			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
+			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
 
 			// Print to console (use OutputDebugString in Win32)
 			std::string timeStr = "Execution time: " + std::to_string(elapsed.count()) + " ms\n";
 
-			pSharedData->vecVec2CoarsePath = pSharedData->pMap->GetCoarseGridPath(pSharedData->pAgent,
-				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
-				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y });
 			OutputDebugStringA(timeStr.c_str());
 
 			InvalidateRect(hWnd, NULL, false);
@@ -173,20 +186,19 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->pAgent->target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
-			pSharedData->pAgent->path = pSharedData->pMap->GetPath(
-				pSharedData->pAgent,
+			DebugPath_t path = pSharedData->pMap->GetDebugPath(pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
 			);
+			pSharedData->pAgent->path = path.vecVec2FinalPath;
+			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
+			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
 
 			// Print to console (use OutputDebugString in Win32)
 			std::string timeStr = "Execution time: " + std::to_string(elapsed.count()) + " ms\n";
 
-			pSharedData->vecVec2CoarsePath = pSharedData->pMap->GetCoarseGridPath(pSharedData->pAgent,
-				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
-				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y });
 			OutputDebugStringA(timeStr.c_str());
 
 			InvalidateRect(hWnd, NULL, false);
