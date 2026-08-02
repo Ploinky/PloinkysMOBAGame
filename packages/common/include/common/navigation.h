@@ -107,7 +107,8 @@ public:
 	std::vector<Vector2> GetCoarseGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
 
 	std::vector<Vector2> SmoothPath(NavigationGridAgent* pAgent, const std::vector<Vector2>& vecShortPath, Vector2 start, Vector2 end);
-std::vector<Vector2> RefinePath(NavigationGridAgent* pAgent, const std::vector<Vector2>& vecLongPath, Vector2 from, Vector2 to);
+	std::vector<Vector2> RefinePath(NavigationGridAgent* pAgent, const std::vector<Vector2>& vecLongPath, Vector2 from, Vector2 to);
+	Vector2 GetClosestFreeSpot(NavigationGridAgent* pAgent, Vector2 vec2From, Vector2 vec2Original);
 
 #ifdef _DEBUG
 	Paths_t GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);

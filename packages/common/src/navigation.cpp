@@ -506,7 +506,12 @@ void NavMesh::LoadFromFile(std::string mapName) {
 }
 
 Paths_t NavigationMap::GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	
+	to = GetClosestFreeSpot(pAgent, from, to);
+
+	if (from == to) {
+		return {};
+	}
+
 	std::vector<Vector2> vecLongPath = PlanPath(pAgent, { from.x, from.y }, { to.x, to.y });
 
 	std::vector<Vector2> vecShortPath = RefinePath(pAgent, vecLongPath, from, to);
@@ -780,17 +785,7 @@ std::vector<Vector2> NavigationMap::RefinePath(NavigationGridAgent* pAgent, cons
 	return vecShortPath;
 }
 std::vector<Vector2> NavigationMap::GetPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	// TODO properly do this, find closest spot inside navmesh as well
-	for(NavigationGridAgent* pOther : m_vecAgents) {
-		if(pOther->UnitId == pAgent->UnitId) {
-			continue;
-		}
-		if((pOther->position - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
-			// destination currently blocked
-			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
-			to = pOther->position + (from - pOther->position).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
-		}
-	}
+	to = GetClosestFreeSpot(pAgent, from, to);
 
 	if (from == to) {
 		return {};
@@ -861,7 +856,7 @@ std::vector<Vector2> NavigationMap::GetCoarseGridPath(NavigationGridAgent* pAgen
 		if(pOther->UnitId == pAgent->UnitId) {
 			continue;
 		}
-		if((pOther->position - to).Length() < ((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2))) {
+		if((pOther->position - to).Length() <= pOther->nCollisionRadius) {
 			// destination currently blocked
 			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
 			to = pOther->position + (from - pOther->position).ScaleToLength(((pOther->nCollisionRadius / 2) + (pAgent->nCollisionRadius / 2)));
@@ -1064,4 +1059,27 @@ std::vector<Vector2> NavigationMap::GetCoarseGridPath(NavigationGridAgent* pAgen
 	Logger::FormatMsg("Unit %d going from %f, %f to %f, %f via %d cells", pAgent->UnitId, from.x, from.y, to.x, to.y, vec2ShortPathSmoothed.size());
 
 	return vec2ShortPathSmoothed;
+}
+
+
+Vector2 NavigationMap::GetClosestFreeSpot(NavigationGridAgent* pAgent, Vector2 vec2From, Vector2 vec2Original) {
+	// TODO properly do this, find closest spot inside navmesh as well
+	for(NavigationGridAgent* pOther : m_vecAgents) {
+		if(pOther->UnitId == pAgent->UnitId) {
+			continue;
+		}
+		if((pOther->position - vec2Original).Length() <= pOther->nCollisionRadius + pAgent->nCollisionRadius) {
+			// destination currently blocked
+			Logger::FormatMsg("Destination for %d blocked, picking closest available point", pAgent->UnitId);
+			Vector2 vec2TargetOffsetFromOther = vec2Original - pOther->position;
+
+			if (vec2TargetOffsetFromOther.Length() == 0) {
+				vec2TargetOffsetFromOther = (vec2From - pOther->position).Normalize().ScaleToLength(pOther->nCollisionRadius + pAgent->nCollisionRadius + 10);
+			}
+			vec2Original = pOther->position + vec2TargetOffsetFromOther.Normalize().ScaleToLength(pOther->nCollisionRadius + pAgent->nCollisionRadius + 10);
+			return GetClosestFreeSpot(pAgent, vec2From, vec2Original);
+		}
+	}
+
+	return vec2Original;
 }

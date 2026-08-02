@@ -166,11 +166,11 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->pAgent->target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
-			pSharedData->pAgent->path = pSharedData->pMap->GetPath(
+			pSharedData->pAgent->path = pSharedData->pMap->GetDebugPath(
 				pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
-			);
+			).vecVec2FinalPath;
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
 
