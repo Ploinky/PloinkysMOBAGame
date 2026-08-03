@@ -419,7 +419,7 @@ void Game::RenderGameUI(CRenderer* renderer) {
 
        if(TransformComponent_t* pTransform = m_gameState.GetTransform(id)) {
 
-        Vector2 vec2Screen = renderer->m_camera.UnprojectWorldPoint({pTransform->vec3Position.x, pTransform->vec3Position.y + 200, pTransform->vec3Position.z}, windowWidth_, windowHeight_);
+        Vector2 vec2Screen = renderer->m_camera.UnprojectWorldPoint({pTransform->vec3Position.x, pTransform->vec3Position.y + 110, pTransform->vec3Position.z}, windowWidth_, windowHeight_);
             double x = vec2Screen.x;
             double y = vec2Screen.y;
 
