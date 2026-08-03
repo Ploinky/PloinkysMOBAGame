@@ -10,9 +10,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
 		case WM_KEYDOWN: {
  			if (wParam == VK_RIGHT) {
-				auto move = data.pMap->Step(data.pAgent, data.vec2CurrPos, 10);
+				if (data.path.empty()) {
+					return 0;
+				}
+				auto move = data.pMap->Step(data.pAgent, data.vec2CurrPos, data.path, 10);
 				data.vec2CurrPos = move.vec2Pos;
 				data.pAgent->position = move.vec2Pos;
+
+				if (move.vec2Pos == data.path.at(0)) {
+					data.path.erase(data.path.begin());
+				}
 				InvalidateRect(hWnd, nullptr, true);
 			}
 			if (wParam == VK_ESCAPE) {

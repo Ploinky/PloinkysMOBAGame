@@ -5,7 +5,8 @@
 typedef struct AppData {
 	NavigationMap* pMap;
 	NavigationGridAgent* pAgent;
-	std::vector<Vector2> vecVec2Blocker = { { 1500, -1500} };
+	Vector2 vec2Target;
+	std::vector<Vector2> path;
  	std::vector<Vector2> vecVec2LongPath;
 	std::vector<Vector2> vecVec2ShortPath;
 	Vector2 vec2CurrPos = { 1000, -1000 };

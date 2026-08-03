@@ -56,7 +56,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
     }
 
     // Trying to path, but no path currently set
-    if(nav.pNavGridAgent->path.size() == 0) {
+    if(nav.path.size() == 0) {
         Logger::FormatMsg("Planning initial path for %d to <%f, %f>", id, nav.vec3Destination.x, nav.vec3Destination.z);
         PathResult_t pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
@@ -71,16 +71,16 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             Logger::FormatMsg("PATHING FAIL!!!");
         }
         
-        nav.pNavGridAgent->path = pathResult.vecVec2Path;
+        nav.path = pathResult.vecVec2Path;
         
-        if(nav.pNavGridAgent->path.size() == 0) {
+        if(nav.path.empty()) {
             pGameState->EmitEvent(new CNavDestEvent(id, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
             return;
         }
-    } else if(nav.vec3Destination.x != nav.pNavGridAgent->path.back().x && nav.vec3Destination.z != nav.pNavGridAgent->path.back().y) {
+    } else if(nav.vec3Destination.x != nav.path.back().x && nav.vec3Destination.z != nav.path.back().y) {
         Logger::FormatMsg("Changing destination, planning new path for %d to <%f, %f>", id, nav.vec3Destination.x, nav.vec3Destination.z);
         PathResult_t pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
@@ -101,9 +101,9 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         }
 
-        nav.pNavGridAgent->path = pathResult.vecVec2Path;
+        nav.path = pathResult.vecVec2Path;
         
-        if(nav.pNavGridAgent->path.size() == 0) {
+        if(nav.path.empty()) {
             pGameState->EmitEvent(new CNavDestEvent(id, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
@@ -143,9 +143,9 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             Logger::FormatMsg("PATHING FAIL!!!");
         }
         
-        nav.pNavGridAgent->path = pathResult.vecVec2Path;
+        nav.path = pathResult.vecVec2Path;
 
-        if(nav.pNavGridAgent->path.size() == 0) {
+        if(nav.path.empty()) {
             pGameState->EmitEvent(new CNavDestEvent(id, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
@@ -155,7 +155,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         }
     }
 
-    Vector2 vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
+    Vector2 vec2IntermediateTarget = nav.path.at(0);
     Vector3 vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
 
     // Close enough to the current waypoint, so move on to the next one
@@ -164,28 +164,28 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         Logger::FormatMsg("%d arrived at waypoint <%f, %f> on the way to <%f, %f>, moving on to the next waypoint",
             id, vec3IntermediateTarget.x, vec3IntermediateTarget.z, nav.vec3Destination.x, nav.vec3Destination.z);
 
-        nav.pNavGridAgent->path.erase(nav.pNavGridAgent->path.begin());
+        nav.path.erase(nav.path.begin());
 
-        if(nav.pNavGridAgent->path.size() == 0) {
+        if(nav.path.size() == 0) {
             return;
         }
-        vec2IntermediateTarget = nav.pNavGridAgent->path.at(0);
+        vec2IntermediateTarget = nav.path.at(0);
         vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
-        pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
+        pMovement->vec3Target = {nav.path.at(0).x, 0, nav.path.at(0).y};
         pGameState->EmitEvent(new CMoveIntentionEvent(id, pMovement->vec3Target, 0));
         return;
     }
     
-    if(nav.pNavGridAgent->path.size() == 0) {
+    if(nav.path.empty()) {
         // TODO this needs to be handled
         return;
     }
 
-    if(pMovement->vec3Target.x == nav.pNavGridAgent->path.at(0).x && pMovement->vec3Target.z == nav.pNavGridAgent->path.at(0).y) {
+    if(pMovement->vec3Target.x == nav.path.at(0).x && pMovement->vec3Target.z == nav.path.at(0).y) {
         return;
     }
 
-    pMovement->vec3Target = {nav.pNavGridAgent->path.at(0).x, 0, nav.pNavGridAgent->path.at(0).y};
+    pMovement->vec3Target = {nav.path.at(0).x, 0, nav.path.at(0).y};
     pGameState->EmitEvent(new CMoveIntentionEvent(id, pMovement->vec3Target, 0));
 }
 

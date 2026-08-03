@@ -32,11 +32,10 @@ class NavigationMap;
 
 typedef struct {
 	uint64_t UnitId;
-	std::vector<Vector2> path;
-	Vector2 target;
 	Vector2 position;
 	int nCollisionRadius;
 	bool IgnoreCollision;
+	bool bIgnoreForPathing;
 } NavigationGridAgent;
 
 class NavMesh {
@@ -157,7 +156,7 @@ typedef struct {
 class NavigationMap {
 public:
 	PathResult_t RequestPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	StepResult_t Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist);
+	StepResult_t Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, std::vector<Vector2> vecVec2Path, float fDist);
 	NavigationGridAgent* CreateAgent();
 	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
 	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen);

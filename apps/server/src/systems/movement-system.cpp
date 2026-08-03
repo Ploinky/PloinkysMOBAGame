@@ -36,7 +36,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
 
     // For navigating units, use the nav map...
     if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(id)) {
-        StepResult_t step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, move.fSpeed * (fDelta / 1000.0f));
+        StepResult_t step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, pNavComp->path, move.fSpeed * (fDelta / 1000.0f));
         Vector2 vec2Step = step.vec2Pos;
 
         

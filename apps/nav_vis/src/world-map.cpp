@@ -129,12 +129,12 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			}
 
 			// draw the path
-			if (pSharedData->pAgent->path.size() > 0) {
+			if (pSharedData->path.size() > 0) {
 				SelectObject(hdcMem, hPen);
 				POINT p;
 				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
-				for (int i = 0; i < pSharedData->pAgent->path.size(); i++) {
-					Vector2 to = pSharedData->pAgent->path.at(i);
+				for (int i = 0; i < pSharedData->path.size(); i++) {
+					Vector2 to = pSharedData->path.at(i);
 					if (!LineTo(hdcMem, to.x /SCALING_FACTOR, -(to.y /SCALING_FACTOR))) {
 						MessageBeep(MB_ICONERROR);
 					}
@@ -163,9 +163,9 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			auto start = std::chrono::high_resolution_clock::now();
 			DebugPath_t path = pSharedData->pMap->GetDebugPath(pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
-				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
+				pSharedData->vec2Target
 			);
-			pSharedData->pAgent->path = path.vecVec2FinalPath;
+			pSharedData->path = path.vecVec2FinalPath;
 			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
 			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
 			auto end = std::chrono::high_resolution_clock::now();
@@ -182,15 +182,15 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 		case WM_RBUTTONDOWN: {
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-			pSharedData->pAgent->target.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
-			pSharedData->pAgent->target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
+			pSharedData->vec2Target.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
+			pSharedData->vec2Target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
 			DebugPath_t path = pSharedData->pMap->GetDebugPath(pSharedData->pAgent,
 				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
-				{ pSharedData->pAgent->target.x, pSharedData->pAgent->target.y }
+				{ pSharedData->vec2Target.x, pSharedData->vec2Target.y }
 			);
-			pSharedData->pAgent->path = path.vecVec2FinalPath;
+			pSharedData->path = path.vecVec2FinalPath;
 			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
 			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
 			auto end = std::chrono::high_resolution_clock::now();

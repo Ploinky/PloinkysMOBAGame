@@ -548,7 +548,7 @@ bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell
 			continue;
 		}
 
-		if (bIgnoreMoving && !pOtherAgent->path.empty()) {
+		if (bIgnoreMoving && pOtherAgent->bIgnoreForPathing) {
 			continue;
 		}
 
@@ -563,13 +563,13 @@ bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell
 	return true;
 }
 
-StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, float fDist) {
-	if(pAgent->path.empty()) {
+StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, std::vector<Vector2> path, float fDist) {
+	if(path.empty()) {
 		// TODO is this blocked = false?
 		return {false, vec2CurrPos};
 	}
 
-	Vector2 vec2Move = pAgent->path.front() - vec2CurrPos;
+	Vector2 vec2Move = path.front() - vec2CurrPos;
 
 	if (vec2Move.Length() > fDist) {
 		vec2Move = vec2Move.ScaleToLength(fDist);
@@ -583,12 +583,12 @@ StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPo
 		return {true, vec2CurrPos};
 	}
 
-	if (CompareFloat((vec2NewPos - pAgent->path.front()).Length(), 0)) {
+	if (CompareFloat((vec2NewPos - path.front()).Length(), 0)) {
 		std::vector<Vector2> path;
-		for(int i = 1; i < pAgent->path.size(); i++) {
-			path.push_back(pAgent->path.at(i));
+		for(int i = 1; i < path.size(); i++) {
+			path.push_back(path.at(i));
 		}
-		pAgent->path = path;
+		path = path;
 	}
 
 	return {false, vec2NewPos};
