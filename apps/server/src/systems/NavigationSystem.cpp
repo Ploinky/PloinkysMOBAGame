@@ -6,7 +6,7 @@
 #include "events.h"
 
 #define GOAL_THRESHOLD 10
-#define WAIT_BLOCKED 250
+#define WAIT_BLOCKED 50
 
 CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
     m_pMap = pMap;
