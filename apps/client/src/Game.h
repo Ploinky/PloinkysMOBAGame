@@ -1,15 +1,17 @@
 #pragma once
 
-#include "IClientState.h"
-#include "IClientStateHandler.h"
-#include <vector>
 #include <map>
 #include <unordered_map>
-#include "common/pmg_physics.h"
-#include "ClientNetworkManager.h"
+#include <vector>
+
+#include <common/pmg_physics.h>
 #include <common/PMG_Common.h>
+
+#include "IClientState.h"
+#include "IClientStateHandler.h"
+#include "ClientNetworkManager.h"
 #include "Renderer.h"
-#include <Model.h>
+#include "Model.h"
 #include "client-asset-manager.h"
 #include "game/client-game-state.h"
 #include "AudioSystem.h"

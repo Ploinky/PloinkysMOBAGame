@@ -2,18 +2,20 @@
 
 #include <vector>
 #include <string>
-#include "common/pmg_physics.h"
 #include <map>
+
+#include <common/pmg_physics.h>
 #include <common/PMG_Common.h>
-#include "Model.h"
+#include <common/navigation.h>
 #include <common/PloinkysJSONLibrary.h>
+
+#include "Model.h"
 #include "GLBFileLoader.h"
 #include "Camera.h"
 #include "Mesh.h"
 #include "Armature.h"
 #include "core/graphics/graphics-engine.h"
 #include "Animation.h"
-#include <common/navigation.h>
 #include "client-asset-manager.h"
 #include "core/rendering/render-command.h"
 #include "game/client-game-state.h"

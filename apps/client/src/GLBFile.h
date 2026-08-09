@@ -5,8 +5,8 @@
 #include <string>
 #include <map>
 #include <stdint.h>
+#include <common/PMG_Common.h>
 #include "Armature.h"
-#include "common/PMG_Common.h"
 
 // TODO enum class
 enum GLBANIMATIONCHANNEL {

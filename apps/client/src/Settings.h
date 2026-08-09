@@ -3,8 +3,8 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <core/platform/video_mode.h>
 #include <vector>
+#include "core/platform/video_mode.h"
 
 class PMGSettings {
 public:

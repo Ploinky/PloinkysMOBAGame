@@ -9,5 +9,20 @@
             name="idle"
             duration="272"
         />
+        <animation
+            slot="run"
+            name="run"
+            duration="272"
+        />
+        <animation
+            slot="death"
+            name="death"
+            duration="272"
+        />
+        <attack1
+            slot="attack1"
+            name="attack1"
+            duration="272"
+        />
     </animations>
 </model_data>

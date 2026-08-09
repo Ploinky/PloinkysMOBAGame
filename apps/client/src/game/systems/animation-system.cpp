@@ -1,8 +1,8 @@
 #include "animation-system.h"
 
-#include "game/client-game-state.h"
-#include "game/components/components.h"
-#include "Model.h"
+#include "../client-game-state.h"
+#include "../components/components.h"
+#include "../../Model.h"
 
 CAnimationSystem::CAnimationSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
@@ -109,11 +109,13 @@ void CAnimationSystem::OnSpellCastStart(CClientGameState* pGameState, CSpellCast
     PlayAnimation(pGameState, pEvent->idUnit, "attack1", false);
 }
 
-
 void CAnimationSystem::OnEntityRespawn(CClientGameState* pGameState, CEntityRespawnEvent* pEvent) {
     PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
 }
 
+void CAnimationSystem::OnEntityDeath(CClientGameState* pGameState, CEntityDeathEvent* pEvent) {
+    PlayAnimation(pGameState, pEvent->idUnit, "death", false);
+}
 
 void CAnimationSystem::PlayAnimation(CClientGameState* pGameState, UnitId idUnit, std::string strAnimationId, bool bLoop) {
     AnimationComponent_t* pAnimComp = pGameState->GetAnimation(idUnit);

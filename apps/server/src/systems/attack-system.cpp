@@ -20,7 +20,6 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         if(pGameState->GetHealth(id) && pGameState->GetHealth(id)->bIsDead) {
             attackComp.optCurrentAttack.reset();
-            pGameState->EmitEvent(new CAttackFinishedEvent(id));
             continue;
         }
 

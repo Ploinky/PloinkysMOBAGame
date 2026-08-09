@@ -168,7 +168,7 @@ void Game::Update(float dt) {
     
         // TODO this is fucked up
         HealthComponent_t* health  = m_gameState.GetHealth(id);
-        if (health != nullptr && health->nHealth <= 0.0f) {
+        if (health != nullptr && health->bIsDead) {
             desiredAnim = "death";
             bLoop = false;
         } else if (m_gameState.GetMovement(id) && m_gameState.GetMovement(id)->bIsMoving) {
@@ -181,8 +181,8 @@ void Game::Update(float dt) {
             // desiredAnim = "attack1";
             // bLoop = true;
         } else {
-            // desiredAnim = "idle";
-            // bLoop = true;
+            desiredAnim = "idle";
+            bLoop = true;
         }
 
         if(!modelData.mapAnimations.contains(desiredAnim)) {
@@ -989,6 +989,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CAttackFinishedEvent* pAttackEvent = new CAttackFinishedEvent();
             pAttackEvent->idUnit = pck.content.unit;
             m_gameState.EmitEvent(pAttackEvent);
+            continue;
         }
 
         if(header.type == PacketType::UNITMOVE_INTENTION) {
@@ -1041,6 +1042,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             startEvent.idUnit = pck.unit;
             startEvent.strSpellId = "";
             m_gameState.EmitEvent(&startEvent);
+            continue;
         }
 
         if(header.type == PacketType::PCK_SPELL_HIT) {
@@ -1051,6 +1053,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             hitEvent.idUnit = pck.unit;
             hitEvent.strSpellId = pck.spell;
             m_gameState.EmitEvent(&hitEvent);
+            continue;
         }
 
         if(header.type == PacketType::PCK_UNIT_DEATH) {
@@ -1071,6 +1074,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CEntityDeathEvent deathEvent = CEntityDeathEvent();
             deathEvent.idUnit = pck.idUnit;
             m_gameState.EmitEvent(&deathEvent);
+            continue;
         }
 
         if(header.type == PacketType::PCK_UNIT_RESPAWN) {
@@ -1092,6 +1096,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CEntityRespawnEvent respawnEvent = CEntityRespawnEvent();
             respawnEvent.idUnit = pck.idUnit;
             m_gameState.EmitEvent(&respawnEvent);
+            continue;
         }
 
         if(header.type == PacketType::PCK_PICKED_UP_ENTITY) {
@@ -1105,6 +1110,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             pInv->vecEntitiesInInventory.push_back(pck.idPickedUpUnit);
             DespawnUnit(pck.idPickedUpUnit);
+            continue;
         }
 
         Logger::FormatErr("Received unknown packet type %d", header.type);

@@ -3,10 +3,10 @@
 #include <queue>
 #include <typeindex>
 
-#include <game/components/components.h>
-#include "common/game/game-system.h"
-#include "common/game/game-state.h"
-#include "common/data/game-data.h"
+#include "components/components.h"
+#include <common/game/game-system.h>
+#include <common/game/game-state.h>
+#include <common/data/game-data.h>
 
 class CGameObject;
 class CGameState;

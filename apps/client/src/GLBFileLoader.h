@@ -1,8 +1,9 @@
 #pragma once
 
-#include <GLBFile.h>
 #include <common/PMG_Common.h>
 #include <common/PloinkysJSONLibrary.h>
+
+#include "GLBFile.h"
 
 class GLBFileLoader {
 public:
