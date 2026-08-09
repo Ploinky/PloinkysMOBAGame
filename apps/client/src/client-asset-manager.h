@@ -1,17 +1,16 @@
 #pragma once
 
-#include <common/AssetManager.h>
 #include <unordered_map>
-
 #include <limits>
 
-#include "GLBFileLoader.h"
+#include <common/AssetManager.h>
+#include <common/data/game-data.h>
+#include <common/vendor/pugixml.hpp>
+
 #include "core/graphics/graphics-engine.h"
 #include "core/audio/audio-engine.h"
+#include "GLBFileLoader.h"
 
-#include <common/data/game-data.h>
-
-#include <common/vendor/pugixml.hpp>
 
 class Model;
 

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "game/client-game-state.h"
-
-#include "client-asset-manager.h"
+#include "../client-game-state.h"
 
 class CEntityRespawnEvent : public IGameEvent {
 public:

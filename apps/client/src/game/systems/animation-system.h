@@ -3,7 +3,7 @@
 #include <common/game/game-system.h>
 
 #include "../events/events.h"
-#include "client-asset-manager.h"
+#include "../../client-asset-manager.h"
 
 class CClientGameState;
 

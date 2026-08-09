@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game/server-game-state.h"
+#include "../game/server-game-state.h"
 
 class CAttackStartEvent : public IGameEvent {
 public:

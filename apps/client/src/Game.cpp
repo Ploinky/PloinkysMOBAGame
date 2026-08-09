@@ -1,4 +1,5 @@
 #include "Game.h"
+
 #include <common/PMG_Common.h>
 #include "Renderer.h"
 #include "Camera.h"
@@ -154,52 +155,6 @@ void Game::Update(float dt) {
         m_mouseClicked[1] = m_mousePos[1];
         m_mouseClicked[2] = 1;
     }
-
-    for (const auto& [id, renderable] : m_gameState.GetAllRenderable()) {
-        std::string desiredAnim;
-        bool bLoop = false;
-
-        if(assetManager_->GetGameData().mapModelData.find(renderable.strRenderable) == assetManager_->GetGameData().mapModelData.end()) {
-            Logger::FormatErr("Unknown renderable model id: %s", renderable.strRenderable.c_str());
-            continue;
-        }
-
-        const CModelData& modelData = assetManager_->GetGameData().mapModelData.at(renderable.strRenderable);
-    
-        // TODO this is fucked up
-        HealthComponent_t* health  = m_gameState.GetHealth(id);
-        if (health != nullptr && health->bIsDead) {
-            desiredAnim = "death";
-            bLoop = false;
-        } else if (m_gameState.GetMovement(id) && m_gameState.GetMovement(id)->bIsMoving) {
-            desiredAnim = "run";
-            bLoop = true;
-        } else if(m_gameState.GetSpellCast(id) && m_gameState.GetSpellCast(id)->bIsCasting) {
-            desiredAnim = "ability1";
-            bLoop = false;
-        } else if(m_gameState.GetAttack(id) && m_gameState.GetAttack(id)->bIsAttacking) {
-            // desiredAnim = "attack1";
-            // bLoop = true;
-        } else {
-            desiredAnim = "idle";
-            bLoop = true;
-        }
-
-        if(!modelData.mapAnimations.contains(desiredAnim)) {
-            continue;
-        }
-        
-        CAnimationData animData = modelData.mapAnimations.at(desiredAnim);
-        desiredAnim = animData.name;
-        
-        AnimationComponent_t* pAnimComp = m_gameState.GetAnimation(id);
-        if (pAnimComp && pAnimComp->m_strAnimationName != desiredAnim) {
-            Logger::FormatMsg("Playing animation %s", desiredAnim.c_str());
-            pAnimComp->m_strAnimationName = desiredAnim;
-            pAnimComp->m_bLoop = bLoop;
-            pAnimComp->m_fAnimationTime = 0.0f;
-        }
-	}
 
     // TODO EXTRACT
 
@@ -950,7 +905,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             pck.Read(&vecData);
 
             if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.content.unit)) {
-                pAttackComponent->bIsAttacking = false;
+                pAttackComponent->bIsAttacking = true;
             }
 
             if(MovementComponent_t* pMoveComp = m_gameState.GetMovement(pck.content.unit)) {
