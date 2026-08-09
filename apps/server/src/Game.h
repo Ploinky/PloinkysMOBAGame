@@ -11,7 +11,7 @@
 #include "LobbyPlayer.h"
 #include "GameObject.h"
 #include <common/PMG_Common.h>
-#include <Buff.h>
+#include "Buff.h"
 
 #include "systems/NetworkSystem.h"
 #include "systems/damage-system.h"
@@ -20,7 +20,7 @@
 
 #include "game/wave-manager.h"
 
-#include <game/server-game-state.h>
+#include "game/server-game-state.h"
 #include "game/trigger.h"
 
 class Missile;

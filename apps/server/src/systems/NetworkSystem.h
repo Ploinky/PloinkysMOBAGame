@@ -1,9 +1,9 @@
 #pragma once
 
-#include "NetworkManager.h"
-#include <game/server-game-state.h>
-#include "common/game/game-system.h"
-#include "events.h"
+#include <common/game/game-system.h>
+#include "../NetworkManager.h"
+#include "../game/server-game-state.h"
+#include "../events.h"
 
 class CNetworkSystem : public IGameSystem<CServerGameState> {
 public:

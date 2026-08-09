@@ -1,8 +1,8 @@
 #pragma once
 
-#include <game/server-game-state.h>
-#include "common/game/game-system.h"
-#include "events.h"
+#include <common/game/game-system.h>
+#include "../game/server-game-state.h"
+#include "../events.h"
 
 class NavigationMap;
 

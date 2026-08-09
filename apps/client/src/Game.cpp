@@ -440,8 +440,10 @@ void Game::RenderGameUI(CRenderer* renderer) {
                 color[2] = 0;
             }
 
-            renderer->FillRect(x - 50, y - 10, ((float)health.nHealth / (float)health.nMaxHealth) * 100.0f, health_bar_height, color);
-            renderer->DrawRect(x - 51, y - 11, 102, health_bar_height + 2, new float[3] { 0.0f, 0.0f, 0 });
+            if (!m_gameState.GetHealth(id)->bIsDead) {
+                renderer->FillRect(x - 50, y - 10, ((float)health.nHealth / (float)health.nMaxHealth) * 100.0f, health_bar_height, color);
+                renderer->DrawRect(x - 51, y - 11, 102, health_bar_height + 2, new float[3] { 0.0f, 0.0f, 0 });
+            }
        }
     }
 
@@ -648,6 +650,7 @@ void Game::SpawnUnit(UnitId entId, std::string entityId, Team team, Vector3 pos)
         HealthComponent_t* health = m_gameState.AddHealth(entId);
         health->nMaxHealth = entData.optHealthData.value().nMaxHealth;
         health->nHealth = health->nMaxHealth;
+        health->bIsDead = false;
     }
 
     if(entData.optTransformData) {
@@ -1083,6 +1086,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             if(HealthComponent_t* pHealthComponent = m_gameState.GetHealth(pck.idUnit)) {
                 pHealthComponent->nHealth = pHealthComponent->nMaxHealth;
+                pHealthComponent->bIsDead = false;
             }
 
             CEntityRespawnEvent respawnEvent = CEntityRespawnEvent();
