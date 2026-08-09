@@ -113,8 +113,16 @@ void CAnimationSystem::OnEntityRespawn(CClientGameState* pGameState, CEntityResp
     PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
 }
 
+void CAnimationSystem::OnEntityIdle(CClientGameState* pGameState, CEntityIdleEvent* pEvent) {
+    PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
+}
+
 void CAnimationSystem::OnEntityDeath(CClientGameState* pGameState, CEntityDeathEvent* pEvent) {
     PlayAnimation(pGameState, pEvent->idUnit, "death", false);
+}
+
+void CAnimationSystem::OnEntityMove(CClientGameState* pGameState, CMoveIntentionEvent* pEvent) {
+    PlayAnimation(pGameState, pEvent->idUnit, "run", true);
 }
 
 void CAnimationSystem::PlayAnimation(CClientGameState* pGameState, UnitId idUnit, std::string strAnimationId, bool bLoop) {

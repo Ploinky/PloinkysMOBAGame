@@ -7,6 +7,7 @@
 #include "events/cooldown-started-event.h"
 #include "events/damage-event.h"
 #include "events/death-event.h"
+#include "events/entity-idle-event.h"
 #include "events/heal-event.h"
 #include "events/move-attempt-event.h"
 #include "events/move-event.h"

@@ -31,6 +31,8 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
     if(CompareFloat((move.vec3Target - vec3OldPosition).Length(), 0 )) {
         // TODO we're at our target
         move.vec3Target = pTransform->GetPosition();
+        CEntityIdleEvent evt = CEntityIdleEvent(id);
+        pGameState->EmitEvent(&evt);
         return;
     }
 

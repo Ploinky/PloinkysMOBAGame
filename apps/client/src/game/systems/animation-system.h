@@ -18,6 +18,8 @@ public:
     REGISTER_EVENT_HANDLER(CAnimationSystem, CSpellCastStartEvent, OnSpellCastStart)
     REGISTER_EVENT_HANDLER(CAnimationSystem, CEntityRespawnEvent, OnEntityRespawn)
     REGISTER_EVENT_HANDLER(CAnimationSystem, CEntityDeathEvent, OnEntityDeath)
+    REGISTER_EVENT_HANDLER(CAnimationSystem, CMoveIntentionEvent, OnEntityMove)
+    REGISTER_EVENT_HANDLER(CAnimationSystem, CEntityIdleEvent, OnEntityIdle)
 private:
     CClientAssetManager* m_pAssetManager;
 

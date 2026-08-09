@@ -143,6 +143,24 @@ void CNetworkSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastSt
     m_pNetworkManager->SendToAllClients(pck);
 }
 
+void CNetworkSystem::OnEntityIdle(CServerGameState* pGameState, CEntityIdleEvent* pEvt) {
+    UnitIdlePacket pck = UnitIdlePacket();
+    pck.unit = pEvt->idTarget;
+
+    if (TransformComponent_t* pTransform = pGameState->GetTransform(pEvt->idTarget)) {
+        pck.x = pTransform->GetPosition().x;
+        pck.y = pTransform->GetPosition().y;
+        pck.z = pTransform->GetPosition().z;
+        pck.r = pTransform->GetRotation().y;
+    } else {
+        pck.x = 0.0f;
+        pck.y = 0.0f;
+        pck.z = 0.0f;
+        pck.r = 0.0f;
+    }
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
 void CNetworkSystem::OnSpellhit(CServerGameState* pGameState, CSpellHitEvent* pHitEvt) {
     SpellHitPacket pck = SpellHitPacket();
     pck.unit = pHitEvt->idTarget;

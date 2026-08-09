@@ -23,6 +23,7 @@ public:
     REGISTER_EVENT_HANDLER(CNetworkSystem, CAttackHitEvent, OnAttackHit);
     REGISTER_EVENT_HANDLER(CNetworkSystem, CAttackFinishedEvent, OnAttackFinished);
     REGISTER_EVENT_HANDLER(CNetworkSystem, CPickedUpEvent, OnPickedUp);
+    REGISTER_EVENT_HANDLER(CNetworkSystem, CEntityIdleEvent, OnEntityIdle);
 
 private:
     ServerNetworkManager* m_pNetworkManager;

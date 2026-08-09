@@ -814,6 +814,10 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             if(SpellCastComponent_t* pSpellCastComponent = m_gameState.GetSpellCast(idle.unit)) {
                 pSpellCastComponent->bIsCasting = false;
             }
+
+            CEntityIdleEvent idleEvt = CEntityIdleEvent();
+            idleEvt.idUnit = idle.unit;
+            m_gameState.EmitEvent(&idleEvt);
             continue;
         }
         if(header.type == PacketType::UNITMOVE){
@@ -970,6 +974,10 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             pMovementComponent->vec3Target = vec3NewTarget;
             pMovementComponent->bIsMoving = true;
+
+            CMoveIntentionEvent evt;
+            evt.idUnit = move.unit;
+            m_gameState.EmitEvent(&evt);
             continue;
         }
 
