@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GameObject.h"
-#include "common/PMG_Common.h"
-#include "common/pmg_types.h"
+#include <common/PMG_Common.h>
+#include <common/pmg_types.h>
+#include "../GameObject.h"
 
 typedef struct TransformComponent_t {
     public:

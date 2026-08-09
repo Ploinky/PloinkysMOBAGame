@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 #include <common/PMG_Common.h>
-#include <Armature.h>
-#include <GLBFileLoader.h>
+#include "Armature.h"
+#include "GLBFileLoader.h"
 
 struct AnimationKeyFrame {
 	BonePosition Position;

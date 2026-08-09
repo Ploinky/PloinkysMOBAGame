@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <Mesh.h>
-#include <Material.h>
-#include <Armature.h>
+#include "Mesh.h"
+#include "Material.h"
+#include "Armature.h"
 
 class ModelNode {
 public:

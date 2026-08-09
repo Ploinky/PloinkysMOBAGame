@@ -555,7 +555,7 @@ bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell
 		if (CompareFloat(pOtherAgent->nCollisionRadius, 0)) {
 			return false;
 		}
-		if ((pOtherAgent->position - Vector2(pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2)).Length() <= pOtherAgent->nCollisionRadius) {
+		if ((pOtherAgent->position - Vector2(pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2)).Length() <= pOtherAgent->nCollisionRadius + 1) {
 			return false;
 		}
 	}

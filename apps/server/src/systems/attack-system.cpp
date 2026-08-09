@@ -1,6 +1,6 @@
-#include "systems/attack-system.h"
+#include "attack-system.h"
 
-#include <game/server-game-state.h>
+#include "../game/server-game-state.h"
 
 CAttackSystem::CAttackSystem() {
 }
@@ -20,12 +20,14 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
 
         if(pGameState->GetHealth(id) && pGameState->GetHealth(id)->bIsDead) {
             attackComp.optCurrentAttack.reset();
+            pGameState->EmitEvent(new CAttackFinishedEvent(id));
             continue;
         }
 
         if(HealthComponent_t* pHealthComp = pGameState->GetHealth(activeAttack.idTarget)) {
             if(pHealthComp->bIsDead) {
                 attackComp.optCurrentAttack.reset();
+                pGameState->EmitEvent(new CAttackFinishedEvent(id));
                 continue;
             }
         }

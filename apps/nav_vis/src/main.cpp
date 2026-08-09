@@ -51,11 +51,11 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	agt->nCollisionRadius = 50;
 	agt->UnitId = 0;
 	NavigationGridAgent* agt1 = data.pMap->CreateAgent();
-	agt1->position = { 1550, -800 };
+	agt1->position = { 1550, -850 };
 	agt1->nCollisionRadius = 50;
 	agt1->UnitId = 1;
 	NavigationGridAgent* agt2 = data.pMap->CreateAgent();
-	agt2->position = { 1600, -800 };
+	agt2->position = { 1535, -900 };
 	agt2->nCollisionRadius = 50;
 	agt2->UnitId = 2;
 	NavigationGridAgent* agt3 = data.pMap->CreateAgent();

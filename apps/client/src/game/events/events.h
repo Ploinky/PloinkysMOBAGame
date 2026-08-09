@@ -1,5 +1,6 @@
 #pragma once
 
+#include "attack-finished-event.h"
 #include "attack-start-event.h"
 #include "entity-death-event.h"
 #include "entity-respawn-event.h"

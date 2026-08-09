@@ -2,13 +2,13 @@
 
 #include <common/PMG_Common.h>
 #include <common/PloinkysJSONLibrary.h>
-#include <ModelNode.h>
-#include <Material.h>
-#include <Animation.h>
-#include <Armature.h>
+#include "ModelNode.h"
+#include "Material.h"
+#include "Animation.h"
+#include "Armature.h"
 #include <map>
 #include <string.h>
-#include <Mesh.h>
+#include "Mesh.h"
 
 class Model {
 public:

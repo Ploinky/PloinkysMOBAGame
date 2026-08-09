@@ -35,6 +35,10 @@ Client::Client() {
     isRunning = false;
     lastFrame = 0;
 
+    window = nullptr;
+    m_pGraphicsEngine = nullptr;
+    renderer = nullptr;
+
     fps = 0;
 }
 
@@ -59,6 +63,11 @@ Client::~Client() {
 
 void Client::Run(std::string connectString_) {
     Logger::Msg("Starting Ploinky's MOBA Game client...");
+    m_pGamerService = IGamerService::Create();
+    if(!m_pGamerService->Initialize()) {
+        CPlatform::Alert("Error", "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed).\n", EAlertType::ERR);
+        return;
+    }
 
     Logger::Msg("Authenticating user session...");
 
@@ -146,6 +155,8 @@ void Client::Run(std::string connectString_) {
         FinishRender();
 
         m_pAudioEngine->Update();
+
+        m_pGamerService->Update();
 
         fps = (int)(1000.0f / dt);
     }
@@ -253,4 +264,8 @@ IAudioEngine* Client::GetAudioEngine() {
 
 INetworkEngine* Client::GetNetworkEngine() {
     return m_pNetworkEngine;
+}
+
+IGamerService* Client::GetGamerService() {
+    return m_pGamerService.get();
 }

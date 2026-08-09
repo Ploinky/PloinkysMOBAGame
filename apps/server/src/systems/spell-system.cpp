@@ -1,8 +1,8 @@
 #include "spell-system.h"
 
-#include "game/server-game-state.h"
-#include "SpellTargetInfo.h"
-#include "spell-cast-api.h"
+#include "../game/server-game-state.h"
+#include "../SpellTargetInfo.h"
+#include "../spell-cast-api.h"
 
 CSpellSystem::CSpellSystem() {
 }

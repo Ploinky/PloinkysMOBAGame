@@ -4,9 +4,9 @@
 
 #include <common/game/game-state.h>
 
-#include <components/Components.h>
+#include "../components/Components.h"
 
-#include "game/trigger.h"
+#include "trigger.h"
 
 typedef struct {
     Vector2 vec2Pos;
@@ -54,4 +54,6 @@ public:
     const CGameData* m_pGameData;
 
     NavigationMap* m_pNavMap;
+
+    std::vector<UnitId> GetUnitsInAra(Vector2 point, float radius);
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameObject.h"
+#include "../GameObject.h"
 #include "common/pmg_types.h"
 
 typedef struct HealthComponent_t {

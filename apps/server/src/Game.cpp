@@ -138,6 +138,20 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     }
     GameState.VecTriggers.push_back(trigger);
     // =====================================
+    CTriggerData trigData2 = handler_->GetGameData().mapTriggerData.at("wave_team_2");
+    CTrigger trigger2 = CTrigger();
+    for(CTriggerSpawnUnitData spawnTriggerData : trigData2.vecSpawnUnitTriggers) {
+        CSpawnUnitTrigger spawnUnitTrigger;
+        spawnUnitTrigger.eTeam = spawnTriggerData.eTeam;
+        spawnUnitTrigger.idUnitType = spawnTriggerData.idUnitType;
+        spawnUnitTrigger.nCount = spawnTriggerData.nCount;
+        spawnUnitTrigger.nTime = spawnTriggerData.nTime;
+        spawnUnitTrigger.nLastTime = -1;
+        spawnUnitTrigger.vec2Position = spawnTriggerData.vec2Position;
+        trigger2.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
+    }
+    GameState.VecTriggers.push_back(trigger2);
+    // =====================================
 
     GameState.AddSystem(m_pNavigationSystem);
     GameState.AddSystem(&m_moveSystem);
@@ -162,7 +176,10 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "stormcaller");
 
     GameState.AddTeam(id, TeamComponent_t(Team::TEAM_1));
-    GameState.AddBasicAttack(id, BasicAttackComponent_t());
+    BasicAttackComponent_t* pAttack = GameState.AddBasicAttack(id, BasicAttackComponent_t());
+    pAttack->fRange = 150;
+    pAttack->fAttackPoint = 700;
+    pAttack->fAttackTime = 1000;
     GameState.GetTransform(id)->SetPosition({250, 0, -750}); // TODO in data
     GameState.GetMovement(id)->vec3Target = GameState.GetTransform(id)->GetPosition(); // TODO how to make this one call
     GameState.GetNavigation(id)->vec3Destination = GameState.GetTransform(id)->GetPosition();
@@ -229,16 +246,6 @@ void Client::Start() {
         // TODO slot as well!
         AddPlayerForNetworkId(playerIt.second->slot, playerIt.second);
     }
-
-    UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "dummy");
-    GameState.GetTransform(id)->SetPosition({1000, 0, -1000});
-    GameState.GetMovement(id)->vec3Target = {1000, 0, -1000};
-    GameState.GetHealth(id)->nHealth = 10;
-    GameState.AddTeam(id, TeamComponent_t(Team::TEAM_2));
-
-    UnitId spawnerId = GameState.SpawnUnit(handler_->GetGameData(), "minion_spawner");
-    GameState.AddTeam(spawnerId, TeamComponent_t(Team::TEAM_1));
-    GameState.GetTransform(spawnerId)->SetPosition({500, 0, -750});
 }
 
 void Client::Update(float dt) {

@@ -12,6 +12,7 @@ public:
 
     virtual void Update(CClientGameState* pGameState, float fDelta) override;
 
+    REGISTER_EVENT_HANDLER(CAnimationSystem, CAttackFinishedEvent, OnAttackFinished)
     REGISTER_EVENT_HANDLER(CAnimationSystem, CAttackStartEvent, OnAttackStart)
     REGISTER_EVENT_HANDLER(CAnimationSystem, CSpellCastStartEvent, OnSpellCastStart)
     REGISTER_EVENT_HANDLER(CAnimationSystem, CEntityRespawnEvent, OnEntityRespawn)

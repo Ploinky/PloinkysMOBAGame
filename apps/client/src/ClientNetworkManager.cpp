@@ -2,9 +2,6 @@
 #include <Common/PMG_Common.h>
 #include <Common/pmg_networking.h>
 
-#define ENET_IMPLEMENTATION
-#include "enet/enet.h"
-
 #include "Game.h"
 
 bool ClientNetworkManager::IsConnected() {
@@ -18,22 +15,6 @@ bool ClientNetworkManager::Initialize(INetworkEngine* pEngine, NetworkHandlerMan
 	return true;
 }
 
-
-HServerRequest ClientNetworkManager::StartServerSearch() {
-	return m_pEngine->RequestServers();
-}
-
-void ClientNetworkManager::RegisterRequestObserver(IRequestObserver* pObserver) {
-	for(const auto& pExistingObserver : m_vecObservers) {
-		if(pExistingObserver == pObserver) {
-			return;
-		}
-	}
-
-	m_vecObservers.push_back(pObserver);
-	m_pEngine->RegisterRequestObserver(pObserver);
-}
-
 void ClientNetworkManager::ConnectToServer(std::string addr, int port) {
 	m_hServerConnection = m_pEngine->ConnectToServer(addr.c_str(), port);
 }
@@ -41,12 +22,12 @@ void ClientNetworkManager::ConnectToServer(std::string addr, int port) {
 bool ClientNetworkManager::CheckConnected() {
 	// TODO
 	m_pEngine->Update(16);
+	m_bIsConnectedToServer = m_pEngine->bIsConnected;
 	return true;
 }
 
 bool ClientNetworkManager::Close() {
     // TODO what is actually needed here? checks?
-    enet_deinitialize();
 	return true;
 }
 

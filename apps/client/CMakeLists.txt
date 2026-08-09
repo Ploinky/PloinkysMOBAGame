@@ -59,7 +59,9 @@ add_executable(client
     src/Vertex.cpp
     
     src/core/input/input-manager.cpp
-    src/core/network/enet-network-engine.cpp
+    src/core/network/gamer-service.cpp
+    src/core/network/steam-gamer-service.cpp
+    src/core/network/steam-network-engine.cpp
 
     src/game/client-game-state.cpp
 
@@ -104,7 +106,7 @@ target_link_libraries(client PUBLIC common)
 
 if(WIN32)
     add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:client>/client.exe ${client_out_dir}/client.exe)
-    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2)
+    target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64)
 
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/data)
         add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")

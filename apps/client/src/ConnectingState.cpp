@@ -1,4 +1,4 @@
-#include <ConnectingState.h>
+#include "ConnectingState.h"
 
 CConnectingState::CConnectingState(IClientStateHandler* pHandler, int iWindowWidth, int iWindowHeight) : IClientState(pHandler, iWindowWidth, iWindowHeight) {
 }

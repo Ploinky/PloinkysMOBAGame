@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GameObject/Spell.h"
-#include "SpellTargetInfo.h"
-#include "components/Components.h"
+#include "../GameObject/Spell.h"
+#include "../SpellTargetInfo.h"
+#include "Components.h"
 #include <optional>
 #include <common/data/game-data.h>
 #include "common/pmg_types.h"

@@ -15,6 +15,7 @@ void GuiServerElement::Render(CRenderer* renderer) {
 	float white[3]{ 1, 1, 1 };
 
 	renderer->FillRect(m_pos.x, m_pos.y, m_size.x, m_size.y, white);
-	renderer->RenderText(m_pos.x, m_pos.y, (m_size.x / 2), m_size.y, red, std::string(server_.name));
-	renderer->RenderText(m_pos.x + (m_size.x / 2), m_pos.y, m_size.x / 2, m_size.y, red, server_.addr);
+	renderer->RenderText(m_pos.x, m_pos.y, 20, m_size.y, red, std::to_string(server_.nPing));
+	renderer->RenderText(m_pos.x + 20, m_pos.y, ((m_size.x - 20) / 2), m_size.y, red, std::string(server_.name));
+	renderer->RenderText(m_pos.x + 20 + ((m_size.x - 20) / 2), m_pos.y, ((m_size.x - 20) / 2), m_size.y, red, server_.addr);
 }

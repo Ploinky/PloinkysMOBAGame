@@ -54,6 +54,7 @@ public:
 
     virtual IAudioEngine* GetAudioEngine() override;
     virtual INetworkEngine* GetNetworkEngine() override;
+    virtual IGamerService* GetGamerService() override;
 
 private:
     IClientState* currentState_;
@@ -81,6 +82,7 @@ private:
     INetworkEngine* m_pNetworkEngine;
     CClientAssetManager* m_pAssetManager;
     CInputManager* m_pInputManager;
+    std::unique_ptr<IGamerService> m_pGamerService;
 
     // Mouse input
 

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <Renderer.h>
+#include "Renderer.h"
 #include <common/PMG_Common.h>
-#include <Player.h>
-#include <core/platform/cursor-id.h>
+#include "Player.h"
+#include "core/platform/cursor-id.h"
 #include "core/network/network-engine.h"
+#include "core/network/gamer-service.h"
 
 class IClientState;
 class ClientNetworkManager;
@@ -29,4 +30,5 @@ public:
 
     virtual IAudioEngine* GetAudioEngine() = 0;
     virtual INetworkEngine* GetNetworkEngine() = 0;
+    virtual IGamerService* GetGamerService() = 0;
 };

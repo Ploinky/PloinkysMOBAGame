@@ -5,12 +5,12 @@
 #include "common/pmg_physics.h"
 #include <map>
 #include <common/PMG_Common.h>
-#include <Model.h>
+#include "Model.h"
 #include <common/PloinkysJSONLibrary.h>
-#include <GLBFileLoader.h>
-#include <Camera.h>
-#include <Mesh.h>
-#include <Armature.h>
+#include "GLBFileLoader.h"
+#include "Camera.h"
+#include "Mesh.h"
+#include "Armature.h"
 #include "core/graphics/graphics-engine.h"
 #include "Animation.h"
 #include <common/navigation.h>

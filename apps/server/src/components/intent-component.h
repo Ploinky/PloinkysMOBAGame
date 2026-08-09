@@ -12,4 +12,5 @@ enum class EIntentType {
 typedef struct IntentComponent_t {
     EIntentType eType;
     Vector3 vec3Target;
+    UnitId idTarget;
 } IntentComponent_t;

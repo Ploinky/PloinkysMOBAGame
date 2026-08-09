@@ -101,6 +101,10 @@ void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartE
     PlayAnimation(pGameState, pEvent->idUnit, "attack1", true);
 }
 
+void CAnimationSystem::OnAttackFinished(CClientGameState* pGameState, CAttackFinishedEvent* pEvent) {
+    PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
+}
+
 void CAnimationSystem::OnSpellCastStart(CClientGameState* pGameState, CSpellCastStartEvent* pEvent) {
     PlayAnimation(pGameState, pEvent->idUnit, "attack1", false);
 }

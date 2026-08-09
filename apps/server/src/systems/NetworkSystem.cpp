@@ -1,8 +1,8 @@
-#include <systems/NetworkSystem.h>
-#include <components/Components.h>
-#include "events/spell-cast-start-event.h"
-#include "events/spell-hit-event.h"
-#include "events.h"
+#include "../systems/NetworkSystem.h"
+#include "../components/Components.h"
+#include "../events/spell-cast-start-event.h"
+#include "../events/spell-hit-event.h"
+#include "../events.h"
 
 CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     m_pNetworkManager = pManager;
@@ -20,7 +20,10 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
         if(!networkComp.IsSpawnSynced()) {
             SpawnPacket spawn;
             spawn.strEntId = pGameState->GetCharacter(id)->prefab;
-            spawn.team = Team::TEAM_1;
+
+            if (TeamComponent_t* pTeam = pGameState->GetTeam(id)) {
+                spawn.team = pTeam->eTeam;
+            }
             spawn.unit = id;
             if(TransformComponent_t* pTransform = pGameState->GetTransform(id)) {
                 spawn.x = pTransform->GetPosition().x;

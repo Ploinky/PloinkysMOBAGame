@@ -7,6 +7,7 @@
 #include "common/pmg_networking.h"
 #include "NetworkPeer.h"
 #include "common/util/frame-timer.h"
+#include <steam/steam_gameserver.h>
 
 // NOTES:
 // - api should be agnostic of networking solution (haha good one)
@@ -14,8 +15,6 @@
 
 // TODO Abstraction when and where?
 typedef uint64_t PlayerID;
-typedef struct _ENetPeer ENetPeer;
-typedef struct _ENetHost ENetHost;
 /*
 * Manages connections to clients.
 */
@@ -56,10 +55,11 @@ private:
     const char* m_pszName;
 
     std::list<NetworkPeer*> clients_;
-    CFrameTimer m_frameTimer = CFrameTimer(1);
 
-    ENetHost* listenSocket_;
+    HSteamListenSocket listenSocket_;
     
-    ENetPeer* GetConnectionForPlayer(PlayerID playerId);
+    HSteamNetConnection GetConnectionForPlayer(PlayerID playerId);
     int sock;
+
+    STEAM_GAMESERVER_CALLBACK(ServerNetworkManager, ConnectionStatusChanged, SteamNetConnectionStatusChangedCallback_t);
 };

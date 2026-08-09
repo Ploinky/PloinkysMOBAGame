@@ -27,35 +27,16 @@ public:
     std::vector<uint8_t> data;
 };
 
-class IRequestObserver {
-public:
-	virtual void ServerFound(RequestResult_t result) = 0;
-};
-
 class INetworkEngine {
 public:
     static INetworkEngine* Create();
 
     virtual void Update(float fDt) = 0;
 
-    virtual HServerRequest RequestServers() = 0;
-    virtual void StopServerRequest(HServerRequest hRequest) = 0;
-    virtual std::vector<RequestResult_t> GetRequestResults(HServerRequest hRequest) = 0;
-
     virtual void SendMessageToConnection(const HConnection hConnection, const BasePacket* pPacket) const = 0;
     virtual bool PollConnection(const HConnection hConnection, CNetworkEvent* pEvt) const = 0;
     virtual HConnection ConnectToServer(const char* szAddress, int port) = 0;
 
-    void RegisterRequestObserver(IRequestObserver* pObserver) {
-        for(const auto& pExistingObserver : m_vecObservers) {
-            if(pExistingObserver == pObserver) {
-                return;
-            }
-        }
-
-        m_vecObservers.push_back(pObserver);
-    }
-
+    bool bIsConnected;
 protected:
-	std::vector<IRequestObserver*> m_vecObservers;
 };

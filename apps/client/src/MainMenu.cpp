@@ -47,8 +47,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	rootElement_.m_children.push_back(&buttonSettings_);
 	rootElement_.m_children.push_back(&buttonBack_);
 
-	// TODO
-	myName_ = std::string("Ploinky");
+	myName_ = handler->GetGamerService()->GetPlayerName();
 }
 
 MainMenu::~MainMenu() {

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string>
 #include <common/PMG_Common.h>
-#include <core/window/h-window.h>
+#include "../window/h-window.h"
 
 typedef EngineHandle GraphicsEngineHandle;
 typedef GraphicsEngineHandle HShaderProgram;

@@ -4,6 +4,7 @@
 
 struct Server_t {
 	std::string name;
-	const char* addr;
+	std::string addr;
 	int nPort;
+	int nPing;
 };

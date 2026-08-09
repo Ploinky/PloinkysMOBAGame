@@ -14,9 +14,6 @@ class ClientNetworkManager {
 public:
 	bool Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
 
-	HServerRequest StartServerSearch();
-	void RegisterRequestObserver(IRequestObserver* pObserver);
-
 	// Gameplay
 	void ConnectToServer(std::string addr, int port);
 	bool CheckConnected();
@@ -30,5 +27,4 @@ private:
 	HConnection m_hServerConnection = INVALID_HANDLE;
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* packet_manager;
 	INetworkEngine* m_pEngine;
-	std::vector<IRequestObserver*> m_vecObservers;
 };

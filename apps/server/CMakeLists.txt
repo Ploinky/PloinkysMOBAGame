@@ -48,7 +48,7 @@ set_directory_properties(PROPERTIES COMPILE_DEFINITIONS_DEBUG "_DEBUG")
 target_link_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/vendor/lib)
 target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include)
 
-target_link_libraries(server PUBLIC common)
+target_link_libraries(server PUBLIC common steam_api64)
 
 if(WIN32)
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/server/data)

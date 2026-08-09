@@ -6,8 +6,8 @@
 #include <limits>
 
 #include "GLBFileLoader.h"
-#include <core/graphics/graphics-engine.h>
-#include <core/audio/audio-engine.h>
+#include "core/graphics/graphics-engine.h"
+#include "core/audio/audio-engine.h"
 
 #include <common/data/game-data.h>
 

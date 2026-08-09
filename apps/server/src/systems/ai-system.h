@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/game/game-system.h"
-#include "events.h"
+#include "../events.h"
 
 class CServerGameState;
 

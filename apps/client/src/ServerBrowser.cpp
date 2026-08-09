@@ -5,7 +5,6 @@
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
 	m_netManager = ClientNetworkManager();
 	m_netManager.Initialize(handler->GetNetworkEngine(), nullptr);
-	m_netManager.RegisterRequestObserver(this);
 
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
@@ -81,11 +80,16 @@ void ServerBrowser::MouseButtonPressed(int button) {
 	rootElement_.MousePressed(mouseX_, mouseY_);
 }
 
+void Test(ServerInfo_t sv) {
+	Logger::FormatMsg("List server: %s", sv.name.c_str());
+}
+
 void ServerBrowser::StartRefresh() {
 	bool bLan = checkboxLan_.IsSelected();
 
 	if(bLan) {
-		refreshRequest_ = m_netManager.StartServerSearch();
+		handler_->GetGamerService()->RequestLANServers(std::bind(&ServerBrowser::ServerFound, this, std::placeholders::_1)
+);
 	}
 	buttonRefresh_.m_text = "Cancel";
 }
@@ -111,15 +115,15 @@ void ServerBrowser::ServerResponded(void* hRequest, int iServer) {
 	printf("ServerResponded\n");
 }
 
-void ServerBrowser::ServerFound(RequestResult_t result) {
+void ServerBrowser::ServerFound(ServerInfo_t result) {
 	Server_t server{};
-	server.addr = result.szIp;
-	server.name = result.szName;
-	server.nPort = result.nPort;
+	server.addr = result.address;
+	server.name = std::string(result.name);
+	server.nPing = result.ping;
 
 	GuiServerElement* serverElement = new GuiServerElement(server);
 	serverElement->e_onMousePressed = [this, serverElement]() {
-		handler_->JoinLobby(serverElement->GetServer().addr, serverElement->GetServer().nPort);
+		handler_->JoinLobby(serverElement->GetServer().addr.c_str(), serverElement->GetServer().nPort);
 	};
 	m_boxServers.m_children.push_back(serverElement);
 	m_boxServers.LayoutChildren();

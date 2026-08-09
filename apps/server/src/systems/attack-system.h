@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/game/game-system.h"
+#include <common/game/game-system.h>
 
-#include "events.h"
-#include "components/Components.h"
+#include "../events.h"
+#include "../components/Components.h"
 
 class CServerGameState;
 

@@ -6,8 +6,9 @@
 #include <common/util/frame-timer.h>
 
 #include "LobbyState.h"
-
+#include <steam/steam_gameserver.h>
 #include <data/server-data-loader.h>
+
 #include "common/PloinkysJSONLibrary.h"
 
 void Server::Start() {
@@ -59,6 +60,8 @@ void Server::Start() {
         }
 
         currentState_->Update(frameTimer.GetFrameDeltaTime());
+
+        SteamGameServer_RunCallbacks();
     }
 
     // TODO handle player connecting and disconnecting during game

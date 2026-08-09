@@ -1,6 +1,6 @@
 #include "trigger-system.h"
 
-#include "game/trigger.h"
+#include "../game/trigger.h"
 #include "common/PMG_Common.h"
 
 void CTriggerSystem::Update(CServerGameState* pGameState, float fDelta) {
@@ -13,6 +13,11 @@ void CTriggerSystem::Update(CServerGameState* pGameState, float fDelta) {
                 pGameState->GetTransform(idSpawnedUnit)->SetPosition({spawnUnitTrigger.vec2Position.x, 0, spawnUnitTrigger.vec2Position.y});
                 pGameState->GetNavigation(idSpawnedUnit)->vec3Destination = pGameState->GetTransform(idSpawnedUnit)->GetPosition();
                 pGameState->GetMovement(idSpawnedUnit)->vec3Target = pGameState->GetTransform(idSpawnedUnit)->GetPosition();
+                pGameState->AddTeam(idSpawnedUnit)->eTeam = spawnUnitTrigger.eTeam;
+                BasicAttackComponent_t* pAttack = pGameState->AddBasicAttack(idSpawnedUnit);
+                pAttack->fRange = 200;
+                pAttack->fAttackPoint = 500;
+                pAttack->fAttackTime = 1000;
             }
         }
     }

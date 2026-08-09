@@ -10,10 +10,7 @@
 #include "Server_t.h"
 #include "ClientNetworkManager.h"
 
-// TODO move this out
-#include <enet/enet.h>
-
-class ServerBrowser : public IClientState, IRequestObserver {
+class ServerBrowser : public IClientState {
 public:
 	ServerBrowser(IClientStateHandler* handler, int width, int height);
 	~ServerBrowser();
@@ -38,7 +35,7 @@ private:
 	void RefreshComplete(void* hRequest, void* response);
 	void ServerFailedToRespond(void* hRequest, int iServer);
 	void ServerResponded(void* hRequest, int iServer);
-	virtual void ServerFound(RequestResult_t result) override;
+	void ServerFound(ServerInfo_t result);
 
 	// Server has responded successfully and has updated data
 	void ServerResponded(void* server) {
@@ -52,6 +49,5 @@ private:
 
 
 	// TODO move this out
-	std::unique_ptr<ENetHost> m_discoverHost = nullptr;
 	ClientNetworkManager m_netManager;
 };

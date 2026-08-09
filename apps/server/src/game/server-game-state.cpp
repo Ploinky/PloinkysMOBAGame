@@ -1,6 +1,6 @@
 #include "server-game-state.h"
 
-#include "GameObject.h"
+#include "../GameObject.h"
 
 void CServerGameState::SetNavMap(NavigationMap* pNavMap) {
     m_pNavMap = pNavMap;
@@ -115,4 +115,16 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     }
 
     return id;
+}
+
+std::vector<UnitId> CServerGameState::GetUnitsInAra(Vector2 point, float radius) {
+    std::vector<UnitId> vecUnitsInArea;
+
+    for (auto& [id, transform] : GetAllTransform()) {
+        if ((Vector2(transform.GetPosition().x, transform.GetPosition().y) - point).Length() <= radius) {
+            vecUnitsInArea.push_back(id);
+        }
+    }
+
+    return vecUnitsInArea;
 }

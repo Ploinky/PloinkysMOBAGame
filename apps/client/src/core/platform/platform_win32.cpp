@@ -56,7 +56,7 @@ void CPlatform::Alert(std::string strTitle, std::string strText, EAlertType eTyp
             break;
     }
 
-    MessageBoxA(nullptr, strText.c_str(), strText.c_str(), MB_ICONERROR);
+    MessageBoxA(nullptr, strText.c_str(), strTitle.c_str(), nIcon);
 }
 
 

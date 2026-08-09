@@ -983,6 +983,9 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.content.unit)) {
                 pAttackComponent->bIsAttacking = false;
             }
+            CAttackFinishedEvent* pAttackEvent = new CAttackFinishedEvent();
+            pAttackEvent->idUnit = pck.content.unit;
+            m_gameState.EmitEvent(pAttackEvent);
         }
 
         if(header.type == PacketType::UNITMOVE_INTENTION) {
