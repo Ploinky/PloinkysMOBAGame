@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/game/game-system.h"
-#include "client-asset-manager.h"
+#include <common/game/game-system.h>
 
-#include "game/events/events.h"
+#include "../../client-asset-manager.h"
+#include "../events/events.h"
 
 class CHealthSystem : public IGameSystem<CClientGameState> {
 public:

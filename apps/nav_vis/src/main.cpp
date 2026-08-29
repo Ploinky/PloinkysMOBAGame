@@ -13,9 +13,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				if (data.path.empty()) {
 					return 0;
 				}
-				auto move = data.pMap->Step(data.pAgent, data.vec2CurrPos, data.path, 10);
+				auto move = data.pMap->Step(data.vec2CurrPos, data.path, 10);
 				data.vec2CurrPos = move.vec2Pos;
-				data.pAgent->position = move.vec2Pos;
 
 				if (move.vec2Pos == data.path.at(0)) {
 					data.path.erase(data.path.begin());
@@ -41,11 +40,11 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	// Create app data
 	data.pMap = new NavigationMap();
 	data.pMap->m_pMesh = new NavMesh();
-	data.pAgent = new NavigationGridAgent();
-	data.pAgent->position = { 1000, -1000 };
-	data.pAgent->nCollisionRadius = 50;
+	data.vec2CurrPos = { 1000, -1000 };
+
 	data.pMap->m_pMesh->LoadFromFile("map1");
 	data.pMap->m_pGrid = new NavigationCellGrid(data.pMap->m_pMesh);
+	/*
 	NavigationGridAgent* agt = data.pMap->CreateAgent();
 	agt->position = { 1500, -800 };
 	agt->nCollisionRadius = 50;
@@ -66,6 +65,12 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	agt4->position = { 1000, -900 };
 	agt4->nCollisionRadius = 200;
 	agt4->UnitId = 4;
+	*/
+
+	data.pMap->m_pGrid->AddBlocker(1500, -800, 50);
+	data.pMap->m_pGrid->AddBlocker(1550, -850, 50);
+	data.pMap->m_pGrid->AddBlocker(705, -850, 50);
+	data.pMap->m_pGrid->AddBlocker(1000, -900, 200);
 
 	WNDCLASS wc{};
 	wc.lpszClassName = TEXT("Window");

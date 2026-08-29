@@ -202,8 +202,9 @@ const CGameData& CClientAssetManager::GetGameData() {
 }
 
 const CGameData& CClientAssetManager::LoadManifest() {
-    
+    Logger::FormatMsg("Finding\r\n");
     for(std::string xmlFileName : GetFileNamesByExtension("data", ".xml")) {
+        Logger::FormatMsg("Found %s\r\n", xmlFileName.c_str());
         pugi::xml_document doc = LoadXMLFile(xmlFileName);
         pugi::xml_node entityNode = doc.child("entity");
 

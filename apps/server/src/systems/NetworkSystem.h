@@ -24,6 +24,7 @@ public:
     REGISTER_EVENT_HANDLER(CNetworkSystem, CAttackFinishedEvent, OnAttackFinished);
     REGISTER_EVENT_HANDLER(CNetworkSystem, CPickedUpEvent, OnPickedUp);
     REGISTER_EVENT_HANDLER(CNetworkSystem, CEntityIdleEvent, OnEntityIdle);
+    REGISTER_EVENT_HANDLER(CNetworkSystem, CDespawnEvent, OnEntityDespawn);
 
 private:
     ServerNetworkManager* m_pNetworkManager;

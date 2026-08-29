@@ -10,6 +10,7 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 	m_iLoadStep = 0;
 	m_loadingThread = std::thread([this]() {
 
+		Logger::FormatMsg("Loading assets");
 #ifndef _DEBUG
 		m_pAssetManager->LoadPakFile("Persons/ChessPerson.pak");
 		m_pAssetManager->LoadPakFile("Buildings/Tower.pak");
@@ -21,16 +22,20 @@ CLoadingState::CLoadingState(IClientStateHandler* pStateHandler, int iWidth, int
 		m_pAssetManager->LoadPakFile("Shaders.pak");
 		m_pAssetManager->LoadPakFile("Generic.pak");
 		m_pAssetManager->LoadPakFile("characters/stormcaller.pak");
-#endif
-    
+		m_pAssetManager->LoadPakFile("data.pak");
+#else
 		m_pAssetManager->LoadGLBModel("map1", "assets/maps/map1/map1.glb");
 		m_pAssetManager->LoadGLBModel("football_person", "assets/Persons/chess_person/chess_person.glb");
 		m_pAssetManager->LoadGLBModel("tower", "assets/Buildings/Tower/tower.glb");
 		m_pAssetManager->LoadGLBModel("missile", "assets/Persons/chess_person/missile.glb");
 		m_pAssetManager->LoadGLBModel("minion", "assets/Persons/Minion/minion.glb");
 		// m_pAssetManager->LoadGLBModel("stormcaller", "assets/characters/stormcaller/stormcaller.glb");
+#endif
 
+		Logger::FormatMsg("Loading manifest");
 		m_pAssetManager->LoadManifest();
+		Logger::FormatMsg("Done loading manifest");
+
 	
 		m_iLoadStep++;
 

@@ -28,6 +28,7 @@ public:
     REGISTER_COMPONENT_TYPE(Navigation)
     REGISTER_COMPONENT_TYPE(BasicAttack)
     REGISTER_COMPONENT_TYPE(Pickupable)
+    REGISTER_COMPONENT_TYPE(Respawn)
     REGISTER_COMPONENT_TYPE(SpellCast)
     REGISTER_COMPONENT_TYPE(Useable)
 
@@ -51,6 +52,7 @@ public:
     UnitId SpawnUnit(const CGameData& gameData, std::string strId, Vector2 vec2Pos);
 
     UnitId CreateEntity();
+    void DeleteEntity(UnitId id);
     const CGameData* m_pGameData;
 
     NavigationMap* m_pNavMap;

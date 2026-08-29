@@ -6,9 +6,11 @@
 
 bool CSteamGamerService::Initialize() {
 #ifndef _DEBUG
-    if (SteamAPI_RestartAppIfNecessary(APP_ID)) {
-        return false;
-    }
+/*
+if (SteamAPI_RestartAppIfNecessary(APP_ID)) {
+    return false;
+}
+*/
 #endif
     if (!SteamAPI_Init()) {
         return false;
@@ -30,6 +32,20 @@ void CSteamGamerService::Update() {
 
 std::string CSteamGamerService::GetPlayerName() {
     return std::string(SteamFriends()->GetPersonaName());
+}
+
+
+Portrait_t CSteamGamerService::GetPlayerPortrait() {
+    // 184 * 184
+    int nAvatar = SteamFriends()->GetLargeFriendAvatar(SteamUser()->GetSteamID());
+
+    Portrait_t portrait;
+    portrait.nWidth = 184;
+    portrait.nHeight = 184;
+    portrait.vecData = std::vector<uint8_t>(4 * 184 * 184);
+    SteamUtils()->GetImageRGBA(nAvatar, portrait.vecData.data(), portrait.vecData.size());
+
+    return portrait;
 }
 
 

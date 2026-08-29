@@ -1,9 +1,9 @@
 #include "movement-system.h"
 
-#include "game/server-game-state.h"
-#include "GameObject.h"
-#include "components/Components.h"
-#include "events.h"
+#include "../game/server-game-state.h"
+#include "../GameObject.h"
+#include "../components/Components.h"
+#include "../events.h"
 
 CMovementSystem::CMovementSystem() {
 }
@@ -29,16 +29,12 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
     Vector3 vec3OldPosition = pTransform->GetPosition();
 
     if(CompareFloat((move.vec3Target - vec3OldPosition).Length(), 0 )) {
-        // TODO we're at our target
-        move.vec3Target = pTransform->GetPosition();
-        CEntityIdleEvent evt = CEntityIdleEvent(id);
-        pGameState->EmitEvent(&evt);
         return;
     }
 
     // For navigating units, use the nav map...
     if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(id)) {
-        StepResult_t step = pGameState->m_pNavMap->Step(pNavComp->pNavGridAgent, {vec3OldPosition.x, vec3OldPosition.z}, pNavComp->path, move.fSpeed * (fDelta / 1000.0f));
+        StepResult_t step = pGameState->m_pNavMap->Step({vec3OldPosition.x, vec3OldPosition.z}, pNavComp->path, move.fSpeed * (fDelta / 1000.0f));
         Vector2 vec2Step = step.vec2Pos;
 
         
@@ -52,6 +48,32 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
             Logger::FormatMsg("Unit %d unable to move to %f, %f - blocked! Stopping!", id, vec2Step.x, vec2Step.y);
             return;
         }
+
+        for (auto& [otherId, nav] : pGameState->GetAllNavigation()) {
+            if (otherId == id) {
+                // do not physics collide with self
+                continue;
+            }
+
+            TransformComponent_t* pOtherTransform = pGameState->GetTransform(otherId);
+
+            if (pOtherTransform == nullptr) {
+                continue;
+            }
+
+            float fDist = (pOtherTransform->GetPosition() - Vector3(vec2Step.x, vec3OldPosition.y, vec2Step.y)).Length();
+            if (fDist < nav.nCollisionRadius) {
+                if(pNavComp->eStatus != ENavigationStatus::BLOCKED) {
+                    pNavComp->eStatus = ENavigationStatus::BLOCKED;
+                    pNavComp->fTimeBlocked = 0.0f;
+                    pGameState->EmitEvent(CEntityIdleEvent(id));
+                }
+                Logger::FormatMsg("Unit %d unable to move to %f, %f - Colliding! Stopping!", id, vec2Step.x, vec2Step.y);
+                return;
+            }
+        }
+
+
         pTransform->SetPosition({vec2Step.x, vec3OldPosition.y, vec2Step.y});
     } else {
         Vector3 vec3Move = move.vec3Target - vec3OldPosition;
@@ -64,12 +86,18 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
     
     pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
 
-    pGameState->EmitEvent(new CMoveEvent(id, pTransform->GetPosition(), pTransform->GetRotation().y));
+    if(CompareFloat((move.vec3Target - pTransform->GetPosition()).Length(), 0 )) {
+        // TODO we're at our target
+        move.vec3Target = pTransform->GetPosition();
+        pGameState->EmitEvent(CEntityIdleEvent(id));
+    } else {
+        pGameState->EmitEvent(CMoveEvent(id, pTransform->GetPosition(), pTransform->GetRotation().y));
+    }
 }
 
-void CMovementSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
-    MovementComponent_t* pMoveComp = pGameState->GetMovement(pDeathEvt->idTarget);
-    TransformComponent_t* pTransformComp = pGameState->GetTransform(pDeathEvt->idTarget);
+void CMovementSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
+    MovementComponent_t* pMoveComp = pGameState->GetMovement(evt.idTarget);
+    TransformComponent_t* pTransformComp = pGameState->GetTransform(evt.idTarget);
     if(pMoveComp == nullptr) {
         return;
     }

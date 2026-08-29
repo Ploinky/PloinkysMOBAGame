@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <fstream>
 #include "pak-header.h"
 #include "pak-file-table-entry.h"
@@ -45,6 +46,12 @@ namespace paklib {
 		}
 
 		static void PackToPak(std::string fileName, std::string pakFileName) {
+			size_t lastPos = fileName.find_last_of('/');
+			std::string strLast = (lastPos == std::string::npos) ? fileName : fileName.substr(lastPos + 1);
+			PackToPak(fileName, pakFileName, strLast);
+		}
+		
+		static void PackToPak(std::string fileName, std::string pakFileName, std::string strRootName) {
 			// header
 			PakHeader header{};
 			// collect entries for header block here
@@ -52,7 +59,7 @@ namespace paklib {
 			// collect file data block here
 			std::vector<uint8_t> data;
 
-			PackFile(fileName, fileName, &data, &entries);
+			PackFile(fileName, strRootName, fileName, &data, &entries);
 
 			header.EntryCount = entries.size();
 
@@ -80,13 +87,16 @@ namespace paklib {
 			pakFile.close();
 		}
 
-		static void PackFile(std::string fileParentDir, std::string fileName, std::vector<uint8_t>* data, std::vector<PakFileTableEntry>* entries) {
+		static void PackFile(std::string strActualFile, std::string strTargetFile, std::string fileName, std::vector<uint8_t>* data, std::vector<PakFileTableEntry>* entries) {
+			std::cout << "Packing " << strTargetFile << std::endl;
+			
 			if (IsDirectory(fileName)) {
-				printf("That is a directory!\n");
+				std::cout << "\t" << strTargetFile << " is a directory" << std::endl;
 
 				for (const auto& entry : std::filesystem::directory_iterator(fileName)) {
-					std::cout << entry.path().string().append("\n") << std::endl;
-					PackFile(fileParentDir, entry.path().string(), data, entries);
+					std::string strSubTarget = strTargetFile;
+					strSubTarget.append("/").append(entry.path().filename().string());
+					PackFile(strActualFile, strSubTarget, entry.path().string(), data, entries);
 				}
 
 				return;
@@ -97,8 +107,8 @@ namespace paklib {
 			uint64_t offset = data->size();
 
 			PakFileTableEntry entry{};
-			entry.FilePathLength = fileName.length();
-			entry.FilePath = std::regex_replace(fileName, std::regex("\\\\"), "/");
+			entry.FilePathLength = strTargetFile.length();
+			entry.FilePath = std::regex_replace(strTargetFile, std::regex("\\\\"), "/");
 			entry.Offset = offset;
 			entry.Size = file.size;
 

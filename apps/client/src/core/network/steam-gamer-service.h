@@ -9,6 +9,7 @@ public:
     virtual void Update() override;
 
     virtual std::string GetPlayerName() override;
+    virtual Portrait_t GetPlayerPortrait() override;
     
     void RequestLANServers(ServerListCallback callback) override;
     void CancelQuery() override;

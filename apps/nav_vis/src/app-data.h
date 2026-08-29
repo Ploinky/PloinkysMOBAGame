@@ -4,7 +4,6 @@
 
 typedef struct AppData {
 	NavigationMap* pMap;
-	NavigationGridAgent* pAgent;
 	Vector2 vec2Target;
 	std::vector<Vector2> path;
  	std::vector<Vector2> vecVec2LongPath;

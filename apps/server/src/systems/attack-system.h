@@ -18,4 +18,5 @@ public:
     REGISTER_EVENT_HANDLER(CAttackSystem, CAttackHitEvent, OnAttackHit)
     REGISTER_EVENT_HANDLER(CAttackSystem, CMoveIntentionEvent, OnMoveIntention)
     REGISTER_EVENT_HANDLER(CAttackSystem, CSpellAttemptCastEvent, OnSpellCastAttempt)
+    REGISTER_EVENT_HANDLER(CAttackSystem, CDeathEvent, OnUnitDeath)
 };

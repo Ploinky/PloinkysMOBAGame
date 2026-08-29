@@ -1,7 +1,7 @@
 #include "AssetManager.h"
+#include "util.h"
 #include <fstream>
 #include <iostream>
-#include "util.h"
 #include <exception>
 #include <memory.h>
 #include <cstdint>
@@ -84,16 +84,23 @@ std::list<std::string> AssetManager::LoadPlainFile(std::string fileName) {
 std::vector<std::string> AssetManager::GetFileNamesByExtension(const std::string strPathToSearch, const std::string strFileEnding) {
     std::vector<std::string> vecFileNames;
 
+    Logger::FormatMsg("Searching %s for content", strPathToSearch.c_str());
     for(std::filesystem::directory_entry entry : std::filesystem::directory_iterator(strPathToSearch)) {
+        Logger::FormatMsg("\tFound inside %s: %s", strPathToSearch.c_str(), entry.path().string().c_str());
         if(entry.is_directory()) {
+            Logger::FormatMsg("\t\t%s is a directory", entry.path().string().c_str());
             std::vector<std::string> vecFoundInDir = GetFileNamesByExtension(entry.path().string(), strFileEnding);
             if(!vecFoundInDir.empty()) {
+                Logger::FormatMsg("\tfound %d", vecFoundInDir.size());
                 vecFileNames.insert(vecFileNames.end(), vecFoundInDir.begin(), vecFoundInDir.end());
             }
         }
 
         if(entry.is_regular_file() && !entry.path().extension().string().compare(strFileEnding)) {
-            vecFileNames.push_back(strPathToSearch + "/" + entry.path().filename().string());
+            Logger::FormatMsg("\t\t%s is a file", entry.path().string().c_str());
+            std::string strPathToPush = std::regex_replace(entry.path().string(), std::regex("\\\\"), "/");
+            Logger::FormatMsg("\tpushing %s", strPathToPush.c_str());
+            vecFileNames.push_back(strPathToPush);
         }
     }
 
@@ -126,7 +133,7 @@ CAbilityData AssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
     abilityData.fCastRange = targetInfoNode.attribute("cast_range").as_int();
     abilityData.fCastTime = targetInfoNode.attribute("cast_time").as_int();
     abilityData.fCastPoint = targetInfoNode.attribute("cast_point").as_int();
-    abilityData.fCooldown = targetInfoNode.attribute("fCooldown").as_int();
+    abilityData.fCooldown = targetInfoNode.attribute("cooldown").as_int();
 
     pugi::xml_node onImpactNode = abilityDataNode.child("on_impact");
 

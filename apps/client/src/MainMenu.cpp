@@ -48,6 +48,7 @@ MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClien
 	rootElement_.m_children.push_back(&buttonBack_);
 
 	myName_ = handler->GetGamerService()->GetPlayerName();
+	m_portrait = handler->GetGamerService()->GetPlayerPortrait();
 }
 
 MainMenu::~MainMenu() {
@@ -68,8 +69,16 @@ void MainMenu::Action(EInputAction eAction) {
 
 void MainMenu::Render(CRenderer* renderer) {
 	renderer->DrawMap();
+	
+	for (int x = 0; x < m_portrait.nWidth; x++) {
+		for (int y = 0; y < m_portrait.nHeight; y++) {
+			int first = (x + y * m_portrait.nWidth) * 4;
+			float color[3] = { m_portrait.vecData[first] / 255.0f, m_portrait.vecData[first + 1] / 255.0f, m_portrait.vecData[first + 2] / 255.0f };
+			renderer->FillRect(50 + x, 50 + y, 1, 1, color);
+		}
+	}
 
-	renderer->RenderText(50, 50, 200, 50, myName_);
+	renderer->RenderText(50, 50 + m_portrait.nHeight + 10, 200, 50, myName_);
 
 	rootElement_.Render(renderer);
 }

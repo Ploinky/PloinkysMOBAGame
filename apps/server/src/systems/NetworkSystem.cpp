@@ -136,18 +136,18 @@ void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
     */
 }
 
-void CNetworkSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pStartCastEvt) {
+void CNetworkSystem::OnSpellCastStart(CServerGameState* pGameState, const CSpellCastStartEvent& evt) {
     SpellCastStartPacket pck = SpellCastStartPacket();
-    pck.unit = pStartCastEvt->pCtx->idCaster;
-    pck.idTarget = pStartCastEvt->pCtx->idTarget;
+    pck.unit = evt.pCtx->idCaster;
+    pck.idTarget = evt.pCtx->idTarget;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnEntityIdle(CServerGameState* pGameState, CEntityIdleEvent* pEvt) {
+void CNetworkSystem::OnEntityIdle(CServerGameState* pGameState, const CEntityIdleEvent& evt) {
     UnitIdlePacket pck = UnitIdlePacket();
-    pck.unit = pEvt->idTarget;
+    pck.unit = evt.idTarget;
 
-    if (TransformComponent_t* pTransform = pGameState->GetTransform(pEvt->idTarget)) {
+    if (TransformComponent_t* pTransform = pGameState->GetTransform(evt.idTarget)) {
         pck.x = pTransform->GetPosition().x;
         pck.y = pTransform->GetPosition().y;
         pck.z = pTransform->GetPosition().z;
@@ -161,81 +161,87 @@ void CNetworkSystem::OnEntityIdle(CServerGameState* pGameState, CEntityIdleEvent
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnSpellhit(CServerGameState* pGameState, CSpellHitEvent* pHitEvt) {
+void CNetworkSystem::OnSpellhit(CServerGameState* pGameState, const CSpellHitEvent& evt) {
     SpellHitPacket pck = SpellHitPacket();
-    pck.unit = pHitEvt->idTarget;
-    pck.spell = pHitEvt->strSpell;
+    pck.unit = evt.idTarget;
+    pck.spell = evt.strSpell;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pEvt) {
+void CNetworkSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
     CUnitDeathPacket pck = CUnitDeathPacket();
-    pck.idUnit = pEvt->idTarget;
+    pck.idUnit = evt.idTarget;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnRespawn(CServerGameState* pGameState, CRespawnEvent* pEvt) {
+void CNetworkSystem::OnRespawn(CServerGameState* pGameState, const CRespawnEvent& evt) {
     CUnitRespawnPacket pck = CUnitRespawnPacket();
-    pck.idUnit = pEvt->idTarget;
+    pck.idUnit = evt.idTarget;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnMove(CServerGameState* pGameState, CMoveEvent* pEvt) {
+void CNetworkSystem::OnMove(CServerGameState* pGameState, const CMoveEvent& evt) {
     UnitMovePacket pck = UnitMovePacket();
-    pck.unit = pEvt->idUnit;
-    pck.x = pEvt->vec3Position.x;
-    pck.y = pEvt->vec3Position.y;
-    pck.z = pEvt->vec3Position.z;
-    pck.r = pEvt->fRotation;
+    pck.unit = evt.idUnit;
+    pck.x = evt.vec3Position.x;
+    pck.y = evt.vec3Position.y;
+    pck.z = evt.vec3Position.z;
+    pck.r = evt.fRotation;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt) {
+void CNetworkSystem::OnMoveIntention(CServerGameState* pGameState, const CMoveIntentionEvent& evt) {
     UnitMoveIntentionPacket moveInt = UnitMoveIntentionPacket();
-    moveInt.unit = pEvt->idUnit;
-    moveInt.x = pEvt->vec3Position.x;
-    moveInt.y = pEvt->vec3Position.y;
-    moveInt.z = pEvt->vec3Position.z;
+    moveInt.unit = evt.idUnit;
+    moveInt.x = evt.vec3Position.x;
+    moveInt.y = evt.vec3Position.y;
+    moveInt.z = evt.vec3Position.z;
     m_pNetworkManager->SendToAllClients(moveInt);
 }
 
-void CNetworkSystem::OnCooldownStarted(CServerGameState* pGameState, CCooldownStartedEvent* pEvt) {
+void CNetworkSystem::OnCooldownStarted(CServerGameState* pGameState, const CCooldownStartedEvent& evt) {
     CooldownPacket pck = CooldownPacket();
-    pck.cooldown = pEvt->fCooldown;
-    pck.unit = pEvt->idUnit;
-    pck.spell_slot = pEvt->nSpellIndex;
-    pck.total_cooldown = pEvt->fCooldown;
+    pck.cooldown = evt.fCooldown;
+    pck.unit = evt.idUnit;
+    pck.spell_slot = evt.nSpellIndex;
+    pck.total_cooldown = evt.fCooldown;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt) {
+void CNetworkSystem::OnAttackStart(CServerGameState* pGameState, const CAttackStartEvent& evt) {
     attack_start_pck_t pckData {};
-    pckData.unit = pEvt->idAttacker;
-    pckData.target = pEvt->idTarget;
+    pckData.unit = evt.idAttacker;
+    pckData.target = evt.idTarget;
 
     AttackStartPacket pck = AttackStartPacket();
     pck.content = pckData;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt) {
+void CNetworkSystem::OnAttackHit(CServerGameState* pGameState, const CAttackHitEvent& evt) {
 
 }
 
 
-void CNetworkSystem::OnAttackFinished(CServerGameState* pGameState, CAttackFinishedEvent* pEvt) {
+void CNetworkSystem::OnAttackFinished(CServerGameState* pGameState, const CAttackFinishedEvent& evt) {
     attack_finished_pck_t pckData {};
-    pckData.unit = pEvt->idAttacker;
+    pckData.unit = evt.idAttacker;
 
     CAttackFinishedPacket pck = CAttackFinishedPacket();
     pck.content = pckData;
     m_pNetworkManager->SendToAllClients(pck);
 }
 
-void CNetworkSystem::OnPickedUp(CServerGameState* pGameState, CPickedUpEvent* pEvt) {
+void CNetworkSystem::OnPickedUp(CServerGameState* pGameState, const CPickedUpEvent& evt) {
     CPickedUpEntityPacket pck;
-    pck.idUnit = pEvt->idUnit;
-    pck.idPickedUpUnit = pEvt->idTargetUnit;
+    pck.idUnit = evt.idUnit;
+    pck.idPickedUpUnit = evt.idTargetUnit;
 
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnEntityDespawn(CServerGameState* pGameState,  const CDespawnEvent& evt) {
+    DespawnPacket pck;
+    pck.unit = evt.idTarget;
     m_pNetworkManager->SendToAllClients(pck);
 }

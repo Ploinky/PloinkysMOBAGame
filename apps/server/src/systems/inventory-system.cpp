@@ -1,9 +1,9 @@
 #include "inventory-system.h"
 
-#include "game/server-game-state.h"
-#include "events.h"
-#include "GameObject.h"
-#include "components/Components.h"
+#include "../game/server-game-state.h"
+#include "../events.h"
+#include "../GameObject.h"
+#include "../components/Components.h"
 
 
 CInventorySystem::CInventorySystem() {
@@ -15,47 +15,46 @@ void CInventorySystem::Update(CServerGameState* pGameState, float fDelta) {
 void CInventorySystem::Finalize(CServerGameState* pGameState) {
 }
 
-void CInventorySystem::OnPickUpEntityAttempt(CServerGameState* pGameState, CPickUpAttemptEvent* pPickUpEvt) {
-    InventoryComponent_t* pInventory = pGameState->GetInventory(pPickUpEvt->idUnit);
+void CInventorySystem::OnPickUpEntityAttempt(CServerGameState* pGameState, const CPickUpAttemptEvent& evt) {
+    InventoryComponent_t* pInventory = pGameState->GetInventory(evt.idUnit);
 
     if(pInventory == nullptr) {
-        Logger::FormatErr("Invalid pick up event: unit <%d> does not have an inventory", pPickUpEvt->idUnit);
+        Logger::FormatErr("Invalid pick up event: unit <%d> does not have an inventory", evt.idUnit);
         return;
     }
 
-    PickupableComponent_t* pPickupable = pGameState->GetPickupable(pPickUpEvt->idTargetUnit);
+    PickupableComponent_t* pPickupable = pGameState->GetPickupable(evt.idTargetUnit);
 
     if(pPickupable == nullptr) {
-        Logger::FormatErr("Invalid pick up event: unit <%d> is not pickupable", pPickUpEvt->idTargetUnit);
+        Logger::FormatErr("Invalid pick up event: unit <%d> is not pickupable", evt.idTargetUnit);
         return;
     }
 
-    pInventory->vecEntitiesInInventory.push_back(pPickUpEvt->idTargetUnit);
+    pInventory->vecEntitiesInInventory.push_back(evt.idTargetUnit);
 
-    CPickedUpEvent* pEvt = new CPickedUpEvent(pPickUpEvt->idUnit, pPickUpEvt->idTargetUnit);
-    pGameState->EmitEvent(pEvt);
+    pGameState->EmitEvent(CPickedUpEvent(evt.idUnit, evt.idTargetUnit));
 }
 
-void CInventorySystem::OnUseEntityAttempt(CServerGameState* pGameState, CUseEntityAttemptEvent* pEvt) {
-    InventoryComponent_t* pInventory = pGameState->GetInventory(pEvt->idUser);
+void CInventorySystem::OnUseEntityAttempt(CServerGameState* pGameState, const CUseEntityAttemptEvent& evt) {
+    InventoryComponent_t* pInventory = pGameState->GetInventory(evt.idUser);
 
     if(pInventory == nullptr) {
-        Logger::FormatErr("Invalid pick up event: unit <%d> does not have an inventory", pEvt->idUser);
+        Logger::FormatErr("Invalid pick up event: unit <%d> does not have an inventory", evt.idUser);
         return;
     }
 
-    UseableComponent_t* pUseable = pGameState->GetUseable(pEvt->idEntity);
+    UseableComponent_t* pUseable = pGameState->GetUseable(evt.idEntity);
 
     if(pUseable == nullptr) {
-        Logger::FormatErr("Invalid pick up event: unit <%d> is not useable", pEvt->idEntity);
+        Logger::FormatErr("Invalid pick up event: unit <%d> is not useable", evt.idEntity);
         return;
     }
 
     // TODO check if it's even there?
-    CUseEntityEvent* pUseEvent = new CUseEntityEvent();
-    pUseEvent->idUser = pEvt->idUser;
-    pUseEvent->idEntity = pEvt->idEntity;
-    pUseEvent->x = pEvt->x;
-    pUseEvent->y = pEvt->y;
-    pGameState->EmitEvent(pUseEvent);
+    CUseEntityEvent useEvent = CUseEntityEvent();
+    useEvent.idUser = evt.idUser;
+    useEvent.idEntity = evt.idEntity;
+    useEvent.x = evt.x;
+    useEvent.y = evt.y;
+    pGameState->EmitEvent(useEvent);
 }

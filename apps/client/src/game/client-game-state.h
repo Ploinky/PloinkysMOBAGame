@@ -43,6 +43,7 @@ public:
 
     // ========================================================
     std::vector<CGameObject*> GetGameObjectsInArea(Vector3 vec3Center, float fRadius) const;
+    void DeleteUnit(UnitId id);
 
     unsigned int uTeam1Points = 0;
     unsigned int uTeam2Points = 0;

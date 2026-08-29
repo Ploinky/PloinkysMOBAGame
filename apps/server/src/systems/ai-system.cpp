@@ -29,10 +29,15 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
 
                 if (pIntentComp->eType != EIntentType::ATTACK && otherUnitsInArea.size() > 0) {
                     for (UnitId idOther : otherUnitsInArea) {
+                        if (HealthComponent_t* pOtherHealth = pGameState->GetHealth(idOther)) {
+                            if (pOtherHealth->bIsDead) {
+                                continue;
+                            }
+                        }
                         pOtherTeam = pGameState->GetTeam(idOther);
 
                         if (pOtherTeam->eTeam != pTeam->eTeam) {
-                            pGameState->EmitEvent(new CAttackIntentionEvent(id, idOther));
+                            pGameState->EmitEvent(CAttackIntentionEvent(id, idOther));
                             break;
                         }
                     }
@@ -50,15 +55,27 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
     }
 }
 
-void CAiSystem::OnNavDest(CServerGameState* pGameState, CNavDestEvent* pNavDestEvt) {
-    AiComponent_t* pAiComp = pGameState->GetAi(pNavDestEvt->idUnit);
+void CAiSystem::OnNavDest(CServerGameState* pGameState, const CNavDestEvent& evt) {
+    AiComponent_t* pAiComp = pGameState->GetAi(evt.idUnit);
 
     if(pAiComp == nullptr) {
         return;
     }
 
     // TODO magic number
-    if(!pAiComp->vecWaypoints.empty() && (pAiComp->vecWaypoints.front() - pNavDestEvt->vec3Target).Length() < 500) {
+    if(!pAiComp->vecWaypoints.empty() && (pAiComp->vecWaypoints.front() - evt.vec3Target).Length() < 500) {
         pAiComp->vecWaypoints.pop_front();
+    }
+}
+
+void CAiSystem::OnUnitDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
+    for (auto& [id, intent] : pGameState->GetAllIntent()) {
+        if (intent.eType == EIntentType::ATTACK || intent.eType == EIntentType::CAST_SPELL) {
+            if (intent.idTarget == evt.idTarget) {
+                intent.eType = EIntentType::NONE;
+                intent.idTarget = UNIT_ID_NONE;
+                intent.vec3Target = Vector3::ZERO;
+            }
+        }
     }
 }

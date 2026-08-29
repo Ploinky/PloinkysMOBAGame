@@ -314,7 +314,7 @@ void NavMesh::PullString() {
 	}
 }
 
-std::vector<Vector2> NavigationMap::PlanPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+std::vector<Vector2> NavigationMap::PlanPath(Vector2 from, Vector2 to) {
 	m_pMesh->from = from;
 	m_pMesh->to = to;
 
@@ -505,15 +505,15 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	FindNeighbours();
 }
 
-PathResult_t NavigationMap::RequestPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	if (!m_pMesh->PointInMesh(to) || !CanMoveTo(pAgent, m_pGrid->GetCellAt(to.x, to.y), true)) {
+PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
+	if (!m_pMesh->PointInMesh(to) || !CanMoveTo(m_pGrid->GetCellAt(to.x, to.y), true)) {
 		PathResult_t result;
 		result.eResultType = EPathResultType::OCCUPIED;
 		result.vecVec2Path = {};
 		return result;
 	}
 
-	std::vector<Vector2> vecVec2LongPath = PlanPath(pAgent, from, to);
+	std::vector<Vector2> vecVec2LongPath = PlanPath(from, to);
 
 	if (vecVec2LongPath.size() < 1) {
 		PathResult_t result;
@@ -524,13 +524,13 @@ PathResult_t NavigationMap::RequestPath(NavigationGridAgent* pAgent, Vector2 fro
 
 	Vector2 vec2Intermediate = vecVec2LongPath.front();
 
-	std::vector<Vector2> vecVec2ShortPath = GetGridPath(pAgent, from, vec2Intermediate);
+	std::vector<Vector2> vecVec2ShortPath = GetGridPath(from, vec2Intermediate);
 
 	for (int i = 1; i < vecVec2LongPath.size(); i++) {
 		vecVec2ShortPath.push_back(vecVec2LongPath[i]);
 	}
 
-	std::vector<Vector2> vecVec2FinalPath = GetSmoothPath(pAgent, vecVec2ShortPath);
+	std::vector<Vector2> vecVec2FinalPath = GetSmoothPath(vecVec2ShortPath);
 
 	PathResult_t result;
 	result.eResultType = EPathResultType::FOUND;
@@ -538,32 +538,15 @@ PathResult_t NavigationMap::RequestPath(NavigationGridAgent* pAgent, Vector2 fro
 	return result;
 }
 
-bool NavigationMap::CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell, bool bIgnoreMoving) {
-	if (!pCell->IsWalkable) {
+bool NavigationMap::CanMoveTo(NavigationCell* pCell, bool bIgnoreMoving) {
+	if (!pCell->IsWalkable || !pCell->IsOpen) {
 		return false;
-	}
-
-	for (NavigationGridAgent* pOtherAgent : m_vecAgents) {
-		if (pOtherAgent == pAgent) {
-			continue;
-		}
-
-		if (bIgnoreMoving && pOtherAgent->bIgnoreForPathing) {
-			continue;
-		}
-
-		if (CompareFloat(pOtherAgent->nCollisionRadius, 0)) {
-			return false;
-		}
-		if ((pOtherAgent->position - Vector2(pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2)).Length() <= pOtherAgent->nCollisionRadius + 1) {
-			return false;
-		}
 	}
 
 	return true;
 }
 
-StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, std::vector<Vector2> path, float fDist) {
+StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<Vector2> path, float fDist) {
 	if(path.empty()) {
 		// TODO is this blocked = false?
 		return {false, vec2CurrPos};
@@ -577,12 +560,6 @@ StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPo
 
 	Vector2 vec2NewPos = vec2CurrPos + vec2Move;
 
-	NavigationCell* pCell = m_pGrid->GetCellAt(vec2NewPos.x, vec2NewPos.y);
-
-	if (!CanMoveTo(pAgent, pCell, false)) {
-		return {true, vec2CurrPos};
-	}
-
 	if (CompareFloat((vec2NewPos - path.front()).Length(), 0)) {
 		std::vector<Vector2> path;
 		for(int i = 1; i < path.size(); i++) {
@@ -593,15 +570,6 @@ StepResult_t NavigationMap::Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPo
 
 	return {false, vec2NewPos};
 }
-
-NavigationGridAgent* NavigationMap::CreateAgent() {
-	NavigationGridAgent* pAgent = new NavigationGridAgent();
-	m_vecAgents.push_back(pAgent);
-	return pAgent;
-}
-
-
-
 
 
 // =============== GRID NAVIGATION ===============
@@ -727,7 +695,7 @@ float NavigationCellGrid::Cross(const NavigationCell* v1, const NavigationCell* 
 	return abs(dx1 * dy2 - dx2 * dy1);
 }
 
-bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, const NavigationCell* node2) {
+bool NavigationMap::IsClearPath(Vector2 vec2Start, const NavigationCell* node2) {
 	float x1 = vec2Start.x;
 	float y1 = vec2Start.y;
 	float x2 = node2->X + m_pGrid->CellWidth / 2;
@@ -754,7 +722,7 @@ bool NavigationMap::IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, 
 			return false; // Path goes out of bounds
 		}
 
-		if (!CanMoveTo(pAgent, square, true)) {
+		if (!CanMoveTo(square, true)) {
 			return false; // Path is blocked
 		}
 
@@ -786,6 +754,25 @@ void NavigationMap::Reset() {
 	m_pGrid->Reset();
 }
 
+void NavigationCellGrid::UpdateBlockers() {
+	for (int i = 0; i < (CellCountX * CellCountY); i++) {
+		this->Cells[i]->IsOpen = true;
+	}
+	for (const std::pair<const HGridBlocker, GridBlocker_t> &blocker : m_blockers) {
+		int x = std::fmax(0.0f, (blocker.second.x - blocker.second.radius) / CellWidth);
+		int y = (blocker.second.y - blocker.second.radius) / CellHeight;
+		int w = ceil((blocker.second.radius * 2.0f) / CellWidth);
+		int h = ceil((blocker.second.radius * 2.0f) / CellHeight);
+
+		for (int col = x; col < x + w; col++) {
+			for (int row = y; row > y + h; row--) {
+				Cells[col + row * CellCountX]->IsOpen = false;
+			}
+		}
+		// GetCellAt(blocker.second.x, blocker.second.y)->IsOpen = false;
+	}
+}
+
 void NavigationCellGrid::Reset() {
 	for (int i = 0; i < CellCountX * CellCountY; i++) {
 		NavigationCell* cell = Cells[i];
@@ -803,15 +790,15 @@ auto tiebreaker = [](NavigationCell* left, NavigationCell* right) {
 
 std::priority_queue<NavigationCell*, std::vector<NavigationCell*>, decltype(tiebreaker)> nodesToTest(tiebreaker);
 
-std::vector<Vector2> NavigationMap::GetLongPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	return PlanPath(pAgent, from, to);
+std::vector<Vector2> NavigationMap::GetLongPath(Vector2 from, Vector2 to) {
+	return PlanPath(from, to);
 }
 
 #ifdef _DEBUG
-DebugPath_t NavigationMap::GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
+DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 	DebugPath_t result;
 
-	result.vecVec2LongPath = PlanPath(pAgent, from, to);
+	result.vecVec2LongPath = PlanPath(from, to);
 
 	if (result.vecVec2LongPath.size() < 1) {
 		return {};
@@ -819,11 +806,11 @@ DebugPath_t NavigationMap::GetDebugPath(NavigationGridAgent* pAgent, Vector2 fro
 
 	Vector2 vec2Intermediate = result.vecVec2LongPath.front();
 
-	std::vector<Vector2> vecVec2ShortPath = GetGridPath(pAgent, from, vec2Intermediate);
+	std::vector<Vector2> vecVec2ShortPath = GetGridPath(from, vec2Intermediate);
 	result.vecVec2ShortPath = vecVec2ShortPath;
 
-	std::vector<Vector2> vecVec2SmoothPath = GetSmoothPath(pAgent, vecVec2ShortPath);
-
+	std::vector<Vector2> vecVec2SmoothPath = GetSmoothPath(vecVec2ShortPath);
+	
 	for (int i = 1; i < result.vecVec2LongPath.size(); i++) {
 		vecVec2SmoothPath.push_back(result.vecVec2LongPath[i]);
 	}
@@ -832,20 +819,20 @@ DebugPath_t NavigationMap::GetDebugPath(NavigationGridAgent* pAgent, Vector2 fro
 }
 #endif
 
-std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to) {
-	return GetGridPath(pAgent, from, to, false);
+std::vector<Vector2> NavigationMap::GetGridPath(Vector2 from, Vector2 to) {
+	return GetGridPath(from, to, false);
 }
 
-std::vector<Vector2> NavigationMap::GetSmoothPath(NavigationGridAgent* pAgent, std::vector<Vector2> vecVec2CoarsePath) {
+std::vector<Vector2> NavigationMap::GetSmoothPath(std::vector<Vector2> vecVec2CoarsePath) {
 	std::vector<Vector2> smoothedPath;
 	if (vecVec2CoarsePath.empty()) {
 		return {};
 	}
-	Vector2 smoothAnchor = pAgent->position;
+	Vector2 smoothAnchor = vecVec2CoarsePath[0];
 	int i = 0;
 	while (i < vecVec2CoarsePath.size()) {
 		NavigationCell* pCell = m_pGrid->GetCellAt(vecVec2CoarsePath[i].x, vecVec2CoarsePath[i].y);
-		if (IsClearPath(pAgent, smoothAnchor, pCell)) {
+		if (IsClearPath(smoothAnchor, pCell)) {
 			i++;
 		}
 		else {
@@ -863,7 +850,7 @@ std::vector<Vector2> NavigationMap::GetSmoothPath(NavigationGridAgent* pAgent, s
 	return smoothedPath;
 }
 
-std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen) {
+std::vector<Vector2> NavigationMap::GetGridPath(Vector2 from, Vector2 to, bool bIgnoreOpen) {
 	m_pGrid->Reset();
 	NavigationCell* startCell = m_pGrid->GetCellAt(from.x, from.y);
 	NavigationCell* anchor = startCell;
@@ -900,7 +887,7 @@ std::vector<Vector2> NavigationMap::GetGridPath(NavigationGridAgent* pAgent, Vec
 			c++;
 			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
 
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(pAgent, neighbour, true)) {
+			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(neighbour, true)) {
 				continue;
 			}
 
@@ -971,7 +958,7 @@ void NavigationCellGrid::SetCellAt(float x, float y, NavigationCell* cell) {
 	cell->Index = index;
 }
 
-Vector2 NavigationMap::ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 vec2Target) {
+Vector2 NavigationMap::ClosestFreePosition(Vector2 vec2Target) {
 	// first, clamp coordinates to map bounds - everything else is nonesense
 	vec2Target.x = std::fmax(0.0f, std::fmin(vec2Target.x, m_pGrid->GridWidth));
 	vec2Target.y = std::fmin(0.0f, std::fmax(vec2Target.y, m_pGrid->GridHeight));
@@ -981,7 +968,7 @@ Vector2 NavigationMap::ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 
 
 	if (pPreferredCell == nullptr) {
 		// TODO this must be no inside the grid?
-		return pAgent->position;
+		return vec2Target;
 	}
 
 	// just extend outward in circles.... I can imagine this has lots of problems
@@ -996,8 +983,8 @@ Vector2 NavigationMap::ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 
 	int nSouth = nSouthEast - 1;
 	int nSouthWest = nSouth - 1;
 
-	auto fnCheckCell = [this, pAgent](int nIndex) {
-		return nIndex > 0 && nIndex < m_pGrid->CellCountX + m_pGrid->CellCountX * m_pGrid->CellCountY && m_pGrid->Cells[nIndex] && m_pGrid->Cells[nIndex]->IsWalkable && CanMoveTo(pAgent, m_pGrid->Cells[nIndex], true);
+	auto fnCheckCell = [this](int nIndex) {
+		return nIndex > 0 && nIndex < m_pGrid->CellCountX + m_pGrid->CellCountX * m_pGrid->CellCountY && m_pGrid->Cells[nIndex] && m_pGrid->Cells[nIndex]->IsWalkable && CanMoveTo(m_pGrid->Cells[nIndex], true);
 	};
 
 	auto fnToCoord = [this](int nIndex) {
@@ -1049,4 +1036,26 @@ Vector2 NavigationMap::ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 
 	}
 
 	return vec2Target;
+}
+
+HGridBlocker NavigationCellGrid::AddBlocker(float x, float y, float radius) {
+	GridBlocker_t blocker;
+	blocker.x = x;
+	blocker.y = y;
+	blocker.radius = radius;
+
+	HGridBlocker hBlocker = m_blockers.size();
+
+	m_blockers.emplace(hBlocker, blocker);
+
+	return hBlocker;
+}
+
+void NavigationCellGrid::RemoveBlocker(HGridBlocker hBlocker) {
+	if (hBlocker == INVALID_HANDLE) {
+		Logger::FormatErr("Attempted to remove invalid grid blocker");
+		return;
+	}
+
+	m_blockers.erase(hBlocker);
 }

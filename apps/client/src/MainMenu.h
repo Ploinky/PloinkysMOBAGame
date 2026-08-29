@@ -22,7 +22,6 @@ private:
 	GuiButton buttonSettings_;
 	GuiButton buttonBack_;
 
-	uint32_t width_;
-	uint32_t height_;
 	std::string myName_;
+	Portrait_t m_portrait;
 };

@@ -1,9 +1,9 @@
 #include "wave-manager.h"
 
-#include "game/server-game-state.h"
-#include "GameObject.h"
-#include "components/Components.h"
-#include <game/server-game-state.h>
+#include "../game/server-game-state.h"
+#include "../GameObject.h"
+#include "../components/Components.h"
+#include "../game/server-game-state.h"
 
 #define SPAWN_INTERVAL 30000
 

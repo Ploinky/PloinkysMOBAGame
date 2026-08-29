@@ -6,9 +6,9 @@ HBRUSH hBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
 HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 HBRUSH hBrushLightGray = CreateSolidBrush(RGB(200, 200, 200));
 HBRUSH hBrushGray = CreateSolidBrush(RGB(100,100, 100));
-HPEN hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
-HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
-HPEN hPenBlue = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
+HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+HPEN hPenGreen = CreatePen(PS_SOLID, 2, RGB(0, 255, 0));
+HPEN hPenBlue = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
 HBITMAP hBitMap;
 
 LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -33,6 +33,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			HFONT hfntOld;
 
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+			pSharedData->pMap->m_pGrid->UpdateBlockers();
 
 			HDC hDc = BeginPaint(hWnd, &ps);
 
@@ -72,7 +74,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 					LineTo(hdcMem, (x * pGrid->CellWidth + pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight + pGrid->CellHeight) /SCALING_FACTOR));
 					LineTo(hdcMem, (x * pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight + pGrid->CellHeight) /SCALING_FACTOR));
 					LineTo(hdcMem, (x * pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight) /SCALING_FACTOR));
-					if (!pSharedData->pMap->CanMoveTo(pSharedData->pAgent, pGrid->Cells[x + y * pGrid->CellCountX], false)) {
+					if (!pSharedData->pMap->CanMoveTo(pGrid->Cells[x + y * pGrid->CellCountX], false)) {
 						RECT rect;
 						rect.left = (x * pGrid->CellWidth) / SCALING_FACTOR;
 						rect.right = rect.left + (pGrid->CellWidth / SCALING_FACTOR);
@@ -84,12 +86,15 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 				}
 			}
 
+			/*
 			// draw blockers
 			for (NavigationGridAgent* pBlocker : pSharedData->pMap->m_vecAgents) {
-				SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
+				SelectObject( hdcMem, GetStockObject( NULL_BRUSH ) );
+				// SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
 				float fHalfRadius = pBlocker->nCollisionRadius;
 				Ellipse(hdcMem, (pBlocker->position.x - fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.y - fHalfRadius) /SCALING_FACTOR, (pBlocker->position.x + fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.y + fHalfRadius) /SCALING_FACTOR);
 			}
+			*/
 
 			// draw the player
 			RECT rect;
@@ -98,7 +103,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			rect.bottom = -pSharedData->vec2CurrPos.y /SCALING_FACTOR - 2;
 			rect.top = (-pSharedData->vec2CurrPos.y /SCALING_FACTOR) + 2;
 			FillRect(hdcMem, &rect, hBrushBlue);
-			float fHalfRadius = pSharedData->pAgent->nCollisionRadius;
+			float fHalfRadius = 50;
 			SelectObject(hdcMem, hBrushBlue);
 			Ellipse(hdcMem, (pSharedData->vec2CurrPos.x - fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y - fHalfRadius) /SCALING_FACTOR, (pSharedData->vec2CurrPos.x + fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y + fHalfRadius) /SCALING_FACTOR);
 
@@ -158,11 +163,9 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			pSharedData->vec2CurrPos.x = GET_X_LPARAM(lParam) *SCALING_FACTOR;
 			pSharedData->vec2CurrPos.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
-			pSharedData->pAgent->position = pSharedData->vec2CurrPos;
 
 			auto start = std::chrono::high_resolution_clock::now();
-			DebugPath_t path = pSharedData->pMap->GetDebugPath(pSharedData->pAgent,
-				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
+			DebugPath_t path = pSharedData->pMap->GetDebugPath({ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				pSharedData->vec2Target
 			);
 			pSharedData->path = path.vecVec2FinalPath;
@@ -186,8 +189,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->vec2Target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
-			DebugPath_t path = pSharedData->pMap->GetDebugPath(pSharedData->pAgent,
-				{ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
+			DebugPath_t path = pSharedData->pMap->GetDebugPath({ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				{ pSharedData->vec2Target.x, pSharedData->vec2Target.y }
 			);
 			pSharedData->path = path.vecVec2FinalPath;

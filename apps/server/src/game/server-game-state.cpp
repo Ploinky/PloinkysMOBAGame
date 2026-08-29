@@ -76,10 +76,13 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     // ==================== NAVIGATION COMPONENT ====================
     if(entityData.optNavigationData.has_value()) {
         NavigationComponent_t* pNav = AddNavigation(id);
-        pNav->pNavGridAgent = m_pNavMap->CreateAgent();
-        pNav->pNavGridAgent->UnitId = id;
-        pNav->pNavGridAgent->IgnoreCollision = false;
-        pNav->pNavGridAgent->nCollisionRadius = entityData.optNavigationData.value().nCollisionRadius;
+        pNav->nCollisionRadius = entityData.optNavigationData.value().nCollisionRadius;
+
+        if (TransformComponent_t* pTransform = GetTransform(id)) {
+            pNav->hBlocker = m_pNavMap->m_pGrid->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().y, pNav->nCollisionRadius);
+        } else {
+            pNav->hBlocker = INVALID_HANDLE;
+        }
     }
 
     // ==================== INTENT COMPONENT ====================
@@ -127,4 +130,24 @@ std::vector<UnitId> CServerGameState::GetUnitsInAra(Vector2 point, float radius)
     }
 
     return vecUnitsInArea;
+}
+
+
+void CServerGameState::DeleteEntity(UnitId id) {
+    RemoveMovement(id);
+    RemoveCharacter(id);
+    RemoveDevice(id);
+    RemoveTransform(id);
+    RemoveNetwork(id);
+    RemoveHealth(id);
+    RemoveTeam(id);
+    RemoveInventory(id);
+    RemoveIntent(id);
+    RemoveAi(id);
+    RemoveNavigation(id);
+    RemoveBasicAttack(id);
+    RemovePickupable(id);
+    RemoveRespawn(id);
+    RemoveSpellCast(id);
+    RemoveUseable(id);
 }

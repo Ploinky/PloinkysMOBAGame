@@ -1,10 +1,10 @@
 #include "particle-system.h"
 
-#include "game/client-game-state.h"
-#include "game/components/components.h"
-#include "Model.h"
-#include "ParticleEmitter.h"
-#include "ParticleEffect.h"
+#include "../client-game-state.h"
+#include "../components/components.h"
+#include "../../Model.h"
+#include "../../ParticleEmitter.h"
+#include "../../ParticleEffect.h"
 
 CParticleSystem::CParticleSystem(CClientAssetManager* pAssetManager) {
     m_pAssetManager = pAssetManager;
@@ -70,17 +70,17 @@ void CParticleSystem::Update(CClientGameState* pGameState, float fDelta) {
 }
 
 
-void CParticleSystem::OnSpellHit(CClientGameState* pGameState, CSpellHitEvent* pHitEvent) {
-    ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + pHitEvent->strSpellId + ".pts", m_pAssetManager);
+void CParticleSystem::OnSpellHit(CClientGameState* pGameState, const CSpellHitEvent& evt) {
+    ParticleEffect* particle_system = ParticleEffect::Load("assets/characters/stormcaller/abilities/" + evt.strSpellId + ".pts", m_pAssetManager);
 
-    if(!pGameState->GetParticle(pHitEvent->idUnit)) {
-        pGameState->AddParticle(pHitEvent->idUnit);
+    if(!pGameState->GetParticle(evt.idUnit)) {
+        pGameState->AddParticle(evt.idUnit);
     }
 
-    if(pHitEvent->idUnit != UNIT_ID_NONE) {
-        particle_system->Attach(pHitEvent->idUnit);
+    if(evt.idUnit != UNIT_ID_NONE) {
+        particle_system->Attach(evt.idUnit);
     }
 
-    ParticleComponent_t* pParticleComp = pGameState->GetParticle(pHitEvent->idUnit);
+    ParticleComponent_t* pParticleComp = pGameState->GetParticle(evt.idUnit);
     pParticleComp->vecEffects.push_back(particle_system);
 }

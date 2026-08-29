@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/game/game-system.h"
-#include "client-asset-manager.h"
+#include <common/game/game-system.h>
 
-#include "game/events/spell-hit-event.h"
+#include "../../client-asset-manager.h"
+#include "../events/spell-hit-event.h"
 
 class CClientGameState;
 

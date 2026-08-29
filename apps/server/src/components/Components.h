@@ -13,5 +13,6 @@
 #include "SpellCastComponent.h"
 #include "team-component.h"
 #include "pickupable-component.h"
+#include "respawn-component.h"
 #include "TransformComponent.h"
 #include "useable-component.h"

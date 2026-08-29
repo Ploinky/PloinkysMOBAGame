@@ -1,7 +1,8 @@
 #pragma once
 
-#include "common/game/game-system.h"
-#include "events.h"
+#include <common/game/game-system.h>
+
+#include "../events.h"
 
 class CPointsSystem : public IGameSystem<CServerGameState> {
 public:

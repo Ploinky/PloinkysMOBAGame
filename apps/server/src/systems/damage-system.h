@@ -4,6 +4,7 @@
 
 class CDamageEvent;
 class CHealEvent;
+class CRespawnEvent;
 class CServerGameState;
 
 class CDamageSystem : public IGameSystem<CServerGameState> {
@@ -15,4 +16,5 @@ public:
 
     REGISTER_EVENT_HANDLER(CDamageSystem, CDamageEvent, OnUnitDamaged);
     REGISTER_EVENT_HANDLER(CDamageSystem, CHealEvent, OnUnitHealed);
+    REGISTER_EVENT_HANDLER(CDamageSystem, CRespawnEvent, OnUnitRespawned);
 };

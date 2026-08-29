@@ -13,7 +13,7 @@ class IGameState;
 template<typename TOwner, typename IGameState, typename TEvent>
 class CEventRegisterHelper {
 public:
-    using Method = std::function<void(IGameState*, TEvent*)>;
+    using Method = std::function<void(IGameState*, const TEvent&)>;
     CEventRegisterHelper(TOwner* pOwner, Method method) {
         pOwner->RegisterHandler(method);
     }
@@ -21,8 +21,8 @@ public:
 
 #ifndef REGISTER_EVENT_HANDLER
 #define REGISTER_EVENT_HANDLER(HandlerClass, EventType, Method) \
-    void Method(TGS*, EventType*); \
-    CEventRegisterHelper<HandlerClass, TGS, EventType> reg__##Method = CEventRegisterHelper<HandlerClass, TGS, EventType>(this, [this](TGS* state, EventType* e) { this->Method(state, e); });
+    void Method(TGS*, const EventType&); \
+    CEventRegisterHelper<HandlerClass, TGS, EventType> reg__##Method = CEventRegisterHelper<HandlerClass, TGS, EventType>(this, [this](TGS* state, const EventType& e) { this->Method(state, e); });
 #endif
 
 template<typename TGameState>
@@ -31,28 +31,28 @@ public:
     virtual ~IGameSystem() = default;
 
     virtual void Update(TGameState* pGameState, float fDelta) {};
-    void Process(TGameState* pGameState, IGameEvent* pGameEvent) {
-        auto it = handlers.find(pGameEvent->GetType());
+    void Process(TGameState* pGameState, const IGameEvent& gameEvent) {
+        auto it = handlers.find(gameEvent.GetType());
         if(it != handlers.end()) {
             for(HandlerFunc fn : it->second) {
-                fn(pGameState, pGameEvent);
+                fn(pGameState, gameEvent);
             }
         }
     };
     virtual void Finalize(TGameState* pGameState) {};
 
     using TGS = TGameState;
-    using HandlerFunc = std::function<void(TGameState*, IGameEvent*)>;
+    using HandlerFunc = std::function<void(TGameState*, const IGameEvent&)>;
     std::unordered_map<std::type_index, std::vector<HandlerFunc>> handlers;
 
     template<typename TEvent>
-    void RegisterHandler(std::function<void(TGameState*, TEvent*)> func) {
+    void RegisterHandler(std::function<void(TGameState*, const TEvent&)> func) {
         if(!handlers.contains(typeid(TEvent))) {
             handlers.emplace(typeid(TEvent), std::vector<HandlerFunc>());
         }
 
-        handlers[typeid(TEvent)].push_back([func](TGameState* state, IGameEvent* baseEvt) {
-            func(state, static_cast<TEvent*>(baseEvt));
+        handlers[typeid(TEvent)].push_back([func](TGameState* state, const IGameEvent& baseEvt) {
+            func(state, static_cast<const TEvent&>(baseEvt));
         });
     }
 };

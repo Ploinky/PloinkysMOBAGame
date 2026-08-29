@@ -1,11 +1,9 @@
 #include "damage-system.h"
 
-#include "game/server-game-state.h"
-#include "events/damage-event.h"
-#include "events/heal-event.h"
-#include "events.h"
-#include "GameObject.h"
-#include "components/Components.h"
+#include "../game/server-game-state.h"
+#include "../events.h"
+#include "../GameObject.h"
+#include "../components/Components.h"
 
 
 CDamageSystem::CDamageSystem() {
@@ -22,7 +20,7 @@ void CDamageSystem::Finalize(CServerGameState* pGameState) {
                 health.bIsDead = true;
                 health.fTimeSinceDeath = 0.0f;
     
-                pGameState->EmitEvent(new CDeathEvent(id));
+                pGameState->EmitEvent(CDeathEvent(id));
             }
 
             if(health.nHealth > health.nMaxHealth) {
@@ -33,11 +31,11 @@ void CDamageSystem::Finalize(CServerGameState* pGameState) {
     }
 }
 
-void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dmgEvt) {
-    HealthComponent_t* pHealthComponent = pGameState->GetHealth(dmgEvt->m_idTarget);
+void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, const CDamageEvent& evt) {
+    HealthComponent_t* pHealthComponent = pGameState->GetHealth(evt.m_idTarget);
 
     if(pHealthComponent == nullptr) {
-        Logger::FormatErr("Invalid damage event: target unit (%d) does nmot have a health component", dmgEvt->m_idTarget);
+        Logger::FormatErr("Invalid damage event: target unit (%d) does nmot have a health component", evt.m_idTarget);
         return;
     }
 
@@ -45,10 +43,18 @@ void CDamageSystem::OnUnitDamaged(CServerGameState* pGameState, CDamageEvent* dm
         return;
     }
 
-    pHealthComponent->nHealth -= dmgEvt->m_nDamage;
+    pHealthComponent->nHealth -= evt.m_nDamage;
 }
 
-void CDamageSystem::OnUnitHealed(CServerGameState* pGameState, CHealEvent* healEvt) {
-    HealthComponent_t* pHealthComponent = pGameState->GetHealth(healEvt->m_idTarget);
-    pHealthComponent->nHealth += healEvt->m_nHeal;
+void CDamageSystem::OnUnitHealed(CServerGameState* pGameState, const CHealEvent& evt) {
+    HealthComponent_t* pHealthComponent = pGameState->GetHealth(evt.m_idTarget);
+    pHealthComponent->nHealth += evt.m_nHeal;
+}
+
+void CDamageSystem::OnUnitRespawned(CServerGameState* pGameState, const CRespawnEvent& evt) {
+    if (HealthComponent_t* pHealth = pGameState->GetHealth(evt.idTarget)) {
+        pHealth->nHealth = pHealth->nMaxHealth;
+        pHealth->bIsDead = false;
+        pHealth->fTimeSinceDeath = 0.0f;
+    }
 }

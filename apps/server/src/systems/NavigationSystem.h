@@ -16,8 +16,14 @@ public:
     REGISTER_EVENT_HANDLER(CNavigationSystem, CSpellCastStartEvent, OnSpellCastStart);
     REGISTER_EVENT_HANDLER(CNavigationSystem, CMoveAttemptEvent, OnMoveAttempt);
     REGISTER_EVENT_HANDLER(CNavigationSystem, CAttackStartEvent, OnAttackStart);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CEntityIdleEvent, OnUnitIdle);
     REGISTER_EVENT_HANDLER(CNavigationSystem, CDeathEvent, OnDeath);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CMoveIntentionEvent, OnMoveIntention);
 
 private:
     NavigationMap* m_pMap;
+
+    void TryPath(CServerGameState* pGameState, UnitId id);
+    void AddBlocker(CServerGameState* pGameState, UnitId id);
+    void RemoveBlocker(CServerGameState* pGameState, UnitId id);
 };

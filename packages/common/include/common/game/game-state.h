@@ -62,9 +62,9 @@ public:
         return GetComponent<T>(idUnit);
     }
 
-    void EmitEvent(IGameEvent* pGameEvent) {
+    void EmitEvent(const IGameEvent& evt) {
         for(IGameSystem<TGameState>* pSys : m_vecGameSystems) {
-            pSys->Process(static_cast<TGameState*>(this), pGameEvent);
+            pSys->Process(static_cast<TGameState*>(this), evt);
         }
     }
 

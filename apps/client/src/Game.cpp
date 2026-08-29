@@ -817,7 +817,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             CEntityIdleEvent idleEvt = CEntityIdleEvent();
             idleEvt.idUnit = idle.unit;
-            m_gameState.EmitEvent(&idleEvt);
+            m_gameState.EmitEvent(idleEvt);
             continue;
         }
         if(header.type == PacketType::UNITMOVE){
@@ -860,8 +860,9 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             continue;
         }
         if(header.type == PacketType::UNITDESPAWN){
-            Logger::Msg("despawn!!");
-            AddPacketToCurrentTick(vecData);
+            DespawnPacket pck;
+            pck.Read(&vecData);
+            m_gameState.DeleteUnit(pck.unit);
             continue;
         }
         if(header.type == PacketType::PCK_STATS){
@@ -872,7 +873,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             statsEvent.nHealth = stats.health;
             statsEvent.nMaxHealth = stats.max_health;
 
-            m_gameState.EmitEvent(&statsEvent);
+            m_gameState.EmitEvent(statsEvent);
             continue;
         }
         if(header.type == PacketType::PCK_SPELL_COOLDOWN){
@@ -924,9 +925,9 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             }
             
 
-            CAttackStartEvent* pAttackEvent = new CAttackStartEvent();
-            pAttackEvent->idUnit = pck.content.unit;
-            m_gameState.EmitEvent(pAttackEvent);
+            CAttackStartEvent attackEvt = CAttackStartEvent();
+            attackEvt.idUnit = pck.content.unit;
+            m_gameState.EmitEvent(attackEvt);
             continue;
         }
         if(header.type == PacketType::SCORE_UPDATE_PACKET){
@@ -945,9 +946,9 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             if(AttackComponent_t* pAttackComponent = m_gameState.GetAttack(pck.content.unit)) {
                 pAttackComponent->bIsAttacking = false;
             }
-            CAttackFinishedEvent* pAttackEvent = new CAttackFinishedEvent();
-            pAttackEvent->idUnit = pck.content.unit;
-            m_gameState.EmitEvent(pAttackEvent);
+            CAttackFinishedEvent attackEvt = CAttackFinishedEvent();
+            attackEvt.idUnit = pck.content.unit;
+            m_gameState.EmitEvent(attackEvt);
             continue;
         }
 
@@ -977,7 +978,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             CMoveIntentionEvent evt;
             evt.idUnit = move.unit;
-            m_gameState.EmitEvent(&evt);
+            m_gameState.EmitEvent(evt);
             continue;
         }
 
@@ -1004,7 +1005,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CSpellCastStartEvent startEvent = CSpellCastStartEvent();
             startEvent.idUnit = pck.unit;
             startEvent.strSpellId = "";
-            m_gameState.EmitEvent(&startEvent);
+            m_gameState.EmitEvent(startEvent);
             continue;
         }
 
@@ -1015,7 +1016,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             CSpellHitEvent hitEvent = CSpellHitEvent();
             hitEvent.idUnit = pck.unit;
             hitEvent.strSpellId = pck.spell;
-            m_gameState.EmitEvent(&hitEvent);
+            m_gameState.EmitEvent(hitEvent);
             continue;
         }
 
@@ -1036,7 +1037,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             CEntityDeathEvent deathEvent = CEntityDeathEvent();
             deathEvent.idUnit = pck.idUnit;
-            m_gameState.EmitEvent(&deathEvent);
+            m_gameState.EmitEvent(deathEvent);
             continue;
         }
 
@@ -1058,7 +1059,7 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
 
             CEntityRespawnEvent respawnEvent = CEntityRespawnEvent();
             respawnEvent.idUnit = pck.idUnit;
-            m_gameState.EmitEvent(&respawnEvent);
+            m_gameState.EmitEvent(respawnEvent);
             continue;
         }
 

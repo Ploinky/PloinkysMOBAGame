@@ -26,7 +26,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
         if(HealthComponent_t* pHealthComp = pGameState->GetHealth(activeAttack.idTarget)) {
             if(pHealthComp->bIsDead) {
                 attackComp.optCurrentAttack.reset();
-                pGameState->EmitEvent(new CAttackFinishedEvent(id));
+                pGameState->EmitEvent(CAttackFinishedEvent(id));
                 continue;
             }
         }
@@ -42,7 +42,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                     activeAttack.eState = EAttackState::ATTACKING;
                     activeAttack.fTimeInState = 0.0f;
 
-                    pGameState->EmitEvent(new CAttackStartEvent(id, activeAttack.idTarget));
+                    pGameState->EmitEvent(CAttackStartEvent(id, activeAttack.idTarget));
                     break;
                 }
 
@@ -54,7 +54,7 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::ATTACKING:
                 if(activeAttack.fTimeInState >= attackComp.fAttackPoint) {
-                    pGameState->EmitEvent(new CAttackHitEvent(id, activeAttack.idTarget));
+                    pGameState->EmitEvent(CAttackHitEvent(id, activeAttack.idTarget));
                     activeAttack.eState = EAttackState::BACKSWING;
                     activeAttack.fTimeInState = 0.0f;
                 }
@@ -67,13 +67,13 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
                 break;
             case EAttackState::FINISHED:
                 // TODO
-                pGameState->EmitEvent(new CAttackFinishedEvent(id));
+                pGameState->EmitEvent(CAttackFinishedEvent(id));
                 attackComp.optCurrentAttack.value().eState = EAttackState::IDLE;
                 attackComp.optCurrentAttack.value().fTimeInState = 0.0f;
                 break;
                 case EAttackState::CANCELLED:
                 // TODO
-                pGameState->EmitEvent(new CAttackFinishedEvent(id));
+                pGameState->EmitEvent(CAttackFinishedEvent(id));
                 attackComp.optCurrentAttack.reset(); // Done
                 break;
             default:
@@ -86,54 +86,54 @@ void CAttackSystem::Finalize(CServerGameState* pGameState) {
 
 }
 
-void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, CAttackIntentionEvent* pEvt) {
-    if(pEvt->idTarget == pEvt->idUnit) {
-        Logger::FormatErr("Invalid attack by unit %u on unit %u: cannot attack self", pEvt->idUnit, pEvt->idTarget);
+void CAttackSystem::OnAttackIntention(CServerGameState* pGameState, const CAttackIntentionEvent& evt) {
+    if(evt.idTarget == evt.idUnit) {
+        Logger::FormatErr("Invalid attack by unit %u on unit %u: cannot attack self", evt.idUnit, evt.idTarget);
         return;
     }
 
-    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(pEvt->idUnit);
+    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(evt.idUnit);
 
     if(attackComp == nullptr) {
-        Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idUnit, pEvt->idTarget);
+        Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", evt.idUnit, evt.idTarget);
         return;
     }
 
     // Already attacking that target
     if(attackComp->optCurrentAttack.has_value()) {
         ActiveAttack_t& atk = attackComp->optCurrentAttack.value();
-        if(atk.idTarget == pEvt->idTarget) {
+        if(atk.idTarget == evt.idTarget) {
             return;
         }
     }
 
     ActiveAttack_t activeAttack {
-        .idTarget = pEvt->idTarget,
+        .idTarget = evt.idTarget,
         .eState = EAttackState::IDLE,
         .fTimeInState = 0.0f
     };
     attackComp->optCurrentAttack.emplace(activeAttack);
 }
 
-void CAttackSystem::OnAttackHit(CServerGameState* pGameState, CAttackHitEvent* pEvt) {
+void CAttackSystem::OnAttackHit(CServerGameState* pGameState, const CAttackHitEvent& evt) {
     ActiveAttack_t activeAttack {
-        .idTarget = pEvt->idTarget,
+        .idTarget = evt.idTarget,
         .eState = EAttackState::IDLE,
         .fTimeInState = 0.0f
     };
 
-    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(pEvt->idAttacker);
+    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(evt.idAttacker);
 
     if(attackComp == nullptr) {
-        Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", pEvt->idAttacker, pEvt->idTarget);
+        Logger::FormatErr("Invalid attack by unit %u on unit %u: attacker has no attack component", evt.idAttacker, evt.idTarget);
         return;
     }
 
-    pGameState->EmitEvent(new CDamageEvent(pEvt->idAttacker, pEvt->idTarget, 10));
+    pGameState->EmitEvent(CDamageEvent(evt.idAttacker, evt.idTarget, 10));
 
 }
 
-void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, CMoveIntentionEvent* pEvt) {
+void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, const CMoveIntentionEvent& evt) {
     // CBasicAttackComponent* attackComp = pGameState->FindGameObjectById(pEvt->idUnit)->GetComponent<CBasicAttackComponent>();
     // 
     // if(attackComp && attackComp.optCurrentAttack.has_value()) {
@@ -142,11 +142,26 @@ void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, CMoveIntention
     // }
 }
 
-void CAttackSystem::OnSpellCastAttempt(CServerGameState* pGameState, CSpellAttemptCastEvent* pEvt) {
-    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(pEvt->m_idCaster);
+void CAttackSystem::OnSpellCastAttempt(CServerGameState* pGameState, const CSpellAttemptCastEvent& evt) {
+    BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(evt.m_idCaster);
     
     if(attackComp->optCurrentAttack.has_value()) {
         ActiveAttack_t& atk = attackComp->optCurrentAttack.value();
         atk.eState = EAttackState::CANCELLED;
+    }
+}
+
+void CAttackSystem::OnUnitDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
+    for (auto& [id, attack] : pGameState->GetAllBasicAttack()) {
+        if (!attack.optCurrentAttack.has_value()) {
+            continue;
+        }
+
+        if (attack.optCurrentAttack.value().idTarget != evt.idTarget) {
+            continue;
+        }
+
+        attack.optCurrentAttack.reset();
+        pGameState->EmitEvent(CAttackFinishedEvent(id));
     }
 }

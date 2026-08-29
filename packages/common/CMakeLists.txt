@@ -61,3 +61,5 @@ target_include_directories(common PUBLIC include)
 target_include_directories(common PRIVATE include/common)
 
 target_link_libraries(common PUBLIC paklib)
+
+target_compile_definitions(common PUBLIC NOMINMAX)

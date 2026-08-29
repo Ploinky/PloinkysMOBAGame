@@ -3,8 +3,8 @@
 CPointsSystem::CPointsSystem() {
 }
 
-void CPointsSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pDeathEvt) {
-    if(TeamComponent_t* pTeam = pGameState->GetTeam(pDeathEvt->idTarget)) {
+void CPointsSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
+    if(TeamComponent_t* pTeam = pGameState->GetTeam(evt.idTarget)) {
         switch(pTeam->eTeam) {
             case Team::TEAM_1:
                 pGameState->uTeam2Points += 1;

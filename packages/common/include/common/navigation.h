@@ -4,8 +4,11 @@
 #include <vector>
 #include <string>
 #include <list>
-#include "pmg_physics.h"
 #include <stdint.h>
+#include <map>
+
+#include <common/pmg_types.h>
+#include "pmg_physics.h"
 #include "common/util/frame-timer.h"
 
 Vector3 CenterOf(Vector3 v1, Vector3 v2, Vector3 v3);
@@ -29,14 +32,6 @@ bool operator==(const polygon_t& lhs, const polygon_t& rhs);
 bool operator!=(const polygon_t& lhs, const polygon_t& rhs);
 
 class NavigationMap;
-
-typedef struct {
-	uint64_t UnitId;
-	Vector2 position;
-	int nCollisionRadius;
-	bool IgnoreCollision;
-	bool bIgnoreForPathing;
-} NavigationGridAgent;
 
 class NavMesh {
 public:
@@ -97,10 +92,16 @@ public:
 	void CalculateNeighbours(int gridWidth, int gridHeight, int cellWidth, int cellHeight, int gridOffsetX, int gridOffsetY);
 };
 
+typedef struct {
+	float x;
+	float y;
+	float radius;
+} GridBlocker_t;
+typedef EngineHandle HGridBlocker;
+
 class NavigationCellGrid {
 public:
 	NavigationCellGrid(NavMesh* navMesh);
-
 
 	NavigationCell* GetCellAt(float x, float y);
 	void SetCellAt(float x, float y, NavigationCell* cell);
@@ -120,6 +121,13 @@ public:
 	float Heuristic(NavigationCell* a, NavigationCell* b, NavigationCell* c);
 	float Cross(const NavigationCell* v1, const NavigationCell* v2, const NavigationCell* v3);
 	NavigationCell* currCell;
+
+	void UpdateBlockers();
+	HGridBlocker AddBlocker(float x, float y, float radius);
+	void RemoveBlocker(HGridBlocker hBlocker);
+
+private:
+	std::map<HGridBlocker, GridBlocker_t> m_blockers;
 };
 
 /**
@@ -155,27 +163,25 @@ typedef struct {
 
 class NavigationMap {
 public:
-	PathResult_t RequestPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	StepResult_t Step(NavigationGridAgent* pAgent, Vector2 vec2CurrPos, std::vector<Vector2> vecVec2Path, float fDist);
-	NavigationGridAgent* CreateAgent();
-	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	std::vector<Vector2> GetGridPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to, bool bIgnoreOpen);
-	bool IsClearPath(NavigationGridAgent* pAgent, Vector2 vec2Start, const NavigationCell* node2);
+	PathResult_t RequestPath(Vector2 from, Vector2 to);
+	StepResult_t Step(Vector2 vec2CurrPos, std::vector<Vector2> vecVec2Path, float fDist);
+	std::vector<Vector2> GetGridPath(Vector2 from, Vector2 to);
+	std::vector<Vector2> GetGridPath(Vector2 from, Vector2 to, bool bIgnoreOpen);
+	bool IsClearPath(Vector2 vec2Start, const NavigationCell* node2);
 	NavMesh* m_pMesh;
 	NavigationCellGrid* m_pGrid;
 	void Reset();
-	std::vector<NavigationGridAgent*> m_vecAgents;
-	bool CanMoveTo(NavigationGridAgent* pAgent, NavigationCell* pCell, bool bIgnoreMoving);
-	std::vector<Vector2> GetLongPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	Vector2 ClosestFreePosition(NavigationGridAgent* pAgent, Vector2 vec2Target);
+	bool CanMoveTo(NavigationCell* pCell, bool bIgnoreMoving);
+	std::vector<Vector2> GetLongPath(Vector2 from, Vector2 to);
+	Vector2 ClosestFreePosition(Vector2 vec2Target);
 
 #ifdef _DEBUG
-	DebugPath_t GetDebugPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
+	DebugPath_t GetDebugPath(Vector2 from, Vector2 to);
 #endif
 
 private:
-	std::vector<Vector2> PlanPath(NavigationGridAgent* pAgent, Vector2 from, Vector2 to);
-	std::vector<Vector2> GetSmoothPath(NavigationGridAgent* pAgent, std::vector<Vector2> vecVec2CoarsePath);
+	std::vector<Vector2> PlanPath(Vector2 from, Vector2 to);
+	std::vector<Vector2> GetSmoothPath(std::vector<Vector2> vecVec2CoarsePath);
 };
 
 

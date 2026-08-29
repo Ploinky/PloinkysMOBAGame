@@ -12,6 +12,12 @@ typedef struct {
     int ping;
 } ServerInfo_t;
 
+typedef struct {
+    std::vector<uint8_t> vecData;
+    int nWidth;
+    int nHeight;
+} Portrait_t;
+
 using ServerListCallback = std::function<void(ServerInfo_t)>;
 
 class IGamerService {
@@ -24,6 +30,7 @@ public:
 
     // Player info
     virtual std::string GetPlayerName() = 0;
+    virtual Portrait_t GetPlayerPortrait() = 0;
 
     // Server browser
     virtual void RequestLANServers(ServerListCallback callback) = 0;

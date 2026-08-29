@@ -12,4 +12,5 @@ public:
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
     REGISTER_EVENT_HANDLER(CAiSystem, CNavDestEvent, OnNavDest);
+    REGISTER_EVENT_HANDLER(CAiSystem, CDeathEvent, OnUnitDeath);
 };

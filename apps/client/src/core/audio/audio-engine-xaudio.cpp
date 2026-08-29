@@ -24,7 +24,7 @@ bool CAudioEngineXAudio::Initialize() {
 		return false;
 	}
 
-    pMasterVoice->SetVolume(1);
+    pMasterVoice->SetVolume(0);
 
     music_submix_voice_ = nullptr;
     if (FAILED(hr = pXAudio2->CreateSubmixVoice(&music_submix_voice_, 1, 44100, 0, 0, 0, 0))) {

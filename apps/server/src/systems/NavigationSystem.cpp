@@ -1,9 +1,9 @@
 #include "NavigationSystem.h"
 
-#include "game/server-game-state.h"
+#include "../game/server-game-state.h"
 #include "common/navigation.h"
-#include "components/Components.h"
-#include "events.h"
+#include "../components/Components.h"
+#include "../events.h"
 
 #define GOAL_THRESHOLD 10
 #define WAIT_BLOCKED 50
@@ -13,6 +13,7 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 }
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
+    m_pMap->m_pGrid->UpdateBlockers();
     for(auto& [id, nav] : pGameState->GetAllNavigation()) {
         UpdateEntity(pGameState, fDelta, nav, id);
     }
@@ -20,7 +21,6 @@ void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
 
 void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, NavigationComponent_t& nav, UnitId id) {
     TransformComponent_t* pTransform = pGameState->GetTransform(id);
-    nav.pNavGridAgent->position = {pTransform->GetPosition().x, pTransform->GetPosition().z};
 
     // Update nav components target if intent is to walk somewhere
     if(IntentComponent_t* pIntentComp = pGameState->GetIntent(id)) {
@@ -58,13 +58,13 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
     // Trying to path, but no path currently set
     if(nav.path.size() == 0) {
         Logger::FormatMsg("Planning initial path for %d to <%f, %f>", id, nav.vec3Destination.x, nav.vec3Destination.z);
-        PathResult_t pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+        PathResult_t pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
-            Vector2 vec2NextFree = pNavMap->ClosestFreePosition(nav.pNavGridAgent, {nav.vec3Destination.x, nav.vec3Destination.z});
+            Vector2 vec2NextFree = pNavMap->ClosestFreePosition({nav.vec3Destination.x, nav.vec3Destination.z});
             nav.vec3Destination.x = vec2NextFree.x;
             nav.vec3Destination.z = vec2NextFree.y;
-            pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+            pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         }
 
         if (pathResult.eResultType != EPathResultType::FOUND) {
@@ -74,7 +74,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         nav.path = pathResult.vecVec2Path;
         
         if(nav.path.empty()) {
-            pGameState->EmitEvent(new CNavDestEvent(id, nav.vec3Destination));
+            pGameState->EmitEvent(CNavDestEvent(id, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
@@ -82,10 +82,10 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         }
     } else if(nav.vec3Destination.x != nav.path.back().x && nav.vec3Destination.z != nav.path.back().y) {
         Logger::FormatMsg("Changing destination, planning new path for %d to <%f, %f>", id, nav.vec3Destination.x, nav.vec3Destination.z);
-        PathResult_t pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+        PathResult_t pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         
         if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
-            Vector2 vec2NextFree = pNavMap->ClosestFreePosition(nav.pNavGridAgent, {nav.vec3Destination.x, nav.vec3Destination.z});
+            Vector2 vec2NextFree = pNavMap->ClosestFreePosition({nav.vec3Destination.x, nav.vec3Destination.z});
             nav.vec3Destination.x = vec2NextFree.x;
             nav.vec3Destination.z = vec2NextFree.y;
             
@@ -98,13 +98,13 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
                     }
                 }
             }
-            pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+            pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
         }
 
         nav.path = pathResult.vecVec2Path;
         
         if(nav.path.empty()) {
-            pGameState->EmitEvent(new CNavDestEvent(id, nav.vec3Destination));
+            pGameState->EmitEvent(CNavDestEvent(id, nav.vec3Destination));
             nav.eStatus = ENavigationStatus::ARRIVED;
             nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
             // TODO this needs to be handled
@@ -116,43 +116,11 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             Logger::FormatMsg("Entity %d blocked, waiting for renav", id);
             return;
         }
+
         // OH NO!
         Logger::FormatMsg("Entity %d blocked on its way to <%f, %f>, needs renav",
             id, nav.vec3Destination.x, nav.vec3Destination.z);
-        PathResult_t pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
-        
-        if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
-            Vector2 vec2NextFree = pNavMap->ClosestFreePosition(nav.pNavGridAgent, {nav.vec3Destination.x, nav.vec3Destination.z});
-            nav.vec3Destination.x = vec2NextFree.x;
-            nav.vec3Destination.z = vec2NextFree.y;
-            pathResult = pNavMap->RequestPath(nav.pNavGridAgent, {pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
-            
-            
-            // TOOD PLS NO STOP
-            if(IntentComponent_t* pIntentComp = pGameState->GetIntent(id)) {
-                if(pIntentComp->eType == EIntentType::MOVE) {
-                    if(pIntentComp->vec3Target != nav.vec3Destination) {
-                        pIntentComp->vec3Target = nav.vec3Destination;
-                        nav.eStatus = ENavigationStatus::PATHING;
-                    }
-                }
-            }
-        }
-
-        if (pathResult.eResultType != EPathResultType::FOUND) {
-            Logger::FormatMsg("PATHING FAIL!!!");
-        }
-        
-        nav.path = pathResult.vecVec2Path;
-
-        if(nav.path.empty()) {
-            pGameState->EmitEvent(new CNavDestEvent(id, nav.vec3Destination));
-            nav.eStatus = ENavigationStatus::ARRIVED;
-            nav.vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
-            return;
-        } else {
-            nav.eStatus = ENavigationStatus::PATHING;
-        }
+        TryPath(pGameState, id);
     }
 
     Vector2 vec2IntermediateTarget = nav.path.at(0);
@@ -172,7 +140,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         vec2IntermediateTarget = nav.path.at(0);
         vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
         pMovement->vec3Target = {nav.path.at(0).x, 0, nav.path.at(0).y};
-        pGameState->EmitEvent(new CMoveIntentionEvent(id, pMovement->vec3Target, 0));
+        pGameState->EmitEvent(CMoveIntentionEvent(id, pMovement->vec3Target, 0));
         return;
     }
     
@@ -186,29 +154,101 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
     }
 
     pMovement->vec3Target = {nav.path.at(0).x, 0, nav.path.at(0).y};
-    pGameState->EmitEvent(new CMoveIntentionEvent(id, pMovement->vec3Target, 0));
+    pGameState->EmitEvent(CMoveIntentionEvent(id, pMovement->vec3Target, 0));
 }
 
-void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, CSpellCastStartEvent* pCastStartEvent) {
-    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pCastStartEvent->pCtx->idCaster);
-    TransformComponent_t* pTransformComp = pGameState->GetTransform(pCastStartEvent->pCtx->idCaster);
+void CNavigationSystem::TryPath(CServerGameState* pGameState, UnitId id) {
+    RemoveBlocker(pGameState, id);
+    // TODO this shouldn't be here I don't think
+    m_pMap->m_pGrid->UpdateBlockers();
+
+    TransformComponent_t* pTransform = pGameState->GetTransform(id);
+    NavigationComponent_t* pNav = pGameState->GetNavigation(id);
+
+    PathResult_t pathResult = m_pMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNav->vec3Destination.x, pNav->vec3Destination.z});
+    
+    if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
+        Vector2 vec2NextFree = m_pMap->ClosestFreePosition({pNav->vec3Destination.x, pNav->vec3Destination.z});
+        pNav->vec3Destination.x = vec2NextFree.x;
+        pNav->vec3Destination.z = vec2NextFree.y;
+        pathResult = m_pMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNav->vec3Destination.x, pNav->vec3Destination.z});
+        
+        
+        // TOOD PLS NO STOP
+        if(IntentComponent_t* pIntentComp = pGameState->GetIntent(id)) {
+            if(pIntentComp->eType == EIntentType::MOVE) {
+                if(pIntentComp->vec3Target != pNav->vec3Destination) {
+                    pIntentComp->vec3Target = pNav->vec3Destination;
+                    pNav->eStatus = ENavigationStatus::PATHING;
+                }
+            }
+        }
+    }
+
+    if (pathResult.eResultType != EPathResultType::FOUND) {
+        Logger::FormatMsg("PATHING FAIL!!!");
+    }
+    
+    pNav->path = pathResult.vecVec2Path;
+
+    if(pNav->path.empty()) {
+        pGameState->EmitEvent(CNavDestEvent(id, pNav->vec3Destination));
+        pNav->eStatus = ENavigationStatus::ARRIVED;
+        pNav->vec3Destination = {pTransform->GetPosition().x, 0, pTransform->GetPosition().z};
+        AddBlocker(pGameState, id);
+        return;
+    } else {
+        pNav->eStatus = ENavigationStatus::PATHING;
+    }
+}
+
+void CNavigationSystem::AddBlocker(CServerGameState* pGameState, UnitId id) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(id);
+    TransformComponent_t* pTransform = pGameState->GetTransform(id);
+
+    if(pNavComp == nullptr || pTransform == nullptr) {
+        return;
+    }
+
+    if (pNavComp->hBlocker != INVALID_HANDLE) {
+        m_pMap->m_pGrid->RemoveBlocker(pNavComp->hBlocker);
+    }
+
+    pNavComp->hBlocker = m_pMap->m_pGrid->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().z, pNavComp->nCollisionRadius);
+}
+
+void CNavigationSystem::RemoveBlocker(CServerGameState* pGameState, UnitId id) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(id);
+
+    if(pNavComp == nullptr || pNavComp->hBlocker == INVALID_HANDLE) {
+        return;
+    }
+
+    m_pMap->m_pGrid->RemoveBlocker(pNavComp->hBlocker);
+    pNavComp->hBlocker = INVALID_HANDLE;
+}
+
+void CNavigationSystem::OnSpellCastStart(CServerGameState* pGameState, const CSpellCastStartEvent& evt) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.pCtx->idCaster);
+    TransformComponent_t* pTransformComp = pGameState->GetTransform(evt.pCtx->idCaster);
 
     if(pNavComp == nullptr) {
         return;
     }
-
+    
     pNavComp->eStatus = ENavigationStatus::IDLE;
     pNavComp->vec3Destination = Vector3::ZERO;
-    if(MovementComponent_t* pMovement = pGameState->GetMovement(pCastStartEvent->pCtx->idCaster)) {
-        if(TransformComponent_t* pTransform = pGameState->GetTransform(pCastStartEvent->pCtx->idCaster)) {
+    AddBlocker(pGameState, evt.pCtx->idCaster);
+    if(MovementComponent_t* pMovement = pGameState->GetMovement(evt.pCtx->idCaster)) {
+        if(TransformComponent_t* pTransform = pGameState->GetTransform(evt.pCtx->idCaster)) {
             pMovement->vec3Target = pTransform->GetPosition();
         }
     }
 }
 
 
-void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStartEvent* pEvt) {
-    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pEvt->idAttacker);
+void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, const CAttackStartEvent& evt) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.idAttacker);
 
     if(pNavComp == nullptr) {
         return;
@@ -217,32 +257,49 @@ void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, CAttackStart
 
     pNavComp->eStatus = ENavigationStatus::IDLE;
     pNavComp->vec3Destination = Vector3::ZERO;
-    if(MovementComponent_t* pMovement = pGameState->GetMovement(pEvt->idAttacker)) {
-        if(TransformComponent_t* pTransform = pGameState->GetTransform(pEvt->idAttacker)) {
+    
+    AddBlocker(pGameState, evt.idTarget);
+
+    if(MovementComponent_t* pMovement = pGameState->GetMovement(evt.idAttacker)) {
+        if(TransformComponent_t* pTransform = pGameState->GetTransform(evt.idAttacker)) {
             pMovement->vec3Target = pTransform->GetPosition();
         }
     }
 }
-void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, CMoveAttemptEvent* pMoveAttemptEvent) {
-    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pMoveAttemptEvent->idUnit);
+void CNavigationSystem::OnUnitIdle(CServerGameState* pGameState, const CEntityIdleEvent& evt) {
+    AddBlocker(pGameState, evt.idTarget);
+}
+
+void CNavigationSystem::OnMoveAttempt(CServerGameState* pGameState, const CMoveAttemptEvent& evt) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.idUnit);
 
     if(pNavComp == nullptr) {
         return;
     }
 
-    pNavComp->vec3Destination = pMoveAttemptEvent->vec3Position;
+    pNavComp->vec3Destination = evt.vec3Position;
     pNavComp->eStatus = ENavigationStatus::PATHING;
+    RemoveBlocker(pGameState, evt.idUnit);
 
-    if(SpellCastComponent_t* pSpellCastComp = pGameState->GetSpellCast(pMoveAttemptEvent->idUnit)) {
+    if(SpellCastComponent_t* pSpellCastComp = pGameState->GetSpellCast(evt.idUnit)) {
         pSpellCastComp->optCurrentCast.reset();
     }
-    if(BasicAttackComponent_t* pAtkComp = pGameState->GetBasicAttack(pMoveAttemptEvent->idUnit)) {
+    if(BasicAttackComponent_t* pAtkComp = pGameState->GetBasicAttack(evt.idUnit)) {
         pAtkComp->optCurrentAttack.reset();
     }
 }
+void CNavigationSystem::OnMoveIntention(CServerGameState* pGameState, const CMoveIntentionEvent& evt) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.idUnit);
 
-void CNavigationSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pEvt) {
-    NavigationComponent_t* pNavComp = pGameState->GetNavigation(pEvt->idTarget);
+    if(pNavComp == nullptr) {
+        return;
+    }
+
+    RemoveBlocker(pGameState, evt.idUnit);
+}
+
+void CNavigationSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
+    NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.idTarget);
 
     if(pNavComp == nullptr) {
         return;
@@ -250,4 +307,6 @@ void CNavigationSystem::OnDeath(CServerGameState* pGameState, CDeathEvent* pEvt)
 
     pNavComp->eStatus = ENavigationStatus::IDLE;
     pNavComp->vec3Destination = Vector3::ZERO;
+
+    RemoveBlocker(pGameState, evt.idTarget);
 }

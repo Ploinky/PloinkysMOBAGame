@@ -97,38 +97,42 @@ void CAnimationSystem::Update(CClientGameState* pGameState, float fDelta) {
     }
 }
 
-void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, CAttackStartEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "attack1", true);
+void CAnimationSystem::OnAttackStart(CClientGameState* pGameState, const CAttackStartEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "attack1", false);
 }
 
-void CAnimationSystem::OnAttackFinished(CClientGameState* pGameState, CAttackFinishedEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
+void CAnimationSystem::OnAttackFinished(CClientGameState* pGameState, const CAttackFinishedEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "idle", true);
 }
 
-void CAnimationSystem::OnSpellCastStart(CClientGameState* pGameState, CSpellCastStartEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "attack1", false);
+void CAnimationSystem::OnSpellCastStart(CClientGameState* pGameState, const CSpellCastStartEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "attack1", false);
 }
 
-void CAnimationSystem::OnEntityRespawn(CClientGameState* pGameState, CEntityRespawnEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
+void CAnimationSystem::OnEntityRespawn(CClientGameState* pGameState, const CEntityRespawnEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "idle", true);
 }
 
-void CAnimationSystem::OnEntityIdle(CClientGameState* pGameState, CEntityIdleEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "idle", true);
+void CAnimationSystem::OnEntityIdle(CClientGameState* pGameState, const CEntityIdleEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "idle", true);
 }
 
-void CAnimationSystem::OnEntityDeath(CClientGameState* pGameState, CEntityDeathEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "death", false);
+void CAnimationSystem::OnEntityDeath(CClientGameState* pGameState, const CEntityDeathEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "death", false);
 }
 
-void CAnimationSystem::OnEntityMove(CClientGameState* pGameState, CMoveIntentionEvent* pEvent) {
-    PlayAnimation(pGameState, pEvent->idUnit, "run", true);
+void CAnimationSystem::OnEntityMove(CClientGameState* pGameState, const CMoveIntentionEvent& evt) {
+    PlayAnimation(pGameState, evt.idUnit, "run", true);
 }
 
 void CAnimationSystem::PlayAnimation(CClientGameState* pGameState, UnitId idUnit, std::string strAnimationId, bool bLoop) {
     AnimationComponent_t* pAnimComp = pGameState->GetAnimation(idUnit);
 
     if(pAnimComp == nullptr) {
+        return;
+    }
+
+    if (pAnimComp->m_strAnimationName == strAnimationId && bLoop) {
         return;
     }
 
