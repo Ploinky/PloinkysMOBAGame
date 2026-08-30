@@ -10,4 +10,5 @@ typedef struct AppData {
 	std::vector<Vector2> vecVec2ShortPath;
 	Vector2 vec2CurrPos = { 1000, -1000 };
 	std::vector<Vector2> vecVec2CoarsePath = {};
+	DebugPath_t debugPath;
 } AppData_t;

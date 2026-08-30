@@ -43,7 +43,6 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	data.vec2CurrPos = { 1000, -1000 };
 
 	data.pMap->m_pMesh->LoadFromFile("map1");
-	data.pMap->m_pGrid = new NavigationCellGrid(data.pMap->m_pMesh);
 	/*
 	NavigationGridAgent* agt = data.pMap->CreateAgent();
 	agt->position = { 1500, -800 };
@@ -67,10 +66,10 @@ int  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 	agt4->UnitId = 4;
 	*/
 
-	data.pMap->m_pGrid->AddBlocker(1500, -800, 50);
-	data.pMap->m_pGrid->AddBlocker(1550, -850, 50);
-	data.pMap->m_pGrid->AddBlocker(705, -850, 50);
-	data.pMap->m_pGrid->AddBlocker(1000, -900, 200);
+	data.pMap->AddBlocker(1500, -800, 50);
+	data.pMap->AddBlocker(1550, -850, 50);
+	data.pMap->AddBlocker(705, -850, 50);
+	data.pMap->AddBlocker(1000, -900, 200);
 
 	WNDCLASS wc{};
 	wc.lpszClassName = TEXT("Window");

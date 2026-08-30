@@ -121,6 +121,9 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         Logger::FormatMsg("Entity %d blocked on its way to <%f, %f>, needs renav",
             id, nav.vec3Destination.x, nav.vec3Destination.z);
         TryPath(pGameState, id);
+        if (nav.path.empty()) {
+            return;
+        }
     }
 
     Vector2 vec2IntermediateTarget = nav.path.at(0);

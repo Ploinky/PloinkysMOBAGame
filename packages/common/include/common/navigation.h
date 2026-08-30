@@ -73,24 +73,6 @@ typedef struct {
 
 
 // =============== GRID NAVIGATION ===============
-class NavigationCell {
-public:
-	float X;
-	float Y;
-	bool IsWalkable;
-	bool IsOpen;
-	uint64_t UnitId;
-	int Index;
-	std::vector<int> Neighbours;
-
-	// ==== Navigation ====
-	float GlobalValue;
-	float LocalValue;
-	int Parent;
-	bool Done;
-
-	void CalculateNeighbours(int gridWidth, int gridHeight, int cellWidth, int cellHeight, int gridOffsetX, int gridOffsetY);
-};
 
 typedef struct {
 	float x;
@@ -98,37 +80,6 @@ typedef struct {
 	float radius;
 } GridBlocker_t;
 typedef EngineHandle HGridBlocker;
-
-class NavigationCellGrid {
-public:
-	NavigationCellGrid(NavMesh* navMesh);
-
-	NavigationCell* GetCellAt(float x, float y);
-	void SetCellAt(float x, float y, NavigationCell* cell);
-	void Reset();
-
-	int GridWidth;
-	int GridHeight;
-	int GridCenterX;
-	int GridCenterY;
-	int CellWidth;
-	int CellHeight;
-	int CellCountX;
-	int CellCountY;
-	NavigationCell** Cells;
-
-	float Distance(NavigationCell* a, NavigationCell* b);
-	float Heuristic(NavigationCell* a, NavigationCell* b, NavigationCell* c);
-	float Cross(const NavigationCell* v1, const NavigationCell* v2, const NavigationCell* v3);
-	NavigationCell* currCell;
-
-	void UpdateBlockers();
-	HGridBlocker AddBlocker(float x, float y, float radius);
-	void RemoveBlocker(HGridBlocker hBlocker);
-
-private:
-	std::map<HGridBlocker, GridBlocker_t> m_blockers;
-};
 
 /**
  * Result of a unit taking a step (see NavigationMap::Step).
@@ -142,11 +93,25 @@ typedef struct {
 	Vector2 vec2Pos;
 } StepResult_t;
 
+enum class EEdgeType { LINE, ARC };
+
+struct Edge_t {
+    EEdgeType eType;
+    Vector2 start;
+    Vector2 end;
+
+    // only used if type == Arc
+    Vector2 arcCenter;
+    float arcRadius;
+    bool arcClockwise; // sweep direction
+};
 #ifdef _DEBUG
 typedef struct {
 	std::vector<Vector2> vecVec2LongPath;
 	std::vector<Vector2> vecVec2ShortPath;
 	std::vector<Vector2> vecVec2FinalPath;
+	std::vector<Vector2> vecNodes;
+	std::vector<Edge_t> vecEdges;
 } DebugPath_t;
 #endif
 
@@ -161,17 +126,24 @@ typedef struct {
 	std::vector<Vector2> vecVec2Path;
 } PathResult_t;
 
+
+typedef struct {
+	HGridBlocker hBlocker;
+	Vector2 position;
+} Collision_t;
+
+typedef struct {
+	HGridBlocker hBlocker;
+	Vector2 vec2Pos;
+	float radius;
+} Node_t;
+
 class NavigationMap {
 public:
 	PathResult_t RequestPath(Vector2 from, Vector2 to);
 	StepResult_t Step(Vector2 vec2CurrPos, std::vector<Vector2> vecVec2Path, float fDist);
-	std::vector<Vector2> GetGridPath(Vector2 from, Vector2 to);
-	std::vector<Vector2> GetGridPath(Vector2 from, Vector2 to, bool bIgnoreOpen);
-	bool IsClearPath(Vector2 vec2Start, const NavigationCell* node2);
 	NavMesh* m_pMesh;
-	NavigationCellGrid* m_pGrid;
 	void Reset();
-	bool CanMoveTo(NavigationCell* pCell, bool bIgnoreMoving);
 	std::vector<Vector2> GetLongPath(Vector2 from, Vector2 to);
 	Vector2 ClosestFreePosition(Vector2 vec2Target);
 
@@ -179,9 +151,15 @@ public:
 	DebugPath_t GetDebugPath(Vector2 from, Vector2 to);
 #endif
 
+	std::map<HGridBlocker, GridBlocker_t> m_blockers;
+	HGridBlocker AddBlocker(float x, float y, float radius);
+	void RemoveBlocker(HGridBlocker hBlocker);
 private:
 	std::vector<Vector2> PlanPath(Vector2 from, Vector2 to);
-	std::vector<Vector2> GetSmoothPath(std::vector<Vector2> vecVec2CoarsePath);
+
+	
+	Collision_t CheckEdge(Vector2 vec2Position, Vector2 vec2Destination, std::vector<Vector2>& nodes, std::vector<Node_t>& vecGraphNodes, std::vector<Edge_t>& edges, float collDist);
+	void AddBlockerToGraph(std::vector<Vector2>& nodes, std::vector<Edge_t>& edges, std::vector<Node_t> vecGraphNodes, Node_t nodeToAdd, float collDist);
 };
 
 

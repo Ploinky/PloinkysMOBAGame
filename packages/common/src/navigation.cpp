@@ -506,7 +506,7 @@ void NavMesh::LoadFromFile(std::string mapName) {
 }
 
 PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
-	if (!m_pMesh->PointInMesh(to) || !CanMoveTo(m_pGrid->GetCellAt(to.x, to.y), true)) {
+	if (!m_pMesh->PointInMesh(to)) {
 		PathResult_t result;
 		result.eResultType = EPathResultType::OCCUPIED;
 		result.vecVec2Path = {};
@@ -524,26 +524,13 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
 
 	Vector2 vec2Intermediate = vecVec2LongPath.front();
 
-	std::vector<Vector2> vecVec2ShortPath = GetGridPath(from, vec2Intermediate);
-
-	for (int i = 1; i < vecVec2LongPath.size(); i++) {
-		vecVec2ShortPath.push_back(vecVec2LongPath[i]);
-	}
-
-	std::vector<Vector2> vecVec2FinalPath = GetSmoothPath(vecVec2ShortPath);
+	std::vector<Vector2> vecVec2ShortPath = vecVec2LongPath;
+	std::vector<Vector2> vecVec2FinalPath = vecVec2ShortPath;
 
 	PathResult_t result;
 	result.eResultType = EPathResultType::FOUND;
 	result.vecVec2Path = vecVec2FinalPath;
 	return result;
-}
-
-bool NavigationMap::CanMoveTo(NavigationCell* pCell, bool bIgnoreMoving) {
-	if (!pCell->IsWalkable || !pCell->IsOpen) {
-		return false;
-	}
-
-	return true;
 }
 
 StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<Vector2> path, float fDist) {
@@ -573,226 +560,137 @@ StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<Vector2> path,
 
 
 // =============== GRID NAVIGATION ===============
-NavigationCellGrid::NavigationCellGrid(NavMesh* navMesh) {
-	float maxX = -100000;
-	float minX = 100000;
-	float maxY = -100000;
-	float minY = 100000;
 
-	for(auto pol : navMesh->mesh) {
-		for(auto vert : pol->vertices) {
-			maxX = std::max(vert.x, maxX);
-			minX = std::min(vert.x, minX);
-			maxY = std::max(vert.z, maxY);
-			minY = std::min(vert.z, minY);
-		}
-	}
-
-	GridWidth = maxX - minX;
-	GridHeight = minY - maxY;
-
-	CellWidth = 50;
-	CellHeight = -50;
-
-	CellCountX = GridWidth / CellWidth;
-	CellCountY = std::abs(GridHeight / CellHeight);
-
-	GridCenterX = 0;
-	GridCenterY = 0;
-
-	Cells = new NavigationCell*[CellCountX * CellCountY];
-
-	for (int y = 0; y < CellCountY; y++) {
-		for (int x = 0; x < CellCountX; x++) {
-			NavigationCell* cell = new NavigationCell();
-			cell->X = x * CellWidth + minX;
-			cell->Y = y * CellHeight + maxY;
-			cell->IsOpen = true;
-			cell->IsWalkable = true;
-
-			if (
-				!navMesh->PointInMesh({ (float)cell->X, (float)cell->Y})
-				&& !navMesh->PointInMesh({ (float)cell->X + CellWidth, (float)cell->Y})
-				&& !navMesh->PointInMesh({ (float)cell->X + CellWidth, (float)cell->Y + CellHeight})
-				&& !navMesh->PointInMesh({ (float)cell->X, (float)cell->Y + CellHeight})
-				
-			) {
-				cell->IsWalkable = false;
-			}
-
-			cell->CalculateNeighbours(CellCountX, CellCountY, CellWidth, CellHeight, GridCenterX, GridCenterY);
-
-			SetCellAt(x * CellWidth, y * CellHeight, cell);
-		}
-	}
-}
-
-const float D = 1, D2 = sqrt(2);
-float NavigationCellGrid::Heuristic(NavigationCell* pStartCell, NavigationCell* pNeighbourCell, NavigationCell* pEndCell) {
-	float x = abs(pNeighbourCell->X - pEndCell->X);
-	float y = abs(pNeighbourCell->Y - pEndCell->Y);
-	float cross = Cross(pStartCell, pNeighbourCell, pEndCell);
-	return (x + y) + cross;
-}
-
-float NavigationCellGrid::Distance(NavigationCell* a, NavigationCell* b) {
-	float x = b->X - a->X;
-	float y = b->Y - a->Y;
-	return sqrt(x * x + y * y);
-}	
-
-void NavigationCell::CalculateNeighbours(int gridWidth, int gridHeight, int cellWidth, int cellHeight, int gridOffsetX, int gridOffsetY) {
-	Neighbours.clear();
-	bool allowDiagonal = false;
-
-	int x = (X + gridOffsetX) / cellWidth;
-	int y = (Y + gridOffsetY) / cellHeight;
-
-	if (x > 0) {
-		if (y > 0 && allowDiagonal) {
-			Neighbours.push_back(x - 1 + (y - 1) * gridWidth);
-		}
-
-		Neighbours.push_back(x - 1 + y * gridWidth);
-
-		if (y < gridHeight - 1 && allowDiagonal) {
-			Neighbours.push_back(x - 1 + (y + 1) * gridWidth);
-		}
-	}
-	if (y > 0) {
-		Neighbours.push_back(x + (y - 1) * gridWidth);
-	}
-
-	if (y < gridHeight - 1) {
-		Neighbours.push_back(x + (y + 1) * gridWidth);
-	}
-
-	if (x < gridWidth - 1) {
-		if (y > 0 && allowDiagonal) {
-			Neighbours.push_back(x + 1 + (y - 1) * gridWidth);
-		}
-
-		Neighbours.push_back(x + 1 + y * gridWidth);
-
-		if (y < gridHeight - 1 && allowDiagonal) {
-			Neighbours.push_back(x + 1 + (y + 1) * gridWidth);
-		}
-	}
-
-	for(auto n : Neighbours) {
-		if(n > gridWidth * gridHeight) {
-			Neighbours.clear();
-		}
-	}
-}
-
-
-float NavigationCellGrid::Cross(const NavigationCell* v1, const NavigationCell* v2, const NavigationCell* v3) {
-	float dx1 = v1->X - v3->X;
-	float dy1 = v1->Y - v3->Y;
-	float dx2 = v2->X - v3->X;
-	float dy2 = v2->Y - v3->Y;
-	return abs(dx1 * dy2 - dx2 * dy1);
-}
-
-bool NavigationMap::IsClearPath(Vector2 vec2Start, const NavigationCell* node2) {
-	float x1 = vec2Start.x;
-	float y1 = vec2Start.y;
-	float x2 = node2->X + m_pGrid->CellWidth / 2;
-	float y2 = node2->Y + m_pGrid->CellHeight / 2;
-
-	float dx = (x2 - x1) / m_pGrid->CellWidth;
-	float dy = (y2 - y1) / m_pGrid->CellHeight;
-
-	float sx = dx == 0 ? 9999.0f : std::sqrt(1 + std::pow(dy/dx, 2));
-	float sy = dy == 0 ? 9999.0f : std::sqrt(1 + std::pow(dx/dy, 2));
-
-	float x = x1 / m_pGrid->CellWidth;
-	float y = y1 / m_pGrid->CellHeight;
-	
-	NavigationCell* square = m_pGrid->GetCellAt(x1, y1);
-	
-	float fx = (x - ((int) x));
-	float fy = (y - ((int) y));
-	float distX = sx * (dx > 0 ? 1 - fx : fx);
-	float distY = sy * (dy > 0 ? 1 - fy : fy);
-
-	while (square != nullptr && square != node2) {
-		if (x < 0 || x >= m_pGrid->GridWidth || y < 0 || y <= m_pGrid->GridHeight) {
-			return false; // Path goes out of bounds
-		}
-
-		if (!CanMoveTo(square, true)) {
-			return false; // Path is blocked
-		}
-
-		if(std::abs(distX) < std::abs(distY)) {
-			if(x == x1) {
-				x += dx > 0 ? 1 : -1;
-				distX += distX;
-			} else {
-				x += dx > 0 ? 1 : -1;
-				distX += sx;
-			}
-		} else {
-			if(y == y1) {
-				y += dy > 0 ? 1 : -1;
-				distY += distY;
-			} else {
-				y += dy > 0 ? 1 : -1;
-				distY += sy;
-			}
-		}
-
-		square = m_pGrid->GetCellAt(x * m_pGrid->CellWidth, y * m_pGrid->CellHeight);
-	}
-
-	return true;
-}
 
 void NavigationMap::Reset() {
-	m_pGrid->Reset();
 }
-
-void NavigationCellGrid::UpdateBlockers() {
-	for (int i = 0; i < (CellCountX * CellCountY); i++) {
-		this->Cells[i]->IsOpen = true;
-	}
-	for (const std::pair<const HGridBlocker, GridBlocker_t> &blocker : m_blockers) {
-		int x = std::fmax(0.0f, (blocker.second.x - blocker.second.radius) / CellWidth);
-		int y = (blocker.second.y - blocker.second.radius) / CellHeight;
-		int w = ceil((blocker.second.radius * 2.0f) / CellWidth);
-		int h = ceil((blocker.second.radius * 2.0f) / CellHeight);
-
-		for (int col = x; col < x + w; col++) {
-			for (int row = y; row > y + h; row--) {
-				Cells[col + row * CellCountX]->IsOpen = false;
-			}
-		}
-		// GetCellAt(blocker.second.x, blocker.second.y)->IsOpen = false;
-	}
-}
-
-void NavigationCellGrid::Reset() {
-	for (int i = 0; i < CellCountX * CellCountY; i++) {
-		NavigationCell* cell = Cells[i];
-		cell->GlobalValue = FLT_MAX;
-		cell->LocalValue = FLT_MAX;
-		cell->Parent = INT_MAX;
-		cell->Done = false;
-	}
-}
-
-
-auto tiebreaker = [](NavigationCell* left, NavigationCell* right) {
-	return left->GlobalValue > right->GlobalValue;
-};
-
-std::priority_queue<NavigationCell*, std::vector<NavigationCell*>, decltype(tiebreaker)> nodesToTest(tiebreaker);
 
 std::vector<Vector2> NavigationMap::GetLongPath(Vector2 from, Vector2 to) {
 	return PlanPath(from, to);
 }
+
+
+Collision_t NavigationMap::CheckEdge(Vector2 vec2Position, Vector2 vec2Destination, std::vector<Vector2>& nodes, std::vector<Node_t>& vecGraphNodes, std::vector<Edge_t>& edges, float collDist) {
+	float dist = std::numeric_limits<float>::max();
+	Collision_t detected;
+	detected.hBlocker = INVALID_HANDLE;
+	detected.position = { 0, 0 };
+
+	for (auto& [hBlocker, blocker] : m_blockers) {
+		Line line = Line(vec2Position, vec2Destination);
+		Circle circle = Circle(Vector2(blocker.x, blocker.y), (collDist + blocker.radius - 1));
+
+		Vector2 coll = TestCollision(line, circle);
+
+		if (coll.Length() > 0 && (coll - vec2Position).Length() < dist){
+			dist = (coll - vec2Position).Length();
+			detected.position = {blocker.x, blocker.y};
+			detected.hBlocker = hBlocker;
+		}
+	}
+
+	if (detected.hBlocker == INVALID_HANDLE) {
+		Edge_t edge1;
+		edge1.eType = EEdgeType::LINE;
+		edge1.start = vec2Position;
+		edge1.end = vec2Destination;
+		edges.push_back(edge1);
+	} else {
+		GridBlocker_t blocker = m_blockers.at(detected.hBlocker);
+		Node_t node;
+		node.hBlocker = detected.hBlocker;
+		node.radius = blocker.radius;
+		node.vec2Pos = Vector2(blocker.x, blocker.y);
+		AddBlockerToGraph(nodes, edges, vecGraphNodes, node, collDist);
+	}
+
+	return detected;
+};
+
+
+void NavigationMap::AddBlockerToGraph(std::vector<Vector2>& nodes, std::vector<Edge_t>& edges, std::vector<Node_t> vecGraphNodes, Node_t nodeToAdd, float collDist) {
+	for (Node_t node : vecGraphNodes) {
+		if (node.hBlocker == nodeToAdd.hBlocker) {
+			return;
+		}
+	}
+
+	vecGraphNodes.push_back(nodeToAdd);
+
+	for (Node_t node : vecGraphNodes) {
+		if (node.hBlocker == nodeToAdd.hBlocker) {
+			continue;
+		}
+
+		// internal bitangents
+		{
+			float ra = nodeToAdd.radius;
+			float rb = node.radius;
+			float d = (nodeToAdd.vec2Pos - node.vec2Pos).Length();
+			float a = std::acos((ra+rb)/d);
+			Vector2 u = Vector2(node.vec2Pos - nodeToAdd.vec2Pos).Normalize();
+			Vector2 v = Vector2(-u.y, u.x);
+
+			Vector2 w1(
+				u.x * std::cos(a) - u.y * std::sin(a),
+				u.x * std::sin(a) + u.y * std::cos(a)
+			);
+
+			Vector2 w2(
+				u.x * std::cos(a) + u.y * std::sin(a),
+				-u.x * std::sin(a) + u.y * std::cos(a)
+			);
+
+			Vector2 C = nodeToAdd.vec2Pos + w1 * ra;
+			Vector2 E = nodeToAdd.vec2Pos + w2 * ra;
+			Vector2 D = node.vec2Pos - w1 * rb;
+			Vector2 F = node.vec2Pos - w2 * rb;
+
+			nodes.push_back(C);
+			nodes.push_back(E);
+			nodes.push_back(D);
+			nodes.push_back(F);
+
+			CheckEdge(C, D, nodes, vecGraphNodes, edges, 0);
+			CheckEdge(E, F, nodes, vecGraphNodes, edges, 0);
+		}
+
+		// external bitangents
+		
+		{
+			float ra = nodeToAdd.radius;
+			float rb = node.radius;
+			float d = (node.vec2Pos - nodeToAdd.vec2Pos).Length();
+			float a = std::acos((ra-rb)/d);
+			Vector2 u = Vector2(node.vec2Pos - nodeToAdd.vec2Pos).Normalize();
+			Vector2 v = Vector2(-u.y, u.x);
+
+			Vector2 w1(
+				u.x * std::cos(a) - u.y * std::sin(a),
+				u.x * std::sin(a) + u.y * std::cos(a)
+			);
+
+			Vector2 w2(
+				u.x * std::cos(a) + u.y * std::sin(a),
+				-u.x * std::sin(a) + u.y * std::cos(a)
+			);
+
+			Vector2 C = nodeToAdd.vec2Pos + w1 * ra;
+			Vector2 D = node.vec2Pos + w1 * rb;
+			Vector2 E = nodeToAdd.vec2Pos + w2 * ra;
+			Vector2 F = node.vec2Pos + w2 * rb;
+
+			nodes.push_back(C);
+			nodes.push_back(E);
+			nodes.push_back(D);
+			nodes.push_back(F);
+
+			CheckEdge(C, D, nodes, vecGraphNodes, edges, 0);
+			CheckEdge(E, F, nodes, vecGraphNodes, edges, 0);
+		}
+		
+	}
+};
 
 #ifdef _DEBUG
 DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
@@ -805,11 +703,33 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 	}
 
 	Vector2 vec2Intermediate = result.vecVec2LongPath.front();
+	
+	std::vector<Node_t> vecGraphNodes;
+	vecGraphNodes.push_back({
+		INVALID_HANDLE,
+		from, 
+		0
+	});
+	vecGraphNodes.push_back({
+		INVALID_HANDLE,
+		to, 
+		0
+	});
 
-	std::vector<Vector2> vecVec2ShortPath = GetGridPath(from, vec2Intermediate);
+
+	std::vector<Vector2> nodes;
+	std::vector<Edge_t> edges;
+	CheckEdge(from, to, nodes, vecGraphNodes, edges, 50);
+
+	std::vector<Vector2> vecVec2ShortPath = { };
+
+	vecVec2ShortPath.push_back(vec2Intermediate);
+	result.vecNodes = nodes;
+	result.vecEdges = edges;
 	result.vecVec2ShortPath = vecVec2ShortPath;
 
-	std::vector<Vector2> vecVec2SmoothPath = GetSmoothPath(vecVec2ShortPath);
+	// std::vector<Vector2> vecVec2SmoothPath = GetSmoothPath(vecVec2ShortPath);
+	std::vector<Vector2> vecVec2SmoothPath = vecVec2ShortPath;
 	
 	for (int i = 1; i < result.vecVec2LongPath.size(); i++) {
 		vecVec2SmoothPath.push_back(result.vecVec2LongPath[i]);
@@ -819,226 +739,7 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 }
 #endif
 
-std::vector<Vector2> NavigationMap::GetGridPath(Vector2 from, Vector2 to) {
-	return GetGridPath(from, to, false);
-}
-
-std::vector<Vector2> NavigationMap::GetSmoothPath(std::vector<Vector2> vecVec2CoarsePath) {
-	std::vector<Vector2> smoothedPath;
-	if (vecVec2CoarsePath.empty()) {
-		return {};
-	}
-	Vector2 smoothAnchor = vecVec2CoarsePath[0];
-	int i = 0;
-	while (i < vecVec2CoarsePath.size()) {
-		NavigationCell* pCell = m_pGrid->GetCellAt(vecVec2CoarsePath[i].x, vecVec2CoarsePath[i].y);
-		if (IsClearPath(smoothAnchor, pCell)) {
-			i++;
-		}
-		else {
-			Vector2 vec2NewPt = { vecVec2CoarsePath[i - 1].x, vecVec2CoarsePath[i - 1].y};
-			if (!smoothedPath.empty() && vec2NewPt == smoothedPath.back()) {
-				i++;
-				continue;
-			}
-			smoothedPath.push_back(vec2NewPt);
-			smoothAnchor = smoothedPath.back();
-		}
-	}
-
-	smoothedPath.push_back(vecVec2CoarsePath.back());
-	return smoothedPath;
-}
-
-std::vector<Vector2> NavigationMap::GetGridPath(Vector2 from, Vector2 to, bool bIgnoreOpen) {
-	m_pGrid->Reset();
-	NavigationCell* startCell = m_pGrid->GetCellAt(from.x, from.y);
-	NavigationCell* anchor = startCell;
-	NavigationCell* endCell = m_pGrid->GetCellAt(to.x, to.y);
-
-	if (startCell == nullptr || endCell == nullptr) {
-		return {};
-	}
-
-	if(!startCell->IsWalkable || !endCell->IsWalkable) {
-		return {};
-	}
-
-	if(startCell == endCell) {
-		return {};
-	}
-
-	m_pGrid->currCell = startCell;
-
-	startCell->GlobalValue = 0;
-	startCell->LocalValue = 0;
-
-	while (!nodesToTest.empty()) {
-		nodesToTest.pop();
-	}
-	nodesToTest.emplace(startCell);
-
-	int c = 0;
-	while (!nodesToTest.empty()) {
-		m_pGrid->currCell = nodesToTest.top();
-		nodesToTest.pop();
-
-		for (unsigned int neighbourIndex : m_pGrid->currCell->Neighbours) {
-			c++;
-			NavigationCell* neighbour = m_pGrid->Cells[neighbourIndex];
-
-			if (m_pGrid->currCell == neighbour || !neighbour->IsWalkable || !CanMoveTo(neighbour, true)) {
-				continue;
-			}
-
-			float newLocal = m_pGrid->currCell->LocalValue + D;
-
-			if (newLocal < neighbour->LocalValue)
-			{
-				neighbour->Parent = m_pGrid->currCell->Index;
-				neighbour->LocalValue = newLocal;
-				neighbour->GlobalValue = newLocal + m_pGrid->Heuristic(startCell, neighbour, endCell);
-				nodesToTest.emplace(neighbour);
-			}
-		}
-
-		if (m_pGrid->currCell == endCell) {
-			break;
-		}
-	}
-
-	std::vector<NavigationCell*> path;
-
-	NavigationCell* pathCell = endCell;
-
-	path.push_back(pathCell);
-
-	while (pathCell != startCell) {
-		if (pathCell->Parent == INT_MAX || pathCell == m_pGrid->Cells[pathCell->Parent] ) {
-			return {};
-		}
-		pathCell = m_pGrid->Cells[pathCell->Parent];
-		if (pathCell == nullptr) {
-			return {};
-		}
-		path.push_back(pathCell);
-	}
-
-	std::reverse(path.begin(), path.end());
-
-	std::vector<Vector2> vecVec2CoarsePath;
-
-	for (NavigationCell* pCell : path) {
-		vecVec2CoarsePath.push_back({ pCell->X + m_pGrid->CellWidth / 2, pCell->Y + m_pGrid->CellHeight / 2 });
-	}
-
-	vecVec2CoarsePath.push_back(to);
-
-	return vecVec2CoarsePath;
-}
-
-NavigationCell* NavigationCellGrid::GetCellAt(float x, float y) {
-	int index = ((int)(x + GridCenterX) / CellWidth) + ((int)(y + GridCenterY) / CellHeight * CellCountX);
-
-	if (index < 0 || index > CellCountX * CellCountY) {
-		return nullptr;
-	}
-
-	return Cells[index];
-}
-
-void NavigationCellGrid::SetCellAt(float x, float y, NavigationCell* cell) {
-	int index = (x + GridCenterX) / CellWidth + (y + GridCenterY) / CellHeight * CellCountX;
-
-	if (index < 0 || index > CellCountX * CellCountY) {
-		return;
-	}
-
-	Cells[index] = cell;
-	cell->Index = index;
-}
-
-Vector2 NavigationMap::ClosestFreePosition(Vector2 vec2Target) {
-	// first, clamp coordinates to map bounds - everything else is nonesense
-	vec2Target.x = std::fmax(0.0f, std::fmin(vec2Target.x, m_pGrid->GridWidth));
-	vec2Target.y = std::fmin(0.0f, std::fmax(vec2Target.y, m_pGrid->GridHeight));
-
-	// this is the cell we would like to get if it's free
-	NavigationCell* pPreferredCell = m_pGrid->GetCellAt(vec2Target.x, vec2Target.y);
-
-	if (pPreferredCell == nullptr) {
-		// TODO this must be no inside the grid?
-		return vec2Target;
-	}
-
-	// just extend outward in circles.... I can imagine this has lots of problems
-	// but it just has to be good enough for now, and probably will be in 99.99% of cases
-	// might look in the direction of the player first?
-	int nWest = pPreferredCell->Index - 1;
-	int nNorthWest = nWest - m_pGrid->CellCountX;
-	int nNorth = nNorthWest + 1;
-	int nNorthEast = nNorth + 1;
-	int nEast = nNorthEast + m_pGrid->CellCountX;
-	int nSouthEast = nEast + m_pGrid->CellCountX;
-	int nSouth = nSouthEast - 1;
-	int nSouthWest = nSouth - 1;
-
-	auto fnCheckCell = [this](int nIndex) {
-		return nIndex > 0 && nIndex < m_pGrid->CellCountX + m_pGrid->CellCountX * m_pGrid->CellCountY && m_pGrid->Cells[nIndex] && m_pGrid->Cells[nIndex]->IsWalkable && CanMoveTo(m_pGrid->Cells[nIndex], true);
-	};
-
-	auto fnToCoord = [this](int nIndex) {
-		return Vector2(m_pGrid->Cells[nIndex]->X + m_pGrid->CellWidth / 2.0f, m_pGrid->Cells[nIndex]->Y + m_pGrid->CellHeight / 2.0f);
-	};
-
-	while (nNorthWest <= m_pGrid->CellCountX + m_pGrid->CellCountX * m_pGrid->CellCountY && nSouthEast >= 0) {
-		if (fnCheckCell(nWest)) {
-			return fnToCoord(nWest);
-		}
-
-		if (fnCheckCell(nNorthWest)) {
-			return fnToCoord(nNorthWest);
-		}
-
-		if (fnCheckCell(nNorth)) {
-			return fnToCoord(nNorth);
-		}
-
-		if (fnCheckCell(nNorthEast)) {
-			return fnToCoord(nNorthEast);
-		}
-
-		if (fnCheckCell(nEast)) {
-			return fnToCoord(nEast);
-		}
-
-		if (fnCheckCell(nSouthEast)) {
-			return fnToCoord(nSouthEast);
-		}
-
-		if (fnCheckCell(nSouth)) {
-			return fnToCoord(nSouth);
-		}
-
-		if (fnCheckCell(nSouthWest)) {
-			return fnToCoord(nSouthWest);
-		}
-
-		// TODO this is for sure wrong btw but it's better than nothing.
-		nWest -= 1;
-		nNorthWest = nWest - m_pGrid->CellCountX;
-		nNorth = nNorthWest + 1;
-		nNorthEast = nNorth + 1;
-		nEast = nNorthEast + m_pGrid->CellCountX;
-		nSouthEast = nEast + m_pGrid->CellCountX;
-		nSouth = nSouthEast - 1;
-		nSouthWest = nSouth - 1;
-	}
-
-	return vec2Target;
-}
-
-HGridBlocker NavigationCellGrid::AddBlocker(float x, float y, float radius) {
+HGridBlocker NavigationMap::AddBlocker(float x, float y, float radius) {
 	GridBlocker_t blocker;
 	blocker.x = x;
 	blocker.y = y;
@@ -1051,7 +752,7 @@ HGridBlocker NavigationCellGrid::AddBlocker(float x, float y, float radius) {
 	return hBlocker;
 }
 
-void NavigationCellGrid::RemoveBlocker(HGridBlocker hBlocker) {
+void NavigationMap::RemoveBlocker(HGridBlocker hBlocker) {
 	if (hBlocker == INVALID_HANDLE) {
 		Logger::FormatErr("Attempted to remove invalid grid blocker");
 		return;

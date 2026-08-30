@@ -6,9 +6,9 @@ HBRUSH hBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
 HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 HBRUSH hBrushLightGray = CreateSolidBrush(RGB(200, 200, 200));
 HBRUSH hBrushGray = CreateSolidBrush(RGB(100,100, 100));
-HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
-HPEN hPenGreen = CreatePen(PS_SOLID, 2, RGB(0, 255, 0));
-HPEN hPenBlue = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
+HPEN hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+HPEN hPenBlue = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
 HBITMAP hBitMap;
 
 LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -33,8 +33,6 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			HFONT hfntOld;
 
 			AppData_t* pSharedData = (AppData_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-
-			pSharedData->pMap->m_pGrid->UpdateBlockers();
 
 			HDC hDc = BeginPaint(hWnd, &ps);
 
@@ -64,37 +62,14 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 				LineTo(hdcMem, pol->vertices[0].x /SCALING_FACTOR, -(pol->vertices[0].z /SCALING_FACTOR));
 			}
 
-			NavigationCellGrid* pGrid = pSharedData->pMap->m_pGrid;
-			// draw the grid
-			for (int x = 0; x < pGrid->CellCountX; x++) {
-				for (int y = 0; y < pSharedData->pMap->m_pGrid->CellCountY; y++) {
-					POINT p;
-					MoveToEx(hdcMem, (x * pGrid->CellWidth) /SCALING_FACTOR, -(y * pGrid->CellHeight /SCALING_FACTOR), &p);
-					LineTo(hdcMem, (x * pGrid->CellWidth + pGrid->CellWidth)  /SCALING_FACTOR, -(y * pGrid->CellHeight /SCALING_FACTOR));
-					LineTo(hdcMem, (x * pGrid->CellWidth + pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight + pGrid->CellHeight) /SCALING_FACTOR));
-					LineTo(hdcMem, (x * pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight + pGrid->CellHeight) /SCALING_FACTOR));
-					LineTo(hdcMem, (x * pGrid->CellWidth)  /SCALING_FACTOR, -((y * pGrid->CellHeight) /SCALING_FACTOR));
-					if (!pSharedData->pMap->CanMoveTo(pGrid->Cells[x + y * pGrid->CellCountX], false)) {
-						RECT rect;
-						rect.left = (x * pGrid->CellWidth) / SCALING_FACTOR;
-						rect.right = rect.left + (pGrid->CellWidth / SCALING_FACTOR);
-						rect.top = -(y * pGrid->CellHeight) / SCALING_FACTOR;
-						rect.bottom = rect.top - (pGrid->CellHeight / SCALING_FACTOR);
-						
-						FillRect(hdcMem, &rect, (HBRUSH) GetStockObject(LTGRAY_BRUSH));
-					}
-				}
-			}
 
-			/*
 			// draw blockers
-			for (NavigationGridAgent* pBlocker : pSharedData->pMap->m_vecAgents) {
+			for (auto& [hBlocker, blocker] : pSharedData->pMap->m_blockers) {
 				SelectObject( hdcMem, GetStockObject( NULL_BRUSH ) );
 				// SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
-				float fHalfRadius = pBlocker->nCollisionRadius;
-				Ellipse(hdcMem, (pBlocker->position.x - fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.y - fHalfRadius) /SCALING_FACTOR, (pBlocker->position.x + fHalfRadius) /SCALING_FACTOR, -(pBlocker->position.y + fHalfRadius) /SCALING_FACTOR);
+				float fHalfRadius = blocker.radius;
+				Ellipse(hdcMem, (blocker.x - fHalfRadius) /SCALING_FACTOR, -(blocker.y - fHalfRadius) /SCALING_FACTOR, (blocker.x + fHalfRadius) /SCALING_FACTOR, -(blocker.y + fHalfRadius) /SCALING_FACTOR);
 			}
-			*/
 
 			// draw the player
 			RECT rect;
@@ -107,6 +82,39 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SelectObject(hdcMem, hBrushBlue);
 			Ellipse(hdcMem, (pSharedData->vec2CurrPos.x - fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y - fHalfRadius) /SCALING_FACTOR, (pSharedData->vec2CurrPos.x + fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y + fHalfRadius) /SCALING_FACTOR);
 
+			// draw the nodes
+			if (!pSharedData->debugPath.vecNodes.empty()) {
+				for (const auto& node : pSharedData->debugPath.vecNodes) {
+					Ellipse(hdcMem, (node.x - 10) /SCALING_FACTOR, -(node.y - 10) /SCALING_FACTOR, (node.x + 10) /SCALING_FACTOR, -(node.y + 10) /SCALING_FACTOR);
+				}
+			}
+			SelectObject(hdcMem, hPenGreen);
+			SetArcDirection(hdcMem, AD_CLOCKWISE);
+
+			// draw the edges
+			if (!pSharedData->debugPath.vecEdges.empty()) {
+				SelectObject(hdcMem, hPenGreen);
+				POINT p;
+				for (const auto& edge : pSharedData->debugPath.vecEdges) {
+					if (edge.eType == EEdgeType::ARC) {
+						RECT rc {
+							edge.arcCenter.x/SCALING_FACTOR - edge.arcRadius/SCALING_FACTOR,
+							-edge.arcCenter.y/SCALING_FACTOR - edge.arcRadius/SCALING_FACTOR,
+							edge.arcCenter.x/SCALING_FACTOR + edge.arcRadius/SCALING_FACTOR,
+							-edge.arcCenter.y/SCALING_FACTOR + edge.arcRadius/SCALING_FACTOR,
+						};
+							Arc(hdcMem,
+							rc.left, rc.top, rc.right, rc.bottom,
+							edge.start.x/SCALING_FACTOR, -edge.start.y/SCALING_FACTOR,
+							edge.end.x/SCALING_FACTOR, -edge.end.y/SCALING_FACTOR
+						);
+					} else {
+						MoveToEx(hdcMem, edge.start.x /SCALING_FACTOR, -(edge.start.y /SCALING_FACTOR), &p);
+						LineTo(hdcMem, edge.end.x /SCALING_FACTOR, -(edge.end.y /SCALING_FACTOR));
+					}
+				}
+			}
+		
 			// draw the long path
 			if (pSharedData->vecVec2LongPath.size() > 0) {
 				SelectObject(hdcMem, hPenBlue);
@@ -171,6 +179,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->path = path.vecVec2FinalPath;
 			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
 			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
+			pSharedData->debugPath = path;
+
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
 
@@ -195,6 +205,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->path = path.vecVec2FinalPath;
 			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
 			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
+			pSharedData->debugPath = path;
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
 
