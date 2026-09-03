@@ -97,21 +97,30 @@ enum class EEdgeType { LINE, ARC };
 
 struct Edge_t {
     EEdgeType eType;
-    Vector2 start;
-    Vector2 end;
+    int start;
+    int end;
+	float cost;
 
     // only used if type == Arc
     Vector2 arcCenter;
     float arcRadius;
     bool arcClockwise; // sweep direction
 };
+
+typedef struct {
+	HGridBlocker hBlocker;
+	Vector2 vec2Pos;
+} Node_t;
+
 #ifdef _DEBUG
 typedef struct {
 	std::vector<Vector2> vecVec2LongPath;
 	std::vector<Vector2> vecVec2ShortPath;
+	std::list<Node_t> vecShortPath;
 	std::vector<Vector2> vecVec2FinalPath;
-	std::vector<Vector2> vecNodes;
+	std::vector<Node_t> vecNodes;
 	std::vector<Edge_t> vecEdges;
+	std::vector<Edge_t> vecPath;
 } DebugPath_t;
 #endif
 
@@ -136,11 +145,18 @@ typedef struct {
 	HGridBlocker hBlocker;
 	Vector2 vec2Pos;
 	float radius;
-} Node_t;
+} GraphNode_t;
+
+typedef struct {
+	std::vector<Node_t> vecNodes;
+	std::vector<Edge_t> vecEdges;
+	std::vector<GraphNode_t> vecGraphNodes;
+} ShortPathGraph_t;
 
 class NavigationMap {
 public:
 	PathResult_t RequestPath(Vector2 from, Vector2 to);
+	StepResult_t Step(Vector2 vec2CurrPos, std::vector<Edge_t> path, float fDist);
 	StepResult_t Step(Vector2 vec2CurrPos, std::vector<Vector2> vecVec2Path, float fDist);
 	NavMesh* m_pMesh;
 	void Reset();
@@ -158,9 +174,9 @@ private:
 	std::vector<Vector2> PlanPath(Vector2 from, Vector2 to);
 
 	
-	Collision_t CheckEdge(Vector2 vec2Position, Vector2 vec2Destination, std::vector<Vector2>& nodes, std::vector<Node_t>& vecGraphNodes, std::vector<Edge_t>& edges, float collDist);
-	void AddBlockerToGraph(std::vector<Vector2>& nodes, std::vector<Edge_t>& edges, std::vector<Node_t> vecGraphNodes, Node_t nodeToAdd, float collDist);
+	Collision_t CheckEdge(Vector2 vec2Position, Vector2 vec2Destination, ShortPathGraph_t& graph, std::vector<GraphNode_t>& vecDiscoveredGraphNodes, float collDist);
+	void AddBlockerToGraph(ShortPathGraph_t& graph, GraphNode_t nodeToAdd, std::vector<GraphNode_t>& vecDiscoveredGraphNodes, float collDist);
+	void CalculateArcs(ShortPathGraph_t& graph);
+	size_t AddNodeToGraph(ShortPathGraph_t& graph, HGridBlocker hBlocker, Vector2 vec2Pos);
 };
-
-
 #endif

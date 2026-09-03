@@ -79,7 +79,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         pNav->nCollisionRadius = entityData.optNavigationData.value().nCollisionRadius;
 
         if (TransformComponent_t* pTransform = GetTransform(id)) {
-            pNav->hBlocker = m_pNavMap->m_pGrid->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().y, pNav->nCollisionRadius);
+            pNav->hBlocker = m_pNavMap->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().y, pNav->nCollisionRadius);
         } else {
             pNav->hBlocker = INVALID_HANDLE;
         }

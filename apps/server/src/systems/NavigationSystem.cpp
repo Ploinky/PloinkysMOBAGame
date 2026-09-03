@@ -13,7 +13,6 @@ CNavigationSystem::CNavigationSystem(NavigationMap* pMap) {
 }
 
 void CNavigationSystem::Update(CServerGameState* pGameState, float fDelta) {
-    m_pMap->m_pGrid->UpdateBlockers();
     for(auto& [id, nav] : pGameState->GetAllNavigation()) {
         UpdateEntity(pGameState, fDelta, nav, id);
     }
@@ -162,8 +161,6 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
 
 void CNavigationSystem::TryPath(CServerGameState* pGameState, UnitId id) {
     RemoveBlocker(pGameState, id);
-    // TODO this shouldn't be here I don't think
-    m_pMap->m_pGrid->UpdateBlockers();
 
     TransformComponent_t* pTransform = pGameState->GetTransform(id);
     NavigationComponent_t* pNav = pGameState->GetNavigation(id);
@@ -214,10 +211,10 @@ void CNavigationSystem::AddBlocker(CServerGameState* pGameState, UnitId id) {
     }
 
     if (pNavComp->hBlocker != INVALID_HANDLE) {
-        m_pMap->m_pGrid->RemoveBlocker(pNavComp->hBlocker);
+        m_pMap->RemoveBlocker(pNavComp->hBlocker);
     }
 
-    pNavComp->hBlocker = m_pMap->m_pGrid->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().z, pNavComp->nCollisionRadius);
+    pNavComp->hBlocker = m_pMap->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().z, pNavComp->nCollisionRadius);
 }
 
 void CNavigationSystem::RemoveBlocker(CServerGameState* pGameState, UnitId id) {
@@ -227,7 +224,7 @@ void CNavigationSystem::RemoveBlocker(CServerGameState* pGameState, UnitId id) {
         return;
     }
 
-    m_pMap->m_pGrid->RemoveBlocker(pNavComp->hBlocker);
+    m_pMap->RemoveBlocker(pNavComp->hBlocker);
     pNavComp->hBlocker = INVALID_HANDLE;
 }
 

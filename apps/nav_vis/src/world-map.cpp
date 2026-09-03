@@ -67,7 +67,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			for (auto& [hBlocker, blocker] : pSharedData->pMap->m_blockers) {
 				SelectObject( hdcMem, GetStockObject( NULL_BRUSH ) );
 				// SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
-				float fHalfRadius = blocker.radius;
+				float fHalfRadius = blocker.radius + 50;
 				Ellipse(hdcMem, (blocker.x - fHalfRadius) /SCALING_FACTOR, -(blocker.y - fHalfRadius) /SCALING_FACTOR, (blocker.x + fHalfRadius) /SCALING_FACTOR, -(blocker.y + fHalfRadius) /SCALING_FACTOR);
 			}
 
@@ -85,7 +85,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			// draw the nodes
 			if (!pSharedData->debugPath.vecNodes.empty()) {
 				for (const auto& node : pSharedData->debugPath.vecNodes) {
-					Ellipse(hdcMem, (node.x - 10) /SCALING_FACTOR, -(node.y - 10) /SCALING_FACTOR, (node.x + 10) /SCALING_FACTOR, -(node.y + 10) /SCALING_FACTOR);
+					Ellipse(hdcMem, (node.vec2Pos.x - 10) /SCALING_FACTOR, -(node.vec2Pos.y - 10) /SCALING_FACTOR, (node.vec2Pos.x + 10) /SCALING_FACTOR, -(node.vec2Pos.y + 10) /SCALING_FACTOR);
 				}
 			}
 			SelectObject(hdcMem, hPenGreen);
@@ -96,6 +96,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 				SelectObject(hdcMem, hPenGreen);
 				POINT p;
 				for (const auto& edge : pSharedData->debugPath.vecEdges) {
+					Node_t start = pSharedData->debugPath.vecNodes[edge.start];
+					Node_t end = pSharedData->debugPath.vecNodes[edge.end];
 					if (edge.eType == EEdgeType::ARC) {
 						RECT rc {
 							edge.arcCenter.x/SCALING_FACTOR - edge.arcRadius/SCALING_FACTOR,
@@ -105,15 +107,16 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 						};
 							Arc(hdcMem,
 							rc.left, rc.top, rc.right, rc.bottom,
-							edge.start.x/SCALING_FACTOR, -edge.start.y/SCALING_FACTOR,
-							edge.end.x/SCALING_FACTOR, -edge.end.y/SCALING_FACTOR
+							start.vec2Pos.x/SCALING_FACTOR, -start.vec2Pos.y/SCALING_FACTOR,
+							end.vec2Pos.x/SCALING_FACTOR, -end.vec2Pos.y/SCALING_FACTOR
 						);
 					} else {
-						MoveToEx(hdcMem, edge.start.x /SCALING_FACTOR, -(edge.start.y /SCALING_FACTOR), &p);
-						LineTo(hdcMem, edge.end.x /SCALING_FACTOR, -(edge.end.y /SCALING_FACTOR));
+						MoveToEx(hdcMem, start.vec2Pos.x /SCALING_FACTOR, -(start.vec2Pos.y /SCALING_FACTOR), &p);
+						LineTo(hdcMem, end.vec2Pos.x /SCALING_FACTOR, -(end.vec2Pos.y /SCALING_FACTOR));
 					}
 				}
 			}
+
 		
 			// draw the long path
 			if (pSharedData->vecVec2LongPath.size() > 0) {
@@ -127,10 +130,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 					}
 				}
 			}
-
-			// draw the short path
 			if (pSharedData->vecVec2ShortPath.size() > 0) {
-				SelectObject(hdcMem, hPenGreen);
+				SelectObject(hdcMem, hPenBlue);
 				POINT p;
 				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
 				for (int i = 0; i < pSharedData->vecVec2ShortPath.size(); i++) {
@@ -140,6 +141,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 					}
 				}
 			}
+
 
 			// draw the path
 			if (pSharedData->path.size() > 0) {
