@@ -16,7 +16,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				auto move = data.pMap->Step(data.vec2CurrPos, data.path, 10);
 				data.vec2CurrPos = move.vec2Pos;
 
-				if (move.vec2Pos == data.path.at(0)) {
+				if (move.vec2Pos == data.path.at(0).vec2To) {
 					data.path.erase(data.path.begin());
 				}
 				InvalidateRect(hWnd, nullptr, true);

@@ -13,7 +13,7 @@ enum class ENavigationStatus {
 typedef struct NavigationComponent_t {
     Vector3 vec3Destination;
     HGridBlocker hBlocker = INVALID_HANDLE;
-    std::vector<Vector2> path;
+    std::vector<PathSegment_t> path;
     ENavigationStatus eStatus;
     float fTimeBlocked = 0.0f;
     int nCollisionRadius;

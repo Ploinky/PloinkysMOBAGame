@@ -505,7 +505,7 @@ void NavMesh::LoadFromFile(std::string mapName) {
 	FindNeighbours();
 }
 
-PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
+PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to, float fCollisionRadius) {
 	PathResult_t result;
 
 	std::vector<Vector2> vecVec2LongPath = PlanPath(from, to);
@@ -521,22 +521,16 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
 	graph.vecGraphNodes.push_back({INVALID_HANDLE, vec2Intermediate, 0});
 
 	std::vector<GraphNode_t> vecDiscoveredGraphNodes;
-	CheckEdge(from, to, graph, vecDiscoveredGraphNodes, 50);
+	CheckEdge(from, to, graph, vecDiscoveredGraphNodes, fCollisionRadius);
 
 	while (!vecDiscoveredGraphNodes.empty()) {
 		GraphNode_t node = vecDiscoveredGraphNodes.back();
 		vecDiscoveredGraphNodes.pop_back();
-		AddBlockerToGraph(graph, node, vecDiscoveredGraphNodes, 50);
+		AddBlockerToGraph(graph, node, vecDiscoveredGraphNodes, fCollisionRadius);
 	}
 	CalculateArcs(graph);
 
-	std::vector<Vector2> vecVec2ShortPath = { };
-	vecVec2ShortPath.push_back(vec2Intermediate);
-
-	std::vector<Vector2> vecVec2SmoothPath = vecVec2ShortPath;
-	for (int i = 1; i < vecVec2LongPath.size(); i++) {
-		vecVec2SmoothPath.push_back(vecVec2LongPath[i]);
-	}
+	std::vector<PathSegment_t> vecVec2ShortPath = { };
 
 	auto FindEdge = [](ShortPathGraph_t& graph, int a, int b) -> Edge_t* {
 		for (auto& edge : graph.vecEdges) {
@@ -573,12 +567,16 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
 	}
 
 	if (graph.vecNodes.size() == 0) {
-		vecVec2ShortPath.push_back(vecVec2LongPath[0]);
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = vecVec2LongPath[0];
+		vecVec2ShortPath.push_back(segment);
 		return {EPathResultType::FOUND, vecVec2ShortPath};
 	}
 
 	if (start == -1) {
 		Logger::Err("Pathing fail: start node not in graph!");
+		return {EPathResultType::UNREACHABLE, {}};
 	}
 
 	std::vector<float> dist(graph.vecNodes.size(), INFINITY);
@@ -614,8 +612,20 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
 		Edge_t edge = graph.vecEdges[pei[i]];
 
 		if (edge.eType == EEdgeType::LINE) {
-			vecVec2ShortPath.push_back(graph.vecNodes[i].vec2Pos);
+			PathSegment_t segment;
+			segment.eType = EEdgeType::LINE;
+			segment.vec2To = graph.vecNodes[i].vec2Pos;
+			vecVec2ShortPath.push_back(segment);
 		} else {
+			Node_t end = graph.vecNodes[edge.end];
+			PathSegment_t segment;
+			segment.eType = EEdgeType::ARC;
+			segment.vec2To = end.vec2Pos;
+			segment.arcCenter = edge.arcCenter;
+			segment.arcRadius = edge.arcRadius;
+			segment.arcClockwise = edge.arcClockwise;
+
+			/*
 			Node_t start = graph.vecNodes[edge.start];
 			Node_t end = graph.vecNodes[edge.end];
 			float angleStart = ToRadians(CalculateAngle(edge.arcCenter, start.vec2Pos));
@@ -637,31 +647,39 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to) {
 				Vector2 point = edge.arcCenter + Vector2(std::sin(ang), std::cos(ang)) * edge.arcRadius;
 				vecVec2ShortPath.push_back(point);
 			}
+			*/
+
 		}
 		i = prev[i];
 	}
 
 	if (i != -1) {
 		// TODO do something in case i == -1!
-		vecVec2ShortPath.push_back(graph.vecNodes[i].vec2Pos);
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = graph.vecNodes[i].vec2Pos;
+		vecVec2ShortPath.push_back(segment);
 	}
 
 	std::reverse(vecVec2ShortPath.begin(), vecVec2ShortPath.end());
 
 	for (Vector2 vec : vecVec2LongPath) {
-		vecVec2ShortPath.push_back(vec);
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = vec;
+		vecVec2ShortPath.push_back(segment);
 	}
 
 	return {EPathResultType::FOUND, vecVec2ShortPath};
 }
 
-StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<Vector2> path, float fDist) {
+StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<PathSegment_t> path, float fDist) {
 	if(path.empty()) {
 		// TODO is this blocked = false?
 		return {false, vec2CurrPos};
 	}
 
-	Vector2 vec2Move = path.front() - vec2CurrPos;
+	Vector2 vec2Move = path.front().vec2To - vec2CurrPos;
 
 	if (vec2Move.Length() > fDist) {
 		vec2Move = vec2Move.ScaleToLength(fDist);
@@ -669,7 +687,7 @@ StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<Vector2> path,
 
 	Vector2 vec2NewPos = vec2CurrPos + vec2Move;
 
-	if (CompareFloat((vec2NewPos - path.front()).Length(), 0)) {
+	if (CompareFloat((vec2NewPos - path.front().vec2To).Length(), 0)) {
 		std::vector<Vector2> path;
 		for(int i = 1; i < path.size(); i++) {
 			path.push_back(path.at(i));
@@ -832,6 +850,15 @@ void NavigationMap::AddBlockerToGraph(ShortPathGraph_t& graph, GraphNode_t nodeT
 				edge.cost = (E - F).Length();
 				graph.vecEdges.push_back(edge);
 			}
+		} else if (rb == 0) {
+			// this is a start point inside the expanded circle!
+			Vector2 vec2Escape = nodeToAdd.vec2Pos + (node.vec2Pos - nodeToAdd.vec2Pos).ScaleToLength(ra);
+			Edge_t edge;
+			edge.eType = EEdgeType::LINE;
+			edge.start = AddNodeToGraph(graph, nodeToAdd.hBlocker, vec2Escape);
+			edge.end = AddNodeToGraph(graph, node.hBlocker, node.vec2Pos);
+			edge.cost = (node.vec2Pos - vec2Escape).Length();
+			graph.vecEdges.push_back(edge);
 		}
 		
 	}
@@ -915,13 +942,21 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 	}
 	CalculateArcs(graph);
 
-	std::vector<Vector2> vecVec2ShortPath = { };
-	vecVec2ShortPath.push_back(vec2Intermediate);
+	std::vector<PathSegment_t> vecVec2ShortPath = { };
+	{
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = vec2Intermediate;
+		vecVec2ShortPath.push_back(segment);
+	}
 	result.vecVec2ShortPath = vecVec2ShortPath;
 
-	std::vector<Vector2> vecVec2SmoothPath = vecVec2ShortPath;
+	std::vector<PathSegment_t> vecVec2SmoothPath = vecVec2ShortPath;
 	for (int i = 1; i < result.vecVec2LongPath.size(); i++) {
-		vecVec2SmoothPath.push_back(result.vecVec2LongPath[i]);
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = result.vecVec2LongPath[i];
+		vecVec2SmoothPath.push_back(segment);
 	}
 	result.vecEdges = graph.vecEdges;
 	result.vecNodes = graph.vecNodes;
@@ -963,7 +998,10 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 	}
 
 	if (graph.vecNodes.size() == 0) {
-		result.vecVec2ShortPath.push_back(result.vecVec2LongPath[0]);
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = result.vecVec2LongPath[0];
+		result.vecVec2ShortPath.push_back(segment);
 		return result;
 	}
 
@@ -1000,8 +1038,21 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 		Edge_t edge = graph.vecEdges[pei[i]];
 
 		if (edge.eType == EEdgeType::LINE) {
-			result.vecVec2ShortPath.push_back(graph.vecNodes[i].vec2Pos);
+			PathSegment_t segment;
+			segment.eType = EEdgeType::LINE;
+			segment.vec2To = graph.vecNodes[i].vec2Pos;
+			result.vecVec2ShortPath.push_back(segment);
 		} else {
+			Node_t end = graph.vecNodes[edge.end];
+			Node_t start = graph.vecNodes[edge.start];
+			PathSegment_t segment;
+			segment.eType = EEdgeType::ARC;
+			segment.vec2To = start.vec2Pos;
+			segment.arcCenter = edge.arcCenter;
+			segment.arcRadius = edge.arcRadius;
+			segment.arcClockwise = edge.arcClockwise;
+			result.vecVec2ShortPath.push_back(segment);
+			/*
 			Node_t start = graph.vecNodes[edge.start];
 			Node_t end = graph.vecNodes[edge.end];
 			float angleStart = ToRadians(CalculateAngle(edge.arcCenter, start.vec2Pos));
@@ -1023,13 +1074,18 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 				Vector2 point = edge.arcCenter + Vector2(std::sin(ang), std::cos(ang)) * edge.arcRadius;
 				result.vecVec2ShortPath.push_back(point);
 			}
+			*/
+
 		}
 		i = prev[i];
 	}
 
 	if (i != -1) {
 		// TODO do something in case i == -1!
-		result.vecVec2ShortPath.push_back(graph.vecNodes[i].vec2Pos);
+		PathSegment_t segment;
+		segment.eType = EEdgeType::LINE;
+		segment.vec2To = graph.vecNodes[i].vec2Pos;
+		result.vecVec2ShortPath.push_back(segment);
 	}
 
 	std::reverse(result.vecVec2ShortPath.begin(), result.vecVec2ShortPath.end());

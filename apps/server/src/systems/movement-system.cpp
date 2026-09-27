@@ -50,7 +50,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
         }
 
         for (auto& [otherId, nav] : pGameState->GetAllNavigation()) {
-            if (otherId == id || nav.hBlocker != INVALID_HANDLE) {
+            if (otherId == id) {
                 // do not physics collide with self
                 continue;
             }
@@ -62,13 +62,13 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
             }
 
             float fDist = (pOtherTransform->GetPosition() - Vector3(vec2Step.x, vec3OldPosition.y, vec2Step.y)).Length();
-            if (fDist < nav.nCollisionRadius) {
+            if (fDist < (nav.nCollisionRadius + pNavComp->nCollisionRadius)) {
                 if(pNavComp->eStatus != ENavigationStatus::BLOCKED) {
                     pNavComp->eStatus = ENavigationStatus::BLOCKED;
                     pNavComp->fTimeBlocked = 0.0f;
                     pGameState->EmitEvent(CEntityIdleEvent(id));
                 }
-                Logger::FormatMsg("Unit %d unable to move to %f, %f - Colliding with %d! Stopping!", id, vec2Step.x, vec2Step.y, otherId);
+                Logger::FormatMsg("Unit %d colliding with %d, blocker: %u", id, otherId, nav.hBlocker);
                 return;
             }
         }

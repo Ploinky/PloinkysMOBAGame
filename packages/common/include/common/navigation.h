@@ -112,12 +112,22 @@ typedef struct {
 	Vector2 vec2Pos;
 } Node_t;
 
+typedef struct {
+	Vector2 vec2To;
+	EEdgeType eType;
+	
+    // only used if type == Arc
+    Vector2 arcCenter;
+    float arcRadius;
+    bool arcClockwise; // sweep direction
+} PathSegment_t;
+
 #ifdef _DEBUG
 typedef struct {
 	std::vector<Vector2> vecVec2LongPath;
-	std::vector<Vector2> vecVec2ShortPath;
+	std::vector<PathSegment_t> vecVec2ShortPath;
 	std::list<Node_t> vecShortPath;
-	std::vector<Vector2> vecVec2FinalPath;
+	std::vector<PathSegment_t> vecVec2FinalPath;
 	std::vector<Node_t> vecNodes;
 	std::vector<Edge_t> vecEdges;
 	std::vector<Edge_t> vecPath;
@@ -132,7 +142,7 @@ enum class EPathResultType {
 
 typedef struct {
 	EPathResultType eResultType;
-	std::vector<Vector2> vecVec2Path;
+	std::vector<PathSegment_t> vecVec2Path;
 } PathResult_t;
 
 
@@ -155,9 +165,9 @@ typedef struct {
 
 class NavigationMap {
 public:
-	PathResult_t RequestPath(Vector2 from, Vector2 to);
+	PathResult_t RequestPath(Vector2 from, Vector2 to, float fCollisionRadius);
 	StepResult_t Step(Vector2 vec2CurrPos, std::vector<Edge_t> path, float fDist);
-	StepResult_t Step(Vector2 vec2CurrPos, std::vector<Vector2> vecVec2Path, float fDist);
+	StepResult_t Step(Vector2 vec2CurrPos, std::vector<PathSegment_t> vecVec2Path, float fDist);
 	NavMesh* m_pMesh;
 	void Reset();
 	std::vector<Vector2> GetLongPath(Vector2 from, Vector2 to);

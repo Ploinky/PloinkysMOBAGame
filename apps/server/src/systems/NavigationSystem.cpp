@@ -57,13 +57,13 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
     // Trying to path, but no path currently set
     if(nav.path.size() == 0) {
         Logger::FormatMsg("Planning initial path for %d to <%f, %f>", id, nav.vec3Destination.x, nav.vec3Destination.z);
-        PathResult_t pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+        PathResult_t pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z}, nav.nCollisionRadius);
         
         if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
             Vector2 vec2NextFree = pNavMap->ClosestFreePosition({nav.vec3Destination.x, nav.vec3Destination.z});
             nav.vec3Destination.x = vec2NextFree.x;
             nav.vec3Destination.z = vec2NextFree.y;
-            pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+            pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z}, nav.nCollisionRadius);
         }
 
         if (pathResult.eResultType != EPathResultType::FOUND) {
@@ -79,9 +79,9 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
             // TODO this needs to be handled
             return;
         }
-    } else if(nav.vec3Destination.x != nav.path.back().x && nav.vec3Destination.z != nav.path.back().y) {
+    } else if(nav.vec3Destination.x != nav.path.back().vec2To.x && nav.vec3Destination.z != nav.path.back().vec2To.y) {
         Logger::FormatMsg("Changing destination, planning new path for %d to <%f, %f>", id, nav.vec3Destination.x, nav.vec3Destination.z);
-        PathResult_t pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+        PathResult_t pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z}, nav.nCollisionRadius);
         
         if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
             Vector2 vec2NextFree = pNavMap->ClosestFreePosition({nav.vec3Destination.x, nav.vec3Destination.z});
@@ -97,7 +97,7 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
                     }
                 }
             }
-            pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z});
+            pathResult = pNavMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {nav.vec3Destination.x, nav.vec3Destination.z}, nav.nCollisionRadius);
         }
 
         nav.path = pathResult.vecVec2Path;
@@ -125,8 +125,8 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         }
     }
 
-    Vector2 vec2IntermediateTarget = nav.path.at(0);
-    Vector3 vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
+    PathSegment_t segment = nav.path.at(0);
+    Vector3 vec3IntermediateTarget = {segment.vec2To.x, 0, segment.vec2To.y};
 
     // Close enough to the current waypoint, so move on to the next one
     // TODO magic number
@@ -139,9 +139,9 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         if(nav.path.size() == 0) {
             return;
         }
-        vec2IntermediateTarget = nav.path.at(0);
-        vec3IntermediateTarget = {vec2IntermediateTarget.x, 0, vec2IntermediateTarget.y};
-        pMovement->vec3Target = {nav.path.at(0).x, 0, nav.path.at(0).y};
+        segment = nav.path.at(0);
+        vec3IntermediateTarget = {segment.vec2To.x, 0, segment.vec2To.y};
+        pMovement->vec3Target = {nav.path.at(0).vec2To.x, 0, nav.path.at(0).vec2To.y};
         pGameState->EmitEvent(CMoveIntentionEvent(id, pMovement->vec3Target, 0));
         return;
     }
@@ -151,11 +151,11 @@ void CNavigationSystem::UpdateEntity(CServerGameState* pGameState, float fDelta,
         return;
     }
 
-    if(pMovement->vec3Target.x == nav.path.at(0).x && pMovement->vec3Target.z == nav.path.at(0).y) {
+    if(pMovement->vec3Target.x == nav.path.at(0).vec2To.x && pMovement->vec3Target.z == nav.path.at(0).vec2To.y) {
         return;
     }
 
-    pMovement->vec3Target = {nav.path.at(0).x, 0, nav.path.at(0).y};
+    pMovement->vec3Target = {nav.path.at(0).vec2To.x, 0, nav.path.at(0).vec2To.y};
     pGameState->EmitEvent(CMoveIntentionEvent(id, pMovement->vec3Target, 0));
 }
 
@@ -165,13 +165,13 @@ void CNavigationSystem::TryPath(CServerGameState* pGameState, UnitId id) {
     TransformComponent_t* pTransform = pGameState->GetTransform(id);
     NavigationComponent_t* pNav = pGameState->GetNavigation(id);
 
-    PathResult_t pathResult = m_pMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNav->vec3Destination.x, pNav->vec3Destination.z});
+    PathResult_t pathResult = m_pMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNav->vec3Destination.x, pNav->vec3Destination.z}, pNav->nCollisionRadius);
     
     if (pathResult.eResultType == EPathResultType::UNREACHABLE || pathResult.eResultType == EPathResultType::OCCUPIED) {
         Vector2 vec2NextFree = m_pMap->ClosestFreePosition({pNav->vec3Destination.x, pNav->vec3Destination.z});
         pNav->vec3Destination.x = vec2NextFree.x;
         pNav->vec3Destination.z = vec2NextFree.y;
-        pathResult = m_pMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNav->vec3Destination.x, pNav->vec3Destination.z});
+        pathResult = m_pMap->RequestPath({pTransform->GetPosition().x, pTransform->GetPosition().z}, {pNav->vec3Destination.x, pNav->vec3Destination.z}, pNav->nCollisionRadius);
         
         
         // TOOD PLS NO STOP

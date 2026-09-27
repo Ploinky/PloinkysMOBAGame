@@ -5,9 +5,9 @@
 typedef struct AppData {
 	NavigationMap* pMap;
 	Vector2 vec2Target;
-	std::vector<Vector2> path;
+	std::vector<PathSegment_t> path;
  	std::vector<Vector2> vecVec2LongPath;
-	std::vector<Vector2> vecVec2ShortPath;
+	std::vector<PathSegment_t> vecVec2ShortPath;
 	Vector2 vec2CurrPos = { 1000, -1000 };
 	std::vector<Vector2> vecVec2CoarsePath = {};
 	DebugPath_t debugPath;

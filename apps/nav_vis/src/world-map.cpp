@@ -65,9 +65,9 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 			// draw blockers
 			for (auto& [hBlocker, blocker] : pSharedData->pMap->m_blockers) {
-				SelectObject( hdcMem, GetStockObject( NULL_BRUSH ) );
+				SelectObject( hdcMem, GetStockObject( GRAY_BRUSH ) );
 				// SelectObject(hdcMem, GetStockObject(GRAY_BRUSH));
-				float fHalfRadius = blocker.radius + 50;
+				float fHalfRadius = blocker.radius;
 				Ellipse(hdcMem, (blocker.x - fHalfRadius) /SCALING_FACTOR, -(blocker.y - fHalfRadius) /SCALING_FACTOR, (blocker.x + fHalfRadius) /SCALING_FACTOR, -(blocker.y + fHalfRadius) /SCALING_FACTOR);
 			}
 
@@ -135,7 +135,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 				POINT p;
 				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
 				for (int i = 0; i < pSharedData->vecVec2ShortPath.size(); i++) {
-					Vector2 to = pSharedData->vecVec2ShortPath.at(i);
+					Vector2 to = pSharedData->vecVec2ShortPath.at(i).vec2To;
 					if (!LineTo(hdcMem, to.x /SCALING_FACTOR, -(to.y /SCALING_FACTOR))) {
 						MessageBeep(MB_ICONERROR);
 					}
@@ -149,7 +149,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 				POINT p;
 				MoveToEx(hdcMem, pSharedData->vec2CurrPos.x /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y /SCALING_FACTOR), &p);
 				for (int i = 0; i < pSharedData->path.size(); i++) {
-					Vector2 to = pSharedData->path.at(i);
+					Vector2 to = pSharedData->path.at(i).vec2To;
 					if (!LineTo(hdcMem, to.x /SCALING_FACTOR, -(to.y /SCALING_FACTOR))) {
 						MessageBeep(MB_ICONERROR);
 					}
