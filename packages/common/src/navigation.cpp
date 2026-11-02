@@ -619,38 +619,13 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to, float fCollisi
 			segment.vec2To = graph.vecNodes[i].vec2Pos;
 			vecVec2ShortPath.push_back(segment);
 		} else {
-			Node_t end = graph.vecNodes[edge.end];
 			PathSegment_t segment;
 			segment.eType = EEdgeType::ARC;
-			segment.vec2To = end.vec2Pos;
+			segment.vec2To = graph.vecNodes[i].vec2Pos;
 			segment.arcCenter = edge.arcCenter;
 			segment.arcRadius = edge.arcRadius;
-			segment.arcClockwise = edge.arcClockwise;
-
-			/*
-			Node_t start = graph.vecNodes[edge.start];
-			Node_t end = graph.vecNodes[edge.end];
-			float angleStart = ToRadians(CalculateAngle(edge.arcCenter, start.vec2Pos));
-			float angleEnd = ToRadians(CalculateAngle(edge.arcCenter, end.vec2Pos));
-			
-			float canonicalSweep = angleEnd - angleStart;
-			if (canonicalSweep < 0) canonicalSweep += 2 * M_PI;
-
-			bool forward = (i == edge.start); // are we walking start->end, or end->start?
-
-			float angleFrom = forward ? angleStart : angleEnd;
-			float sweep = forward ? canonicalSweep : -canonicalSweep;
-
-
-
-			int steps = 8; // or compute from sagitta formula based on edge.arcRadius
-			for (int s = 1; s <= steps; s++) {
-				float ang = angleFrom + sweep * (float(s) / steps);
-				Vector2 point = edge.arcCenter + Vector2(std::sin(ang), std::cos(ang)) * edge.arcRadius;
-				vecVec2ShortPath.push_back(point);
-			}
-			*/
-
+			segment.arcClockwise = (i == edge.end);
+			vecVec2ShortPath.push_back(segment);
 		}
 		i = prev[i];
 	}

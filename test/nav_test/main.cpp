@@ -70,6 +70,56 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    {
+        NavigationMap navMap = NavigationMap();
+        navMap.m_pMesh = &navMesh;
+        navMap.AddBlocker(500, -510, 50);
+        PathResult_t pathResult = navMap.RequestPath({200, -500}, {800, -500}, 50);
+        
+        bool bFoundArc = false;
+        for (int i = 1; i < pathResult.vecVec2Path.size(); i++) {
+            PathSegment_t segment = pathResult.vecVec2Path.at(i);
+            if (segment.eType != EEdgeType::ARC) {
+                continue;
+            }
+            bFoundArc = true;
+            if (segment.vec2To.x <= pathResult.vecVec2Path.at(i - 1).vec2To.x || !segment.arcClockwise) {
+                printf("FAILED: arc goes the wrong way");
+                return 1;
+            }
+        }
+
+        if (!bFoundArc) {
+            printf("FAILED: path has no arc around blocker");
+            return 1;
+        }
+    }
+
+    {
+        NavigationMap navMap = NavigationMap();
+        navMap.m_pMesh = &navMesh;
+        navMap.AddBlocker(500, -510, 50);
+        PathResult_t pathResult = navMap.RequestPath({800, -500}, {100, -500}, 50);
+        
+        bool bFoundArc = false;
+        for (int i = 1; i < pathResult.vecVec2Path.size(); i++) {
+            PathSegment_t segment = pathResult.vecVec2Path.at(i);
+            if (segment.eType != EEdgeType::ARC) {
+                continue;
+            }
+            bFoundArc = true;
+            if (segment.vec2To.x >= pathResult.vecVec2Path.at(i - 1).vec2To.x || segment.arcClockwise) {
+                printf("FAILED: arc goes the wrong way (clockwise)");
+                return 1;
+            }
+        }
+
+        if (!bFoundArc) {
+            printf("FAILED: path has no arc around blocker (clockwise)");
+            return 1;
+        }
+    }
+
     printf("PASSED: all tests passed");
 
     return 0;
