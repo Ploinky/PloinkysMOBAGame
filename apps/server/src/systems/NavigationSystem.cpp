@@ -258,7 +258,7 @@ void CNavigationSystem::OnAttackStart(CServerGameState* pGameState, const CAttac
     pNavComp->eStatus = ENavigationStatus::IDLE;
     pNavComp->vec3Destination = Vector3::ZERO;
     
-    AddBlocker(pGameState, evt.idTarget);
+    AddBlocker(pGameState, evt.idAttacker);
 
     if(MovementComponent_t* pMovement = pGameState->GetMovement(evt.idAttacker)) {
         if(TransformComponent_t* pTransform = pGameState->GetTransform(evt.idAttacker)) {
