@@ -567,10 +567,12 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to, float fCollisi
 	}
 
 	if (graph.vecNodes.size() == 0) {
-		PathSegment_t segment;
-		segment.eType = EEdgeType::LINE;
-		segment.vec2To = vecVec2LongPath[0];
-		vecVec2ShortPath.push_back(segment);
+		for (Vector2 vec : vecVec2LongPath) {
+			PathSegment_t segment;
+			segment.eType = EEdgeType::LINE;
+			segment.vec2To = vec;
+			vecVec2ShortPath.push_back(segment);
+		}
 		return {EPathResultType::FOUND, vecVec2ShortPath};
 	}
 
