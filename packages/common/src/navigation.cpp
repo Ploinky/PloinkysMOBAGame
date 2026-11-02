@@ -521,7 +521,7 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to, float fCollisi
 	graph.vecGraphNodes.push_back({INVALID_HANDLE, vec2Intermediate, 0});
 
 	std::vector<GraphNode_t> vecDiscoveredGraphNodes;
-	CheckEdge(from, to, graph, vecDiscoveredGraphNodes, fCollisionRadius);
+	CheckEdge(from, vec2Intermediate, graph, vecDiscoveredGraphNodes, fCollisionRadius);
 
 	while (!vecDiscoveredGraphNodes.empty()) {
 		GraphNode_t node = vecDiscoveredGraphNodes.back();
@@ -933,7 +933,7 @@ DebugPath_t NavigationMap::GetDebugPath(Vector2 from, Vector2 to) {
 	graph.vecGraphNodes.push_back({INVALID_HANDLE, vec2Intermediate, 0});
 
 	std::vector<GraphNode_t> vecDiscoveredGraphNodes;
-	CheckEdge(from, to, graph, vecDiscoveredGraphNodes, 50);
+	CheckEdge(from, vec2Intermediate, graph, vecDiscoveredGraphNodes, 50);
 
 	while (!vecDiscoveredGraphNodes.empty()) {
 		GraphNode_t node = vecDiscoveredGraphNodes.back();

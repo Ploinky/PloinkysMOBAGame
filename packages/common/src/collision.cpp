@@ -101,7 +101,7 @@ Vector2 TestCollision(Line line, Circle circle) {
     {
         return line.Start + (line.End - line.Start).ScaleToLength((line.End - line.Start).Length() * t1);
     } else if(t1 < 0 && t2 >= 0 && t2 <= 1) {
-        return line.Start + (line.End - line.Start).ScaleToLength((line.End - line.Start).Length() * t1);
+        return line.Start + (line.End - line.Start).ScaleToLength((line.End - line.Start).Length() * t2);
     }
 
     return { 0, 0 };
