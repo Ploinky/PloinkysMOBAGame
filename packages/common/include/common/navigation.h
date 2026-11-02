@@ -182,11 +182,11 @@ public:
 	void RemoveBlocker(HGridBlocker hBlocker);
 private:
 	std::vector<Vector2> PlanPath(Vector2 from, Vector2 to);
-
-	
 	Collision_t CheckEdge(Vector2 vec2Position, Vector2 vec2Destination, ShortPathGraph_t& graph, std::vector<GraphNode_t>& vecDiscoveredGraphNodes, float collDist);
 	void AddBlockerToGraph(ShortPathGraph_t& graph, GraphNode_t nodeToAdd, std::vector<GraphNode_t>& vecDiscoveredGraphNodes, float collDist);
 	void CalculateArcs(ShortPathGraph_t& graph);
 	size_t AddNodeToGraph(ShortPathGraph_t& graph, HGridBlocker hBlocker, Vector2 vec2Pos);
+
+	HGridBlocker m_currBlockerIndex = 0;
 };
 #endif

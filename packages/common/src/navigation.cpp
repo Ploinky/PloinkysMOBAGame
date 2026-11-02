@@ -1101,7 +1101,7 @@ HGridBlocker NavigationMap::AddBlocker(float x, float y, float radius) {
 	blocker.y = y;
 	blocker.radius = radius;
 
-	HGridBlocker hBlocker = m_blockers.size();
+	HGridBlocker hBlocker = m_currBlockerIndex++;
 
 	m_blockers.emplace(hBlocker, blocker);
 
