@@ -84,7 +84,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
         pTransform->SetPosition(vec3OldPosition + vec3Move);
     }
     
-    pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {move.vec3Target.x, move.vec3Target.z}), 0});
+    pTransform->SetRotation({0, CalculateAngle({vec3OldPosition.x, vec3OldPosition.z}, {pTransform->GetPosition().x, pTransform->GetPosition().z}), 0});
 
     if(CompareFloat((move.vec3Target - pTransform->GetPosition()).Length(), 0 )) {
         // TODO we're at our target
