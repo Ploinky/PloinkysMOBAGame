@@ -176,6 +176,21 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    {
+        NavigationMap navMap = NavigationMap();
+        navMap.m_pMesh = &navMesh;
+        navMap.AddBlocker(1200, -750, 50);
+        navMap.AddBlocker(1375, -750, 50);
+        navMap.AddBlocker(1268.466553f, -598.851685f, 50);
+        navMap.AddBlocker(1285.672485f, -698.003174f, 50);
+        PathResult_t pathResult = navMap.RequestPath({1183.092041f, -651.439758f}, {1200, -750}, 50);
+
+        if (pathResult.eResultType != EPathResultType::UNREACHABLE) {
+            printf("FAILED: unreachable destination not reported");
+            return 1;
+        }
+    }
+
     printf("PASSED: all tests passed");
 
     return 0;

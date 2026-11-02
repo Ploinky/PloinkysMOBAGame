@@ -609,6 +609,10 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to, float fCollisi
 		}
 	}
 
+	if (end != start && (end == -1 || pei[end] == -1)) {
+		return {EPathResultType::UNREACHABLE, {}};
+	}
+
 	int i = end;
 	while (i != start && i > -1 && i < prev.size()) {
 		Edge_t edge = graph.vecEdges[pei[i]];
