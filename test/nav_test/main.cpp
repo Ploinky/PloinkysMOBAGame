@@ -120,6 +120,62 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    {
+        NavigationMap navMap = NavigationMap();
+        PathSegment_t segment;
+        segment.eType = EEdgeType::ARC;
+        segment.arcCenter = {500, -500};
+        segment.arcRadius = 100;
+        segment.arcClockwise = true;
+        segment.vec2To = {400, -500};
+
+        Vector2 vec2Pos = {600, -500};
+        int steps = 0;
+
+        while((vec2Pos - segment.vec2To).Length() > 0.01f && steps < 100) {
+            vec2Pos = navMap.Step(vec2Pos, {segment}, 5).vec2Pos;
+            steps++;
+            float radius = (vec2Pos - segment.arcCenter).Length();
+            if (radius < 99 || radius > 101 || vec2Pos.y > -499) {
+                printf("FAILED: left the arc walking clockwise");
+                return 1;
+            }
+        }
+        
+        if (steps >= 100) {
+            printf("FAILED: did not reach end of arc walking clockwise");
+            return 1;
+        }
+    }
+
+    {
+        NavigationMap navMap = NavigationMap();
+        PathSegment_t segment;
+        segment.eType = EEdgeType::ARC;
+        segment.arcCenter = {500, -500};
+        segment.arcRadius = 100;
+        segment.arcClockwise = false;
+        segment.vec2To = {600, -500};
+
+        Vector2 vec2Pos = {400, -500};
+        int steps = 0;
+
+        while((vec2Pos - segment.vec2To).Length() > 0.01f && steps < 100) {
+            vec2Pos = navMap.Step(vec2Pos, {segment}, 5).vec2Pos;
+            steps++;
+            float radius = (vec2Pos - segment.arcCenter).Length();
+            if (radius < 99 || radius > 101 || vec2Pos.y > -499) {
+                printf("FAILED: left the arc walking counter-clockwise");
+                return 1;
+            }
+        }
+        
+        if (steps >= 100) {
+            printf("FAILED: did not reach end of arc walking counter-clockwise");
+            return 1;
+        }
+    }
+
     printf("PASSED: all tests passed");
 
     return 0;

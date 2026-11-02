@@ -656,6 +656,32 @@ StepResult_t NavigationMap::Step(Vector2 vec2CurrPos, std::vector<PathSegment_t>
 		return {false, vec2CurrPos};
 	}
 
+	if (path.front().eType == EEdgeType::ARC) {
+		float fAngle = ToRadians(CalculateAngle(path.front().arcCenter, vec2CurrPos));
+		float fAngleTarget = ToRadians(CalculateAngle(path.front().arcCenter, path.front().vec2To));
+		float fAngleLeftToTravel = fAngleTarget - fAngle;
+
+		if (!path.front().arcClockwise) {
+			fAngleLeftToTravel = -fAngleLeftToTravel;
+		}
+
+		if (fAngleLeftToTravel < 0) {
+			fAngleLeftToTravel += 2 * M_PI;
+		}
+
+		if (fAngleLeftToTravel * path.front().arcRadius <= fDist) {
+			return {false, path.front().vec2To};
+		}
+
+		float fDistToMove = fDist / path.front().arcRadius;
+		
+		if (!path.front().arcClockwise) {
+			fDistToMove = -fDistToMove;
+		}
+		float fNewAngle = fAngle + fDistToMove;
+		return {false, path.front().arcCenter + Vector2(sin(fNewAngle), cos(fNewAngle)) * path.front().arcRadius};
+	}
+
 	Vector2 vec2Move = path.front().vec2To - vec2CurrPos;
 
 	if (vec2Move.Length() > fDist) {

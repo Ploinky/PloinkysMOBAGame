@@ -62,7 +62,7 @@ void CMovementSystem::UpdateEntity(CServerGameState* pGameState, float fDelta, M
             }
 
             float fDist = (pOtherTransform->GetPosition() - Vector3(vec2Step.x, vec3OldPosition.y, vec2Step.y)).Length();
-            if (fDist < (nav.nCollisionRadius + pNavComp->nCollisionRadius)) {
+            if (fDist < (nav.nCollisionRadius + pNavComp->nCollisionRadius - 1)) {
                 if(pNavComp->eStatus != ENavigationStatus::BLOCKED) {
                     pNavComp->eStatus = ENavigationStatus::BLOCKED;
                     pNavComp->fTimeBlocked = 0.0f;
