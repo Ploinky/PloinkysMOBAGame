@@ -12,4 +12,5 @@ public:
     virtual void UpdateEntity(CServerGameState* pGameState, float fDelta, MovementComponent_t& move, UnitId id) const;
 
     REGISTER_EVENT_HANDLER(CMovementSystem, CDeathEvent, OnDeath);
+    REGISTER_EVENT_HANDLER(CMovementSystem, CStopEvent, OnStop);
 };

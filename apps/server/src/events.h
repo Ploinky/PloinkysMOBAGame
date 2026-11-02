@@ -21,6 +21,7 @@
 #include "events/spell-cast-event.h"
 #include "events/spell-cast-start-event.h"
 #include "events/spell-hit-event.h"
+#include "events/stop-event.h"
 #include "events/unit-spawn-event.h"
 #include "events/use-entity-attempt-event.h"
 #include "events/use-entity-event.h"

@@ -298,6 +298,14 @@ void CNavigationSystem::OnMoveIntention(CServerGameState* pGameState, const CMov
     RemoveBlocker(pGameState, evt.idUnit);
 }
 
+void CNavigationSystem::OnStop(CServerGameState* pGameState, const CStopEvent& evt) {
+    if(NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.idStop)) {
+        // TODO this belongsn't here!
+        pNavComp->eStatus = ENavigationStatus::IDLE;
+        pNavComp->vec3Destination = Vector3::ZERO;
+    }
+}
+
 void CNavigationSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& evt) {
     NavigationComponent_t* pNavComp = pGameState->GetNavigation(evt.idTarget);
 

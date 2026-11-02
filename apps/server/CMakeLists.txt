@@ -25,6 +25,7 @@ add_executable(server
 
 	src/game/wave-manager.cpp
 	src/game/server-game-state.cpp
+	src/game/server-game.cpp
 
 	src/systems/ai-system.cpp
 	src/systems/attack-system.cpp

@@ -22,6 +22,7 @@
 
 #include "game/server-game-state.h"
 #include "game/trigger.h"
+#include "game/server-game.h"
 
 class Missile;
 static uint64_t current_network_id_ = 0;
@@ -31,11 +32,6 @@ class NavMesh;
 class Character;
 class SpellTargetInfo;
 class CNavigationSystem;
-
-// Tickrate of the server in ms per tick
-// Lower values require a faster server and connection
-// Higher values lead to lag...
-#define TICKRATE 1000.0f/60.0f
 
 enum UnitActionType {
     SPAWN,
@@ -82,11 +78,8 @@ public:
 
 
     virtual void Update(float dt) override;
-    NavMesh* m_navMesh;
-    NavigationMap* m_navMap;
 
     std::vector<std::vector<uint8_t>> all_ticks;
-    CServerGameState GameState;
 
 
     void SendMessageToClient(PlayerID playerId, std::vector<uint8_t>* packet) {
@@ -110,10 +103,7 @@ private:
     // LobbyPlayer* players_[10];
     std::map<PlayerID, LobbyPlayer*> players_;
 
-    CNavigationSystem* m_pNavigationSystem;
     CNetworkSystem* m_pNetworkSystem;
-    CDamageSystem m_damageSystem;
-    CSpellSystem m_spellSystem;
-    CMovementSystem m_moveSystem;
     std::vector<CTrigger> m_vecTriggers;
+    CServerGame m_game;
 };

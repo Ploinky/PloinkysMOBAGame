@@ -19,6 +19,7 @@ public:
     REGISTER_EVENT_HANDLER(CNavigationSystem, CEntityIdleEvent, OnUnitIdle);
     REGISTER_EVENT_HANDLER(CNavigationSystem, CDeathEvent, OnDeath);
     REGISTER_EVENT_HANDLER(CNavigationSystem, CMoveIntentionEvent, OnMoveIntention);
+    REGISTER_EVENT_HANDLER(CNavigationSystem, CStopEvent, OnStop);
 
 private:
     NavigationMap* m_pMap;

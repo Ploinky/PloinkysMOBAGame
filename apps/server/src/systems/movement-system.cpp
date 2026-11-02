@@ -104,3 +104,11 @@ void CMovementSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& e
 
     pMoveComp->vec3Target = pTransformComp->GetPosition();
 }
+
+void CMovementSystem::OnStop(CServerGameState* pGameState, const CStopEvent& evt) {
+    if(MovementComponent_t* pMovement = pGameState->GetMovement(evt.idStop)) {
+        if(TransformComponent_t* pTransform = pGameState->GetTransform(evt.idStop)) {
+            pMovement->vec3Target = pTransform->GetPosition();
+        }
+    }
+}

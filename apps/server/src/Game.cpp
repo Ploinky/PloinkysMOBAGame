@@ -36,13 +36,6 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     assetManager->LoadPakFile("assets/maps/map1.pak");
 #endif
 
-    m_navMesh = new NavMesh();
-    m_navMesh->LoadFromData(assetManager->LoadPlainFile(handler_->GetGameData().mapMapData.at("map1").navMeshDataFile));
-
-    m_navMap = new NavigationMap();
-    m_navMap->m_pMesh = m_navMesh;
-
-
     networkManager_ = networkManager;
     networkManager_->on_clientMessageReceived = [this](PlayerID playerId, std::vector<uint8_t>* data) {
         OnMessageReceived(playerId, data);
@@ -111,61 +104,9 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     };
 
     m_pNetworkSystem = new CNetworkSystem(networkManager_);
-    m_pNavigationSystem = new CNavigationSystem(m_navMap);
-    GameState.SetNavMap(m_navMap);
-    GameState.m_pGameData = &handler_->GetGameData();
-
-    // =====================================
-    // THIS NEEDS TO GO SOMEWHERE
-    // THIS IS A MESS AND MAKES NO SENSE
-    // THIS IS GETTING WORSE AND WORSE
-    // HOW WILL I EVER MAKE A GAME WHEN I WRITE CODE LIKE THIS
-    // WHY AM I TOO STUPID TO MAKE IT WORK
-    // IT'S NOT ALL THAT DIFFICULT
-    // PLEASE FIGURE IT TF OUT
-    
-    CTriggerData trigData = handler_->GetGameData().mapTriggerData.at("wave_team_1");
-    CTrigger trigger = CTrigger();
-    for(CTriggerSpawnUnitData spawnTriggerData : trigData.vecSpawnUnitTriggers) {
-        CSpawnUnitTrigger spawnUnitTrigger;
-        spawnUnitTrigger.eTeam = spawnTriggerData.eTeam;
-        spawnUnitTrigger.idUnitType = spawnTriggerData.idUnitType;
-        spawnUnitTrigger.nCount = spawnTriggerData.nCount;
-        spawnUnitTrigger.nTime = spawnTriggerData.nTime;
-        spawnUnitTrigger.nLastTime = -1;
-        spawnUnitTrigger.vec2Position = spawnTriggerData.vec2Position;
-        trigger.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
-    }
-    GameState.VecTriggers.push_back(trigger);
-    // =====================================
-    CTriggerData trigData2 = handler_->GetGameData().mapTriggerData.at("wave_team_2");
-    CTrigger trigger2 = CTrigger();
-    for(CTriggerSpawnUnitData spawnTriggerData : trigData2.vecSpawnUnitTriggers) {
-        CSpawnUnitTrigger spawnUnitTrigger;
-        spawnUnitTrigger.eTeam = spawnTriggerData.eTeam;
-        spawnUnitTrigger.idUnitType = spawnTriggerData.idUnitType;
-        spawnUnitTrigger.nCount = spawnTriggerData.nCount;
-        spawnUnitTrigger.nTime = spawnTriggerData.nTime;
-        spawnUnitTrigger.nLastTime = -1;
-        spawnUnitTrigger.vec2Position = spawnTriggerData.vec2Position;
-        trigger2.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
-    }
-    GameState.VecTriggers.push_back(trigger2);
-    // =====================================
-
-    GameState.AddSystem(m_pNavigationSystem);
-    GameState.AddSystem(&m_moveSystem);
-    GameState.AddSystem(&m_spellSystem);
-    GameState.AddSystem(&m_damageSystem);
-    GameState.AddSystem(m_pNetworkSystem);
-    GameState.AddSystem(new CPointsSystem());
-    GameState.AddSystem(new CRespawnSystem());
-    GameState.AddSystem(new CAttackSystem());
-    GameState.AddSystem(new CAiSystem());
-    GameState.AddSystem(new CInventorySystem());
-    GameState.AddSystem(new CSpawnSystem(&handler_->GetGameData()));
-    GameState.AddSystem(new CTriggerSystem());
-    GameState.AddSystem(new CCleanupSystem());
+    NavMesh* pNavMesh = new NavMesh();
+    pNavMesh->LoadFromData(assetManager->LoadPlainFile(handler_->GetGameData().mapMapData.at("map1").navMeshDataFile));
+    m_game.Start(handler_->GetGameData(), pNavMesh, m_pNetworkSystem);
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
@@ -173,18 +114,7 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
         SendMessageToClient(player->idPlayer, &tick);
     }
 
-    // always present
-    UnitId id = GameState.SpawnUnit(handler_->GetGameData(), "stormcaller");
-
-    GameState.AddTeam(id, TeamComponent_t(Team::TEAM_1));
-    BasicAttackComponent_t* pAttack = GameState.AddBasicAttack(id, BasicAttackComponent_t());
-    pAttack->fRange = 150;
-    pAttack->fAttackPoint = 700;
-    pAttack->fAttackTime = 1000;
-    GameState.GetTransform(id)->SetPosition({250, 0, -750}); // TODO in data
-    GameState.GetMovement(id)->vec3Target = GameState.GetTransform(id)->GetPosition(); // TODO how to make this one call
-    GameState.GetNavigation(id)->vec3Destination = GameState.GetTransform(id)->GetPosition();
-    GameState.AddRespawn(id);
+    UnitId id = m_game.AddPlayer();
 
     // inform everybody TODO prettify
     UnitIdPacket packet = UnitIdPacket();
@@ -199,7 +129,7 @@ void Client::PlayerMoveCommand(PlayerID playerId, float nx, float ny) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
 
-        GameState.EmitEvent(CMoveAttemptEvent(
+        m_game.Input(CMoveAttemptEvent(
             player->unit,
             {nx, 0, ny},
             0
@@ -211,25 +141,14 @@ void Client::PlayerStopCommand(PlayerID playerId) {
     if (players_.find(playerId) != players_.end()) {
         LobbyPlayer* player = players_.find(playerId)->second;
 
-        if(MovementComponent_t* pMovement = GameState.GetMovement(player->unit)) {
-            if(TransformComponent_t* pTransform = GameState.GetTransform(player->unit)) {
-                pMovement->vec3Target = pTransform->GetPosition();
-            }
-        }
-        if(NavigationComponent_t* pNavComp = GameState.GetNavigation(player->unit)) {
-            // TODO this belongsn't here!
-            pNavComp->eStatus = ENavigationStatus::IDLE;
-            pNavComp->vec3Destination = Vector3::ZERO;
-            
-            Vector3 pos = GameState.GetTransform(player->unit)->GetPosition();
-            GameState.EmitEvent(CEntityIdleEvent(player->unit));
-        }
+        m_game.Input(CStopEvent(player->unit));
+        m_game.Input(CEntityIdleEvent(player->unit));
     }
 }
 
 void Client::PlayerAttackCommand(PlayerID playerId, uint64_t target_id) {
     if (players_.find(playerId) != players_.end()) {
-        GameState.EmitEvent(CAttackIntentionEvent(players_.find(playerId)->second->unit, target_id));
+        m_game.Input(CAttackIntentionEvent(players_.find(playerId)->second->unit, target_id));
     }
 }
 
@@ -239,7 +158,7 @@ void Client::PlayerCastSpellCommand(PlayerID playerId, int spell_slot, SpellTarg
         return;
     }
 
-    GameState.EmitEvent(CSpellAttemptCastEvent(players_.find(playerId)->second->unit, *target_info, spell_slot));
+    m_game.Input(CSpellAttemptCastEvent(players_.find(playerId)->second->unit, *target_info, spell_slot));
 }
 
 void Client::Start() {
@@ -253,15 +172,9 @@ void Client::Update(float dt) {
     // first lets see what the clients have to say
     networkManager_->Update();
 
-    for(IGameSystem<CServerGameState>* system : GameState.AllSystems()) {
-        system->Update(&GameState, TICKRATE);
-    }
-    
-    for(IGameSystem<CServerGameState>* system : GameState.AllSystems()) {
-        system->Finalize(&GameState);
-    }
+    m_game.Tick();
 
-    m_pNetworkSystem->SyncGameState(&GameState);
+    m_pNetworkSystem->SyncGameState(m_game.GetState());
 }
 
 void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
@@ -313,15 +226,8 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
         CPickUpEntityCommand pickUpCommand = CPickUpEntityCommand();
         pickUpCommand.Read(data);
 
-        PickupableComponent_t* pPickupable = GameState.GetPickupable(pickUpCommand.idUnit);
-
-        if(pPickupable == nullptr) {
-            Logger::FormatErr("Failed to pick up entity <%d>; entity is not pickupable", pickUpCommand.idUnit);
-            break;
-        }
-
         LobbyPlayer* pPlayer = players_.at(playerId);
-        GameState.EmitEvent(CPickUpAttemptEvent(pPlayer->unit, pickUpCommand.idUnit));
+        m_game.Input(CPickUpAttemptEvent(pPlayer->unit, pickUpCommand.idUnit));
         break;
     }
     case PacketType::CMD_USE_ENTITY_POINT: {
@@ -332,7 +238,7 @@ void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {
         CUseEntityAttemptEvent evt = CUseEntityAttemptEvent();
         evt.idUser = pPlayer->unit;
         evt.idEntity = useCommand.idEntity;
-        GameState.EmitEvent(evt);
+        m_game.Input(evt);
     }
     }
 }
