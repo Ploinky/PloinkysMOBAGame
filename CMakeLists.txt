@@ -18,3 +18,5 @@ add_subdirectory(apps/server)
 add_subdirectory(apps/client)
 add_subdirectory(apps/nav_vis)
 add_subdirectory(apps/pakr)
+
+add_subdirectory(test/nav_test)
