@@ -25,9 +25,12 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
                     continue;
                 }
 
-                otherUnitsInArea = pGameState->GetUnitsInAra(Vector2(pTransform->GetPosition().x, pTransform->GetPosition().y), 600);
+                otherUnitsInArea = pGameState->GetUnitsInAra(Vector2(pTransform->GetPosition().x, pTransform->GetPosition().z), 600);
 
                 if (pIntentComp->eType != EIntentType::ATTACK && otherUnitsInArea.size() > 0) {
+                    float dist = std::numeric_limits<float>().max();
+                    UnitId idNewTarget = UNIT_ID_NONE;
+
                     for (UnitId idOther : otherUnitsInArea) {
                         if (HealthComponent_t* pOtherHealth = pGameState->GetHealth(idOther)) {
                             if (pOtherHealth->bIsDead) {
@@ -36,10 +39,20 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
                         }
                         pOtherTeam = pGameState->GetTeam(idOther);
 
-                        if (pOtherTeam->eTeam != pTeam->eTeam) {
-                            pGameState->EmitEvent(CAttackIntentionEvent(id, idOther));
-                            break;
+                        if (pOtherTeam != nullptr && pOtherTeam->eTeam != pTeam->eTeam) {
+
+                            if (TransformComponent_t* pOtherTransform = pGameState->GetTransform(idOther)) {
+
+                                if ((pOtherTransform->GetPosition() - pTransform->GetPosition()).Length() < dist) {
+                                    dist = (pOtherTransform->GetPosition() - pTransform->GetPosition()).Length();
+                                    idNewTarget = idOther;
+                                }
+                            }
                         }
+                    }
+
+                    if (idNewTarget != UNIT_ID_NONE) {
+                        pGameState->EmitEvent(CAttackIntentionEvent(id, idNewTarget));
                     }
                 }
 

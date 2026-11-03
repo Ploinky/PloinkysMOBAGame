@@ -124,7 +124,7 @@ std::vector<UnitId> CServerGameState::GetUnitsInAra(Vector2 point, float radius)
     std::vector<UnitId> vecUnitsInArea;
 
     for (auto& [id, transform] : GetAllTransform()) {
-        if ((Vector2(transform.GetPosition().x, transform.GetPosition().y) - point).Length() <= radius) {
+        if ((Vector2(transform.GetPosition().x, transform.GetPosition().z) - point).Length() <= radius) {
             vecUnitsInArea.push_back(id);
         }
     }
