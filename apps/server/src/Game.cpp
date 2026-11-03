@@ -106,7 +106,8 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
     m_pNetworkSystem = new CNetworkSystem(networkManager_);
     NavMesh* pNavMesh = new NavMesh();
     pNavMesh->LoadFromData(assetManager->LoadPlainFile(handler_->GetGameData().mapMapData.at("map1").navMeshDataFile));
-    m_game.Start(handler_->GetGameData(), pNavMesh, m_pNetworkSystem);
+    m_game.Start(handler_->GetGameData(), pNavMesh);
+    m_game.GetState()->AddSystem(m_pNetworkSystem);
 }
 
 void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {

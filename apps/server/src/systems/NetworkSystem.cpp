@@ -13,7 +13,7 @@ CNetworkSystem::~CNetworkSystem() {
 
 void CNetworkSystem::SyncGameState(CServerGameState* pGameState) {
     GameTickPacket tickPck{};
-    tickPck.tick = pGameState->CurrentTick++;
+    tickPck.tick = pGameState->CurrentTick;
     m_pNetworkManager->SendToAllClients(tickPck);
 
     for(auto& [id, networkComp] : pGameState->GetAllNetwork()) {

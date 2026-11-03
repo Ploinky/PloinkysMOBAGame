@@ -1,6 +1,6 @@
 #include "server-game.h"
 
-void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh, CNetworkSystem* pNetworkSystem) {
+void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh) {
     m_gameData = gameData;
     m_gameState.m_pGameData = &m_gameData;
 
@@ -19,7 +19,6 @@ void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh, CNetworkSystem* p
     m_gameState.AddSystem(new CMovementSystem());
     m_gameState.AddSystem(new CSpellSystem());
     m_gameState.AddSystem(new CDamageSystem());
-    m_gameState.AddSystem(pNetworkSystem);
 
     // =====================================
     // THIS NEEDS TO GO SOMEWHERE
@@ -75,6 +74,7 @@ void CServerGame::Tick() {
     for(IGameSystem<CServerGameState>* system : m_gameState.AllSystems()) {
         system->Finalize(&m_gameState);
     }
+    m_gameState.CurrentTick++;
 }
 
 

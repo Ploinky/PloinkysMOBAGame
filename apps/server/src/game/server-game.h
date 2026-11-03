@@ -13,7 +13,7 @@
 
 class CServerGame {
 public:
-    void Start(CGameData gameData, NavMesh* pNavMesh, CNetworkSystem* pNetworkSystem);
+    void Start(CGameData gameData, NavMesh* pNavMesh);
     void Input(const IGameEvent& evt);
     void Tick();
     CServerGameState* GetState();
