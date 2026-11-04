@@ -12,6 +12,7 @@ public:
     virtual Portrait_t GetPlayerPortrait() override;
     
     void RequestLANServers(ServerListCallback callback) override;
+    void RequestInternetServers(ServerListCallback callback) override;
     void CancelQuery() override;
     
 	void ServerResponded(HServerListRequest hRequest, int iServer); 

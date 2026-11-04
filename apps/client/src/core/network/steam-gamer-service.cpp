@@ -48,10 +48,15 @@ Portrait_t CSteamGamerService::GetPlayerPortrait() {
     return portrait;
 }
 
-
 void CSteamGamerService::RequestLANServers(ServerListCallback callback) {
     Logger::FormatMsg("Requesting server list from steam");
     SteamMatchmakingServers()->RequestLANServerList(APP_ID, this);
+    m_callback = callback;
+}
+
+void CSteamGamerService::RequestInternetServers(ServerListCallback callback) {
+    Logger::FormatMsg("Requesting server list from steam");
+    SteamMatchmakingServers()->RequestInternetServerList(APP_ID, nullptr, 0, this);
     m_callback = callback;
 }
 

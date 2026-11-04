@@ -82,6 +82,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SelectObject(hdcMem, hBrushBlue);
 			Ellipse(hdcMem, (pSharedData->vec2CurrPos.x - fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y - fHalfRadius) /SCALING_FACTOR, (pSharedData->vec2CurrPos.x + fHalfRadius) /SCALING_FACTOR, -(pSharedData->vec2CurrPos.y + fHalfRadius) /SCALING_FACTOR);
 
+#ifdef _DEBUG
 			// draw the nodes
 			if (!pSharedData->debugPath.vecNodes.empty()) {
 				for (const auto& node : pSharedData->debugPath.vecNodes) {
@@ -116,7 +117,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 					}
 				}
 			}
-
+#endif
 		
 			// draw the long path
 			if (pSharedData->vecVec2LongPath.size() > 0) {
@@ -175,6 +176,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->vec2CurrPos.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
+#ifdef _DEBUG
 			DebugPath_t path = pSharedData->pMap->GetDebugPath({ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				pSharedData->vec2Target
 			);
@@ -182,6 +184,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
 			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
 			pSharedData->debugPath = path;
+#endif
 
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
@@ -201,6 +204,7 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->vec2Target.y = -(GET_Y_LPARAM(lParam) *SCALING_FACTOR);
 
 			auto start = std::chrono::high_resolution_clock::now();
+#ifdef _DEBUG
 			DebugPath_t path = pSharedData->pMap->GetDebugPath({ pSharedData->vec2CurrPos.x, pSharedData->vec2CurrPos.y },
 				{ pSharedData->vec2Target.x, pSharedData->vec2Target.y }
 			);
@@ -208,6 +212,8 @@ LRESULT CALLBACK WorldMap_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 			pSharedData->vecVec2LongPath = path.vecVec2LongPath;
 			pSharedData->vecVec2ShortPath = path.vecVec2ShortPath;
 			pSharedData->debugPath = path;
+#endif
+
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
 

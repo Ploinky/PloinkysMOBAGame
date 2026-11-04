@@ -34,5 +34,6 @@ public:
 
     // Server browser
     virtual void RequestLANServers(ServerListCallback callback) = 0;
+    virtual void RequestInternetServers(ServerListCallback callback) = 0;
     virtual void CancelQuery() = 0;
 };

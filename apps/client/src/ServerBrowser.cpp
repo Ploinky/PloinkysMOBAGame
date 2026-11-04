@@ -88,8 +88,9 @@ void ServerBrowser::StartRefresh() {
 	bool bLan = checkboxLan_.IsSelected();
 
 	if(bLan) {
-		handler_->GetGamerService()->RequestLANServers(std::bind(&ServerBrowser::ServerFound, this, std::placeholders::_1)
-);
+		handler_->GetGamerService()->RequestLANServers(std::bind(&ServerBrowser::ServerFound, this, std::placeholders::_1));
+	} else {
+		handler_->GetGamerService()->RequestInternetServers(std::bind(&ServerBrowser::ServerFound, this, std::placeholders::_1));
 	}
 	buttonRefresh_.m_text = "Cancel";
 }
