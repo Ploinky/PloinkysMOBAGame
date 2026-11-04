@@ -129,7 +129,7 @@ void CSteamNetworkEngine::ConnectionStatusChangedCallback(SteamNetConnectionStat
 
 HConnection CSteamNetworkEngine::ConnectToServer(const char* szAddress, int port) {
     SteamNetworkingIPAddr address{};
-    address.ParseString("127.0.0.1:23119");
+    address.ParseString(szAddress);
 
     HSteamNetConnection hSteamConn =  SteamNetworkingSockets()->ConnectByIPAddress(address, 0, nullptr);
 
