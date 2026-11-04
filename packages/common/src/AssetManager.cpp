@@ -125,6 +125,8 @@ CAbilityData AssetManager::LoadAbility(pugi::xml_node& abilityDataNode) {
 
     if(targetingType == "unit") {
         abilityData.eTargetType = EAbilityTargetType::UNIT;
+    } else if (targetingType == "point") {
+        abilityData.eTargetType = EAbilityTargetType::POINT;
     } else {
         Logger::FormatErr("Failed to load ability %s: invalid targeting type", targetingType);
         return {};
@@ -314,6 +316,11 @@ CCharacterData AssetManager::LoadCharacter(pugi::xml_node& charDataNode) {
         CAIData aiData = CAIData();
         aiData.idType = aiNode.attribute("type").as_string();
         charData.optAIData.emplace(aiData);
+    }
+
+    if (pugi::xml_node missileNode = charDataNode.child("missile")) {
+        CMissileData missileData = CMissileData();
+        charData.optMissileData.emplace(missileData);
     }
 
     return charData;

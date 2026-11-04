@@ -12,6 +12,7 @@ public:
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
     REGISTER_EVENT_HANDLER(CCleanupSystem, CDeathEvent, OnUnitDied)
+    REGISTER_EVENT_HANDLER(CCleanupSystem, CRemoveEvent, OnUnitRemoved)
 
 private:
     void CleanupUnit(CServerGameState* pGameState, UnitId id);

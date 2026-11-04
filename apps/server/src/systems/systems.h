@@ -6,6 +6,7 @@
 #include "cleanup-system.h"
 #include "damage-system.h"
 #include "inventory-system.h"
+#include "missile-system.h"
 #include "movement-system.h"
 #include "NavigationSystem.h"
 #include "NetworkSystem.h"

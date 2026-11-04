@@ -8,6 +8,7 @@
 #include "inventory-component.h"
 #include "intent-component.h"
 #include "NetworkComponent.h"
+#include "missile-component.h"
 #include "MovementComponent.h"
 #include "NavigationComponent.h"
 #include "SpellCastComponent.h"

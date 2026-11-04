@@ -36,7 +36,10 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
                             if (pOtherHealth->bIsDead) {
                                 continue;
                             }
+                        } else {
+                            continue;
                         }
+
                         pOtherTeam = pGameState->GetTeam(idOther);
 
                         if (pOtherTeam != nullptr && pOtherTeam->eTeam != pTeam->eTeam) {
@@ -52,6 +55,8 @@ void CAiSystem::Update(CServerGameState* pGameState, float fDelta) {
                     }
 
                     if (idNewTarget != UNIT_ID_NONE) {
+                        pIntentComp->eType = EIntentType::ATTACK;
+                        pIntentComp->idTarget = idNewTarget;
                         pGameState->EmitEvent(CAttackIntentionEvent(id, idNewTarget));
                     }
                 }

@@ -16,6 +16,10 @@ void CCleanupSystem::OnUnitDied(CServerGameState* pGameState, const CDeathEvent&
     m_vecUnitsToCleanUp.push_back(evt.idTarget);
 }
 
+void CCleanupSystem::OnUnitRemoved(CServerGameState* pGameState, const CRemoveEvent& evt) {
+    m_vecUnitsToCleanUp.push_back(evt.idTarget);
+}
+
 
 void CCleanupSystem::CleanupUnit(CServerGameState* pGameState, UnitId id) {
     pGameState->DeleteEntity(id);

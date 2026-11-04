@@ -14,17 +14,11 @@ UnitId CServerGameState::CreateEntity() {
     return CurrentUnitId++;
 }
 
-UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId, Vector2 vec2Pos) {
-    UnitId idSpawnedUnit = SpawnUnit(gameData, strId);
-
-    if(TransformComponent_t* pTransform = GetTransform(idSpawnedUnit)) {
-        pTransform->SetPosition({vec2Pos.x, 0, vec2Pos.y});
-    }
-
-    return idSpawnedUnit;
+UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId) {
+    return SpawnUnit(gameData, strId, {0, 0});
 }
 
-UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId) {
+UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId, Vector2 vec2Pos) {
     CCharacterData entityData = gameData.mapCharacterData.at(strId);
 
     UnitId id = CurrentUnitId++;
@@ -51,7 +45,8 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
 
     // ==================== TRANSFORM COMPONENT ====================
     if(entityData.optTransformData.has_value()) {
-        AddTransform(id);
+        TransformComponent_t* pTransform = AddTransform(id);
+        pTransform->SetPosition({vec2Pos.x, 0, vec2Pos.y});
         // TODO read out collision radius
     }
 
@@ -71,6 +66,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
     if(entityData.optHealthData.has_value()) {
         HealthComponent_t* healthComp = AddHealth(id);
         healthComp->nMaxHealth = entityData.optHealthData.value().nMaxHealth;
+        healthComp->nHealth = healthComp->nMaxHealth;
     }
 
     // ==================== NAVIGATION COMPONENT ====================
@@ -79,7 +75,7 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         pNav->nCollisionRadius = entityData.optNavigationData.value().nCollisionRadius;
 
         if (TransformComponent_t* pTransform = GetTransform(id)) {
-            pNav->hBlocker = m_pNavMap->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().y, pNav->nCollisionRadius);
+            pNav->hBlocker = m_pNavMap->AddBlocker(pTransform->GetPosition().x, pTransform->GetPosition().z, pNav->nCollisionRadius);
         } else {
             pNav->hBlocker = INVALID_HANDLE;
         }
@@ -117,6 +113,11 @@ UnitId CServerGameState::SpawnUnit(const CGameData& gameData, std::string strId)
         pAi->vecWaypoints.push_back({1200, 0, -750});
     }
 
+    if (entityData.optMissileData.has_value()) {
+        MissileComponent_t* pMissile = AddMissile(id);
+        pMissile->vec3Target = entityData.optMissileData.value().vec3Target;
+    }
+
     return id;
 }
 
@@ -150,4 +151,5 @@ void CServerGameState::DeleteEntity(UnitId id) {
     RemoveRespawn(id);
     RemoveSpellCast(id);
     RemoveUseable(id);
+    RemoveMissile(id);
 }

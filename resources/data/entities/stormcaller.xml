@@ -10,6 +10,10 @@
 >
     <abilities>
         <ability
+            id="stormhammer"
+            slot="0"
+        />
+        <ability
             id="stormbolt"
             slot="2"
         />

@@ -48,7 +48,10 @@ void CAttackSystem::Update(CServerGameState* pGameState, float fDelta) {
 
                 if(pNavigationComponent->vec3Destination != pTargetTransform->GetPosition()) {
                     pNavigationComponent->vec3Destination = pTargetTransform->GetPosition();
-                    pNavigationComponent->eStatus = ENavigationStatus::PATHING;
+
+                    if (pNavigationComponent->eStatus == ENavigationStatus::IDLE) {
+                        pNavigationComponent->eStatus = ENavigationStatus::PATHING;
+                    }
                 }
 
                 break;
@@ -145,7 +148,7 @@ void CAttackSystem::OnMoveIntention(CServerGameState* pGameState, const CMoveInt
 void CAttackSystem::OnSpellCastAttempt(CServerGameState* pGameState, const CSpellAttemptCastEvent& evt) {
     BasicAttackComponent_t* attackComp = pGameState->GetBasicAttack(evt.m_idCaster);
     
-    if(attackComp->optCurrentAttack.has_value()) {
+    if(attackComp && attackComp->optCurrentAttack.has_value()) {
         ActiveAttack_t& atk = attackComp->optCurrentAttack.value();
         atk.eState = EAttackState::CANCELLED;
     }

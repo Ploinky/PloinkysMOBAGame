@@ -44,6 +44,18 @@ void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
             case ESpellCastState::IDLE:
             case ESpellCastState::APPROACHING:
                 pCasterTransform = pGameState->GetTransform(activeCast.spellCtx->idCaster);
+                if (vecSpells[activeCast.nIndex].data.eTargetType == EAbilityTargetType::POINT) {
+                    activeCast.eState = ESpellCastState::CASTING;
+                    activeCast.fTimeInState = 0.0f;
+                    pGameState->EmitEvent(CSpellCastStartEvent(activeCast.spellCtx));
+                    pGameState->EmitEvent(CMoveEvent(
+                        activeCast.spellCtx->idCaster,
+                        pCasterTransform->GetPosition(),
+                        CalculateAngle(Vector2(pCasterTransform->GetPosition().x, pCasterTransform->GetPosition().z), activeCast.spellCtx->vec2Target)
+                    ));
+
+                    break;
+                }
                 pTargetTransform = pGameState->GetTransform(activeCast.spellCtx->idTarget);
 
                 pNavigationComponent = pGameState->GetNavigation(activeCast.spellCtx->idCaster);
@@ -102,6 +114,7 @@ void CSpellSystem::OnSpellAttemptCast(CServerGameState* pGameState, const CSpell
     CSpellCastContext* pSpellCtx = new CSpellCastContext();
     pSpellCtx->idCaster = evt.m_idCaster;
     pSpellCtx->idTarget = evt.m_targetInfo.target;
+    pSpellCtx->vec2Target = Vector2(evt.m_targetInfo.target_point.x, evt.m_targetInfo.target_point.z);
     pSpellCtx->nSpellIndex = evt.m_nIndex;
     TryCastSpell(pGameState, pSpellCtx);
 }
@@ -119,6 +132,8 @@ void CSpellSystem::OnSpellCast(CServerGameState* pGameState, const CSpellCastEve
 
     if(pSpellComp->vecSpellSlots.at(evt.m_spellCtx->nSpellIndex).data.eTargetType == EAbilityTargetType::UNIT) {
         SpellHit(pGameState, evt.m_spellCtx);
+    } else if (pSpellComp->vecSpellSlots.at(evt.m_spellCtx->nSpellIndex).data.eTargetType == EAbilityTargetType::POINT) {
+        SpellHit(pGameState, evt.m_spellCtx);
     }
 }
 
@@ -133,6 +148,10 @@ void CSpellSystem::SpellHit(CServerGameState* pGameState, CSpellCastContext* pCt
 
     for(ImpactEffectHeal_t healEffect : spell.data.effect.vecHealEffects) {
         api.ApplyHeal(pCtx->idCaster, pCtx->idTarget, healEffect.vecHeal[0]);
+    }
+
+    for (ImpactEffectSpawn_t spawnEffect : spell.data.effect.vecSpawnEffects) {
+        api.SpawnEntity(pCtx->idCaster, spawnEffect.strTemplateId, pCtx->vec2Target);
     }
 
     pGameState->EmitEvent(CSpellHitEvent(pCtx->idTarget, pSpellComp->vecSpellSlots.at(pCtx->nSpellIndex).data.strId));

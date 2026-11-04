@@ -4,6 +4,8 @@
 #include "../events/spell-hit-event.h"
 #include "../events.h"
 
+#include <steam/steam_gameserver.h>
+
 CNetworkSystem::CNetworkSystem(ServerNetworkManager* pManager) {
     m_pNetworkManager = pManager;
 }

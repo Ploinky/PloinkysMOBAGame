@@ -5,6 +5,7 @@ add_executable(server_test
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/cleanup-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/damage-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/inventory-system.cpp
+	${CMAKE_SOURCE_DIR}/apps/server/src/systems/missile-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/movement-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/NavigationSystem.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/points-system.cpp

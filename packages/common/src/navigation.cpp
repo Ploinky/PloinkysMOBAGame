@@ -644,7 +644,8 @@ PathResult_t NavigationMap::RequestPath(Vector2 from, Vector2 to, float fCollisi
 
 	std::reverse(vecVec2ShortPath.begin(), vecVec2ShortPath.end());
 
-	for (Vector2 vec : vecVec2LongPath) {
+	for (int pi = 1; pi < vecVec2LongPath.size(); pi++) {
+		Vector2 vec = vecVec2LongPath.at(pi);
 		PathSegment_t segment;
 		segment.eType = EEdgeType::LINE;
 		segment.vec2To = vec;

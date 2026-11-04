@@ -15,10 +15,11 @@ void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh) {
     m_gameState.AddSystem(new CInventorySystem());
     m_gameState.AddSystem(new CSpawnSystem(&m_gameData));
     m_gameState.AddSystem(new CTriggerSystem());
-    m_gameState.AddSystem(new CCleanupSystem());
+    m_gameState.AddSystem(new CMissileSystem());
     m_gameState.AddSystem(new CMovementSystem());
     m_gameState.AddSystem(new CSpellSystem());
     m_gameState.AddSystem(new CDamageSystem());
+    m_gameState.AddSystem(new CCleanupSystem());
 
     // =====================================
     // THIS NEEDS TO GO SOMEWHERE
@@ -41,7 +42,7 @@ void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh) {
         spawnUnitTrigger.vec2Position = spawnTriggerData.vec2Position;
         trigger.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
     }
-    m_gameState.VecTriggers.push_back(trigger);
+    // m_gameState.VecTriggers.push_back(trigger);
     // =====================================
     CTriggerData trigData2 = m_gameData.mapTriggerData.at("wave_team_2");
     CTrigger trigger2 = CTrigger();
@@ -55,7 +56,7 @@ void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh) {
         spawnUnitTrigger.vec2Position = spawnTriggerData.vec2Position;
         trigger2.vecSpawnUnitTriggers.push_back(spawnUnitTrigger);
     }
-    m_gameState.VecTriggers.push_back(trigger2);
+    // m_gameState.VecTriggers.push_back(trigger2);
     // =====================================
 }
 
@@ -80,14 +81,13 @@ void CServerGame::Tick() {
 
 UnitId CServerGame::AddPlayer() {
     // always present
-    UnitId id = m_gameState.SpawnUnit(m_gameData, "stormcaller");
+    UnitId id = m_gameState.SpawnUnit(m_gameData, "stormcaller", Vector2(250, -750)); // TODO position in data;
 
     m_gameState.AddTeam(id, TeamComponent_t(Team::TEAM_1));
     BasicAttackComponent_t* pAttack = m_gameState.AddBasicAttack(id, BasicAttackComponent_t());
     pAttack->fRange = 150;
     pAttack->fAttackPoint = 700;
     pAttack->fAttackTime = 1000;
-    m_gameState.GetTransform(id)->SetPosition({250, 0, -750}); // TODO in data
     m_gameState.GetMovement(id)->vec3Target = m_gameState.GetTransform(id)->GetPosition(); // TODO how to make this one call
     m_gameState.GetNavigation(id)->vec3Destination = m_gameState.GetTransform(id)->GetPosition();
     m_gameState.AddRespawn(id);

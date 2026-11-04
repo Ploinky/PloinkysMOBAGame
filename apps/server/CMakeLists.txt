@@ -34,6 +34,7 @@ add_executable(server
 	src/systems/inventory-system.cpp
 	src/systems/NavigationSystem.cpp
 	src/systems/NetworkSystem.cpp
+	src/systems/missile-system.cpp
 	src/systems/movement-system.cpp
 	src/systems/points-system.cpp
 	src/systems/respawn-system.cpp

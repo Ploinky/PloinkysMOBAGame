@@ -129,6 +129,269 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idSpawnedUnit = game.GetState()->SpawnUnit(gameData, "stormcaller", {100, -100});
+        UnitId idMovingUnit = game.GetState()->SpawnUnit(gameData, "stormcaller", {0, -100});
+        game.Input(CMoveAttemptEvent(idMovingUnit, {200, 0, -100}, 0));
+
+        game.Tick();
+        if (game.GetState()->GetNavigation(idMovingUnit)->path.size() != 3) {
+            printf("FAILED: freshly spawned unit does not block correctly\n");
+            return 1;
+        }
+    
+        while (game.GetState()->CurrentTick < 100) {
+            game.Tick();
+        }
+
+        if (game.GetState()->GetTransform(idSpawnedUnit)->GetPosition() != Vector3(100, 0, -100)) {
+            printf("FAILED: freshly spawned unit moves\n");
+            return 1;
+        }
+
+        if (game.GetState()->GetTransform(idMovingUnit)->GetPosition() == Vector3(0, 0, -100)) {
+            printf("FAILED: move-ordered unit did not move\n");
+            return 1;
+        }
+        
+    }
+
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idMovingUnit = game.GetState()->SpawnUnit(gameData, "minion", {100, -750});
+        UnitId idAttackedUnit = game.GetState()->SpawnUnit(gameData, "stormcaller", {1000, -850});
+        game.GetState()->AddTeam(idMovingUnit)->eTeam = Team::TEAM_1;
+        BasicAttackComponent_t* pAttack = game.GetState()->AddBasicAttack(idMovingUnit);
+        pAttack->fRange = 200;
+        pAttack->fAttackPoint = 500;
+        pAttack->fAttackTime = 1000;
+        game.GetState()->AddTeam(idAttackedUnit)->eTeam = Team::TEAM_2;
+
+        while (game.GetState()->CurrentTick < 63) {
+            game.Tick();
+        }
+
+        if (game.GetState()->GetBasicAttack(idMovingUnit)->optCurrentAttack.has_value()) {
+            printf("FAILED: attacking too early at tick %lld\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+        
+        game.Tick();
+        
+        if (!game.GetState()->GetBasicAttack(idMovingUnit)->optCurrentAttack.has_value()) {
+            printf("FAILED: no attack yet at tick %lld\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+
+        while (game.GetState()->CurrentTick < 145) {
+            game.Tick();
+        }
+
+        Vector3 vec3AttackStartPos = game.GetState()->GetTransform(idMovingUnit)->GetPosition();
+        if (game.GetState()->GetBasicAttack(idMovingUnit)->optCurrentAttack.value().eState != EAttackState::ATTACKING) {
+            printf("FAILED: not attacking yet at tick %lld\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+
+        while (game.GetState()->CurrentTick < 175) {
+            game.Tick();
+        }
+
+        if (game.GetState()->GetTransform(idMovingUnit)->GetPosition() != vec3AttackStartPos) {
+            printf("FAILED: unit moved while attacking!\n");
+            return 1;
+        }
+    }
+
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idMovingUnit = game.GetState()->SpawnUnit(gameData, "minion", {600, -750});
+        UnitId idBlockingUnit = game.GetState()->SpawnUnit(gameData, "stormcaller", {1100, -800});
+        UnitId idAttackedUnit = game.GetState()->SpawnUnit(gameData, "stormcaller", {1150, -750});
+        game.GetState()->AddTeam(idMovingUnit)->eTeam = Team::TEAM_1;
+        BasicAttackComponent_t* pAttack = game.GetState()->AddBasicAttack(idMovingUnit);
+        pAttack->fRange = 200;
+        pAttack->fAttackPoint = 500;
+        pAttack->fAttackTime = 1000;
+        game.GetState()->AddTeam(idAttackedUnit)->eTeam = Team::TEAM_2;
+        game.Input(CMoveAttemptEvent(idBlockingUnit, {1100, 0, -750}, 0));
+        game.Input(CMoveAttemptEvent(idAttackedUnit, {1900, 0, -750}, 0));
+
+        while (game.GetState()->CurrentTick < 93) {
+            game.Tick();
+        }
+
+        Vector3 vec3MoverPos = game.GetState()->GetTransform(idMovingUnit)->GetPosition();
+
+        while (game.GetState()->CurrentTick < 96) {
+            game.Tick();
+        }
+
+        if (vec3MoverPos == game.GetState()->GetTransform(idMovingUnit)->GetPosition()) {
+            printf("FAILED: attacking unit stuck on blocker\n");
+            return 1;
+        }
+    }
+
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idMissile = game.GetState()->SpawnUnit(gameData, "missile", {100, -100});
+        game.GetState()->GetMissile(idMissile)->vec3Target = Vector3(900, 0, -900);
+
+        game.Tick();
+
+        if (game.GetState()->GetTransform(idMissile)->GetPosition() == Vector3(100, 0, -100)) {
+            printf("FAILED: missile ain't moving\n");
+            return 1;
+        }
+
+        while (game.GetState()->CurrentTick < 56) {
+            game.Tick();
+        }
+        
+        if (game.GetState()->GetTransform(idMissile)->GetPosition() == Vector3(900, 0, -900)) {
+            printf("FAILED: missile has arrived too early\n");
+            return 1;
+        }
+        game.Tick();
+        if (game.GetState()->GetTransform(idMissile)->GetPosition() != Vector3(900, 0, -900)) {
+            printf("FAILED: missile has not arrived at target after %lld ticks\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+        game.Tick();
+        if (game.GetState()->GetMissile(idMissile) != nullptr) {
+            printf("FAILED: missile has not been removed after %lld ticks\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+    }
+
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idMissile = game.GetState()->SpawnUnit(gameData, "missile", {100, -100});
+        game.GetState()->AddTeam(idMissile)->eTeam = Team::TEAM_1;
+        UnitId idEnemy = game.GetState()->SpawnUnit(gameData, "stormcaller", {200, -100});
+        game.GetState()->AddTeam(idEnemy)->eTeam = Team::TEAM_2;
+
+        game.GetState()->GetMissile(idMissile)->vec3Target = Vector3(900, 0, -1100);
+
+        if (game.GetState()->GetHealth(idEnemy)->nHealth != game.GetState()->GetHealth(idEnemy)->nMaxHealth) {
+            printf("FAILED: enemy does not have full hp\n");
+            return 1;
+        }
+        while (game.GetState()->CurrentTick < 4) {
+            game.Tick();
+        }
+        
+        if (game.GetState()->GetHealth(idEnemy)->nHealth == game.GetState()->GetHealth(idEnemy)->nMaxHealth) {
+            printf("FAILED: missile has not dealt damage\n");
+            return 1;
+        }
+
+        if (game.GetState()->GetMissile(idMissile) != nullptr) {
+            printf("FAILED: missile has not been removed after hitting\n");
+            return 1;
+        }
+    }
+
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idStormcaller = game.GetState()->SpawnUnit(gameData, "stormcaller", {100, -100});
+        SpellTargetInfo info;
+        info.target_point = Vector3(900, 0, -100);
+        game.Input(CSpellAttemptCastEvent(idStormcaller, info, 0));
+
+        while (game.GetState()->CurrentTick < 8) {
+            game.Tick();
+        }
+        if (game.GetState()->GetAllMissile().empty()) {
+            printf("FAILED: missile has not been spawned after spell cast\n");
+            return 1;
+        }
+        UnitId idMissile = game.GetState()->GetAllMissile().begin()->first;
+        if (game.GetState()->GetMissile(idMissile)->vec3Target != info.target_point) {
+            printf("FAILED: missile targeted wrong\n");
+            return 1;
+        }
+        if (game.GetState()->GetMissile(idMissile)->idOwner != idStormcaller) {
+            printf("FAILED: missile owner wrong\n");
+            return 1;
+        }
+        if (game.GetState()->GetTransform(idMissile)->GetPosition() != Vector3(100, 0, -100)) {
+            printf("FAILED: missile spawned at wrong location\n");
+            return 1;
+        }
+        while (game.GetState()->CurrentTick < 48) {
+            game.Tick();
+        }
+        if (game.GetState()->GetTransform(idMissile)->GetPosition() != Vector3(900, 0, -100)) {
+            printf("FAILED: missile has not arrived by tick %lld\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+        game.Tick();
+        if (game.GetState()->GetMissile(idMissile) != nullptr) {
+            printf("FAILED: missile has not been removed by %lld\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+    }
+    
+    {
+        CServerGame game;
+        game.Start(gameData, &navMesh);
+        UnitId idStormcaller = game.GetState()->SpawnUnit(gameData, "stormcaller", {100, -100});
+        UnitId idEnemy = game.GetState()->SpawnUnit(gameData, "stormcaller", {500, -100});
+        game.GetState()->AddTeam(idStormcaller)->eTeam = Team::TEAM_1;
+        game.GetState()->AddTeam(idEnemy)->eTeam = Team::TEAM_2;
+        SpellTargetInfo info;
+        info.target_point = Vector3(900, 0, -100);
+        game.Input(CSpellAttemptCastEvent(idStormcaller, info, 0));
+
+        if (game.GetState()->GetHealth(idEnemy)->nHealth != game.GetState()->GetHealth(idEnemy)->nMaxHealth) {
+            printf("FAILED: enemy not spawned with max health\n");
+            return 1;
+        }
+
+        while (game.GetState()->CurrentTick < 8) {
+            game.Tick();
+        }
+        if (game.GetState()->GetAllMissile().empty()) {
+            printf("FAILED: missile has not been spawned after spell cast\n");
+            return 1;
+        }
+        UnitId idMissile = game.GetState()->GetAllMissile().begin()->first;
+        if (game.GetState()->GetMissile(idMissile)->vec3Target != info.target_point) {
+            printf("FAILED: missile targeted wrong\n");
+            return 1;
+        }
+        if (game.GetState()->GetMissile(idMissile)->idOwner != idStormcaller) {
+            printf("FAILED: missile owner wrong\n");
+            return 1;
+        }
+        if (game.GetState()->GetTransform(idMissile)->GetPosition() != Vector3(100, 0, -100)) {
+            printf("FAILED: missile spawned at wrong location\n");
+            return 1;
+        }
+        while (game.GetState()->CurrentTick < 25) {
+            game.Tick();
+        }
+
+        if (game.GetState()->GetHealth(idEnemy)->nHealth == game.GetState()->GetHealth(idEnemy)->nMaxHealth) {
+            printf("FAILED: enemy not hit by missile\n");
+            return 1;
+        }
+        if (game.GetState()->GetMissile(idMissile) != nullptr) {
+            printf("FAILED: missile has not been removed by %lld\n", game.GetState()->CurrentTick);
+            return 1;
+        }
+    }
+
     printf("PASSED: all tests passed\n");
 
     return 0;

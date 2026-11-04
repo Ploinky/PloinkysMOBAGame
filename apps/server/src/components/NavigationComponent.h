@@ -14,7 +14,7 @@ typedef struct NavigationComponent_t {
     Vector3 vec3Destination;
     HGridBlocker hBlocker = INVALID_HANDLE;
     std::vector<PathSegment_t> path;
-    ENavigationStatus eStatus;
+    ENavigationStatus eStatus = ENavigationStatus::IDLE;
     float fTimeBlocked = 0.0f;
     int nCollisionRadius;
 } NavigationComponent_t;

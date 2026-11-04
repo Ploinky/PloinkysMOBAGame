@@ -9,7 +9,8 @@
 #include "common/pmg_physics.h"
 
 enum class EAbilityTargetType {
-    UNIT
+    UNIT,
+    POINT
 };
 
 enum class EImpactEffectAffects {
@@ -139,6 +140,11 @@ public:
     std::string idType;
 };
 
+class CMissileData {
+public:
+    Vector3 vec3Target;
+};
+
 class CCharacterData {
 public:
     std::string strId;
@@ -157,6 +163,7 @@ public:
     std::optional<CUseableData> optUseableData;
     std::optional<CInventoryData> optInventoryData;
     std::optional<CAIData> optAIData;
+    std::optional<CMissileData> optMissileData;
 };
 
 class CMapCameraVolume {
