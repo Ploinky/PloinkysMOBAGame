@@ -83,7 +83,6 @@ UnitId CServerGame::AddPlayer() {
     // always present
     UnitId id = m_gameState.SpawnUnit(m_gameData, "stormcaller", Vector2(250, -750)); // TODO position in data;
 
-    m_gameState.AddTeam(id, TeamComponent_t(Team::TEAM_1));
     BasicAttackComponent_t* pAttack = m_gameState.AddBasicAttack(id, BasicAttackComponent_t());
     pAttack->fRange = 150;
     pAttack->fAttackPoint = 700;

@@ -116,6 +116,11 @@ void Client::AddPlayerForNetworkId(int index, LobbyPlayer* player) {
     }
 
     UnitId id = m_game.AddPlayer();
+    if (index == 0 || index == 2 || index == 4 || index == 6 || index == 8) {
+        m_game.GetState()->AddTeam(id, TeamComponent_t(Team::TEAM_1));
+    } else {
+        m_game.GetState()->AddTeam(id, TeamComponent_t(Team::TEAM_2));
+    }
 
     // inform everybody TODO prettify
     UnitIdPacket packet = UnitIdPacket();
