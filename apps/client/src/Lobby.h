@@ -6,7 +6,8 @@
 #include <string>
 #include "Gui.h"
 #include <common/NewPackets.h>
-#include <Player.h>
+#include "Player.h"
+#include <steam/steam_api.h>
 
 class Lobby : public IClientState {
 public:

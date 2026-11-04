@@ -124,7 +124,7 @@ void Lobby::HandleSlotPacket(std::vector<uint8_t> data) {
     // must be a new player
     PlayerID id = pck.steamId;
     Player* p = new Player();
-    p->name = "A Player";
+    p->name = SteamFriends()->GetFriendPersonaName(pck.steamId);
     p->steamId = pck.steamId;
     p->ready = pck.isReady;
     players_[pck.slot] = p;
