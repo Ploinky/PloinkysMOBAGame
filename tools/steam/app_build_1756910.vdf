@@ -4,7 +4,7 @@
 	"Desc" "Test build" // internal description for this build
 	"Preview" "0" // make this a preview build only, nothing is uploaded
 	"SetLive" "development" // set this build live on beta branch AlphaTest
-	"ContentRoot" "..\..\_dist\win\" // content root folder relative to this script file
+	"ContentRoot" "..\..\_dist\win64\" // content root folder relative to this script file
 	"BuildOutput" "C:\build_output\" // put build cache and log files on different drive for better performance
 	"verbose" "1" // spew more build details in console
 	"Depots"

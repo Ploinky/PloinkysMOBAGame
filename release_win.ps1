@@ -1,6 +1,8 @@
 $OutputFolder = './_dist/win64'
 $ClientBuildFolder = './_out/win64/release/client'
 $PAKR = './_build/win64/release/apps/pakr/pakr.exe'
+$VERSION = Get-Content "./_out/win64/release/version.txt"
+$STEAMCMD = "C:/steam-sdk/tools/ContentBuilder/builder/steamcmd.exe"
 
 if (-Not (Test-Path -Path $ClientBuildFolder)) {
     "Client build in folder [$ClientBuildFolder] does not exist"
@@ -15,6 +17,7 @@ if (Test-Path -Path $OutputFolder) {
     New-Item -ItemType Directory -Force -Path $OutputFolder
 }
 
+Copy-Item "./_out/win64/release/version.txt" -Destination $OutputFolder
 Copy-Item "$ClientBuildFolder/client.exe" -Destination $OutputFolder
 Copy-Item "$ClientBuildFolder/steam_api64.dll" -Destination $OutputFolder
 Copy-Item "$ClientBuildFolder/steam_appid.txt" -Destination $OutputFolder
@@ -45,3 +48,5 @@ New-Item -ItemType Directory -Force -Path "$OutputFolder/characters"
 & $PAKR "$ClientBuildFolder/shaders" "$OutputFolder/shaders.pak" "Shaders"
 
 & $PAKR "./resources/data" "$OutputFolder/data.pak" "data"
+
+& $STEAMCMD +login curuba2311 +run_app_build -desc "$Version" (Resolve-Path ./tools/steam/app_build_1756910.vdf) +quit

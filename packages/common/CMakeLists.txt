@@ -1,3 +1,5 @@
+get_property(out_dir GLOBAL PROPERTY out_dir)
+
 add_library(common
 	src/AssetManager.cpp
 	src/calculation.cpp
@@ -67,7 +69,7 @@ target_link_libraries(common PUBLIC paklib)
 target_compile_definitions(common PUBLIC NOMINMAX)
 
 add_custom_target(
-	versioner COMMAND ${CMAKE_COMMAND} -DBUILD_TYPE=${CMAKE_BUILD_TYPE} -DVERSION_OUT=${CMAKE_CURRENT_BINARY_DIR}/version.cpp -P ${CMAKE_CURRENT_SOURCE_DIR}/version.cmake
+	versioner COMMAND ${CMAKE_COMMAND} -DBUILD_TYPE=${CMAKE_BUILD_TYPE} -DVERSION_OUT_DIR=${out_dir} -DVERSION_OUT=${CMAKE_CURRENT_BINARY_DIR}/version.cpp -P ${CMAKE_CURRENT_SOURCE_DIR}/version.cmake
 	BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
 )
 add_dependencies(common versioner)
