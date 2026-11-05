@@ -4,6 +4,11 @@ $PAKR = './_build/win64/release/apps/pakr/pakr.exe'
 $VERSION = Get-Content "./_out/win64/release/version.txt"
 $STEAMCMD = "C:/steam-sdk/tools/ContentBuilder/builder/steamcmd.exe"
 
+if ($VERSION.Contains("*")) {
+    "DIRTY BUILD"
+    Exit 1
+}
+
 if (-Not (Test-Path -Path $ClientBuildFolder)) {
     "Client build in folder [$ClientBuildFolder] does not exist"
     Exit 1

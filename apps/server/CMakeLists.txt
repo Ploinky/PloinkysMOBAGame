@@ -65,4 +65,5 @@ endif()
 if(UNIX)
 endif()
 
+add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${server_out_dir}/steam_appid.txt)
 add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different  ${CMAKE_SOURCE_DIR}/resources/config_server/ ${server_out_dir}/cfg/)
