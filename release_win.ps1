@@ -54,4 +54,4 @@ New-Item -ItemType Directory -Force -Path "$OutputFolder/characters"
 
 & $PAKR "./resources/data" "$OutputFolder/data.pak" "data"
 
-& $STEAMCMD +login curuba2311 +run_app_build -desc "$Version" (Resolve-Path ./tools/steam/app_build_1756910.vdf) +quit
+& $STEAMCMD +login ploinkygamesbuild +run_app_build -desc "$Version" (Resolve-Path ./tools/steam/app_build_1756910.vdf) +quit
