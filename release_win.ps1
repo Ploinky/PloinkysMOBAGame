@@ -1,5 +1,11 @@
-$OutputFolder = './_dist/win'
-$PAKR = './_build/apps/pakr/pakr.exe'
+$OutputFolder = './_dist/win64'
+$ClientBuildFolder = './_out/win64/release/client'
+$PAKR = './_build/win64/release/apps/pakr/pakr.exe'
+
+if (-Not (Test-Path -Path $ClientBuildFolder)) {
+    "Client build in folder [$ClientBuildFolder] does not exist"
+    Exit 1
+}
 
 if (Test-Path -Path $OutputFolder) {
     "Output folder [$OutputFolder] exists"
@@ -9,12 +15,12 @@ if (Test-Path -Path $OutputFolder) {
     New-Item -ItemType Directory -Force -Path $OutputFolder
 }
 
-Copy-Item "./_out/client/client.exe" -Destination $OutputFolder
-Copy-Item "./_out/client/steam_api64.dll" -Destination $OutputFolder
-Copy-Item "./_out/client/steam_appid.txt" -Destination $OutputFolder
+Copy-Item "$ClientBuildFolder/client.exe" -Destination $OutputFolder
+Copy-Item "$ClientBuildFolder/steam_api64.dll" -Destination $OutputFolder
+Copy-Item "$ClientBuildFolder/steam_appid.txt" -Destination $OutputFolder
 Copy-Item "./resources/data" -Destination $OutputFolder -Recurse
 New-Item -ItemType Directory -Force -Path "$OutputFolder/cfg"
-Copy-Item "./_out/client/cfg/settings.cfg" -Destination "$OutputFolder/cfg/"
+Copy-Item "$ClientBuildFolder/cfg/settings.cfg" -Destination "$OutputFolder/cfg/"
 
 New-Item -ItemType Directory -Force -Path "$OutputFolder/Persons"
 & $PAKR "./resources/assets_raw/persons/chess_person" "$OutputFolder/Persons/ChessPerson.pak" "assets/persons/chess_person"
@@ -36,6 +42,6 @@ New-Item -ItemType Directory -Force -Path "$OutputFolder/Maps"
 New-Item -ItemType Directory -Force -Path "$OutputFolder/characters"
 & $PAKR "./resources/assets_raw/characters/stormcaller" "$OutputFolder/characters/stormcaller.pak" "assets/characters/stormcaller"
 
-& $PAKR "./_out/client/shaders" "$OutputFolder/shaders.pak" "Shaders"
+& $PAKR "$ClientBuildFolder/shaders" "$OutputFolder/shaders.pak" "Shaders"
 
 & $PAKR "./resources/data" "$OutputFolder/data.pak" "data"

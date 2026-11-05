@@ -1,0 +1,34 @@
+{
+    "version": 8,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "WIN_X64_DEBUG",
+            "displayName": "Win x64 Debug",
+            "description": "Windows 64-bit debug build",
+            "binaryDir": "_build/win64/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_OUT_FOLDER": "_out/win64/debug",
+                "CMAKE_DIST_FOLDER": "_dist/win64/debug"
+            },
+            "generator": "Ninja"
+        },
+        {
+            "name": "WIN_X64_RELEASE",
+            "displayName": "Win x64 Release",
+            "description": "Windows 64-bit release build",
+            "binaryDir": "_build/win64/release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OUT_FOLDER": "_out/win64/release",
+                "CMAKE_DIST_FOLDER": "_dist/win64/release"
+            },
+            "generator": "Ninja"
+        }
+    ]
+}

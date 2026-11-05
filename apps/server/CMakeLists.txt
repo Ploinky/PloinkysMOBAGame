@@ -1,7 +1,7 @@
 # collect paths
 get_property(dist_dir GLOBAL PROPERTY dist_dir)
 get_property(out_dir GLOBAL PROPERTY out_dir)
-set(server_out_dir ${out_dir}/"server")
+set(server_out_dir ${out_dir}/server)
 
 add_executable(server
 	src/Buff.cpp
@@ -54,10 +54,12 @@ target_include_directories(server PRIVATE src ${CMAKE_SOURCE_DIR}/vendor/include
 target_link_libraries(server PUBLIC common steam_api64)
 
 if(WIN32)
-    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/server/data)
-        add_custom_command(TARGET server POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/server/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")
-	endif()
 	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:server>/server.exe ${server_out_dir}/server.exe)
+	add_custom_command(TARGET server POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll ${server_out_dir}/steam_api64.dll)
+
+    if(NOT EXISTS ${server_out_dir}/data)
+        add_custom_command(TARGET server POST_BUILD COMMAND cmd /c mklink /J \"${server_out_dir}/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")
+	endif()
 endif()
 
 if(UNIX)

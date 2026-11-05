@@ -106,20 +106,22 @@ target_link_libraries(client PUBLIC common)
 
 if(WIN32)
     add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE_DIR:client>/client.exe ${client_out_dir}/client.exe)
+    add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/vendor/lib/steam_api64.dll ${client_out_dir}/steam_api64.dll)
     target_link_libraries(client PUBLIC d3d11 dwrite d2d1 xaudio2 steam_api64)
 
-    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/data)
-        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")
+    if(NOT EXISTS ${client_out_dir}/data)
+        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${client_out_dir}/data\" \"${CMAKE_SOURCE_DIR}/resources/data\")
     endif()
-    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/_out/client/assets)
-        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${CMAKE_SOURCE_DIR}/_out/client/assets\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
+    if(NOT EXISTS ${client_out_dir}/assets)
+        add_custom_command(TARGET client POST_BUILD COMMAND cmd /c mklink /J \"${client_out_dir}/assets\" \"${CMAKE_SOURCE_DIR}/resources/assets_raw\")
     endif()
 endif()
 
 if(UNIX)
     target_link_libraries(client PUBLIC common glfw GL glut)
 endif()
-    
+
+add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/steam_appid.txt ${client_out_dir}/steam_appid.txt)
 add_custom_command(TARGET client POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different  ${CMAKE_SOURCE_DIR}/resources/config_client/ ${client_out_dir}/cfg/)
 
 # shaders
