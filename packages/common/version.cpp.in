@@ -1,0 +1,10 @@
+#include <common/version.h>
+
+const char* PMG_VERSION_MAJOR = "@PMG_VERSION_MAJOR@";
+const char* PMG_VERSION_MINOR = "@PMG_VERSION_MINOR@";
+const char* PMG_VERSION_PATCH = "@PMG_VERSION_PATCH@";
+const char* PMG_BUILD_NUMBER = "@PMG_BUILD_NUMBER@";
+const char* PMG_COMMIT_HASH = "@PMG_COMMIT_HASH@";
+const char* PMG_DIRTY_FLAG = "@PMG_DIRTY_FLAG@";
+const char* PMG_BUILD_TYPE = "@PMG_BUILD_TYPE@";
+const char* PMG_VERSION_STRING = "@PMG_VERSION_STRING@";

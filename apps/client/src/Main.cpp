@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <Client.h>
 #include <common/PMG_Common.h>
+#include <common/version.h>
 #include <string>
 #include <locale>
 #include <codecvt>
@@ -10,6 +11,7 @@
 #include "Particle.h"
 #include "ParticleEffect.h"
 #include <core/platform/platform.h>
+
 
 // Main entry point into the application
 int main(int argc, char* argv[]) {
@@ -40,6 +42,7 @@ int main(int argc, char* argv[]) {
     }
 
     Logger::Msg("Starting Ploinky's MOBA Game...");
+    Logger::Msg(PMG_VERSION_STRING);
 
     Client* client = nullptr;
 #ifdef _DEBUG

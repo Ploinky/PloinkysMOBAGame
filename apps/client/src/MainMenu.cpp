@@ -1,5 +1,6 @@
 #include "MainMenu.h"
 #include <common/PMG_Common.h>
+#include <common/version.h>
 #include "Game.h"
 
 MainMenu::MainMenu(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
@@ -79,6 +80,7 @@ void MainMenu::Render(CRenderer* renderer) {
 	}
 
 	renderer->RenderText(50, 50 + m_portrait.nHeight + 10, 200, 50, myName_);
+	renderer->RenderText(10, windowHeight_ - 30, 250, 20, PMG_VERSION_STRING);
 
 	rootElement_.Render(renderer);
 }

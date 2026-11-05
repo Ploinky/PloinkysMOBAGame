@@ -1,7 +1,9 @@
 #include "window-win32.h"
+
 #include <iostream>
 #include <string>
 #include <common/PMG_Common.h>
+#include <common/version.h>
 #include "../Resources/resource.h"
 #include "Settings.h"
 #include <map>
@@ -169,11 +171,8 @@ CWindowWin32::CWindowWin32(int res_x, int res_y, WindowMode mode) {
     RECT wr = {0, 0, width_, height_};       // set the size, but not the position
     AdjustWindowRectEx(&wr, dwStyle, false, WS_EX_APPWINDOW); // adjust the window's size
 
-    std::string window_title = "Ploinky's MOBA Game";
-
-#ifdef _DEBUG
-    window_title.append("__DEBUG BUILD__");
-#endif
+    std::string window_title = "Ploinky's MOBA Game ";
+    window_title.append(PMG_VERSION_STRING);
 
     m_hWnd = CreateWindowExA(WS_EX_APPWINDOW,
                                     wc.lpszClassName,

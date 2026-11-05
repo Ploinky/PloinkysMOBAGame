@@ -53,6 +53,8 @@ add_library(common
 	src/util/frame-timer.cpp
 
 	src/vendor/pugixml.cpp
+
+	${CMAKE_CURRENT_BINARY_DIR}/version.cpp 
 )
 
 target_include_directories(common PUBLIC include)
@@ -63,3 +65,9 @@ target_include_directories(common PRIVATE include/common)
 target_link_libraries(common PUBLIC paklib)
 
 target_compile_definitions(common PUBLIC NOMINMAX)
+
+add_custom_target(
+	versioner COMMAND ${CMAKE_COMMAND} -DBUILD_TYPE=${CMAKE_BUILD_TYPE} -DVERSION_OUT=${CMAKE_CURRENT_BINARY_DIR}/version.cpp -P ${CMAKE_CURRENT_SOURCE_DIR}/version.cmake
+	BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
+)
+add_dependencies(common versioner)
