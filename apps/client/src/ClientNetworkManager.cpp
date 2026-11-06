@@ -28,12 +28,17 @@ bool ClientNetworkManager::CheckConnected() {
 
 bool ClientNetworkManager::Close() {
     // TODO what is actually needed here? checks?
+	m_pEngine->Disconnect(m_hServerConnection);
 	return true;
 }
 
 bool ClientNetworkManager::SendPacket(BasePacket* packet) {
 	m_pEngine->SendMessageToConnection(m_hServerConnection, packet);
 	return true;
+}
+
+int ClientNetworkManager::GetPing() {
+	return m_pEngine->GetPingToConnection(m_hServerConnection);
 }
 
 bool ClientNetworkManager::ReceivePacket() {

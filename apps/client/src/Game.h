@@ -129,14 +129,18 @@ public:
 
     bool m_bGameHasEnded;
 
+    int m_nPing = 0;
+    float m_fRefreshPing = -1;
+    int m_nLag = 0;
+
     std::vector<std::string> m_vecChat;
     std::vector<UIAbility_t> m_vecAbilities = std::vector<UIAbility_t>(4);
 
-    HBitmap m_hGenericIcon = INVALID_ASSET_HANDLE;
+    HBitmap m_hGenericIcon = INVALID_HANDLE;
     // TODO
     AudioSystem* m_pAudioSystem;
-    HSound m_hThunderstrikeSound = INVALID_ASSET_HANDLE;
-    HSound m_hStormcallerAttack = INVALID_ASSET_HANDLE;
+    HSound m_hThunderstrikeSound = INVALID_HANDLE;
+    HSound m_hStormcallerAttack = INVALID_HANDLE;
 
     PlayerInput_t m_playerInput;
     CMapData m_map;

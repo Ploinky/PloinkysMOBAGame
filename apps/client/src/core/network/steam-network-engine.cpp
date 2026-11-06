@@ -144,3 +144,25 @@ HConnection CSteamNetworkEngine::ConnectToServer(const char* szAddress, int port
     m_mapConnections.emplace(hConn, conn);
     return hConn;
 };
+
+int CSteamNetworkEngine::GetPingToConnection(const HConnection hConnection) const {
+    if (hConnection == INVALID_HANDLE) {
+        return -1;
+    }
+
+    HSteamNetConnection hSteamConn = m_mapConnections.at(hConnection).hSteamConn;
+    SteamNetConnectionRealTimeStatus_t status;
+    if (SteamNetworkingSockets()->GetConnectionRealTimeStatus(hSteamConn, &status, 0, NULL) == k_EResultNoConnection) {
+        return -1;
+    }
+    return status.m_nPing;
+}
+
+
+bool CSteamNetworkEngine::Disconnect(const HConnection hConnection) {
+    if (hConnection == INVALID_HANDLE) {
+        return false;
+    }
+    HSteamNetConnection hSteamConn = m_mapConnections.at(hConnection).hSteamConn;
+    return SteamNetworkingSockets()->CloseConnection(hSteamConn, 0, "Leaving by choice", false);
+}

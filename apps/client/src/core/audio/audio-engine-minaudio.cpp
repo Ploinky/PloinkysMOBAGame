@@ -18,7 +18,7 @@ void CAudioEngineMinaudio::SetMasterVolume(float fValue) {
 }
 
 HSound CAudioEngineMinaudio::LoadSound(std::vector<uint8_t> vecSoundData) {
-    return INVALID_ASSET_HANDLE;
+    return INVALID_HANDLE;
 }
 HVoice CAudioEngineMinaudio::CreateVoice(HSound sound) {
     return INVALID_VOICE_HANDLE;

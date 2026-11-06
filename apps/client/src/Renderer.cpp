@@ -32,7 +32,7 @@ void CRenderer::Initialize(bool bFullScreen, CClientAssetManager* assetManager, 
 	m_hModelConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(ModelConstants_t), nullptr);
 	m_hSkinnedModelConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(SkinnedModelConstants_t), nullptr);
 	m_hBillboardFrameConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(BillboardFrameConstants_t), nullptr);
-	
+	m_hPostFrameConstBuffer = m_pGraphicsEngine->CreateConstantBuffer(sizeof(PostProcess_t), nullptr);
 
 	ParticleShaderVertex_t vertices[6]{
 		{ {-1, 1, 0}, {0, 0} },
@@ -59,6 +59,10 @@ void CRenderer::LoadResources(CClientAssetManager* pAssetManager) {
     vecVsBytecode = pAssetManager->LoadFile("Shaders/flat_unlit.vert.cso");
     vecPsBytecode = pAssetManager->LoadFile("Shaders/flat_unlit.pixel.cso");
 	m_hFlatUnlitShaderProgram = m_pGraphicsEngine->LoadShaderProgram("flat_unlit", EVertexFormat::STATIC_MESH, vecVsBytecode, vecPsBytecode);
+
+    vecVsBytecode = pAssetManager->LoadFile("Shaders/post.vert.cso");
+    vecPsBytecode = pAssetManager->LoadFile("Shaders/post.pixel.cso");
+	m_hPostShaderProgram = m_pGraphicsEngine->LoadShaderProgram("post", EVertexFormat::NONE, vecVsBytecode, vecPsBytecode);
 
     // ------------ TEXTURES ------------
 	// TODO do we need this somewhere lelse
@@ -92,7 +96,7 @@ void CRenderer::SetDimensions(int width_, int height_) {
     m_height = height_;
 
     float hp = static_cast<float>(M_PI / 180.0);
-    m_projMatrix = PMathMatTranspose(PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip));
+    m_projMatrix = PMathMatPerspectiveRH(ToRadians(m_camera.fov), (float)m_width / (float)m_height, m_camera.nearClip, m_camera.farClip);
 }
 
 void CRenderer::UpdateCameraMatrix() {
@@ -106,43 +110,81 @@ void CRenderer::UpdateCameraMatrix() {
 }
 
 void CRenderer::RenderText(int x, int y, int w, int h, std::string text) {
-    float color[3] = { 1.0, 1.0, 1.0 };
-    RenderText(x, y, w, h, color, text);
+	float color[3] = {1.0, 1.0, 1.0};
+	RenderText(x, y, w, h, color, text);
 }
 
 void CRenderer::RenderText(int x, int y, int w, int h, float color[3], std::string text) {
-	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	pCanvas->RenderText(x, y, w, h, color, text);
+	UIRenderCommand_t cmd;
+	cmd.eType = EUIRenderCommandType::TEXT;
+	cmd.x = x;
+	cmd.y = y;
+	cmd.w = w;
+	cmd.h = h;
+	cmd.color[0] = color[0];
+	cmd.color[1] = color[1];
+	cmd.color[2] = color[2];
+	cmd.strText = text;
+	Submit(cmd);
 }
 
 void CRenderer::DrawRect(int x, int y, int w, int h, float color[3]) {
-	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	pCanvas->DrawRect(x, y, w, h, color);
+	UIRenderCommand_t cmd;
+	cmd.eType = EUIRenderCommandType::OUTLINE_RECT;
+	cmd.x = x;
+	cmd.y = y;
+	cmd.w = w;
+	cmd.h = h;
+	cmd.color[0] = color[0];
+	cmd.color[1] = color[1];
+	cmd.color[2] = color[2];
+	Submit(cmd);
 }
 
-void CRenderer::DrawShape(Vector2* points, int pointCount, float color[3]) {
-	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	pCanvas->DrawShape(points, pointCount, color);
+void CRenderer::DrawShape(std::vector<Vector2> points, float color[3]) {
+	UIRenderCommand_t cmd;
+	cmd.eType = EUIRenderCommandType::OUTLINE_SHAPE;
+	cmd.vecPoints = points;
+	cmd.nPoints = points.size();
+	cmd.color[0] = color[0];
+	cmd.color[1] = color[1];
+	cmd.color[2] = color[2];
+	Submit(cmd);
 };
 
-void CRenderer::FillShape(Vector2* points, int pointCount, float color[3]) {
-	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	pCanvas->FillShape(points, pointCount, color);
+void CRenderer::FillShape(std::vector<Vector2> points, float color[3]) {
+	UIRenderCommand_t cmd;
+	cmd.eType = EUIRenderCommandType::FILL_SHAPE;
+	cmd.vecPoints = points;
+	cmd.nPoints = points.size();
+	cmd.color[0] = color[0];
+	cmd.color[1] = color[1];
+	cmd.color[2] = color[2];
+	Submit(cmd);
 };
 
 void CRenderer::FillRect(int x, int y, int w, int h, float color[3]) {
-	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	pCanvas->FillRect(x, y, w, h, color);
+	UIRenderCommand_t cmd;
+	cmd.eType = EUIRenderCommandType::FILL_RECT;
+	cmd.x = x;
+	cmd.y = y;
+	cmd.w = w;
+	cmd.h = h;
+	cmd.color[0] = color[0];
+	cmd.color[1] = color[1];
+	cmd.color[2] = color[2];
+	Submit(cmd);
 }
 
 void CRenderer::DrawImage(float x, float y, float w, float h, HBitmap hBitmap) {
-	if(hBitmap == INVALID_ASSET_HANDLE) {
-		Logger::Err("Attempting to draw invalid image");
-		return;
-	}
-
-	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
-	pCanvas->DrawImage(x, y, w, h, hBitmap);
+	UIRenderCommand_t cmd;
+	cmd.eType = EUIRenderCommandType::IMAGE;
+	cmd.x = x;
+	cmd.y = y;
+	cmd.w = w;
+	cmd.h = h;
+	cmd.hBmp = hBitmap;
+	Submit(cmd);
 }
 
 void CRenderer::Draw(RenderCommand_t cmd) {
@@ -220,20 +262,34 @@ void CRenderer::Draw(RenderCommand_t cmd) {
 	}
 }
 
-void CRenderer::Draw(Model* model) {
-	for(const auto& modelNode : model->Nodes) {
-		Mesh* mesh = model->Meshes.at(modelNode.second->Mesh);
-		if(mesh == nullptr) {
-			continue;
-		}
-
-		if(mesh->MaterialIndex != -1 && model->Materials.size() > mesh->MaterialIndex) {
-			m_pGraphicsEngine->BindTexture(0, model->Materials.at(mesh->MaterialIndex)->hTexture);
-		}
-
-		m_pGraphicsEngine->SetVertexBuffer(0, mesh->VertexBuffer, sizeof(SkinnnedMeshShaderVertex_t), 0);
-		m_pGraphicsEngine->SetIndexBuffer(mesh->IndexBuffer);
-		m_pGraphicsEngine->DrawIndexed(mesh->IndexCount);
+void CRenderer::Draw(UIRenderCommand_t cmd) {
+	ICanvas2D* pCanvas = m_pGraphicsEngine->GetCanvas2D();
+	switch (cmd.eType) {
+		case EUIRenderCommandType::TEXT:
+			pCanvas->RenderText(cmd.x, cmd.y, cmd.w, cmd.h, cmd.color, cmd.strText);
+			break;
+		case EUIRenderCommandType::OUTLINE_SHAPE:
+			pCanvas->DrawShape(cmd.vecPoints, cmd.nPoints, cmd.color);
+			break;
+		case EUIRenderCommandType::FILL_SHAPE:
+			pCanvas->FillShape(cmd.vecPoints, cmd.nPoints, cmd.color);
+			break;
+		case EUIRenderCommandType::OUTLINE_RECT:
+			pCanvas->DrawRect(cmd.x, cmd.y, cmd.w, cmd.h, cmd.color);
+			break;
+		case EUIRenderCommandType::FILL_RECT:
+			pCanvas->FillRect(cmd.x, cmd.y, cmd.w, cmd.h, cmd.color);
+			break;
+		case EUIRenderCommandType::IMAGE:
+			if(cmd.hBmp != INVALID_HANDLE) {
+				pCanvas->DrawImage(cmd.x, cmd.y, cmd.w, cmd.h, cmd.hBmp);
+			} else {
+				Logger::Err("Attempting to draw invalid image");
+			}
+			break;
+		case EUIRenderCommandType::NONE:
+		default:
+			break;
 	}
 }
 
@@ -322,109 +378,46 @@ void CRenderer::RenderParticle(ParticleEmitter* emitter) {
 }
 
 void CRenderer::DrawMap() {
-	m_pGraphicsEngine->BindShaderProgram(m_hGlbShaderProgram);
-
-	FrameConstants_t data{};
-	data.cameraMatrix = cameraMatrix;
-	data.projMatrix = m_projMatrix;
-	m_pGraphicsEngine->UpdateBuffer(m_hFrameConstBuffer, &data, sizeof(FrameConstants_t));
-	m_pGraphicsEngine->BindVertexShaderConstantBuffer(0, m_hFrameConstBuffer);
-
-	ModelConstants_t modelData{};
-	modelData.modelMatrix = PMathMatIdentity();
-	m_pGraphicsEngine->UpdateBuffer(m_hModelConstBuffer, &modelData, sizeof(ModelConstants_t));
-	m_pGraphicsEngine->BindVertexShaderConstantBuffer(1, m_hModelConstBuffer);
-
-	SkinnedModelConstants_t skinConst{};
-	m_pGraphicsEngine->UpdateBuffer(m_hSkinnedModelConstBuffer, &skinConst, sizeof(SkinnedModelConstants_t));
-	m_pGraphicsEngine->BindVertexShaderConstantBuffer(2, m_hSkinnedModelConstBuffer);
 
 	HModel hModel = m_pAssetManager->LoadModel("map1");
 	ModelAsset_t& modelAsset = m_pAssetManager->GetModel(hModel);
 	
 	if(modelAsset.pModel == nullptr) {
-		modelAsset.pModel = new Model();
-		for(const auto& glbNode : modelAsset.pGlbModel->Nodes) {
-			ModelNode* modelNode = LoadNode(glbNode.second);
-			modelAsset.pModel->Nodes.emplace(glbNode.first, modelNode);
-		}
-
-		for(const auto& glbMesh : modelAsset.pGlbModel->Meshes) {
-			Mesh* mesh = LoadMesh(glbMesh.second);
-			modelAsset.pModel->Meshes.emplace(glbMesh.first, mesh);
-		}
-
-		for(const auto& m : modelAsset.pGlbModel->Materials) {
-			Material* material = new Material();
-			material->hTexture = m_pAssetManager->LoadTextureFromData(m.second.TextureData);
-			modelAsset.pModel->Materials.emplace(m.first, material);
-		}
-							
-				for(const auto& skin : modelAsset.pGlbModel->Skins) {
-					Armature* armature = new Armature();
-					const auto& glbSkin = skin.second;
-
-					for(int i = 0; i < glbSkin.Joints.size(); i++) {
-						const auto& joint = glbSkin.Joints[i];
-						Bone bone = Bone();
-						bone.Index = joint;
-						armature->bones.push_back(bone);
-					}
-
-					for(int i = 0; i < glbSkin.Joints.size(); i++) {
-						for(auto childIndex : modelAsset.pGlbModel->Nodes[glbSkin.Joints[i]].Children) {
-							for(int j = 0; j < armature->bones.size(); j++) {
-								if(armature->bones[j].Index == childIndex) {
-									armature->bones[j].parent_index = glbSkin.Joints[i];
-								}
-							}
-						}
-					}
-
-					armature->global_inverse_bind_poses = glbSkin.InverseBindMatrices;
-
-					modelAsset.pModel->Skins.emplace(skin.first, armature);
-				}
-
-				for(const auto& glbAnimationEntry : modelAsset.pGlbModel->Animations) {
-					GLBAnimation glbAnimation = glbAnimationEntry.second;
-					Animation* animation = new Animation();
-					modelAsset.pModel->Animations.emplace(glbAnimation.Name, animation);
-
-					animation->duration = glbAnimation.Duration;
-						
-					float fMaxTime = 0;
-					for(const auto& channel : glbAnimation.Channels) {
-						AnimationTrack track;
-						track.Path = channel.Path;
-						track.NodeIndex = channel.TargetNode;
-						for(const auto& keyFrame : channel.KeyFrames) {
-							AnimationKeyFrame kf = AnimationKeyFrame();
-							BonePosition bn = BonePosition();
-							bn.rotation = keyFrame.Rotation;
-							bn.translation = keyFrame.Translation;
-							kf.Position = bn;
-							kf.Time = keyFrame.Time;
-							track.Positions.push_back(kf);
-
-							if(kf.Time > fMaxTime) {
-								fMaxTime = kf.Time;
-							}
-						}
-						animation->animation_tracks.push_back(track);
-						animation->duration = fMaxTime;
-					}
-				}
+		UploadModelToGPU(modelAsset);
 	}
 
-	Draw(modelAsset.pModel);
-}
+	for(const auto& meshPair : modelAsset.pModel->Meshes) {
+		Mesh* mesh = meshPair.second;
 
-void CRenderer::ClearScreen() {
-	m_pGraphicsEngine->ClearScreen();
+		if(mesh == nullptr) {
+			continue;
+		}
+
+		RenderCommand_t cmd {
+			.eType = ERenderCommandType::SKINNED_MESH,
+			.worldMatrix = {},
+			.hModel = hModel,
+			.vecBones = {},
+		};
+
+		if(mesh->MaterialIndex != -1 && modelAsset.pModel->Materials.size() > mesh->MaterialIndex) {
+			cmd.hTexture = modelAsset.pModel->Materials.at(mesh->MaterialIndex)->hTexture;
+		}
+
+		cmd.hVertexBuffer = mesh->VertexBuffer;
+		cmd.hIndexBuffer = mesh->IndexBuffer;
+		cmd.uIndexCount = mesh->IndexCount;
+		cmd.vec3Position = Vector3(0, 0, 0);
+		cmd.vec3Rotation = Vector3(0, 0, 0);
+		cmd.vec3Scale = Vector3(1, 1, 1);
+
+		Submit(cmd);
+	}
 }
 
 void CRenderer::Present() {
+	m_pGraphicsEngine->ClearScreen();
+
 	for(RenderCommand_t command : m_vecCommands) {
 		switch(command.eType) {
 			case ERenderCommandType::STATIC_MESH:
@@ -442,9 +435,35 @@ void CRenderer::Present() {
 		}
 	}
 
- 	m_vecCommands.clear();
+	if (m_hPostShaderProgram != INVALID_HANDLE) {
+		m_pGraphicsEngine->UpdateBuffer(m_hPostFrameConstBuffer, &m_postSettings, sizeof(PostProcess_t));
+		m_pGraphicsEngine->BindPixelShaderConstantBuffer(0, m_hPostFrameConstBuffer);
+		m_pGraphicsEngine->PostProcess(m_hPostShaderProgram);
+	}
 
-	m_pGraphicsEngine->Present();
+	m_pGraphicsEngine->BeginUI();
+	for(UIRenderCommand_t command : m_vecUICommands) {
+		Draw(command);
+	}
+	
+	if (!m_pGraphicsEngine->EndUI()) {
+		Logger::Err("Failed to draw UI");
+	}
+	
+	if (!m_pGraphicsEngine->Present()) {
+		Logger::Err("Failed to present frame");
+	}
+
+	m_vecCommands.clear();
+	m_vecUICommands.clear();
+
+
+	// resetting defaults, TODO move
+	m_postSettings.saturation = 1.0f;
+}
+
+void CRenderer::SetPostProcess(PostProcess_t post) {
+	m_postSettings = post;
 }
 
 void CRenderer::SetFullscreen(bool bFullscreen) {
@@ -459,7 +478,7 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 		float dx = 0.125 - (fCoverage - 0.875);
 		float fx = 24 * (dx / 0.125);
 
-		Vector2 points[7]{
+		std::vector<Vector2> points = {
 			{ fX + fHalfWidth, fY + fHalfHeight },
 			{ fX + fHalfWidth + fx, fY },
 			{ fX + fWidth, fY },
@@ -468,13 +487,13 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 			{ fX, fY },
 			{ fX + fHalfWidth, fY },
 		};
-		FillShape(points, 7, afCoverColor);
+		FillShape(points, afCoverColor);
 	}
 	else if (fCoverage > 0.625) {
 		float dx = 0.25 - (fCoverage - 0.625);
 		float fx = 49 * (dx / 0.25);
 
-		Vector2 points[6]{
+		std::vector<Vector2> points = {
 			{ fX + fHalfWidth, fY + fHalfHeight },
 			{ fX + fWidth, fY + fx },
 			{ fX + fWidth, fY + fHeight },
@@ -482,43 +501,43 @@ void CRenderer::RenderPartialCover(float fX, float fY, float fWidth, float fHeig
 			{ fX, fY },
 			{ fX + fHalfWidth, fY },
 		};
-		FillShape(points, 6, afCoverColor);
+		FillShape(points, afCoverColor);
 	}
 	else if (fCoverage > 0.375f) {
 		float dx = 0.25 - (fCoverage - 0.375);
 		float fx = 49 * (dx / 0.25);
 
-		Vector2 points[5]{
+		std::vector<Vector2> points = {
 			{ fX + fHalfWidth, fY + fHalfHeight },
 			{ fX + fWidth - fx, fY + fHeight },
 			{ fX, fY + fHeight },
 			{ fX, fY },
 			{ fX + fHalfWidth, fY },
 		};
-		FillShape(points, 5, afCoverColor);
+		FillShape(points, afCoverColor);
 	}
 	else if (fCoverage > 0.125f) {
 		float dx = 0.25f - (fCoverage - 0.125f);
 		float fx = 49 * (dx / 0.25f);
 
-		Vector2 points[4]{
+		std::vector<Vector2> points = {
 			{ fX + fHalfWidth, fY + fHalfHeight },
 			{ fX, fY + fHeight - fx },
 			{ fX, fY },
 			{ fX + fHalfWidth, fY },
 		};
-		FillShape(points, 4, afCoverColor);
+		FillShape(points, afCoverColor);
 	}
 	else if (fCoverage > 0) {
 		float dx = 0.125f - fCoverage;
 		float fx = 24.0f * (dx / 0.125f);
 
-		Vector2 points[3]{
+		std::vector<Vector2> points = {
 			{ fX + fHalfWidth, fY + fHalfHeight },
 			{ fX + fx, fY },
 			{ fX + fHalfWidth, fY },
 		};
-		FillShape(points, 3, afCoverColor);
+		FillShape(points, afCoverColor);
 	}
 }
 
@@ -572,6 +591,10 @@ bool CRenderer::InitParticleEffect(ParticleEffect* pSystem) {
 
 void CRenderer::Submit(RenderCommand_t command) {
 	m_vecCommands.push_back(command);
+}
+
+void CRenderer::Submit(UIRenderCommand_t command) {
+	m_vecUICommands.push_back(command);
 }
 
 Mesh* CRenderer::LoadMesh(GLBModelMesh glbMesh) {

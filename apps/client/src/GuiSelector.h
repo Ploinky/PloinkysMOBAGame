@@ -23,19 +23,19 @@ public:
 			m_color,
 			OptionToString(current_value_));
 
-		Vector2 points[3] = {
+		std::vector<Vector2> points = {
 			{ m_pos.x + 10, m_pos.y + m_size.y / 2 },
 			{ m_pos.x + m_size.y - 10, m_pos.y + 10 },
 			{ m_pos.x + m_size.y - 10, m_pos.y + m_size.y - 10 },
 		};
-		renderer->FillShape(points, 3, m_color);
+		renderer->FillShape(points, m_color);
 
-		Vector2 rightPoints[3] = {
+		std::vector<Vector2> rightPoints = {
 			{ m_pos.x + m_size.x - 10, m_pos.y + m_size.y / 2 },
 			{ m_pos.x + m_size.x - m_size.y + 10, m_pos.y + 10 },
 			{ m_pos.x + m_size.x - m_size.y + 10, m_pos.y + m_size.y - 10 },
 		};
-		renderer->FillShape(rightPoints, 3, m_color);
+		renderer->FillShape(rightPoints, m_color);
 	}
 	void MousePressed(int x, int y) {
 		bool back = false;

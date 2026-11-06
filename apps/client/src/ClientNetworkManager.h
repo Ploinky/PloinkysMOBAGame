@@ -21,6 +21,7 @@ public:
 	bool Close();
 	bool ReceivePacket();
 	bool SendPacket(BasePacket* packet);
+	int GetPing();
 
 private:
 	bool m_bIsConnectedToServer = false;

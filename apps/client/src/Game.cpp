@@ -142,6 +142,13 @@ void Game::Update(float dt) {
         return;
     }
 
+    m_fRefreshPing -= dt;
+    if (m_fRefreshPing < 0) {
+        m_fRefreshPing = 1000;
+        m_nPing = net_manager_->GetPing();
+        m_nLag = ticks.size() - current_tick_;
+    }
+
     int keysX = m_playerInput.bKeyScrollRight - m_playerInput.bKeyScrollLeft;
     int mouseX = (m_mousePos[0] >= (short)windowWidth_ - 1) - (m_mousePos[0] == 0);
     int keysZ = m_playerInput.bKeyScrollDown - m_playerInput.bKeyScrollUp;
@@ -175,10 +182,6 @@ void Game::Update(float dt) {
 			break;
 		}
     }
-
-
-
-
 
     if (m_keys['q']) {
         switch(m_vecAbilities[0].eTargetType) {
@@ -354,6 +357,13 @@ void Game::Render(CRenderer* renderer) {
     renderer->m_camera.position.y = m_camPos[1];
     renderer->m_camera.position.z = m_camPos[2];
 
+    if (m_gameState.GetHealth(my_unit_id_) && m_gameState.GetHealth(my_unit_id_)->bIsDead) {
+        // desaturate
+        PostProcess_t post;
+        post.saturation = 0.2f;
+        renderer->SetPostProcess(post);
+    }
+
 	renderer->DrawMap();
     renderer->Render(&m_gameState);
 
@@ -507,6 +517,8 @@ void Game::RenderGameUI(CRenderer* renderer) {
     }
 
     renderer->RenderChat(m_vecChat);
+
+    renderer->RenderText(10, 10, 100, 20, std::to_string(m_nPing).append(" ms (").append(std::to_string(m_nLag)).append(")"));
 }
 
 void Game::TestIntersect(CRenderer* renderer, int mx, int my, float* x, float* y) {
@@ -846,14 +858,11 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             Vector3 vec3Pos = transform->vec3Position;
             // So this is our movement vector now
             Vector3 vec3Move = vec3Dest - vec3Pos;
-            
             // To get there by the end of the frame we have
             double dRemaining = 1.0 - diff;
+            // So we have to move a little bit
+            Vector3 vec3ActualMove = vec3Move.ScaleToLength(vec3Move.Length() * dRemaining);
 
-            // If we just run we'll manage
-            double dPredictedDistance = pMove->fSpeed / (1000.0 / 16.66666) * dRemaining;
-
-            Vector3 vec3ActualMove = vec3Move.ScaleToLength(pMove->fSpeed / (1000.0 / 16.66666) * dRemaining);
             transform->vec3Position = vec3Dest - vec3ActualMove;
 
             transform->vec3Rotation.y = move.r; // move.r; // this actually looks less fucked for now :O

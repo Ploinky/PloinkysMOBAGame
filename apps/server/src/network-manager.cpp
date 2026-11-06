@@ -43,7 +43,7 @@ void ServerNetworkManager::StopListenSocket() {
         return;
     }
 
-    SteamNetworkingSockets()->CloseListenSocket(listenSocket_);
+    SteamGameServerNetworkingSockets()->CloseListenSocket(listenSocket_);
     listenSocket_ = k_HSteamListenSocket_Invalid;
 }
 
@@ -221,6 +221,22 @@ void ServerNetworkManager::ConnectionStatusChanged(SteamNetConnectionStatusChang
         if (on_clientConnected) {
             clients_.push_back(peer);
             on_clientConnected(peer->idPlayer);
+        }
+    } else if (pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ClosedByPeer
+                || pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Dead
+                || pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ProblemDetectedLocally
+    ) {
+        Logger::FormatMsg("Player disconnected");
+        if (on_clientDisconnected) {
+            for (auto it = clients_.begin(); it != clients_.end(); it++) {
+                NetworkPeer* pPeer = *it;
+                if (pPeer->hConnection == pConnectionStatusChanged->m_hConn) {
+                    on_clientDisconnected(pPeer->idPlayer);
+                    // TODO
+                    clients_.erase(it);
+                    break;
+                }
+            }
         }
     } else {
         Logger::FormatMsg("Unknown connection status change");

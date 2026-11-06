@@ -16,8 +16,7 @@ typedef uint64_t EngineHandle;
 constexpr EngineHandle INVALID_HANDLE = std::numeric_limits<uint64_t>::max();
 
 
-typedef uint64_t ASSET_HANDLE;
-constexpr ASSET_HANDLE INVALID_ASSET_HANDLE = std::numeric_limits<uint64_t>::max();
+typedef EngineHandle ASSET_HANDLE;
 
 #define UNIT_ID_NONE UINT64_MAX
 

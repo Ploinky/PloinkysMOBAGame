@@ -33,6 +33,7 @@ CD3D11GraphicsEngine::~CD3D11GraphicsEngine() {
     alpha_blend_disabled_state->Release();
 
     dWriteFactory->Release();
+    m_pColorBufferRTW->Release();
     renderTargetView->Release();
     renderTarget2D->Release();
     d2d_factory_->Release();
@@ -102,6 +103,10 @@ bool CD3D11GraphicsEngine::Initialize(HWND windowHandle, bool full_screen) {
 
     // Create depth buffer and depth stencil view
     if (!CreateDepthBuffer()) {
+        return false;
+    }
+
+    if (!CreateColorBuffer()) {
         return false;
     }
 
@@ -372,6 +377,68 @@ bool CD3D11GraphicsEngine::CreateDepthBuffer() {
     return true;
 }
 
+bool CD3D11GraphicsEngine::CreateColorBuffer() {
+    // Get window dimensions from win32 API to correctly set swap chain size
+    DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
+    HRESULT hr = swapChain->GetDesc1(&swapChainDesc);
+
+    if (FAILED(hr)) {
+        Logger::FormatErr("Failed to get window dimension when trying to create depth buffer.");
+        return false;
+    }
+
+    D3D11_TEXTURE2D_DESC ds;
+    ds.Width = swapChainDesc.Width;
+    ds.Height = swapChainDesc.Height;
+    ds.MipLevels = 1;
+    ds.ArraySize = 1;
+    ds.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    ds.SampleDesc.Count = 1;
+    ds.SampleDesc.Quality = 0;
+    ds.Usage = D3D11_USAGE_DEFAULT;
+    ds.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    ds.CPUAccessFlags = 0;
+    ds.MiscFlags = 0;
+
+    ID3D11Texture2D* colorBuffer;
+
+    hr = m_pDevice->CreateTexture2D(&ds, 0, &colorBuffer);
+
+    if (FAILED(hr) || colorBuffer == 0) {
+        Logger::FormatErr("Could not create color buffer. ", _com_error(hr).ErrorMessage());
+        return false;
+    }
+
+    // Create CD3D11GraphicsEngine render target view
+    hr = m_pDevice->CreateRenderTargetView(colorBuffer, 0, &m_pColorBufferRTW);
+
+    if (FAILED(hr) || m_pColorBufferRTW == 0) {
+        Logger::FormatErr("Could not create render target view for color buffer. ", _com_error(hr).ErrorMessage());
+        return false;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
+    hr = m_pDevice->CreateShaderResourceView(colorBuffer, nullptr, &pShaderResourceView);
+
+    colorBuffer->Release();
+
+    if(FAILED(hr)) {
+        m_hColorBufferResourceView = INVALID_HANDLE;
+        return false;
+    }
+
+    // Release previous color buffer if it exists
+    if (m_hColorBufferResourceView == INVALID_HANDLE) {
+        m_vecTextures.push_back(pShaderResourceView);
+        m_hColorBufferResourceView = m_vecTextures.size() - 1;
+    } else {
+        m_vecTextures[m_hColorBufferResourceView] = pShaderResourceView;
+    }
+
+    // Initialization of back buffer successful
+    return true;
+}
+
 bool CD3D11GraphicsEngine::Create2DSurface() {
     D2D1_RENDER_TARGET_PROPERTIES props = {
             D2D1_RENDER_TARGET_TYPE_DEFAULT,
@@ -551,30 +618,33 @@ void CD3D11GraphicsEngine::SetViewport() {
 }
 
 void CD3D11GraphicsEngine::ClearScreen() {
-    float color[]{ 0.0f, 0, 0, 1.0f };
-    m_pContext->ClearRenderTargetView(renderTargetView, color);
+    float color[]{ 0.0f, 0, 0.0f, 1.0f };
+    m_pContext->ClearRenderTargetView(m_pColorBufferRTW, color);
     m_pContext->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-    m_pContext->OMSetRenderTargets(1, &renderTargetView, depthView);
+    m_pContext->OMSetRenderTargets(1, &m_pColorBufferRTW, depthView);
+}
+
+bool CD3D11GraphicsEngine::BeginUI() {
     renderTarget2D->BeginDraw();
+    return true;
+}
+
+bool CD3D11GraphicsEngine::EndUI() {
+    return !FAILED(renderTarget2D->EndDraw());
+}
+
+bool CD3D11GraphicsEngine::PostProcess(HShaderProgram hPostShader) {
+    m_pContext->OMSetRenderTargets(1, &renderTargetView, NULL);
+    BindShaderProgram(hPostShader);
+    BindTexture(0, m_hColorBufferResourceView);
+    m_pContext->Draw(3, 0);
+    ID3D11ShaderResourceView * nullViews[] = { nullptr };
+    m_pContext->PSSetShaderResources(0, 1, nullViews);
+    return true;
 }
 
 bool CD3D11GraphicsEngine::Present() {
-    HRESULT hr = renderTarget2D->EndDraw();
-
-    if (FAILED(hr)) {
-        Logger::Err("Failed to draw 2D content");
-        return false;
-    }
-
-        hr = swapChain->Present(1, 0);
-
-    if(FAILED(hr)) {
-        Logger::FormatErr("Error trying to present rendered image. <%d>: %s", hr, _com_error(hr).ErrorMessage());
-        return false;
-    }
-
-    // Image was presented successfully
-    return true;
+    return !FAILED(swapChain->Present(1, 0));
 }
 
 HBuffer CD3D11GraphicsEngine::CreateVertexBuffer(void* pVertices, size_t uSize, int nCount) {
@@ -720,6 +790,7 @@ void CD3D11GraphicsEngine::SetFullScreen(bool full_screen) {
 void CD3D11GraphicsEngine::SetWindowDimensions(int width_, int height_) {
     m_pContext->OMSetRenderTargets(0, 0, 0);
     renderTargetView->Release();
+    m_pColorBufferRTW->Release();
     renderTarget2D->Release();
     depthView->Release();
     m_pContext->ClearState();
@@ -739,6 +810,10 @@ void CD3D11GraphicsEngine::SetWindowDimensions(int width_, int height_) {
         Logger::Err("Failed to create back buffer");
     }
 
+    if (!CreateColorBuffer()) {
+        Logger::Err("Failed to create depth buffer");
+    }
+
     if (!CreateDepthBuffer()) {
         Logger::Err("Failed to create depth buffer");
     }
@@ -747,9 +822,21 @@ void CD3D11GraphicsEngine::SetWindowDimensions(int width_, int height_) {
         Logger::Err("Failed to create D2D surface");
     }
 
+	m_pContext->RSSetState(rasterizerState_);
+
     BindViews();
 
     SetViewport();
+}
+
+void CD3D11GraphicsEngine::BindPixelShaderConstantBuffer(int nSlot, HBuffer hBuffer) {
+    if(hBuffer == INVALID_HANDLE) {
+        Logger::Err("Attempted to set invalid vertex shader constant buffer");
+        return;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> pRawBuf = m_vecBuffers[hBuffer];
+    m_pContext->PSSetConstantBuffers(nSlot, 1, pRawBuf.GetAddressOf());
 }
 
 void CD3D11GraphicsEngine::BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) {
@@ -790,8 +877,10 @@ HShaderProgram CD3D11GraphicsEngine::LoadShaderProgram(std::string strShaderName
     m_pDevice->CreateVertexShader(vecVsBytecode.data(), vecVsBytecode.size(), nullptr, shaderProgram.pVertexShader.GetAddressOf());
     m_pDevice->CreatePixelShader(vecPsBytecode.data(), vecPsBytecode.size(), nullptr, shaderProgram.pPixelShader.GetAddressOf());
 
-    InputLayoutD3D11_t layout = m_vecInputElementDescs.at(eVertexFormat);
-    m_pDevice->CreateInputLayout(layout.pDescs, layout.nCount, vecVsBytecode.data(), vecVsBytecode.size(), shaderProgram.pLayout.GetAddressOf());
+    if (eVertexFormat != EVertexFormat::NONE) {
+        InputLayoutD3D11_t layout = m_vecInputElementDescs.at(eVertexFormat);
+        m_pDevice->CreateInputLayout(layout.pDescs, layout.nCount, vecVsBytecode.data(), vecVsBytecode.size(), shaderProgram.pLayout.GetAddressOf());
+    }
 
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -827,7 +916,7 @@ HTexture CD3D11GraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidth
     HRESULT hr = m_pDevice->CreateTexture2D(&desc, &initData, &texture);
 
     if (FAILED(hr) || texture == nullptr) {
-        return INVALID_ASSET_HANDLE;
+        return INVALID_HANDLE;
     }
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
@@ -835,7 +924,7 @@ HTexture CD3D11GraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidth
     texture->Release();
 
     if(FAILED(hr)) {
-        return INVALID_ASSET_HANDLE;
+        return INVALID_HANDLE;
     }
 
     m_vecTextures.push_back(pShaderResourceView);
@@ -963,7 +1052,7 @@ void CD3D11GraphicsEngine::DrawRect(int x, int y, int w, int h, float color[3]) 
     brush->Release();
 }
 
-void CD3D11GraphicsEngine::DrawShape(Vector2* points, int pointCount, float color[3]) {
+void CD3D11GraphicsEngine::DrawShape(std::vector<Vector2> points, int pointCount, float color[3]) {
     //Set the Font Color
     D2D1_COLOR_F c = D2D1::ColorF(color[0], color[1], color[2]);
 
@@ -1007,7 +1096,7 @@ void CD3D11GraphicsEngine::DrawShape(Vector2* points, int pointCount, float colo
     brush->Release();
 }
 
-void CD3D11GraphicsEngine::FillShape(Vector2* points, int pointCount, float color[3]) {
+void CD3D11GraphicsEngine::FillShape(std::vector<Vector2> points, int pointCount, float color[3]) {
     if (pointCount < 2) {
         Logger::Err("Failed to draw shape: cannot draw shape from 1 point only");
         return;
@@ -1107,7 +1196,7 @@ HBitmap CD3D11GraphicsEngine::LoadBitmapImage(unsigned char* pImageData, int wid
     );
 
     if (FAILED(hr)) {
-        return INVALID_ASSET_HANDLE;
+        return INVALID_HANDLE;
     }
 
     m_vecBitmaps.push_back(pBitmap);

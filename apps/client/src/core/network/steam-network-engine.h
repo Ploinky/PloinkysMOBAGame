@@ -25,6 +25,9 @@ public:
     virtual HConnection ConnectToServer(const char* szAddress, int port) override;
     virtual void SendMessageToConnection(const HConnection hConnection, const BasePacket* pPacket) const override;
     virtual bool PollConnection(const HConnection hConnection, CNetworkEvent* pEvt) const override;
+    virtual int GetPingToConnection(const HConnection hConnection) const override;
+
+    virtual bool CSteamNetworkEngine::Disconnect(const HConnection hConnection) override;
 
 private:
     std::map<HConnection, Connection_t> m_mapConnections;

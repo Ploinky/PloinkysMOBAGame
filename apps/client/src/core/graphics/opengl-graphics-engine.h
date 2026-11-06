@@ -20,7 +20,12 @@ public:
 
     // == drawing
     virtual void ClearScreen() override;
+    virtual bool BeginUI() override;
+    virtual bool EndUI() override;
+    // TODO TEMP
+    virtual bool PostProcess(HShaderProgram hPostShader) override;
 
+    virtual void BindPixelShaderConstantBuffer(int nSlot, HBuffer hBuffer) override;
     virtual void BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) override;
     
     virtual void EnableAlphaBlending() override;
@@ -47,8 +52,8 @@ public:
 
     virtual void RenderText(int x, int y, int w, int h, float color[3], std::string strText) override;
     virtual void DrawRect(int x, int y, int w, int h, float color[3]) override;
-    virtual void DrawShape(Vector2* points, int pointCount, float color[3]) override;
-    virtual void FillShape(Vector2* points, int pointCount, float color[3]) override;
+    virtual void DrawShape(std::vector<Vector2> points, int pointCount, float color[3]) override;
+    virtual void FillShape(std::vector<Vector2> points, int pointCount, float color[3]) override;
     virtual void FillRect(int x, int y, int w, int h, float color[3]) override;
     virtual void DrawImage(float x, float y, float w, float h, HBitmap hBmp) override;
 

@@ -13,6 +13,30 @@ enum class ERenderCommandType {
     PARTICLE_SYSTEM
 };
 
+
+enum class EUIRenderCommandType {
+    NONE,
+    TEXT,
+    OUTLINE_SHAPE,
+    FILL_SHAPE,
+    OUTLINE_RECT,
+    FILL_RECT,
+    IMAGE
+};
+
+typedef struct UIRenderCommand_s {
+    EUIRenderCommandType eType = EUIRenderCommandType::NONE;
+    int x;
+    int y;
+    int w;
+    int h;
+    float color[3];
+    std::string strText;
+    std::vector<Vector2> vecPoints;
+    int nPoints;
+    HBitmap hBmp;
+} UIRenderCommand_t;
+
 typedef struct RenderCommand_t {
     ERenderCommandType eType = ERenderCommandType::NONE;
 
@@ -26,7 +50,7 @@ typedef struct RenderCommand_t {
 
     mat_t worldMatrix;
 
-    HModel hModel = INVALID_ASSET_HANDLE;
+    HModel hModel = INVALID_HANDLE;
     std::string strAnimation = "";
     float fAnimTime = 0.0f;
     bool bDoLoop = false;

@@ -11,6 +11,7 @@ typedef GraphicsEngineHandle HSampler;
 typedef GraphicsEngineHandle HBuffer;
 
 enum class EVertexFormat {
+    NONE,
     STATIC_MESH,
     SKINNED_MESH,
     PARTICLE
@@ -45,8 +46,8 @@ public:
 
     virtual void RenderText(int x, int y, int w, int h, float color[3], std::string strText) = 0;
     virtual void DrawRect(int x, int y, int w, int h, float color[3]) = 0;
-    virtual void DrawShape(Vector2* points, int pointCount, float color[3]) = 0;
-    virtual void FillShape(Vector2* points, int pointCount, float color[3]) = 0;
+    virtual void DrawShape(std::vector<Vector2> points, int pointCount, float color[3]) = 0;
+    virtual void FillShape(std::vector<Vector2> points, int pointCount, float color[3]) = 0;
     virtual void FillRect(int x, int y, int w, int h, float color[3]) = 0;
     virtual void DrawImage(float x, float y, float w, float h, HBitmap hBmp) = 0;
 };
@@ -75,7 +76,12 @@ public:
 
     // == drawing
     virtual void ClearScreen() = 0;
+    virtual bool BeginUI() = 0;
+    virtual bool EndUI() = 0;
+    // TODO TEMP
+    virtual bool PostProcess(HShaderProgram hPostShader) = 0;
 
+    virtual void BindPixelShaderConstantBuffer(int nSlot, HBuffer hBuffer) = 0;
     virtual void BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) = 0;
     
     virtual void EnableAlphaBlending() = 0;

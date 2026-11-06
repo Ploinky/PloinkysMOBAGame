@@ -12,5 +12,5 @@ public:
 
 	void Render(CRenderer* renderer);
 
-	HBitmap hImage = INVALID_ASSET_HANDLE;
+	HBitmap hImage = INVALID_HANDLE;
 };

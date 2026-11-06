@@ -46,6 +46,11 @@ typedef struct ParticleShaderVertexInstance_t {
 	float instance_position[3];
 } ParticleShaderVertexInstance_t;
 
+typedef struct PostProcess_s {
+    float saturation;
+    float padding[3];
+} PostProcess_t;
+
 class CRenderer {
 public:
     CRenderer(IGraphicsEngine* pGraphicsEngine);
@@ -59,11 +64,12 @@ public:
     mat_t m_projMatrix;
     mat_t cameraMatrix;
 
+    void SetPostProcess(PostProcess_t post);
     void RenderText(int x, int y, int w, int h, float color[3], std::string text);
     void RenderText(int x, int y, int w, int h, std::string text);
     void DrawRect(int x, int y, int w, int h, float color[3]);
-    void DrawShape(Vector2* points, int pointCount, float color[3]);
-    void FillShape(Vector2* points, int pointCount, float color[3]);
+    void DrawShape(std::vector<Vector2> points, float color[3]);
+    void FillShape(std::vector<Vector2> points, float color[3]);
     void FillRect(int x, int y, int w, int h, float color[3]);
     void DrawImage(float x, float y, float w, float h, HBitmap hBitmap);
 
@@ -71,7 +77,6 @@ public:
 
     void Render(CClientGameState* pGameState);
 
-    void ClearScreen();
     void Present();
     void SetFullscreen(bool bFullscreen);
 
@@ -83,8 +88,11 @@ public:
 
     void QueueParticle(ParticleEmitter* pParticleEmitter);
     void Submit(RenderCommand_t command);
+    void Submit(UIRenderCommand_t command);
 
 private:
+    PostProcess_t m_postSettings;
+
     IGraphicsEngine* m_pGraphicsEngine;
     int m_width;
     int m_height;
@@ -97,12 +105,13 @@ private:
     HShaderProgram m_hGlbShaderProgram;
     HShaderProgram m_hParticleShaderProgram;
     HShaderProgram m_hFlatUnlitShaderProgram;
+    HShaderProgram m_hPostShaderProgram = INVALID_HANDLE;
 
     HBuffer m_hFrameConstBuffer;
     HBuffer m_hModelConstBuffer;
     HBuffer m_hSkinnedModelConstBuffer;
     HBuffer m_hBillboardFrameConstBuffer;
-
+    HBuffer m_hPostFrameConstBuffer;
     HBuffer m_hParticleVertexBuffer;
         
     #ifdef NAV_DEBUG
@@ -114,12 +123,13 @@ private:
     CClientAssetManager* m_pAssetManager;
 
     std::vector<RenderCommand_t> m_vecCommands;
+    std::vector<UIRenderCommand_t> m_vecUICommands;
 
     void UploadModelToGPU(ModelAsset_t& modelAsset);
     Mesh* LoadMesh(GLBModelMesh glbMesh);
     ModelNode* LoadNode(GLBNode glbNode);
 
+    void Draw(UIRenderCommand_t cmd);
     void Draw(RenderCommand_t cmd);
-    void Draw(Model* modelNode);
     void RenderParticle(ParticleEmitter* emitter);
 };

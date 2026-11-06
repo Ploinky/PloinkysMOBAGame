@@ -21,7 +21,7 @@ HBitmap CClientAssetManager::GetBitmapImage(std::string id) {
         return m_mapBitmaps.at(id);
     }
 
-    return INVALID_ASSET_HANDLE;
+    return INVALID_HANDLE;
 }
 
 HBitmap CClientAssetManager::GetBitmapImage(std::string id, std::string strBitmap) {
@@ -43,7 +43,7 @@ HBitmap CClientAssetManager::GetBitmapImage(std::string id, std::string strBitma
 
     HBitmap hBitmap = m_pGraphicsEngine->LoadBitmapImage(image, width, height);
 
-    if(hBitmap == INVALID_ASSET_HANDLE) {
+    if(hBitmap == INVALID_HANDLE) {
         Logger::FormatErr("Missing asset %s", strBitmap.c_str());
     } else {
         m_mapBitmaps.emplace(id, hBitmap);
@@ -87,7 +87,7 @@ HSound CClientAssetManager::LoadSound(std::string strId, std::string strSound) {
 
     if (vecFileData.size() == 0) {
         Logger::Err("Failed to load sound");
-        return INVALID_ASSET_HANDLE;
+        return INVALID_HANDLE;
     }
 
     HSound hSound = m_pAudioEngine->LoadSound(vecFileData);

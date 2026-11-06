@@ -13,10 +13,10 @@ HShaderProgram COpenGLGraphicsEngine::LoadShaderProgram(std::string strShaderNam
     return INVALID_HANDLE;
 }
 HBitmap COpenGLGraphicsEngine::LoadBitmapImage(unsigned char* pImageData, int uWidth, int uHeight) {
-    return INVALID_ASSET_HANDLE;
+    return INVALID_HANDLE;
 }
 HTexture COpenGLGraphicsEngine::LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) {
-    return INVALID_ASSET_HANDLE;
+    return INVALID_HANDLE;
 }
 
 // == buffer management
@@ -46,6 +46,21 @@ void COpenGLGraphicsEngine::SetFullScreen(bool bFullscreen) {
 
 // == drawing
 void COpenGLGraphicsEngine::ClearScreen() {
+
+}
+
+bool COpenGLGraphicsEngine::BeginUI() {
+
+}
+bool COpenGLGraphicsEngine::EndUI(){
+    
+}
+// TODO TEMP
+bool COpenGLGraphicsEngine::PostProcess(HShaderProgram hPostShader) {
+
+}
+
+void COpenGLGraphicsEngine::BindPixelShaderConstantBuffer(int nSlot, HBuffer hBuffer) {
 
 }
 
@@ -108,10 +123,10 @@ void COpenGLGraphicsEngine::RenderText(int x, int y, int w, int h, float color[3
 void COpenGLGraphicsEngine::DrawRect(int x, int y, int w, int h, float color[3]) {
 
 }
-void COpenGLGraphicsEngine::DrawShape(Vector2* points, int pointCount, float color[3]) {
+void COpenGLGraphicsEngine::DrawShape(std::vector<Vector2> points, int pointCount, float color[3]) {
 
 }
-void COpenGLGraphicsEngine::FillShape(Vector2* points, int pointCount, float color[3]) {
+void COpenGLGraphicsEngine::FillShape(std::vector<Vector2> points, int pointCount, float color[3]) {
 
 }
 void COpenGLGraphicsEngine::FillRect(int x, int y, int w, int h, float color[3]) {

@@ -82,7 +82,7 @@ void CAudioEngineXAudio::SetMasterVolume(float fValue) {
 }
 
 HVoice CAudioEngineXAudio::CreateVoice(HSound hSound) {
-    if(hSound == INVALID_ASSET_HANDLE || hSound > m_vecSounds.size()) {
+    if(hSound == INVALID_HANDLE || hSound > m_vecSounds.size()) {
         return INVALID_VOICE_HANDLE;
     }
 
@@ -237,7 +237,7 @@ HSound CAudioEngineXAudio::LoadSound(std::vector<uint8_t> vecSoundData) {
     ReadChunkData(vecSoundData, &filetype, sizeof(DWORD), dwChunkPosition);
     if (filetype != fourccWAVE) {
         Logger::Err("Failed to load sound");
-        return INVALID_ASSET_HANDLE;
+        return INVALID_HANDLE;
     }
 
     WAVEFORMATEX wfx{};

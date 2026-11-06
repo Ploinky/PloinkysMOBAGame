@@ -129,6 +129,8 @@ if(WIN32)
     compile_vertex_shader(particle.vert)
     compile_pixel_shader(particle.pixel)
     compile_pixel_shader(texture.pixel)
+    compile_vertex_shader(post.vert)
+    compile_pixel_shader(post.pixel)
 endif()
 
 add_custom_target(shader_target

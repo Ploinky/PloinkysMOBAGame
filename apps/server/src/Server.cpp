@@ -74,6 +74,8 @@ long long Server::GetSystemTime() {
 }
 
 void Server::StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) {
+    m_gameData = assetManager_.LoadManifest();
+
     Client* client = new Client(this, manager, &assetManager_, players);
     client->Start();
 

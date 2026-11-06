@@ -44,6 +44,11 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         // Must be called before each rendered frame
         virtual void ClearScreen() override;
 
+        virtual bool BeginUI() override;
+        virtual bool EndUI() override;
+        // TODO TEMP
+        virtual bool PostProcess(HShaderProgram hPostShader) override;
+
         // Presents the rendered image on the swap chain
         virtual bool Present() override;
 
@@ -64,6 +69,7 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         // Creates an instance buffer
         virtual HBuffer CreateInstanceBuffer(void* instances, int instance_count, size_t size) override;
 
+        virtual void BindPixelShaderConstantBuffer(int nSlot, HBuffer hBuffer) override;
         virtual void BindVertexShaderConstantBuffer(int nSlot, HBuffer hBuffer) override;
         
         virtual void EnableAlphaBlending() override;
@@ -89,18 +95,21 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
 
         virtual void RenderText(int x, int y, int w, int h, float color[3], std::string strText) override;
         virtual void DrawRect(int x, int y, int w, int h, float color[3]) override;
-        virtual void DrawShape(Vector2* points, int pointCount, float color[3]) override;
-        virtual void FillShape(Vector2* points, int pointCount, float color[3]) override;
+        virtual void DrawShape(std::vector<Vector2> points, int pointCount, float color[3]) override;
+        virtual void FillShape(std::vector<Vector2> points, int pointCount, float color[3]) override;
         virtual void FillRect(int x, int y, int w, int h, float color[3]) override;
         virtual void DrawImage(float x, float y, float w, float h, HBitmap hBmp) override;
         
         virtual HBitmap LoadBitmapImage(unsigned char* pImageData, int uWidth, int uHeight) override;
         virtual HTexture LoadTexture(unsigned char* pImageData, int uWidth, int uHeight) override;
 
+        HTexture m_hColorBufferResourceView = INVALID_HANDLE;
+
         ID3D11Device* m_pDevice;
         ID3D11DeviceContext* m_pContext;
 
         ID3D11RenderTargetView* renderTargetView;
+        ID3D11RenderTargetView* m_pColorBufferRTW;
         ID2D1RenderTarget* renderTarget2D;
         ID3D11DepthStencilState* depthState;
         ID3D11DepthStencilView* depthView;
@@ -122,6 +131,8 @@ class CD3D11GraphicsEngine : public IGraphicsEngine, ICanvas2D {
         bool CreateBackBuffer();
         // Creates depth and stencil buffers
         bool CreateDepthBuffer();
+        // Creates offscreen color buffer
+        bool CreateColorBuffer();
         // Creates 2D rendering surface
         bool Create2DSurface();
         // Creates alpha blend state

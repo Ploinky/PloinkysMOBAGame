@@ -173,7 +173,6 @@ void Client::Run(std::string connectString_) {
 }
 
 void Client::BeginRender() {  
-    renderer->ClearScreen();
     renderer->UpdateCameraMatrix();
 }
 

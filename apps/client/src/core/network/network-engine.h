@@ -36,6 +36,9 @@ public:
     virtual void SendMessageToConnection(const HConnection hConnection, const BasePacket* pPacket) const = 0;
     virtual bool PollConnection(const HConnection hConnection, CNetworkEvent* pEvt) const = 0;
     virtual HConnection ConnectToServer(const char* szAddress, int port) = 0;
+    virtual int GetPingToConnection(const HConnection hConnection) const = 0;
+
+	virtual bool Disconnect(const HConnection hConnection) = 0;
 
     bool bIsConnected;
 protected:
