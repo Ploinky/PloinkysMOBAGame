@@ -159,6 +159,35 @@ void Client::Run(std::string connectString_) {
         m_pGamerService->Update();
 
         fps = (int)(1000.0f / dt);
+
+        if (m_nextState.eNextState != ENextState::NONE) {
+            if (m_nextState.eNextState == ENextState::GAME) {
+                Game* game = new Game(m_nextState.networkManager, this, window->width_, window->height_);
+                NewState(game);
+                m_pInputManager->SetContext(EInputContext::GAME);
+            }
+            if (m_nextState.eNextState == ENextState::LOBBY) {
+                m_pInputManager->SetContext(EInputContext::MENU);
+                Lobby* lobby = new Lobby(std::string(m_nextState.addr), m_nextState.port, this, window->width_, window->height_);
+                NewState(lobby);
+            }
+            if (m_nextState.eNextState == ENextState::SETTINGS) {
+                m_pInputManager->SetContext(EInputContext::MENU);
+                SettingsMenu* menu = new SettingsMenu(this, window->width_, window->height_, &settings_);
+                NewState(menu);
+            }
+            if (m_nextState.eNextState == ENextState::MAIN_MENU) {
+                m_pInputManager->SetContext(EInputContext::MENU);
+                MainMenu* mainMenu = new MainMenu(this, window->width_, window->height_);
+                NewState(mainMenu);
+            }
+            if (m_nextState.eNextState == ENextState::SERVER_BROWSER) {
+                m_pInputManager->SetContext(EInputContext::MENU);
+                ServerBrowser* serverBrowser = new ServerBrowser(this, window->width_, window->height_);
+                NewState(serverBrowser);
+            }
+            m_nextState.eNextState = ENextState::NONE;
+        }
     }
 
     // Save settings to settings file
@@ -215,38 +244,29 @@ void Client::NewState(IClientState* clientState) {
 }
 
 void Client::StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) {
-    CCharacterSelectState* select = new CCharacterSelectState(networkManager, this, window->width_, window->height_, ppPlayers);
-    NewState(select);
 }
 
 void Client::JoinGame(ClientNetworkManager* networkManager) {
-    Game* game = new Game(networkManager, this, window->width_, window->height_);
-    NewState(game);
-    m_pInputManager->SetContext(EInputContext::GAME);
+    m_nextState.networkManager = networkManager; 
+    m_nextState.eNextState = ENextState::GAME;
 };
 
-void Client::JoinLobby(const char* addr, int port) {
-    m_pInputManager->SetContext(EInputContext::MENU);
-    Lobby* lobby = new Lobby(std::string(addr), port, this, window->width_, window->height_);
-    NewState(lobby);
+void Client::JoinLobby(std::string addr, int port) {
+    m_nextState.eNextState = ENextState::LOBBY;
+    m_nextState.addr = addr;
+    m_nextState.port = port;
 }
 
 void Client::OpenSettingsMenu() {
-    m_pInputManager->SetContext(EInputContext::MENU);
-    SettingsMenu* menu = new SettingsMenu(this, window->width_, window->height_, &settings_);
-    NewState(menu);
+    m_nextState.eNextState = ENextState::SETTINGS;
 }
 
 void Client::OpenMainMenu() {
-    m_pInputManager->SetContext(EInputContext::MENU);
-    MainMenu* mainMenu = new MainMenu(this, window->width_, window->height_);
-    NewState(mainMenu);
+    m_nextState.eNextState = ENextState::MAIN_MENU;
 }
 
 void Client::OpenServerBrowser() {
-    m_pInputManager->SetContext(EInputContext::MENU);
-    ServerBrowser* serverBrowser = new ServerBrowser(this, window->width_, window->height_);
-    NewState(serverBrowser);
+    m_nextState.eNextState = ENextState::SERVER_BROWSER;
 }
 	
 CRenderer* Client::GetRenderer() {

@@ -38,7 +38,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::PCK_STATS, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_COOLDOWN, addToPacket);
     packet_manager.RegisterHandler(PacketType::SCORE_UPDATE_PACKET, addToPacket);
-    packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, addToPacket);
+    packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, [this](std::vector<uint8_t> data) { handler_->OpenMainMenu(); });
     packet_manager.RegisterHandler(PacketType::UNITMOVE_INTENTION, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, addToPacket);

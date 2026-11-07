@@ -30,7 +30,7 @@ void CMissileSystem::Update(CServerGameState* pGameState, float fDelta) {
 
                 // TODO who gets hit first?
                 // hit a unit?
-                pGameState->EmitEvent(CDamageEvent(missile.idOwner, idOther, 20));
+                pGameState->EmitEvent(CDamageEvent(missile.idOwner, idOther, 1000));
                 pGameState->EmitEvent(CRemoveEvent(id));
                 // TODO dangerous code (blocking out later if blocks) and what if I can hit multiple?
                 return;

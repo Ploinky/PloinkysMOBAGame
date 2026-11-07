@@ -17,4 +17,12 @@ void CPointsSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& evt
                 break;
         }
     }
+
+    if (pGameState->uTeam1Points >= 5) {
+        pGameState->bIsGameEnded = true;
+        pGameState->bIsTeam1Win = true;
+    } else if (pGameState->uTeam2Points >= 5) {
+        pGameState->bIsGameEnded = true;
+        pGameState->bIsTeam1Win = false;
+    }
 }

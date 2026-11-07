@@ -41,7 +41,7 @@ public:
 
     void NewState(IClientState* newState);
     virtual void JoinGame(ClientNetworkManager* networkManager) override;
-    virtual void JoinLobby(const char* addr, int port) override;
+    virtual void JoinLobby(std::string addr, int port) override;
     virtual void OpenSettingsMenu() override;
     virtual void OpenMainMenu() override;
     virtual void OpenServerBrowser() override;
@@ -58,6 +58,7 @@ public:
 
 private:
     IClientState* currentState_;
+    NextState_t m_nextState;
 
     // Indicates whether the Client is running and should continue running
     bool isRunning;

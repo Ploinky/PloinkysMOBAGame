@@ -12,6 +12,18 @@
 class ServerNetworkManager;
 class Client;
 
+enum class ENextState {
+    NONE,
+    GAME,
+    LOBBY
+};
+
+typedef struct NextState_s {
+    ENextState eNext = ENextState::NONE;
+    ServerNetworkManager* manager;
+    LobbyPlayer* players[10];
+} NextState_t;
+
 class Server : public IServerStateHandler{
 public:
     void Start();
@@ -26,4 +38,7 @@ public:
     CGameData m_gameData;
 
     long long GetSystemTime();
+
+private:
+    NextState_t m_nextState;
 };

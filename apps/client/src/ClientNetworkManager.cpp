@@ -53,6 +53,7 @@ bool ClientNetworkManager::ReceivePacket() {
 		} else if(evt.type == ENetworkEventType::PACKET_RECEIVED) {
 			packet_header_t header{};
 			std::memcpy(&header, evt.data.data(), sizeof(header));
+
 			std::function<void (std::vector<uint8_t>)> fun = packet_manager->GetHandler(header.type);
 			if(fun != nullptr) {
 				fun(evt.data);

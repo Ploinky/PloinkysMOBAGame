@@ -172,15 +172,34 @@ void Client::Start() {
         // TODO slot as well!
         AddPlayerForNetworkId(playerIt.second->slot, playerIt.second);
     }
+
+    UnitId dummy = m_game.GetState()->SpawnUnit(*m_game.GetState()->m_pGameData, "stormcaller", Vector2(1000, -1000));
+    m_game.GetState()->AddTeam(dummy)->eTeam = Team::TEAM_2;
+    m_game.GetState()->AddRespawn(dummy);
 }
 
 void Client::Update(float dt) {
+    // TODO unify
+    if (m_game.GetState()->bIsGameEnded) {
+        if (networkManager_->GetConnections().empty()) {
+            handler_->StartLobby(networkManager_);
+        } else {
+            networkManager_->DisconnectClients();
+        }
+    }
+
     // first lets see what the clients have to say
     networkManager_->Update();
 
     m_game.Tick();
 
     m_pNetworkSystem->SyncGameState(m_game.GetState());
+
+    if (m_game.GetState()->bIsGameEnded) {
+        GameEndPacket pck;
+        pck.victory = true;
+        networkManager_->SendToAllClientsReliable(pck);
+    }
 }
 
 void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {

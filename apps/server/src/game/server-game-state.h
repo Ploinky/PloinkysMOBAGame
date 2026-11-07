@@ -41,6 +41,8 @@ public:
 
     std::vector<CTrigger> VecTriggers;
 
+    bool bIsGameEnded = false;
+    bool bIsTeam1Win = false;
     unsigned int uTeam1Points = 0;
     unsigned int uTeam2Points = 0;
 

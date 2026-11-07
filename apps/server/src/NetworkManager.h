@@ -27,16 +27,18 @@ public:
     bool Initialize();
     bool CreateListenSocket(int nPort, const char* pszName);
 
-
     void Update();
     bool ReceivePacket(PlayerID playerId, std::vector<uint8_t>* packet);
     void SendToClient(PlayerID playerId, std::vector<uint8_t>* data);
+    void SendToClientReliable(PlayerID playerId, std::vector<uint8_t>* data);
     void SendToClient(PlayerID playerId, BasePacket* packet);
     void SendToAllClients(std::vector<uint8_t>* packet);
     void SendToAllClients(BasePacket* packet);
     void SendToAllClients(BasePacket& packet);
+    void SendToAllClientsReliable(BasePacket& packet);
 
     // Shutdown
+    void DisconnectClients();
     void StopListenSocket();
     bool Close();
 

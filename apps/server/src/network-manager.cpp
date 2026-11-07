@@ -38,6 +38,12 @@ bool ServerNetworkManager::CreateListenSocket(int nPort, const char* pszName) {
     return true;
 }
 
+void ServerNetworkManager::DisconnectClients() {
+    for (NetworkPeer* pPeer : clients_) {
+        SteamGameServerNetworkingSockets()->CloseConnection(pPeer->hConnection, 0, "Server closing", true);
+    }
+}
+
 void ServerNetworkManager::StopListenSocket() {
     if(listenSocket_ == k_HSteamListenSocket_Invalid) {
         return;
@@ -153,6 +159,16 @@ void ServerNetworkManager::SendToAllClients(BasePacket& packet) {
 
 }
 
+void ServerNetworkManager::SendToAllClientsReliable(BasePacket& packet) {
+    std::vector<uint8_t> data;
+    packet.Write(&data);
+
+    for (NetworkPeer* peer : clients_) {
+        SendToClientReliable(peer->idPlayer, &data);
+    }
+
+}
+
 void ServerNetworkManager::SendToAllClients(std::vector<uint8_t>* data) {
     for (NetworkPeer* peer : clients_) {
         SendToClient(peer->idPlayer, data);
@@ -175,6 +191,16 @@ void ServerNetworkManager::SendToClient(PlayerID playerId, std::vector<uint8_t>*
     // TODO send
     HSteamNetConnection hConn = GetConnectionForPlayer(playerId);
     EResult eSendResult = SteamGameServerNetworkingSockets()->SendMessageToConnection(hConn, data->data(), data->size(), k_nSteamNetworkingSend_Unreliable, nullptr);
+
+    if (eSendResult != EResult::k_EResultOK) {
+        Logger::FormatErr("Failed to send message to player %ul", playerId);
+    }
+}
+
+void ServerNetworkManager::SendToClientReliable(PlayerID playerId, std::vector<uint8_t>* data) {
+    // TODO send
+    HSteamNetConnection hConn = GetConnectionForPlayer(playerId);
+    EResult eSendResult = SteamGameServerNetworkingSockets()->SendMessageToConnection(hConn, data->data(), data->size(), k_nSteamNetworkingSend_Reliable, nullptr);
 
     if (eSendResult != EResult::k_EResultOK) {
         Logger::FormatErr("Failed to send message to player %ul", playerId);
