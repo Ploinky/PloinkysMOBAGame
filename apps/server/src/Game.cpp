@@ -179,28 +179,26 @@ void Client::Start() {
 }
 
 void Client::Update(float dt) {
+    // first lets see what the clients have to say
+    networkManager_->Update();
+
     // TODO unify
     if (m_game.GetState()->bIsGameEnded) {
+        GameEndPacket pck;
+        pck.victory = true;
+        networkManager_->SendToAllClientsReliable(pck);
         LobbyPlayer* players[10] = {0};
         int c = 0;
         for (auto it = players_.begin(); c < 10 && it != players_.end(); it++) {
             players[c++] = it->second;
         }
         handler_->ResumeLobby(networkManager_, players);
+        return;
     }
-
-    // first lets see what the clients have to say
-    networkManager_->Update();
 
     m_game.Tick();
 
     m_pNetworkSystem->SyncGameState(m_game.GetState());
-
-    if (m_game.GetState()->bIsGameEnded) {
-        GameEndPacket pck;
-        pck.victory = true;
-        networkManager_->SendToAllClientsReliable(pck);
-    }
 }
 
 void Client::OnMessageReceived(PlayerID playerId, std::vector<uint8_t>* data) {

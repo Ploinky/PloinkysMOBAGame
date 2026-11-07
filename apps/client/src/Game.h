@@ -128,6 +128,7 @@ public:
     int m_iTeam2Score;
 
     bool m_bGameHasEnded;
+    Team m_eWinningTeam;
 
     int m_nPing = 0;
     float m_fRefreshPing = -1;

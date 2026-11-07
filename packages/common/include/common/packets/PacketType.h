@@ -50,6 +50,8 @@ enum class PacketType : uint64_t {
 	PCK_UNIT_DEATH,
 	PCK_UNIT_RESPAWN,
 
+	PCK_TEAM_WIN,
+
 	// OTHER?
 	SERVER_MESSAGE
 };

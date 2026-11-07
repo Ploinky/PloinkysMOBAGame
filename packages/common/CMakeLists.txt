@@ -41,6 +41,7 @@ add_library(common
 	src/Packets/SpellCastStartPacket.cpp
 	src/Packets/SpellHitPacket.cpp
 	src/Packets/StopCommand.cpp
+	src/Packets/team-win-packet.cpp
 	src/Packets/unit-death-packet.cpp
 	src/Packets/unit-respawn-packet.cpp
 	src/Packets/UnitIdlePacket.cpp

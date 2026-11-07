@@ -247,3 +247,8 @@ void CNetworkSystem::OnEntityDespawn(CServerGameState* pGameState,  const CDespa
     pck.unit = evt.idTarget;
     m_pNetworkManager->SendToAllClients(pck);
 }
+
+void CNetworkSystem::OnTeamWin(CServerGameState* pGameState, const CTeamWinEvent& evt) {
+    CTeamWinPacket pck = CTeamWinPacket(evt.eTeam);
+    m_pNetworkManager->SendToAllClients(pck);
+}

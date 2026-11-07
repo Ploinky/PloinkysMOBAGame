@@ -39,6 +39,12 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_COOLDOWN, addToPacket);
     packet_manager.RegisterHandler(PacketType::SCORE_UPDATE_PACKET, addToPacket);
     packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, [this](std::vector<uint8_t> data) { handler_->BackToLobby(net_manager_); });
+    packet_manager.RegisterHandler(PacketType::PCK_TEAM_WIN, [this](std::vector<uint8_t> data) {
+        CTeamWinPacket pck = CTeamWinPacket();
+        pck.Read(&data);
+        m_eWinningTeam = pck.eTeam;
+        m_bGameHasEnded = true;
+    });
     packet_manager.RegisterHandler(PacketType::UNITMOVE_INTENTION, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, addToPacket);
@@ -515,13 +521,19 @@ void Game::RenderGameUI(CRenderer* renderer) {
     renderer->RenderText(windowWidth_ - 100, 0, 100, 20, std::to_string(m_iTeam1Score) + " - " + std::to_string(m_iTeam2Score));
 
     if (m_bGameHasEnded) {
-        renderer->FillRect(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 100, black);
+        renderer->FillRect(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 200, black);
         renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 100, "Game Over!");
+        if (m_eWinningTeam == Team::TEAM_1) {
+            renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 + 50, 400, 100, "Team1 Win");
+        } else {
+            renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 + 50, 400, 100, "Team2 Win");
+        }
     }
 
     renderer->RenderChat(m_vecChat);
 
     renderer->RenderText(10, 10, 100, 20, std::to_string(m_nPing).append(" ms (").append(std::to_string(m_nLag)).append(")"));
+
 }
 
 void Game::TestIntersect(CRenderer* renderer, int mx, int my, float* x, float* y) {

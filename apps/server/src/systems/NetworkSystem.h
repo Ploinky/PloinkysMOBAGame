@@ -25,6 +25,7 @@ public:
     REGISTER_EVENT_HANDLER(CNetworkSystem, CPickedUpEvent, OnPickedUp);
     REGISTER_EVENT_HANDLER(CNetworkSystem, CEntityIdleEvent, OnEntityIdle);
     REGISTER_EVENT_HANDLER(CNetworkSystem, CDespawnEvent, OnEntityDespawn);
+    REGISTER_EVENT_HANDLER(CNetworkSystem, CTeamWinEvent, OnTeamWin);
 
 private:
     ServerNetworkManager* m_pNetworkManager;
