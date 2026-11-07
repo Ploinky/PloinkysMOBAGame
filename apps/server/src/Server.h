@@ -15,7 +15,8 @@ class Client;
 enum class ENextState {
     NONE,
     GAME,
-    LOBBY
+    LOBBY,
+    RESUME_LOBBY
 };
 
 typedef struct NextState_s {
@@ -28,8 +29,9 @@ class Server : public IServerStateHandler{
 public:
     void Start();
 
-    virtual void StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) override;
     virtual void StartLobby(ServerNetworkManager* manager) override;
+    virtual void StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) override;
+    virtual void ResumeLobby(ServerNetworkManager* manager, LobbyPlayer* players[10]) override;
 
 	virtual const CGameData& GetGameData() override;
     private:

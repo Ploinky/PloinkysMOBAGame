@@ -12,6 +12,7 @@
 class Lobby : public IClientState {
 public:
 	Lobby(std::string server, int port, IClientStateHandler* handler, int width, int height);
+	Lobby(ClientNetworkManager* pnetworkManager, IClientStateHandler* handler, int width, int height);
 	~Lobby();
 	virtual void Update(float dt) override;
 	virtual void Render(CRenderer* renderer) override;
@@ -22,6 +23,8 @@ public:
 private:
 	NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>> packetManager_;
 	ClientNetworkManager* networkManager_;
+
+	void Initialize(ClientNetworkManager* pnetworkManager);
 
 	void HandleSlotPacket(std::vector<uint8_t> data);
 	void HandleGameStartPacket(std::vector<uint8_t> data);

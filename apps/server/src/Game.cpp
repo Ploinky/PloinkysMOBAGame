@@ -181,11 +181,12 @@ void Client::Start() {
 void Client::Update(float dt) {
     // TODO unify
     if (m_game.GetState()->bIsGameEnded) {
-        if (networkManager_->GetConnections().empty()) {
-            handler_->StartLobby(networkManager_);
-        } else {
-            networkManager_->DisconnectClients();
+        LobbyPlayer* players[10] = {0};
+        int c = 0;
+        for (auto it = players_.begin(); c < 10 && it != players_.end(); it++) {
+            players[c++] = it->second;
         }
+        handler_->ResumeLobby(networkManager_, players);
     }
 
     // first lets see what the clients have to say

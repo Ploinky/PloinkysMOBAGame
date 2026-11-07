@@ -49,5 +49,5 @@ private:
 
 
 	// TODO move this out
-	ClientNetworkManager m_netManager;
+	ClientNetworkManager* m_pNetManager;
 };

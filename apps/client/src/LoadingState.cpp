@@ -53,7 +53,7 @@ void CLoadingState::Update(float dt) {
 		m_loadingThread.join();
 
 		if(m_strServerAddress != "") {
-			ClientNetworkManager* pServerNetworkManger = new ClientNetworkManager();
+			ClientNetworkManager* pServerNetworkManger = new ClientNetworkManager(handler_->GetNetworkEngine());
 			NewState(new Lobby(m_strServerAddress, 23119, handler_, windowWidth_, windowHeight_));
 		} else {
 			handler_->OpenMainMenu();

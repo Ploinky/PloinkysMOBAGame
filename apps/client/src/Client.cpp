@@ -186,6 +186,11 @@ void Client::Run(std::string connectString_) {
                 ServerBrowser* serverBrowser = new ServerBrowser(this, window->width_, window->height_);
                 NewState(serverBrowser);
             }
+            if (m_nextState.eNextState == ENextState::BACK_TO_LOBBY) {
+                m_pInputManager->SetContext(EInputContext::MENU);
+                Lobby* lobby = new Lobby(m_nextState.networkManager, this, window->width_, window->height_);
+                NewState(lobby);
+            }
             m_nextState.eNextState = ENextState::NONE;
         }
     }
@@ -255,6 +260,11 @@ void Client::JoinLobby(std::string addr, int port) {
     m_nextState.eNextState = ENextState::LOBBY;
     m_nextState.addr = addr;
     m_nextState.port = port;
+}
+
+void Client::BackToLobby(ClientNetworkManager* networkManager) {
+    m_nextState.eNextState = ENextState::BACK_TO_LOBBY;
+    m_nextState.networkManager = networkManager;
 }
 
 void Client::OpenSettingsMenu() {

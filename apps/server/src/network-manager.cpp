@@ -251,6 +251,7 @@ void ServerNetworkManager::ConnectionStatusChanged(SteamNetConnectionStatusChang
     } else if (pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ClosedByPeer
                 || pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Dead
                 || pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ProblemDetectedLocally
+                || pConnectionStatusChanged->m_info.m_eState == ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None
     ) {
         Logger::FormatMsg("Player disconnected");
         if (on_clientDisconnected) {
@@ -265,6 +266,6 @@ void ServerNetworkManager::ConnectionStatusChanged(SteamNetConnectionStatusChang
             }
         }
     } else {
-        Logger::FormatMsg("Unknown connection status change");
+        Logger::FormatMsg("Unknown connection status change %lld", pConnectionStatusChanged->m_info.m_eState);
     }
 }

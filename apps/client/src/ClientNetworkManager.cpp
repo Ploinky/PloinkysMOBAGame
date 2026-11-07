@@ -8,9 +8,12 @@ bool ClientNetworkManager::IsConnected() {
 	return m_hServerConnection != INVALID_HANDLE && m_bIsConnectedToServer;
 }
 
-bool ClientNetworkManager::Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
-    // TODO do we need to do anything here? like check for errors? 
+ClientNetworkManager::ClientNetworkManager(INetworkEngine* pEngine) {
 	this->m_pEngine = pEngine;
+}
+
+bool ClientNetworkManager::Initialize(NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager) {
+    // TODO do we need to do anything here? like check for errors? 
 	this->packet_manager = manager;
 	return true;
 }

@@ -42,6 +42,7 @@ public:
     void NewState(IClientState* newState);
     virtual void JoinGame(ClientNetworkManager* networkManager) override;
     virtual void JoinLobby(std::string addr, int port) override;
+    virtual void BackToLobby(ClientNetworkManager* networkManager) override;
     virtual void OpenSettingsMenu() override;
     virtual void OpenMainMenu() override;
     virtual void OpenServerBrowser() override;

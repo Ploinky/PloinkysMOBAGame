@@ -38,7 +38,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::PCK_STATS, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_COOLDOWN, addToPacket);
     packet_manager.RegisterHandler(PacketType::SCORE_UPDATE_PACKET, addToPacket);
-    packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, [this](std::vector<uint8_t> data) { handler_->OpenMainMenu(); });
+    packet_manager.RegisterHandler(PacketType::GAME_END_PACKET, [this](std::vector<uint8_t> data) { handler_->BackToLobby(net_manager_); });
     packet_manager.RegisterHandler(PacketType::UNITMOVE_INTENTION, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, addToPacket);
@@ -47,7 +47,7 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
     packet_manager.RegisterHandler(PacketType::PCK_PICKED_UP_ENTITY, addToPacket);
 
     // Let the network manager know about our new packet handler
-    net_manager_->Initialize(handler->GetNetworkEngine(), &packet_manager);
+    net_manager_->Initialize(&packet_manager);
 
     this->assetManager_ = handler->GetAssetManager();
     this->renderer = handler->GetRenderer();
@@ -77,11 +77,14 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
 }
 
 Game::~Game() {
+    /*
     net_manager_->Close();
 
     if (net_manager_->IsConnected()) {
         net_manager_->Close();
     }
+    */
+
 }
 
 void Game::CharTyped(uint32_t ch) {
@@ -1129,8 +1132,6 @@ void Game::Action(EInputAction eAction) {
 			break;
 		}
     }
-
-
 
     if(eAction == EInputAction::GAME_ESCAPE) {
         handler_->OpenMainMenu();

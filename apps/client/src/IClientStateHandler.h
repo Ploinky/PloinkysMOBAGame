@@ -14,6 +14,7 @@ enum class ENextState {
     NONE,
     GAME,
     LOBBY,
+    BACK_TO_LOBBY,
     SETTINGS,
     MAIN_MENU,
     SERVER_BROWSER
@@ -33,6 +34,7 @@ public:
 
     virtual void JoinGame(ClientNetworkManager* networkManager) = 0;
     virtual void JoinLobby(std::string addr, int port) = 0;
+    virtual void BackToLobby(ClientNetworkManager* networkManager) = 0;
 
     virtual void StartCharacterSelect(ClientNetworkManager* networkManager, Player** ppPlayers) = 0;
 

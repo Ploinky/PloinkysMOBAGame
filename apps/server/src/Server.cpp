@@ -84,6 +84,19 @@ void Server::Start() {
                 }
 
                 currentState_ = lobby;
+            } else if (m_nextState.eNext == ENextState::RESUME_LOBBY) {
+                for (int i = 0; i < 10; i++) {
+                    if (m_nextState.players[i] != nullptr) {
+                        m_nextState.players[i]->ready = false;
+                    }
+                }
+                LobbyState* lobby = new LobbyState(this, m_nextState.manager, m_nextState.players);
+
+                if (currentState_ != nullptr) {
+                    delete currentState_;
+                }
+
+                currentState_ = lobby;
             }
             m_nextState.eNext = ENextState::NONE;
         }
@@ -100,6 +113,15 @@ long long Server::GetSystemTime() {
 
 void Server::StartGame(ServerNetworkManager* manager, LobbyPlayer* players[10]) {
     m_nextState.eNext = ENextState::GAME;
+    m_nextState.manager = manager;
+
+    for (int i = 0; i < 10; i++) {
+        m_nextState.players[i] = players[i];
+    }
+}
+
+void Server::ResumeLobby(ServerNetworkManager* manager, LobbyPlayer* players[10]) {
+    m_nextState.eNext = ENextState::RESUME_LOBBY;
     m_nextState.manager = manager;
 
     for (int i = 0; i < 10; i++) {

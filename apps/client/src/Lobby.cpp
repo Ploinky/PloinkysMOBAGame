@@ -3,17 +3,24 @@
 #include "Renderer.h"
 
 Lobby::Lobby(std::string server, int port, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
-	networkManager_ = new ClientNetworkManager();
-	HBitmap hButton = handler->GetAssetManager()->GetBitmapImage("menu_button");
+	ClientNetworkManager* pNetworkManager = new ClientNetworkManager(handler_->GetNetworkEngine());
+    pNetworkManager->ConnectToServer(server, port);
+    Initialize(pNetworkManager);;
+}
 
-    packetManager_ = NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>();
+Lobby::Lobby(ClientNetworkManager* pNetworkManager, IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
+    Initialize(pNetworkManager);
+}
+void Lobby::Initialize(ClientNetworkManager* pNetworkManager) {
+    networkManager_ = pNetworkManager;
+
     // Register network packets, the fuck...
     packetManager_.RegisterHandler(PacketType::LOBBY_PLAYER_PCK, [this](std::vector<uint8_t> data) { HandleSlotPacket(data); });
     packetManager_.RegisterHandler(PacketType::CHARACER_SELECT_REMAINING_TIME, [this](std::vector<uint8_t> data) { HandleCharacterSelectTimePacket(data); });
     packetManager_.RegisterHandler(PacketType::LOBBY_GAME_START, [this](std::vector<uint8_t> data) { HandleGameStartPacket(data); });
-    networkManager_->Initialize(handler->GetNetworkEngine(), &packetManager_);
+    networkManager_->Initialize(&packetManager_);
 
-    networkManager_->ConnectToServer(server, port);
+	HBitmap hButton = handler_->GetAssetManager()->GetBitmapImage("menu_button");
 
     mySlot_ = -1;
 

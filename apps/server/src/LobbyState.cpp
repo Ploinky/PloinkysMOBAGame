@@ -12,9 +12,17 @@ LobbyState::LobbyState(IServerStateHandler* handler, int nPort, char* pszName, S
 	Initialize(nPort, pszName);
 }
 
-void LobbyState::Initialize(int nPort, char* pszName) {
-	networkManager_->CreateListenSocket(nPort, pszName);
+LobbyState::LobbyState(IServerStateHandler* handler, ServerNetworkManager* networkManager, LobbyPlayer* players[10]) : networkManager_(networkManager), IServerState(handler) {
+	Initialize(players);
+}
 
+void LobbyState::Initialize(int nPort, char* pszName) {
+	LobbyPlayer* players[10] = {0};
+	networkManager_->CreateListenSocket(nPort, pszName);
+	Initialize(players);
+}
+
+void LobbyState::Initialize(LobbyPlayer* players[10]) {
 	packetHandler_.RegisterHandler(PacketType::LOBBY_CMD_SLOT, [this](std::vector<uint8_t> data, PlayerID idPlayer) {
 		LobbySlotCmd cmd = LobbySlotCmd();
 		cmd.Read(&data);
@@ -137,6 +145,23 @@ void LobbyState::Initialize(int nPort, char* pszName) {
 		}
 		fun(*data, idPlayer);
 	};
+
+	for (int i = 0; i < 10; i++) {
+		lobbySlots_[i] = players[i];
+	}
+
+	for (int i = 0; i < 10; i++) {
+		if (lobbySlots_[i] != nullptr) {
+			LobbySlotPacket pck = LobbySlotPacket();
+			pck.slot = i;
+			pck.steamId = lobbySlots_[i]->idPlayer;
+			pck.isReady = lobbySlots_[i]->ready;
+
+			std::vector<uint8_t> data;
+			pck.Write(&data);
+			networkManager_->SendToAllClients(&data);
+		}
+	}
 }
 void LobbyState::Update(float dt) {
 	networkManager_->Update();

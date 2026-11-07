@@ -3,8 +3,8 @@
 #include <common/PMG_Common.h>
 
 ServerBrowser::ServerBrowser(IClientStateHandler* handler, int width, int height) : IClientState(handler, width, height) {
-	m_netManager = ClientNetworkManager();
-	m_netManager.Initialize(handler->GetNetworkEngine(), nullptr);
+	m_pNetManager = new ClientNetworkManager(handler->GetNetworkEngine());
+	m_pNetManager->Initialize(nullptr);
 
 	rootElement_.m_size = { static_cast<float>(windowWidth_), static_cast<float>(windowHeight_) };
 	rootElement_.m_pos = { 0, 0 };
@@ -61,7 +61,7 @@ ServerBrowser::~ServerBrowser() {
 
 
 void ServerBrowser::Update(float dt) {
-	m_netManager.CheckConnected();
+	m_pNetManager->CheckConnected();
 }
 
 

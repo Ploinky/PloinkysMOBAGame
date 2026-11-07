@@ -12,7 +12,9 @@ class Client;
 
 class ClientNetworkManager {
 public:
-	bool Initialize(INetworkEngine* pEngine, NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
+	ClientNetworkManager(INetworkEngine* pEngine);
+
+	bool Initialize(NetworkHandlerManager<PacketType, std::function<void(std::vector<uint8_t>)>>* manager);
 
 	// Gameplay
 	void ConnectToServer(std::string addr, int port);
