@@ -13,7 +13,6 @@
 #include "events/spell-cast-start-event.h"
 #include "events/damage-event.h"
 #include "events.h"
-#include "systems/points-system.h"
 #include "systems/respawn-system.h"
 #include "systems/attack-system.h"
 #include "systems/ai-system.h"
@@ -176,6 +175,10 @@ void Client::Start() {
     UnitId dummy = m_game.GetState()->SpawnUnit(*m_game.GetState()->m_pGameData, "stormcaller", Vector2(1000, -1000));
     m_game.GetState()->AddTeam(dummy)->eTeam = Team::TEAM_2;
     m_game.GetState()->AddRespawn(dummy);
+
+    UnitId dummy2 = m_game.GetState()->SpawnUnit(*m_game.GetState()->m_pGameData, "stormcaller", Vector2(1000, -800));
+    m_game.GetState()->AddTeam(dummy2)->eTeam = Team::TEAM_2;
+    m_game.GetState()->AddRespawn(dummy2);
 }
 
 void Client::Update(float dt) {

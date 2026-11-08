@@ -8,7 +8,6 @@ void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh) {
     pNavMap->m_pMesh = pNavMesh;
     m_gameState.AddSystem(new CNavigationSystem(pNavMap));
     m_gameState.SetNavMap(pNavMap);
-    m_gameState.AddSystem(new CPointsSystem());
     m_gameState.AddSystem(new CRespawnSystem());
     m_gameState.AddSystem(new CAttackSystem());
     m_gameState.AddSystem(new CAiSystem());
@@ -19,6 +18,7 @@ void CServerGame::Start(CGameData gameData, NavMesh* pNavMesh) {
     m_gameState.AddSystem(new CMovementSystem());
     m_gameState.AddSystem(new CSpellSystem());
     m_gameState.AddSystem(new CDamageSystem());
+    m_gameState.AddSystem(new CRoundSystem());
     m_gameState.AddSystem(new CCleanupSystem());
 
     // =====================================

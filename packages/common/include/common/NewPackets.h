@@ -27,6 +27,8 @@
 #include "packets/pick-up-entity-command.h"
 #include "packets/picked-up-entity-packet.h"
 #include "packets/PlayParticlePacket.h"
+#include "packets/round-end-packet.h"
+#include "packets/round-reset-packet.h"
 #include "packets/ServerInfoPacket.h"
 #include "packets/SpawnPacket.h"
 #include "packets/StopCommand.h"

@@ -35,6 +35,8 @@ add_library(common
 	src/Packets/pick-up-entity-command.cpp
 	src/Packets/picked-up-entity-packet.cpp
 	src/Packets/PlayParticlePacket.cpp
+	src/Packets/round-end-packet.cpp
+	src/Packets/round-reset-packet.cpp
 	src/Packets/ScoreUpdatePacket.cpp
 	src/Packets/ServerInfoPacket.cpp
 	src/Packets/SpawnPacket.cpp

@@ -5,6 +5,8 @@ CRespawnSystem::CRespawnSystem() {
 }
 
 void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
+    /*
+
     for (auto& [id, respawn] : pGameState->GetAllRespawn()) {
         if (respawn.fRespawnCountdown <= 0.0f) {
             continue;
@@ -17,7 +19,6 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
 
             pGameState->EmitEvent(CRespawnEvent(id));
 
-            /*
             TransformComponent_t* pTransform = pGameState->GetTransform(id);
             TeamComponent_t* pTeam = pGameState->GetTeam(id);
 
@@ -38,8 +39,17 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
 
 
             pGameState->EmitEvent(new CRespawnEvent(id));
+
+        }
+    }
             */
 
+}
+
+void CRespawnSystem::OnRoundReset(CServerGameState* pGameState, const CRoundResetEvent& evt) {
+    for (auto& [id, respawn] : pGameState->GetAllRespawn()) {
+        if (pGameState->GetHealth(id)->bIsDead) {
+            pGameState->EmitEvent(CRespawnEvent(id));
         }
     }
 }

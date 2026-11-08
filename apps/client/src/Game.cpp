@@ -45,6 +45,18 @@ Game::Game(ClientNetworkManager* server, IClientStateHandler* handler, int width
         m_eWinningTeam = pck.eTeam;
         m_bGameHasEnded = true;
     });
+    packet_manager.RegisterHandler(PacketType::ROUND_END_PACKET, [this](std::vector<uint8_t> data) {
+        CRoundEndPacket pck = CRoundEndPacket();
+        pck.Read(&data);
+        m_eRoundWinningTeam = pck.eWinner;
+        m_bRoundHasEnded = true;
+    });
+    packet_manager.RegisterHandler(PacketType::ROUND_RESET_PACKET, [this](std::vector<uint8_t> data) {
+        CRoundResetPacket pck = CRoundResetPacket();
+        pck.Read(&data);
+        m_eRoundWinningTeam = Team::NEUTRAL;
+        m_bRoundHasEnded = false;
+    });
     packet_manager.RegisterHandler(PacketType::UNITMOVE_INTENTION, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_CAST_START, addToPacket);
     packet_manager.RegisterHandler(PacketType::PCK_SPELL_HIT, addToPacket);
@@ -524,6 +536,14 @@ void Game::RenderGameUI(CRenderer* renderer) {
         renderer->FillRect(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 200, black);
         renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 100, "Game Over!");
         if (m_eWinningTeam == Team::TEAM_1) {
+            renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 + 50, 400, 100, "Team1 Win");
+        } else {
+            renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 + 50, 400, 100, "Team2 Win");
+        }
+    } else if (m_bRoundHasEnded) {
+        renderer->FillRect(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 200, black);
+        renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 - 50, 400, 100, "Round ended");
+        if (m_eRoundWinningTeam == Team::TEAM_1) {
             renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 + 50, 400, 100, "Team1 Win");
         } else {
             renderer->RenderText(windowWidth_ / 2 - 200, windowHeight_ / 2 + 50, 400, 100, "Team2 Win");
@@ -1212,7 +1232,7 @@ void Game::Action(EInputAction eAction) {
         }
     }
     if(eAction == EInputAction::GAME_CAST_SPELL_2) {
-        switch(m_vecAbilities[0].eTargetType) {
+        switch(m_vecAbilities[1].eTargetType) {
             case EAbilityTargetType::UNIT:
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
@@ -1235,7 +1255,7 @@ void Game::Action(EInputAction eAction) {
         }
     }
     if(eAction == EInputAction::GAME_CAST_SPELL_3) {
-        switch(m_vecAbilities[0].eTargetType) {
+        switch(m_vecAbilities[2].eTargetType) {
             case EAbilityTargetType::UNIT:
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
@@ -1258,7 +1278,7 @@ void Game::Action(EInputAction eAction) {
         }
     }
     if(eAction == EInputAction::GAME_CAST_SPELL_4) {
-        switch(m_vecAbilities[0].eTargetType) {
+        switch(m_vecAbilities[3].eTargetType) {
             case EAbilityTargetType::UNIT:
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();

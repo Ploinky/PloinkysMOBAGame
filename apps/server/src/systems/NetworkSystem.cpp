@@ -252,3 +252,13 @@ void CNetworkSystem::OnTeamWin(CServerGameState* pGameState, const CTeamWinEvent
     CTeamWinPacket pck = CTeamWinPacket(evt.eTeam);
     m_pNetworkManager->SendToAllClients(pck);
 }
+
+void CNetworkSystem::OnRoundEnd(CServerGameState* pGameState, const CRoundEndEvent& evt) {
+    CRoundEndPacket pck = CRoundEndPacket(evt.eWinner);
+    m_pNetworkManager->SendToAllClients(pck);
+}
+
+void CNetworkSystem::OnRoundReset(CServerGameState* pGameState, const CRoundResetEvent& evt) {
+    CRoundResetPacket pck = CRoundResetPacket();
+    m_pNetworkManager->SendToAllClients(pck);
+}

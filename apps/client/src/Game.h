@@ -130,6 +130,9 @@ public:
     bool m_bGameHasEnded;
     Team m_eWinningTeam;
 
+    bool m_bRoundHasEnded = false;
+    Team m_eRoundWinningTeam;
+
     int m_nPing = 0;
     float m_fRefreshPing = -1;
     int m_nLag = 0;

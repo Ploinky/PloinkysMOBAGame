@@ -8,8 +8,8 @@ add_executable(server_test
 	${CMAKE_SOURCE_DIR}/apps/server/src/systems/missile-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/movement-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/NavigationSystem.cpp
-    ${CMAKE_SOURCE_DIR}/apps/server/src/systems/points-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/respawn-system.cpp
+    ${CMAKE_SOURCE_DIR}/apps/server/src/systems/round-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/spawn-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/spell-system.cpp
     ${CMAKE_SOURCE_DIR}/apps/server/src/systems/trigger-system.cpp

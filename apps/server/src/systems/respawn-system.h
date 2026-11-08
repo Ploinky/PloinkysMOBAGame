@@ -11,4 +11,5 @@ public:
     virtual void Update(CServerGameState* pGameState, float fDelta) override;
 
     REGISTER_EVENT_HANDLER(CRespawnSystem, CDeathEvent, OnEntityDied);
+    REGISTER_EVENT_HANDLER(CRespawnSystem, CRoundResetEvent, OnRoundReset);
 };

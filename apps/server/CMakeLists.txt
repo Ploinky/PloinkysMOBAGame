@@ -36,8 +36,8 @@ add_executable(server
 	src/systems/NetworkSystem.cpp
 	src/systems/missile-system.cpp
 	src/systems/movement-system.cpp
-	src/systems/points-system.cpp
 	src/systems/respawn-system.cpp
+	src/systems/round-system.cpp
 	src/systems/spawn-system.cpp
 	src/systems/spell-system.cpp
 	src/systems/trigger-system.cpp

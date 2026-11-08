@@ -13,6 +13,13 @@ typedef struct {
     float fAngle;
 } SpawnPoint_t;
 
+enum class ERoundState {
+    PRE_ROUND,
+    SEARCH,
+    DESTROY,
+    POST_ROUND,
+    POST_GAME
+};
 class CServerGameState : public IGameState<CServerGameState> {
 public:
     REGISTER_COMPONENT_TYPE(Movement)
@@ -60,4 +67,10 @@ public:
     NavigationMap* m_pNavMap;
 
     std::vector<UnitId> GetUnitsInAra(Vector2 point, float radius);
+
+    // current round state
+    int nMaxRounds = 11;
+    int nCurrentRound = 1;
+    int nRoundWinsRequired = 2;
+    ERoundState eRoundState = ERoundState::PRE_ROUND;
 };
