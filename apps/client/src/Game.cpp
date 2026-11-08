@@ -711,6 +711,9 @@ void Game::DespawnUnit(uint64_t unitId) {
     if(m_gameState.GetRenderable(unitId)) {
         m_gameState.RemoveRenderable(unitId);
     }
+    if(m_gameState.GetTransform(unitId)) {
+        m_gameState.RemoveTransform(unitId);
+    }
 }
 
 void Game::HandleTicks(float dt) {
@@ -1112,8 +1115,9 @@ void Game::SimulateTick(game_tick_t& tick, double diff) {
             pck.Read(&vecData);
 
             InventoryComponent_t* pInv = m_gameState.GetInventory(pck.idUnit);
-            if(pInv == nullptr) {
+            if(pInv != nullptr) {
                 pInv = m_gameState.AddInventory(pck.idUnit);
+                Logger::FormatErr("Added unit %lld to inventory of unit %lld", pck.idPickedUpUnit, pck.idUnit);
             }
 
             pInv->vecEntitiesInInventory.push_back(pck.idPickedUpUnit);
@@ -1209,9 +1213,12 @@ void Game::Action(EInputAction eAction) {
     }
 
     if(eAction == EInputAction::GAME_CAST_SPELL_1) {
+        Logger::FormatMsg("Attempting to cast spell 1");
         switch(m_vecAbilities[0].eTargetType) {
             case EAbilityTargetType::UNIT:
+                Logger::FormatMsg("Unit targeted");
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
+                    Logger::FormatMsg("At unit %lld", idUnitUnderCursor);
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 0;
                     cmd.target = idUnitUnderCursor;
@@ -1219,6 +1226,7 @@ void Game::Action(EInputAction eAction) {
                 }
                 break;
             default:
+                Logger::FormatMsg("Point targeted");
                 float x, y;
                 TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
                 
@@ -1232,9 +1240,12 @@ void Game::Action(EInputAction eAction) {
         }
     }
     if(eAction == EInputAction::GAME_CAST_SPELL_2) {
+        Logger::FormatMsg("Attempting to cast spell 2");
         switch(m_vecAbilities[1].eTargetType) {
             case EAbilityTargetType::UNIT:
+                Logger::FormatMsg("Unit targeted");
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
+                    Logger::FormatMsg("At unit %lld", idUnitUnderCursor);
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 1;
                     cmd.target = idUnitUnderCursor;
@@ -1242,6 +1253,7 @@ void Game::Action(EInputAction eAction) {
                 }
                 break;
             default:
+                Logger::FormatMsg("Point targeted");
                 float x, y;
                 TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
                 
@@ -1255,9 +1267,12 @@ void Game::Action(EInputAction eAction) {
         }
     }
     if(eAction == EInputAction::GAME_CAST_SPELL_3) {
+        Logger::FormatMsg("Attempting to cast spell 3");
         switch(m_vecAbilities[2].eTargetType) {
             case EAbilityTargetType::UNIT:
+                Logger::FormatMsg("Unit targeted");
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
+                    Logger::FormatMsg("At unit %lld", idUnitUnderCursor);
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 2;
                     cmd.target = idUnitUnderCursor;
@@ -1265,6 +1280,7 @@ void Game::Action(EInputAction eAction) {
                 }
                 break;
             default:
+                Logger::FormatMsg("Point targeted");
                 float x, y;
                 TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
                 
@@ -1278,9 +1294,12 @@ void Game::Action(EInputAction eAction) {
         }
     }
     if(eAction == EInputAction::GAME_CAST_SPELL_4) {
+        Logger::FormatMsg("Attempting to cast spell 4");
         switch(m_vecAbilities[3].eTargetType) {
             case EAbilityTargetType::UNIT:
+                Logger::FormatMsg("Unit targeted");
                 if (idUnitUnderCursor != UNIT_ID_NONE) {
+                    Logger::FormatMsg("At unit %lld", idUnitUnderCursor);
                     CastTargetCommandPacket cmd = CastTargetCommandPacket();
                     cmd.spell_slot = 3;
                     cmd.target = idUnitUnderCursor;
@@ -1288,6 +1307,7 @@ void Game::Action(EInputAction eAction) {
                 }
                 break;
             default:
+                Logger::FormatMsg("Point targeted");
                 float x, y;
                 TestIntersect(renderer, m_mousePos[0], m_mousePos[1], &x, &y);
                 

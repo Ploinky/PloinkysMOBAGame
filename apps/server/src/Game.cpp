@@ -99,7 +99,8 @@ Client::Client(IServerStateHandler* handler, ServerNetworkManager* networkManage
             }
         }
         
-        handler_->StartLobby(networkManager_);
+        LobbyPlayer* players[10] = {0};
+        handler_->ResumeLobby(networkManager_, players);
     };
 
     m_pNetworkSystem = new CNetworkSystem(networkManager_);
@@ -179,6 +180,8 @@ void Client::Start() {
     UnitId dummy2 = m_game.GetState()->SpawnUnit(*m_game.GetState()->m_pGameData, "stormcaller", Vector2(1000, -800));
     m_game.GetState()->AddTeam(dummy2)->eTeam = Team::TEAM_2;
     m_game.GetState()->AddRespawn(dummy2);
+
+    m_game.GetState()->SpawnUnit(*m_game.GetState()->m_pGameData, "device", Vector2(750, -750));
 }
 
 void Client::Update(float dt) {

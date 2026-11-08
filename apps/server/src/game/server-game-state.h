@@ -71,6 +71,6 @@ public:
     // current round state
     int nMaxRounds = 11;
     int nCurrentRound = 1;
-    int nRoundWinsRequired = 2;
+    int nRoundWinsRequired = 6;
     ERoundState eRoundState = ERoundState::PRE_ROUND;
 };
