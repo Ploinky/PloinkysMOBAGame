@@ -8,6 +8,16 @@ void CRoundSystem::Update(CServerGameState* pGameState, float fDelta) {
         }
         return;
     }
+
+    if (pGameState->eRoundState == ERoundState::PRE_ROUND) {
+        m_fPreRoundTimer += fDelta;
+
+        if (m_fPreRoundTimer >= m_fTotalPreRoundTime) {
+            pGameState->eRoundState = ERoundState::SEARCH;
+        }
+        return;
+    }
+
     if (pGameState->eRoundState == ERoundState::POST_ROUND) {
         m_fPostRoundTimer += fDelta;
 

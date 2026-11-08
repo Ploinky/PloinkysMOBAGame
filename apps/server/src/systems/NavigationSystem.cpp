@@ -276,3 +276,9 @@ void CNavigationSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent&
 
     RemoveBlocker(pGameState, evt.idTarget);
 }
+
+void CNavigationSystem::OnRespawn(CServerGameState* pGameState, const CRespawnEvent& evt) {
+    if (NavigationComponent_t* pNav = pGameState->GetNavigation(evt.idTarget)) {
+        pNav->eStatus = ENavigationStatus::IDLE;
+    }
+}

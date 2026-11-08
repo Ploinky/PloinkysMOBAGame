@@ -9,6 +9,13 @@ CMovementSystem::CMovementSystem() {
 }
 
 void CMovementSystem::Update(CServerGameState* pGameState, float fDelta) {
+    if (pGameState->eRoundState == ERoundState::PRE_ROUND
+        || pGameState->eRoundState == ERoundState::POST_ROUND
+        || pGameState->eRoundState == ERoundState::POST_GAME
+    ) {
+        return;
+    }
+
     for(auto& [id, move] : pGameState->GetAllMovement()) {
         UpdateEntity(pGameState, fDelta, move, id);
     }
@@ -103,6 +110,22 @@ void CMovementSystem::OnDeath(CServerGameState* pGameState, const CDeathEvent& e
     }
 
     pMoveComp->vec3Target = pTransformComp->GetPosition();
+}
+
+void CMovementSystem::OnRespawn(CServerGameState* pGameState, const CRespawnEvent& evt) {
+    if(TransformComponent_t* pTransform = pGameState->GetTransform(evt.idTarget)) {
+        if (TeamComponent_t* pTeam = pGameState->GetTeam(evt.idTarget)) {
+            if (MovementComponent_t* pMove = pGameState->GetMovement(evt.idTarget)) {
+                if (pTeam->eTeam == Team::TEAM_1) {
+                    pTransform->SetPosition(Vector3(200, 0, -700 + (100 * (int) evt.idTarget)));
+                } else {
+                    pTransform->SetPosition(Vector3(1000, 0, -700 + (100 * (int) evt.idTarget)));
+                }
+                pMove->vec3Target = pTransform->GetPosition();
+                pGameState->EmitEvent(CMoveEvent(evt.idTarget, pTransform->GetPosition(), pTransform->GetRotation().y));
+            }
+        }
+    }
 }
 
 void CMovementSystem::OnStop(CServerGameState* pGameState, const CStopEvent& evt) {

@@ -48,9 +48,7 @@ void CRespawnSystem::Update(CServerGameState* pGameState, float fDelta) {
 
 void CRespawnSystem::OnRoundReset(CServerGameState* pGameState, const CRoundResetEvent& evt) {
     for (auto& [id, respawn] : pGameState->GetAllRespawn()) {
-        if (pGameState->GetHealth(id)->bIsDead) {
-            pGameState->EmitEvent(CRespawnEvent(id));
-        }
+        pGameState->EmitEvent(CRespawnEvent(id));
     }
 }
 

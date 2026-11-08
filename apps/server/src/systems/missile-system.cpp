@@ -5,6 +5,13 @@ CMissileSystem::CMissileSystem() {
 }
 
 void CMissileSystem::Update(CServerGameState* pGameState, float fDelta) {
+    if (pGameState->eRoundState == ERoundState::PRE_ROUND
+        || pGameState->eRoundState == ERoundState::POST_ROUND
+        || pGameState->eRoundState == ERoundState::POST_GAME
+    ) {
+        return;
+    }
+
     for (auto [id, missile] : pGameState->GetAllMissile()) {
         MovementComponent_t* pMove = pGameState->GetMovement(id);
         TransformComponent_t* pTransform = pGameState->GetTransform(id);

@@ -13,4 +13,5 @@ public:
 
     REGISTER_EVENT_HANDLER(CMovementSystem, CDeathEvent, OnDeath);
     REGISTER_EVENT_HANDLER(CMovementSystem, CStopEvent, OnStop);
+    REGISTER_EVENT_HANDLER(CMovementSystem, CRespawnEvent, OnRespawn);
 };

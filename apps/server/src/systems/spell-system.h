@@ -16,6 +16,7 @@ public:
     REGISTER_EVENT_HANDLER(CSpellSystem, CAttackIntentionEvent, OnAttackIntention)
     REGISTER_EVENT_HANDLER(CSpellSystem, CUseEntityEvent, OnUseEntity)
     REGISTER_EVENT_HANDLER(CSpellSystem, CDeathEvent, OnDeath)
+    REGISTER_EVENT_HANDLER(CSpellSystem, CRespawnEvent, OnRespawn)
 
 private:
     void TryCastSpell(CServerGameState* pGameState, CSpellCastContext* pSpellContext);

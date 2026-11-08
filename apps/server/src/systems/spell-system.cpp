@@ -8,6 +8,13 @@ CSpellSystem::CSpellSystem() {
 }
 
 void CSpellSystem::Update(CServerGameState* pGameState, float fDelta) {
+    if (pGameState->eRoundState == ERoundState::PRE_ROUND
+        || pGameState->eRoundState == ERoundState::POST_ROUND
+        || pGameState->eRoundState == ERoundState::POST_GAME
+    ) {
+        return;
+    }
+
     for(auto& [id, spellComp] : pGameState->GetAllSpellCast()) {
 
         std::vector<SpellSlot_t>& vecSpells = spellComp.vecSpellSlots;
@@ -240,4 +247,14 @@ void CSpellSystem::OnUseEntity(CServerGameState* pGameState, const CUseEntityEve
     };
 
     SpellPointHit(pGameState, context);
+}
+
+
+void CSpellSystem::OnRespawn(CServerGameState* pGameState, const CRespawnEvent& evt) {
+    for (auto& [id, spell] : pGameState->GetAllSpellCast()) {
+        spell.optCurrentCast = std::nullopt;
+        for (SpellSlot_t& spellSlot : spell.vecSpellSlots) {
+            spellSlot.fCooldownRemaining = 0.0f;
+        }
+    }
 }
